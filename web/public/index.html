@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.css">
+    <link rel="stylesheet" href="/css/main.css">
+    <script src="/js/app.js" charset="utf-8"></script>
+  </head>
+  <body>
+    <form class="match js-match" autocomplete="off">
+      <div class="players">
+        <fieldset name="player1" class="player">
+          <legend>Player 1</legend>
+          <div class="layout">
+            <fieldset name="competitor" class="competitor">
+              <legend>Competitor</legend>
+              <div class="layout">
+                <input type="text" name="players[0][sponsor]" placeholder="Sponsor">
+                <input type="text" name="players[0][handle]" placeholder="Handle">
+              </div>
+            </fieldset>
+            <input type="number" name="players[0][score]" class="score" value="0" min="0">
+          </div>
+        </fieldset>
+        <fieldset name="player2" class="player">
+          <legend>Player 2</legend>
+          <div class="layout">
+            <fieldset name="competitor" class="competitor">
+              <legend>Competitor</legend>
+              <div class="layout">
+                <input type="text" name="players[1][sponsor]" placeholder="Sponsor">
+                <input type="text" name="players[1][handle]" placeholder="Handle">
+              </div>
+            </fieldset>
+            <input type="number" name="players[1][score]" class="score" value="0" min="0">
+          </div>
+        </fieldset>
+      </div>
+      <button type="submit">Update</button>
+    </form>
+  </body>
+</html>

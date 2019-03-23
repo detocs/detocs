@@ -1,0 +1,61 @@
+:root {
+  --color-bg: hsl(180, 13%, 16%);
+  --color-text: #ddd;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-size: 120%;
+}
+
+.players {
+  display: grid;
+  grid-template-columns: auto auto;
+}
+
+.player > .layout {
+  display: flex;
+}
+
+.player:nth-child(2n+1) > .layout {
+  flex-direction: row;
+}
+
+.player:nth-child(2n) > .layout {
+  flex-direction: row-reverse;
+}
+
+.competitor {
+  flex: 1 1 auto;
+}
+
+.competitor > .layout {
+  display: flex;
+  flex-direction: row;
+}
+
+.competitor input {
+  margin: 0 0.5em;
+}
+
+.competitor [name="sponsor"] {
+  flex: 0 1 5em;
+}
+
+.competitor [name="handle"] {
+  flex: 1 1 auto;
+}
+
+.score {
+  flex: 0 0 auto;
+  width: 2em;
+
+  font-size: 2em;
+  text-align: center;
+}
+
+.match [type="submit"] {
+  display: block;
+  width: 100%;
+}

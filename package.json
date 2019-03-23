@@ -1,0 +1,26 @@
+{
+  "name": "dasc",
+  "version": "0.0.1",
+  "description": "An overlay controller for esports broadcasts",
+  "main": "main.js",
+  "module": "main.ts",
+  "license": "AGPL-3.0",
+  "scripts": {
+    "tsc": "tsc",
+    "prestart": "npm run tsc",
+    "start": "node main.js"
+  },
+  "dependencies": {
+    "@types/cors": "^2.8.4",
+    "@types/express": "^4.16.1",
+    "@types/express-formidable": "^1.0.3",
+    "@types/ws": "^6.0.1",
+    "cors": "^2.8.5",
+    "esm": "^3.2.18",
+    "express": "^4.16.4",
+    "express-formidable": "^1.2.0",
+    "log4js": "^4.0.2",
+    "typescript": "^3.3.3333",
+    "ws": "^6.2.0"
+  }
+}
