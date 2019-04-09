@@ -1,7 +1,7 @@
 {
-  "name": "dasc",
+  "name": "detocs",
   "version": "0.0.1",
-  "description": "An overlay controller for esports broadcasts",
+  "description": "Datagram's Esports Tournament Overlay Control System",
   "main": "main.js",
   "module": "main.ts",
   "license": "AGPL-3.0",
