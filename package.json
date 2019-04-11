@@ -20,7 +20,12 @@
     "express": "^4.16.4",
     "express-formidable": "^1.2.0",
     "log4js": "^4.0.2",
-    "typescript": "^3.3.3333",
     "ws": "^6.2.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^1.6.0",
+    "@typescript-eslint/parser": "^1.6.0",
+    "eslint": "^5.16.0",
+    "typescript": "^3.4.2"
   }
 }
