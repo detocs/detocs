@@ -3,7 +3,7 @@ const SERVER_PORT = String(58586);
 let updateID: string;
 
 document.addEventListener('DOMContentLoaded', () => {
-  const forms = document.getElementsByClassName('js-match') as HTMLCollectionOf<HTMLFormElement>;
+  const forms = document.getElementsByClassName('js-scoreboard') as HTMLCollectionOf<HTMLFormElement>;
   for (const form of forms) {
     form.onsubmit = (event: Event) => {
       event.preventDefault();

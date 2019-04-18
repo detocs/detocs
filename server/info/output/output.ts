@@ -1,5 +1,5 @@
-import Match from '../../../models/match';
+import Scoreboard from '../../../models/scoreboard';
 
 export default interface Output {
-  match(match: Match): void;
+  update(match: Scoreboard): void;
 }

@@ -9,20 +9,24 @@ body {
   font-size: 120%;
 }
 
+.input-row {
+  display: flex;
+}
+
+.input-row > * {
+  flex-grow: 1;
+}
+
 .players {
   display: grid;
   grid-template-columns: auto auto;
 }
 
-.player > .layout {
-  display: flex;
-}
-
-.player:nth-child(2n+1) > .layout {
+.player:nth-child(2n+1) > .input-row {
   flex-direction: row;
 }
 
-.player:nth-child(2n) > .layout {
+.player:nth-child(2n) > .input-row {
   flex-direction: row-reverse;
 }
 
@@ -30,21 +34,17 @@ body {
   flex: 1 1 auto;
 }
 
-.competitor > .layout {
-  display: flex;
-  flex-direction: row;
+input + input {
+  margin-left: 0.5em;
 }
 
-.competitor input {
-  margin: 0 0.5em;
-}
-
-.competitor [name="sponsor"] {
-  flex: 0 1 5em;
-}
-
-.competitor [name="handle"] {
+.competitor .prefix {
   flex: 1 1 auto;
+  width: 5em;
+}
+
+.competitor .handle {
+  flex: 5 1 auto;
 }
 
 .score {
@@ -55,7 +55,7 @@ body {
   text-align: center;
 }
 
-.match [type="submit"] {
+.scoreboard button {
   display: block;
   width: 100%;
 }

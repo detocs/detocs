@@ -8,16 +8,16 @@
     <script src="/js/app.js" charset="utf-8"></script>
   </head>
   <body>
-    <form class="match js-match" autocomplete="off">
+    <form class="scoreboard js-scoreboard" autocomplete="off">
       <div class="players">
         <fieldset name="player1" class="player">
           <legend>Player 1</legend>
-          <div class="layout">
+          <div class="input-row">
             <fieldset name="competitor" class="competitor">
               <legend>Competitor</legend>
-              <div class="layout">
-                <input type="text" name="players[0][sponsor]" placeholder="Sponsor">
-                <input type="text" name="players[0][handle]" placeholder="Handle">
+              <div class="input-row">
+                <input type="text" name="players[0][prefix]" placeholder="Prefix" class="prefix">
+                <input type="text" name="players[0][handle]" placeholder="Handle" class="handle">
               </div>
             </fieldset>
             <input type="number" name="players[0][score]" class="score" value="0" min="0">
@@ -25,19 +25,38 @@
         </fieldset>
         <fieldset name="player2" class="player">
           <legend>Player 2</legend>
-          <div class="layout">
+          <div class="input-row">
             <fieldset name="competitor" class="competitor">
               <legend>Competitor</legend>
-              <div class="layout">
-                <input type="text" name="players[1][sponsor]" placeholder="Sponsor">
-                <input type="text" name="players[1][handle]" placeholder="Handle">
+              <div class="input-row">
+                <input type="text" name="players[1][prefix]" placeholder="Prefix" class="prefix">
+                <input type="text" name="players[1][handle]" placeholder="Handle" class="handle">
               </div>
             </fieldset>
             <input type="number" name="players[1][score]" class="score" value="0" min="0">
           </div>
         </fieldset>
       </div>
-      <button type="submit">Update</button>
+      <div class="input-row">
+        <fieldset name="match">
+          <legend>Match</legend>
+          <div class="input-row">
+            <input type="text" name="match" placeholder="Match">
+          </div>
+        </fieldset>
+        <fieldset name="game">
+          <legend>Game</legend>
+          <div class="input-row">
+            <input type="text" name="game" placeholder="Game">
+          </div>
+        </fieldset>
+      </div>
+      <div class="input-row">
+        <button type="reset">Reset All</button>
+      </div>
+      <div class="input-row">
+        <button type="submit">Update</button>
+      </div>
     </form>
   </body>
 </html>

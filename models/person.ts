@@ -1,6 +1,6 @@
 export default interface Player {
   handle: string;
-  sponsor: string;
+  prefix: string;
   //smashggId: string;
   //twitterHandle: string;
 }

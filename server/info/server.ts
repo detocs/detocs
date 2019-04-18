@@ -8,9 +8,10 @@ import { Server } from 'http';
 import cors from 'cors';
 
 import uuidv4 from '../../util/uuid';
+import Scoreboard from '../../models/scoreboard';
 import ScoreboardAssistant from './output/scoreboard-assistant';
 
-export default function start(port: number) {
+export default function start(port: number): void {
   const output = new ScoreboardAssistant();
   logger.info('Initializing overlay info server');
 
@@ -20,9 +21,9 @@ export default function start(port: number) {
   httpServer.use(formidable());
   httpServer.post('/match', (req, res) => {
     const uuid = uuidv4();
-    logger.debug(`Match update ${uuid} received:\n`, req.fields);
+    logger.debug(`Scoreboard update ${uuid} received:\n`, req.fields);
     if (req.fields) {
-      output.match(parseBody(req.fields))
+      output.update(parseBody(req.fields))
       res.send({ 'updateId': uuid });
     } else {
       res.sendStatus(400);
@@ -32,7 +33,7 @@ export default function start(port: number) {
   const socketServer = new ws.Server({
     server: httpServer as unknown as Server,
   });
-  socketServer.on('connection', function connection(ws) {
+  socketServer.on('connection', function connection(ws): void {
     // TODO: Send current info
     logger.info('Websocket connection received');
   });
@@ -40,23 +41,25 @@ export default function start(port: number) {
   httpServer.listen(port, () => logger.info(`Listening on port ${port}`));
 };
 
-function parseBody(fields: Record<string, any>) {
+function parseBody(fields: Record<string, any>): Scoreboard {
   return {
     players: [
       {
         person: {
           handle: fields['players[0][handle]'] as string,
-          sponsor: fields['players[0][sponsor]'] as string,
+          prefix: fields['players[0][prefix]'] as string,
         },
         score: fields['players[0][score]'] as number,
       },
       {
         person: {
           handle: fields['players[1][handle]'] as string,
-          sponsor: fields['players[1][sponsor]'] as string,
+          prefix: fields['players[1][prefix]'] as string,
         },
         score: fields['players[1][score]'] as number,
       },
-    ]
+    ],
+    match: fields['match'] as string,
+    game: fields['game'] as string,
   };
 }
