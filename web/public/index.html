@@ -2,10 +2,15 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8">
-    <title></title>
+    <title>DETOCS</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.css">
     <link rel="stylesheet" href="/css/main.css">
     <script src="/js/app.js" charset="utf-8"></script>
+    <template id="player-fields">
+      <input type="hidden" name="players[][id]">
+      <input type="text" name="players[][prefix]" placeholder="Prefix" class="prefix">
+      <input type="text" name="players[][handle]" placeholder="Handle" class="handle">
+    </template>
   </head>
   <body>
     <form class="scoreboard js-scoreboard" autocomplete="off">
@@ -15,12 +20,9 @@
           <div class="input-row">
             <fieldset name="competitor" class="competitor">
               <legend>Competitor</legend>
-              <div class="input-row">
-                <input type="text" name="players[0][prefix]" placeholder="Prefix" class="prefix">
-                <input type="text" name="players[0][handle]" placeholder="Handle" class="handle">
-              </div>
+              <player-fields class="input-row"></player-fields>
             </fieldset>
-            <input type="number" name="players[0][score]" class="score" value="0" min="0">
+            <input type="number" name="players[][score]" class="score" value="0" min="0">
           </div>
         </fieldset>
         <fieldset name="player2" class="player">
@@ -28,12 +30,9 @@
           <div class="input-row">
             <fieldset name="competitor" class="competitor">
               <legend>Competitor</legend>
-              <div class="input-row">
-                <input type="text" name="players[1][prefix]" placeholder="Prefix" class="prefix">
-                <input type="text" name="players[1][handle]" placeholder="Handle" class="handle">
-              </div>
+              <player-fields class="input-row"></player-fields>
             </fieldset>
-            <input type="number" name="players[1][score]" class="score" value="0" min="0">
+            <input type="number" name="players[][score]" class="score" value="0" min="0">
           </div>
         </fieldset>
       </div>

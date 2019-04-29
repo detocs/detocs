@@ -34,7 +34,7 @@ body {
   flex: 1 1 auto;
 }
 
-input + input {
+input[type="text"] + input[type="text"] {
   margin-left: 0.5em;
 }
 

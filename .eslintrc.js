@@ -10,6 +10,7 @@ module.exports = {
     sourceType: 'module', // Allows for the use of imports
   },
   rules: {
+    'max-len': ['error', { 'code': 100 }],
     '@typescript-eslint/indent': [ERROR, 2],
     '@typescript-eslint/explicit-function-return-type': [
       'warn',
