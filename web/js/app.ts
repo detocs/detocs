@@ -1,7 +1,11 @@
-import './player-fields';
+import Scoreboard from '../../models/scoreboard';
+
+import PlayerFields from './player-fields';
 import { infoEndpoint } from './api';
 
 let updateID: string;
+
+customElements.define('player-fields', PlayerFields);
 
 document.addEventListener('DOMContentLoaded', () => {
   const forms = document.getElementsByClassName('js-scoreboard') as
@@ -13,8 +17,9 @@ document.addEventListener('DOMContentLoaded', () => {
       let data = new FormData(form);
       data = massagedFormDate(data);
       fetch(infoEndpoint('/scoreboard').href, { method: 'POST', body: data })
-        .then(res => res.json().then(saveUpdateId))
-        .catch(alert);
+        .catch(alert)
+        .then(res => res && res.json())
+        .then(handleUpdateResponse);
     }
   }
 });
@@ -40,9 +45,18 @@ function massagedFormDate(data: FormData): FormData {
 
 interface UpdateResponse {
   readonly 'updateId': string;
+  readonly 'scoreboard': Scoreboard;
 }
 
-function saveUpdateId(data: UpdateResponse): void {
+function handleUpdateResponse(data: UpdateResponse): void {
   console.log(data);
   updateID = data['updateId'];
+  updatePlayerFields(data['scoreboard'].players);
+}
+
+function updatePlayerFields(players: Scoreboard['players']): void {
+  const elems: NodeListOf<PlayerFields> = document.querySelectorAll('player-fields');
+  for (let i = 0; i < elems.length; i++) {
+    elems[i].updatePerson(players[i].person);
+  }
 }

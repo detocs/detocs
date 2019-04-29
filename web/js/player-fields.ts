@@ -1,50 +1,71 @@
+import Person from '../../models/person';
+
 import { infoEndpoint } from './api';
 import { cloneTemplate } from './dom-util';
 
 const idRegex = /\{(\d+)\}/;
 let playerFieldsCounter = 0;
 
-class PlayerFields extends HTMLElement {
-  private connectedCallback(): void {
-    cloneTemplate('player-fields', this);
-    const idField = this.querySelector('[name="players[][id]"]') as HTMLInputElement;
-    const handleField = this.querySelector('[name="players[][handle]"]') as HTMLInputElement;
-    const prefixField = this.querySelector('[name="players[][prefix]"]') as HTMLInputElement;
+export default class PlayerFields extends HTMLElement {
+  private fragment: DocumentFragment;
+  private idField: HTMLInputElement;
+  private handleField: HTMLInputElement;
+  private prefixField: HTMLInputElement;
+  private autocomplete: HTMLDataListElement;
 
-    const autocomplete = document.createElement('datalist');
-    autocomplete.id = PlayerFields.nextId();
-    handleField.setAttribute('list', autocomplete.id);
-    this.append(autocomplete);
+  private constructor() {
+    super();
+    this.fragment = cloneTemplate('player-fields');
+    const idField = this.fragment.querySelector('[name="players[][id]"]');
+    const handleField = this.fragment.querySelector('[name="players[][handle]"]');
+    const prefixField = this.fragment.querySelector('[name="players[][prefix]"]');
+    if (!idField || !handleField || !prefixField) {
+      throw new Error('Template not loaded correctly');
+    }
+    this.idField = idField as HTMLInputElement;
+    this.handleField = handleField as HTMLInputElement;
+    this.prefixField = prefixField as HTMLInputElement;
 
-    handleField && handleField.addEventListener('input', () => {
-      const value = handleField.value;
-      const match = idRegex.exec(value);
-      if (match) {
-        const id = match[1];
-        fetch(infoEndpoint(`/people/${id}`).href)
-          .catch(console.error)
-          .then(resp => resp && resp.json())
-          .then(person => {
-            idField.value = person.id;
-            handleField.value = person.handle;
-            prefixField.value = person.prefix;
-          });
-        return;
-      }
-
-      idField.value = '';
-      if (value.length > 1) {
-        const url = infoEndpoint('/people');
-        url.search = `q=${encodeURIComponent(value)}`
-        fetch(url.href)
-          .catch(console.error)
-          .then(resp => resp && resp.json())
-          .then(people => PlayerFields.updateDataList(autocomplete, people));
-      }
-    });
+    this.autocomplete = document.createElement('datalist');
+    this.autocomplete.id = PlayerFields.nextId();
+    this.handleField.setAttribute('list', this.autocomplete.id);
+    this.fragment.append(this.autocomplete);
   }
 
-  private static updateDataList(elem: HTMLDataListElement, people: any[]): void {
+  private connectedCallback(): void {
+    this.append(this.fragment);
+    this.handleField.addEventListener('input', this.handleInput.bind(this));
+  }
+
+  private handleInput(): void {
+    const value = this.handleField.value;
+    const match = idRegex.exec(value);
+    if (match) {
+      const id = match[1];
+      fetch(infoEndpoint(`/people/${id}`).href)
+        .catch(console.error)
+        .then(resp => resp && resp.json())
+        .then(this.updatePerson.bind(this));
+      return;
+    }
+    this.idField.value = '';
+    if (value.length > 1) {
+      const url = infoEndpoint('/people');
+      url.search = `q=${encodeURIComponent(value)}`;
+      fetch(url.href)
+        .catch(console.error)
+        .then(resp => resp && resp.json())
+        .then(people => PlayerFields.updateDataList(this.autocomplete, people));
+    }
+  }
+
+  public updatePerson(person: Person): void {
+    this.idField.value = person.id == null ? '' : person.id.toString();
+    this.handleField.value = person.handle;
+    this.prefixField.value = person.prefix || '';
+  }
+
+  private static updateDataList(elem: HTMLDataListElement, people: Person[]): void {
     const range = document.createRange();
     range.selectNodeContents(elem);
     range.deleteContents();
@@ -58,4 +79,3 @@ class PlayerFields extends HTMLElement {
     return `pf-${playerFieldsCounter++}`;
   }
 }
-customElements.define('player-fields', PlayerFields);

@@ -25,11 +25,11 @@ export default function start(port: number): void {
     const uuid = uuidv4();
     logger.debug(`Scoreboard update ${uuid} received:\n`, req.fields);
     if (req.fields) {
-      const scorebaord = parseBody(req.fields);
-      output.update(scorebaord)
+      const scoreboard = parseBody(req.fields);
+      output.update(scoreboard)
       res.send({
         'updateId': uuid,
-        'scoreboard': scorebaord,
+        'scoreboard': scoreboard,
       });
     } else {
       res.sendStatus(400);
@@ -79,6 +79,7 @@ function parseBody(fields: Record<string, any>): Scoreboard {
     }
     players.push({ person, score });
   }
+  // TODO: Reload people from datastore?
   return {
     players,
     match: fields['match'] as string,

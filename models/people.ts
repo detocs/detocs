@@ -1,7 +1,7 @@
 import log4js from 'log4js';
 const logger = log4js.getLogger('people');
 
-import Person from './person';
+import Person, { isEqual } from './person';
 
 const people: Person[] = [
   { id: 0, handle: 'Datagram', prefix: 'LP'},
@@ -30,13 +30,13 @@ export function add(person: Person): Person {
 }
 
 export function update(old: Person, updated: Person): void {
-  logger.info('update person:', old, updated);
-  for (let p of people) {
-    if (p.id === old.id) {
-      p = updated;
+  people.forEach((p, i) => {
+    if (p.id === old.id && !isEqual(p, updated)) {
+      logger.info('update person:', old, updated);
+      people[i] = updated;
+      logger.debug('People:', people);
     }
-  }
-  logger.debug('People:', people);
+  });
 }
 
 export function searchByHandle(query: string): Person[] {
