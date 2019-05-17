@@ -11,6 +11,8 @@ module.exports = {
   },
   rules: {
     'max-len': ['error', { 'code': 100 }],
+    'semi': 'off',
+    '@typescript-eslint/semi': ['error', 'always'],
     '@typescript-eslint/indent': [ERROR, 2],
     '@typescript-eslint/explicit-function-return-type': [
       'warn',
