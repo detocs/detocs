@@ -1,44 +1,48 @@
 import Person from '../../models/person';
 
 import { infoEndpoint } from './api';
-import { cloneTemplate } from './dom-util';
 
 const idRegex = /\{(\d+)\}/;
 let playerFieldsCounter = 0;
 
 export default class PlayerFields extends HTMLElement {
-  private fragment: DocumentFragment;
+  private fragment = document.createDocumentFragment();
+  private fields: {[name: string]: HTMLInputElement} = {};
   private idField: HTMLInputElement;
-  private handleField: HTMLInputElement;
-  private prefixField: HTMLInputElement;
   private autocomplete: HTMLDataListElement;
 
   private constructor() {
     super();
-    this.fragment = cloneTemplate('player-fields');
-    const idField = this.fragment.querySelector('[name="players[][id]"]');
-    const handleField = this.fragment.querySelector('[name="players[][handle]"]');
-    const prefixField = this.fragment.querySelector('[name="players[][prefix]"]');
-    if (!idField || !handleField || !prefixField) {
-      throw new Error('Template not loaded correctly');
-    }
-    this.idField = idField as HTMLInputElement;
-    this.handleField = handleField as HTMLInputElement;
-    this.prefixField = prefixField as HTMLInputElement;
+    this.idField = document.createElement('input');
+    this.idField.type = 'hidden';
+    this.idField.name = 'players[][id]';
+    this.fragment.append(this.idField);
 
     this.autocomplete = document.createElement('datalist');
     this.autocomplete.id = PlayerFields.nextId();
-    this.handleField.setAttribute('list', this.autocomplete.id);
     this.fragment.append(this.autocomplete);
   }
 
   private connectedCallback(): void {
+    const fieldList: string[] = JSON.parse(this.dataset.fields || '[]');
+    for (const field of fieldList) {
+      const elem = PlayerFields.createFieldInput(field, PlayerFields.capitalize(field));
+      this.fields[field] = elem;
+      this.fragment.append(elem);
+    }
+
+    const handleField = this.fields['handle'];
+    if (!handleField) {
+      throw new Error('Handle field must be included');
+    }
+    handleField.setAttribute('list', this.autocomplete.id);
+    handleField.addEventListener('input', this.handleInput.bind(this));
+
     this.append(this.fragment);
-    this.handleField.addEventListener('input', this.handleInput.bind(this));
   }
 
-  private handleInput(): void {
-    const value = this.handleField.value;
+  private handleInput(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
     const match = idRegex.exec(value);
     if (match) {
       const id = match[1];
@@ -61,8 +65,39 @@ export default class PlayerFields extends HTMLElement {
 
   public updatePerson(person: Person): void {
     this.idField.value = person.id == null ? '' : person.id.toString();
-    this.handleField.value = person.handle;
-    this.prefixField.value = person.prefix || '';
+    for (const field in this.fields) {
+      let value = '';
+      switch (field) {
+        case 'handle':
+          value = person.handle;
+          break;
+        case 'prefix':
+          value = person.prefix || '';
+          break;
+        case 'twitter':
+          value = person.twitter || '';
+          break;
+      }
+      this.fields[field].value = value;
+    }
+  }
+
+  public getId(): number | null {
+    const val = this.idField.value;
+    return val ? +val : null;
+  }
+
+  private static createFieldInput(name: string, placeholder: string): HTMLInputElement {
+    const elem = document.createElement('input');
+    elem.type = 'text';
+    elem.name = `players[][${name}]`;
+    elem.placeholder = placeholder;
+    elem.className = name;
+    return elem;
+  }
+
+  private static capitalize(str: string): string {
+    return `${str[0].toUpperCase()}${str.substring(1)}`;
   }
 
   private static updateDataList(elem: HTMLDataListElement, people: Person[]): void {

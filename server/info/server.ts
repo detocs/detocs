@@ -9,9 +9,10 @@ import cors from 'cors';
 
 import uuidv4 from '../../util/uuid';
 import * as People from '../../models/people';
-import Person from '../../models/person';
+import Person, { PersonUpdate } from '../../models/person';
 import Scoreboard from '../../models/scoreboard';
 import ScoreboardAssistant from './output/scoreboard-assistant';
+import LowerThird from '../../models/lower-third';
 
 export default function start(port: number): void {
   const output = new ScoreboardAssistant();
@@ -25,11 +26,25 @@ export default function start(port: number): void {
     const uuid = uuidv4();
     logger.debug(`Scoreboard update ${uuid} received:\n`, req.fields);
     if (req.fields) {
-      const scoreboard = parseBody(req.fields);
-      output.update(scoreboard)
+      const scoreboard = parseScoreboard(req.fields);
+      output.updateScoreboard(scoreboard);
       res.send({
         'updateId': uuid,
         'scoreboard': scoreboard,
+      });
+    } else {
+      res.sendStatus(400);
+    }
+  });
+  httpServer.post('/lowerthird', (req, res) => {
+    const uuid = uuidv4();
+    logger.debug(`Lower third update ${uuid} received:\n`, req.fields);
+    if (req.fields) {
+      const lowerThird = parseLowerThird(req.fields);
+      output.updateLowerThird(lowerThird);
+      res.send({
+        'updateId': uuid,
+        'lowerThird': lowerThird,
       });
     } else {
       res.sendStatus(400);
@@ -59,24 +74,14 @@ export default function start(port: number): void {
   httpServer.listen(port, () => logger.info(`Listening on port ${port}`));
 };
 
-function parseBody(fields: Record<string, any>): Scoreboard {
+function parseScoreboard(fields: Record<string, any>): Scoreboard {
   const players = [];
   for (let i = 0; i < 2; i++) {
-    const idStr: string | undefined = fields[`players[${i}][id]`];
-    const id: number | undefined = idStr ? parseInt(idStr) : undefined;
-    const scoreStr: string | undefined = fields[`players[${i}][score]`] || 0;
+    const fieldPrefix = `players[${i}]`;
+    const person = parsePerson(fields, fieldPrefix);
+
+    const scoreStr: string | undefined = fields[`${fieldPrefix}[score]`] || 0;
     const score: number = (scoreStr && parseInt(scoreStr)) || 0;
-    let person: Person = {
-      id,
-      handle: fields[`players[${i}][handle]`] as string,
-      prefix: fields[`players[${i}][prefix]`] as string,
-    };
-    let savedPerson = People.getById(id);
-    if (savedPerson) {
-      People.update(savedPerson, person);
-    } else {
-      person = People.add(person);
-    }
     players.push({ person, score });
   }
   // TODO: Reload people from datastore?
@@ -85,4 +90,37 @@ function parseBody(fields: Record<string, any>): Scoreboard {
     match: fields['match'] as string,
     game: fields['game'] as string,
   };
+}
+
+function parseLowerThird(fields: Record<string, any>): LowerThird {
+  const commentators = [];
+  for (let i = 0; i < 2; i++) {
+    const fieldPrefix = `players[${i}]`;
+    const person = parsePerson(fields, fieldPrefix);
+    commentators.push({ person });
+  }
+  // TODO: Reload people from datastore?
+  return {
+    commentators,
+    match: fields['match'] as string,
+    game: fields['game'] as string,
+  };
+}
+
+function parsePerson(fields: Record<string, any>, fieldPrefix: string): Person {
+  const idStr: string | undefined = fields[`${fieldPrefix}[id]`];
+  const id: number | undefined = idStr ? parseInt(idStr) : undefined;
+  const update: PersonUpdate = {
+    id,
+    handle: fields[`${fieldPrefix}[handle]`] as string,
+  };
+  const prefix: string | null | undefined = fields[`${fieldPrefix}[prefix]`];
+  if (prefix != null) {
+    update.prefix = prefix;
+  }
+  const twitter: string | null | undefined = fields[`${fieldPrefix}[twitter]`];
+  if (twitter != null) {
+    update.twitter = twitter;
+  }
+  return People.save(update);
 }

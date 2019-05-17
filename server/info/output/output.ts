@@ -1,5 +1,7 @@
 import Scoreboard from '../../../models/scoreboard';
+import LowerThird from '../../../models/lower-third';
 
 export default interface Output {
-  update(match: Scoreboard): void;
+  updateScoreboard(scoreboard: Scoreboard): void;
+  updateLowerThird(lowerThird: LowerThird): void;
 }

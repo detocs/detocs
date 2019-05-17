@@ -1,12 +1,21 @@
 :root {
   --color-bg: hsl(180, 13%, 16%);
+  --color-bg-focus: hsl(180, 13%, 32%);
+  --color-bg-inactive: hsl(180, 13%, 8%);
+  --color-bg-active: #ddd;
   --color-text: #ddd;
+  --color-text-focus: #ddd;
+  --color-text-active: hsl(180, 13%, 16%);
+  --color-focus: hsl(180, 100%, 40%);
+  --color-selection: hsl(180, 80%, 20%);
+  --tab-height: 2rem;
+  --width-border: 2px;
+  font-size: 120%;
 }
 
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
-  font-size: 120%;
 }
 
 .input-row {
@@ -15,6 +24,11 @@ body {
 
 .input-row > * {
   flex-grow: 1;
+}
+
+.input-row button {
+  display: block;
+  width: 100%;
 }
 
 .players {
@@ -38,12 +52,21 @@ input[type="text"] + input[type="text"] {
   margin-left: 0.5em;
 }
 
-.competitor .prefix {
+input:focus {
+  outline: 0.2rem solid var(--color-focus);
+}
+
+::selection {
+  background: var(--color-selection);
+  color: white;
+}
+
+.prefix {
   flex: 1 1 auto;
   width: 5em;
 }
 
-.competitor .handle {
+.handle {
   flex: 5 1 auto;
 }
 
@@ -55,7 +78,58 @@ input[type="text"] + input[type="text"] {
   text-align: center;
 }
 
-.scoreboard button {
-  display: block;
-  width: 100%;
+main {
+  height: var(--tab-height);
+
+  display: flex;
+  padding: 0 1em;
+
+  background-color: var(--color-bg-inactive);
 }
+
+.tabbable-section {
+  display: inline-flex;
+}
+
+.tabbable-section > h2 {
+  background-color: var(--color-bg);
+  border: var(--width-border) solid currentColor;
+  border-bottom-width: 0;
+  font-size: 1rem;
+  font-weight: normal;
+  margin: 0;
+  margin-inline-end: calc(-1 * var(--width-border));
+}
+
+.tabbable-section > h2 label {
+  display: block;
+
+  line-height: var(--tab-height);
+  padding: 0 1em;
+}
+
+.tabbable-section-control:checked ~ h2 {
+  z-index: 1;
+
+  color: var(--color-text-active);
+  background-color: var(--color-bg-active);
+  border-color: var(--color-bg-active);
+}
+
+.tabbable-section-content {
+  position: fixed;
+  top: var(--tab-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  overflow: auto;
+  padding-top: 0.4em;
+
+  background-color: var(--color-bg);
+  border-top: var(--width-border) solid currentColor;
+}
+
+.tabbable-section-control:checked ~ .tabbable-section-content {
+  z-index: 1;
+} 

@@ -4,6 +4,7 @@ import Output from './output';
 import Scoreboard from '../../../models/scoreboard';
 
 import { getLogger } from 'log4js';
+import LowerThird from '../../../models/lower-third';
 const logger = getLogger('output/scorebaord-assistant');
 
 const PORT = 58341;
@@ -20,7 +21,8 @@ interface ScoreboardAssistantData {
 
 export default class ScoreboardAssistant implements Output {
   private readonly server: WebSocket.Server;
-  private lastMatch?: ScoreboardAssistantData;
+  private lastScoreboard?: ScoreboardAssistantData;
+  private lastLowerThird?: ScoreboardAssistantData;
 
   public constructor() {
     logger.info(`Initializing Scoreboard Assistant adapter on port ${PORT}`);
@@ -29,15 +31,28 @@ export default class ScoreboardAssistant implements Output {
     this.server.on('connection', (ws, req) => {
       logger.info(`New client; Address: ${req.connection.remoteAddress}
 User Agent: ${req.headers['user-agent']}`);
-      if (this.lastMatch) {
-        sendData(ws, this.lastMatch);
-      }
+      this.lastScoreboard && sendData(ws, this.lastScoreboard);
+      this.lastLowerThird && sendData(ws, this.lastLowerThird);
     });
   }
 
-  public update(scoreboard: Scoreboard): void {
-    const converted = convert(scoreboard);
-    this.lastMatch = converted;
+  public updateScoreboard(scoreboard: Scoreboard): void {
+    const converted = convert(scoreboard, 'generic');
+    this.lastScoreboard = converted;
+    this.broadcast(converted);
+  }
+
+  public updateLowerThird(lowerThird: LowerThird): void {
+    const converted = convert({
+      players: lowerThird.commentators.map(c => ({person: c.person, score: 0})),
+      match: lowerThird.match,
+      game: lowerThird.game,
+    }, 'commentators');
+    this.lastLowerThird = converted;
+    this.broadcast(converted);
+  }
+
+  private broadcast(converted: ScoreboardAssistantData): void {
     this.server.clients.forEach(client => {
       sendData(client, converted);
     });
@@ -54,17 +69,18 @@ function sendData(client: any, data: ScoreboardAssistantData): void {
   client.send(json);
 }
 
-function convert(scoreboard: Scoreboard): ScoreboardAssistantData {
+function convert(scoreboard: Scoreboard, tabId: string): ScoreboardAssistantData {
   const players = [];
   for (let i = 0; i < 2; i++) {
-    const handle = removeVerticalBars(scoreboard.players[i].person.handle);
-    let prefix = scoreboard.players[i].person.prefix;
-    prefix = prefix && removeVerticalBars(prefix);
+    const person = scoreboard.players[i].person;
+    const handle = removeVerticalBars(person.handle);
+    let prefix = person.prefix && removeVerticalBars(person.prefix);
     prefix = prefix ? ` | ${prefix}` : '';
-    players.push(`${handle}${prefix}`);
+    const twiter =  person.twitter ? ` @${person.twitter}` : '';
+    players.push(`${handle}${prefix}${twiter}`);
   }
   return {
-    'tabID': 'unist',
+    'tabID': tabId,
     'player1': players[0],
     'player2': players[1],
     'score1': scoreboard.players[0].score.toString(),

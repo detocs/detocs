@@ -1,28 +1,40 @@
+import LowerThird from '../../models/lower-third';
+import Person from '../../models/person';
 import Scoreboard from '../../models/scoreboard';
 
 import PlayerFields from './player-fields';
 import { infoEndpoint } from './api';
+
+type ResponseHandler = (data: any, form: HTMLElement) => void;
 
 let updateID: string;
 
 customElements.define('player-fields', PlayerFields);
 
 document.addEventListener('DOMContentLoaded', () => {
-  const forms = document.getElementsByClassName('js-scoreboard') as
-    HTMLCollectionOf<HTMLFormElement>;
-  for (const form of forms) {
-    form.onsubmit = (event: Event) => {
-      event.preventDefault();
-      const form = event.target as HTMLFormElement;
-      let data = new FormData(form);
-      data = massagedFormDate(data);
-      fetch(infoEndpoint('/scoreboard').href, { method: 'POST', body: data })
-        .catch(alert)
-        .then(res => res && res.json())
-        .then(handleUpdateResponse);
-    }
-  }
+  bindForms('.js-scoreboard', '/scoreboard', handleScoreboardUpdateResponse);
+  bindForms('.js-lowerthird', '/lowerthird', handleLowerThirdUpdateResponse);
 });
+
+function bindForms(formSelector: string, endpoint: string, responseHandler: ResponseHandler): void {
+  const forms = document.querySelectorAll(formSelector) as NodeListOf<HTMLFormElement>;
+  for (const form of forms) {
+    bindForm(form, endpoint, responseHandler);
+  }
+}
+
+function bindForm(form: HTMLFormElement, endpoint: string, responseHandler: ResponseHandler): void {
+  form.onsubmit = (event: Event) => {
+    event.preventDefault();
+    const form = event.target as HTMLFormElement;
+    let data = new FormData(form);
+    data = massagedFormDate(data);
+    fetch(infoEndpoint(endpoint).href, { method: 'POST', body: data })
+      .catch(alert)
+      .then(res => res && res.json())
+      .then(data => responseHandler(data, form));
+  };
+}
 
 /**
  * Shim that lets us pretend that the server can handle repeated keys in
@@ -43,20 +55,44 @@ function massagedFormDate(data: FormData): FormData {
   return ret;
 }
 
-interface UpdateResponse {
+interface ScoreboardUpdateResponse {
   readonly 'updateId': string;
   readonly 'scoreboard': Scoreboard;
 }
 
-function handleUpdateResponse(data: UpdateResponse): void {
+function handleScoreboardUpdateResponse(data: ScoreboardUpdateResponse, form: HTMLElement): void {
   console.log(data);
   updateID = data['updateId'];
-  updatePlayerFields(data['scoreboard'].players);
+  updatePeopleFields(data['scoreboard'].players.map(p => p.person), form);
 }
 
-function updatePlayerFields(players: Scoreboard['players']): void {
-  const elems: NodeListOf<PlayerFields> = document.querySelectorAll('player-fields');
+interface LowerThirdUpdateResponse {
+  readonly 'updateId': string;
+  readonly 'lowerThird': LowerThird;
+}
+
+function handleLowerThirdUpdateResponse(data: LowerThirdUpdateResponse, form: HTMLElement): void {
+  console.log(data);
+  updateID = data['updateId'];
+  updatePeopleFields(data['lowerThird'].commentators.map(p => p.person), form);
+}
+
+function updatePeopleFields(people: Person[], form: HTMLElement): void {
+  // Update person fields in the form that was just submitted
+  const elems: NodeListOf<PlayerFields> = form.querySelectorAll('player-fields');
   for (let i = 0; i < elems.length; i++) {
-    elems[i].updatePerson(players[i].person);
+    elems[i].updatePerson(people[i]);
+  }
+
+  // Update person fields in other forms if IDs match
+  const allElems: NodeListOf<PlayerFields> = document.querySelectorAll('player-fields');
+  for (const elem of allElems) {
+    if (form.contains(elem)) {
+      continue;
+    }
+    const person = people.find(p => p.id === elem.getId());
+    if (person) {
+      elem.updatePerson(person);
+    }
   }
 }

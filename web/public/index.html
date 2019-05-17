@@ -6,56 +6,75 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.css">
     <link rel="stylesheet" href="/css/main.css">
     <script src="/detocs.js" charset="utf-8"></script>
-    <template id="player-fields">
-      <input type="hidden" name="players[][id]">
-      <input type="text" name="players[][prefix]" placeholder="Prefix" class="prefix">
-      <input type="text" name="players[][handle]" placeholder="Handle" class="handle">
-    </template>
   </head>
   <body>
-    <form class="scoreboard js-scoreboard" autocomplete="off">
-      <div class="players">
-        <fieldset name="player1" class="player">
-          <legend>Player 1</legend>
-          <div class="input-row">
-            <fieldset name="competitor" class="competitor">
-              <legend>Competitor</legend>
-              <player-fields class="input-row"></player-fields>
+    <main>
+      <section class="tabbable-section">
+        <input type="radio" class="tabbable-section-control" id="tab-scoreboard" name="main-tabs" hidden checked>
+        <h2><label for="tab-scoreboard" role="presentation">Scoreboard</label></h2>
+        <form class="scoreboard js-scoreboard tabbable-section-content" autocomplete="off">
+          <div class="players">
+            <fieldset name="player1" class="player">
+              <legend>Player 1</legend>
+              <div class="input-row">
+                <fieldset name="competitor" class="competitor">
+                  <legend>Competitor</legend>
+                  <player-fields class="input-row" data-fields='["prefix", "handle"]'></player-fields>
+                </fieldset>
+                <input type="number" name="players[][score]" class="score" value="0" min="0">
+              </div>
             </fieldset>
-            <input type="number" name="players[][score]" class="score" value="0" min="0">
-          </div>
-        </fieldset>
-        <fieldset name="player2" class="player">
-          <legend>Player 2</legend>
-          <div class="input-row">
-            <fieldset name="competitor" class="competitor">
-              <legend>Competitor</legend>
-              <player-fields class="input-row"></player-fields>
+            <fieldset name="player2" class="player">
+              <legend>Player 2</legend>
+              <div class="input-row">
+                <fieldset name="competitor" class="competitor">
+                  <legend>Competitor</legend>
+                  <player-fields class="input-row" data-fields='["prefix", "handle"]'></player-fields>
+                </fieldset>
+                <input type="number" name="players[][score]" class="score" value="0" min="0">
+              </div>
             </fieldset>
-            <input type="number" name="players[][score]" class="score" value="0" min="0">
           </div>
-        </fieldset>
-      </div>
-      <div class="input-row">
-        <fieldset name="match">
-          <legend>Match</legend>
           <div class="input-row">
-            <input type="text" name="match" placeholder="Match">
+            <fieldset name="match">
+              <legend>Match</legend>
+              <div class="input-row">
+                <input type="text" name="match" placeholder="Match">
+              </div>
+            </fieldset>
+            <fieldset name="game">
+              <legend>Game</legend>
+              <div class="input-row">
+                <input type="text" name="game" placeholder="Game">
+              </div>
+            </fieldset>
           </div>
-        </fieldset>
-        <fieldset name="game">
-          <legend>Game</legend>
           <div class="input-row">
-            <input type="text" name="game" placeholder="Game">
+            <button type="reset">Reset All</button>
+            <button type="submit">Update</button>
           </div>
-        </fieldset>
-      </div>
-      <div class="input-row">
-        <button type="reset">Reset All</button>
-      </div>
-      <div class="input-row">
-        <button type="submit">Update</button>
-      </div>
-    </form>
+        </form>
+      </section>
+      <section class="tabbable-section">
+        <input type="radio" class="tabbable-section-control" id="tab-commentary" name="main-tabs" hidden>
+        <h2><label for="tab-commentary" role="presentation">Commentary</label></h2>
+        <form class="commentary js-lowerthird tabbable-section-content" autocomplete="off">
+          <div class="players">
+            <fieldset name="commentator" class="commentator">
+              <legend>Commentator 1</legend>
+              <player-fields class="input-row" data-fields='["prefix", "handle", "twitter"]'></player-fields>
+            </fieldset>
+            <fieldset name="commentator" class="commentator">
+              <legend>Commentator 2</legend>
+              <player-fields class="input-row" data-fields='["prefix", "handle", "twitter"]'></player-fields>
+            </fieldset>
+          </div>
+          <div class="input-row">
+            <button type="reset">Reset All</button>
+            <button type="submit">Update</button>
+          </div>
+        </form>
+      </section>
+    </main>
   </body>
 </html>
