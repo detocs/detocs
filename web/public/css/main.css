@@ -78,7 +78,7 @@ input:focus {
   text-align: center;
 }
 
-main {
+tab-controller {
   height: var(--tab-height);
 
   display: flex;

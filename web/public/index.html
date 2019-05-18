@@ -8,7 +8,7 @@
     <script src="/detocs.js" charset="utf-8"></script>
   </head>
   <body>
-    <main>
+    <tab-controller>
       <section class="tabbable-section">
         <input type="radio" class="tabbable-section-control" id="tab-scoreboard" name="main-tabs" hidden checked>
         <h2><label for="tab-scoreboard" role="presentation">Scoreboard</label></h2>
@@ -19,7 +19,7 @@
               <div class="input-row">
                 <fieldset name="competitor" class="competitor">
                   <legend>Competitor</legend>
-                  <player-fields class="input-row" data-fields='["prefix", "handle"]'></player-fields>
+                  <player-fields class="input-row" data-fields='["handle", "prefix"]'></player-fields>
                 </fieldset>
                 <input type="number" name="players[][score]" class="score" value="0" min="0">
               </div>
@@ -29,7 +29,7 @@
               <div class="input-row">
                 <fieldset name="competitor" class="competitor">
                   <legend>Competitor</legend>
-                  <player-fields class="input-row" data-fields='["prefix", "handle"]'></player-fields>
+                  <player-fields class="input-row" data-fields='["handle", "prefix"]'></player-fields>
                 </fieldset>
                 <input type="number" name="players[][score]" class="score" value="0" min="0">
               </div>
@@ -62,11 +62,11 @@
           <div class="players">
             <fieldset name="commentator" class="commentator">
               <legend>Commentator 1</legend>
-              <player-fields class="input-row" data-fields='["prefix", "handle", "twitter"]'></player-fields>
+              <player-fields class="input-row" data-fields='["handle", "prefix", "twitter"]'></player-fields>
             </fieldset>
             <fieldset name="commentator" class="commentator">
               <legend>Commentator 2</legend>
-              <player-fields class="input-row" data-fields='["prefix", "handle", "twitter"]'></player-fields>
+              <player-fields class="input-row" data-fields='["handle", "prefix", "twitter"]'></player-fields>
             </fieldset>
           </div>
           <div class="input-row">
@@ -75,6 +75,6 @@
           </div>
         </form>
       </section>
-    </main>
+    </tab-controller>
   </body>
 </html>

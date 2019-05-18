@@ -2,14 +2,16 @@ import LowerThird from '../../models/lower-third';
 import Person from '../../models/person';
 import Scoreboard from '../../models/scoreboard';
 
-import PlayerFields from './player-fields';
 import { infoEndpoint } from './api';
+import PlayerFields from './player-fields';
+import TabController from './tab-controller';
 
 type ResponseHandler = (data: any, form: HTMLElement) => void;
 
 let updateID: string;
 
 customElements.define('player-fields', PlayerFields);
+customElements.define('tab-controller', TabController);
 
 document.addEventListener('DOMContentLoaded', () => {
   bindForms('.js-scoreboard', '/scoreboard', handleScoreboardUpdateResponse);
