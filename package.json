@@ -24,13 +24,16 @@
     "log4js": "^4.0.2",
     "moment": "^2.24.0",
     "obs-websocket-js": "^3.0.0",
+    "preact": "^8.4.2",
     "ws": "^6.2.0"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^1.9.0",
     "@typescript-eslint/parser": "^1.6.0",
     "eslint": "^5.16.0",
-    "rollup": "^1.10.1",
+    "eslint-plugin-react": "^7.13.0",
+    "rollup": "^1.14.3",
+    "rollup-plugin-node-resolve": "^5.0.1",
     "typescript": "^3.4.2"
   }
 }

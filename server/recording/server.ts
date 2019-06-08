@@ -7,7 +7,7 @@ import express, { Request, Response } from 'express';
 import formidable from 'express-formidable';
 import find from 'find-process';
 import fs from 'fs';
-import { Server } from 'http';
+import { createServer, Server } from 'http';
 import moment from 'moment';
 import ObsWebSocket from 'obs-websocket-js';
 import path from 'path';
@@ -26,10 +26,10 @@ interface ProcessInfo{
 }
 
 const OBS_WEBSOCKET_PORT = 4444;
-const SCREENSHOT_TIMEOUT = 2000;
+const SCREENSHOT_TIMEOUT = 3000;
 
 const obs = new ObsWebSocket();
-const socketServer: ws.Server | null = null;
+let socketServer: ws.Server | null = null;
 const state: State = {
   recordingFolder: null,
   recordingFile: null,
@@ -52,18 +52,19 @@ export default function start(port: number): void {
     }
   });
 
-  const httpServer = express();
+  const app = express();
   // TODO: Security?
-  httpServer.use(cors());
-  httpServer.use(formidable());
-  httpServer.get('/start', startClip);
-  httpServer.get('/stop', stopClip);
+  app.use(cors());
+  app.use(formidable());
+  app.get('/start', startClip);
+  app.get('/stop', stopClip);
 
-  const socketServer = new ws.Server({
-    server: httpServer as unknown as Server,
+  const httpServer = createServer(app);
+  socketServer = new ws.Server({
+    server: httpServer,
   });
-  socketServer.on('connection', function connection(ws): void {
-    ws.send(state);
+  socketServer.on('connection', function connection(client): void {
+    client.send(JSON.stringify(state));
     logger.info('Websocket connection received');
   });
 
@@ -88,9 +89,10 @@ function broadcastState(state: State): void {
   if (!socketServer) {
     return;
   }
+  //logger.debug('Broadcasting state: ', state);
   socketServer.clients.forEach(client => {
     if (client.readyState === ws.OPEN) {
-      client.send(state);
+      client.send(JSON.stringify(state));
     }
   });
 }
@@ -218,12 +220,11 @@ async function getRecordingTimestamp(): Promise<string | null> {
 }
 
 function getPreviewScreenshot(file: string, timestamp: string): Buffer {
-  logger.debug(timestamp);
   const command = [
     'ffmpeg',
-    `-ss ${timestamp} -noaccurate_seek`,
+    `-ss ${timestamp}`,
     `-i "${file}"`,
-    '-frames:v 1 -c:v png -f rawvideo -filter:v scale="240:-1"',
+    '-frames:v 1 -c:v png -f rawvideo -filter:v scale="240:-1" -an',
     'pipe:',
   ].join(' ');
   logger.debug(command);

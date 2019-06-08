@@ -4,6 +4,7 @@ import Scoreboard from '../../models/scoreboard';
 
 import { infoEndpoint } from './api';
 import PlayerFields from './player-fields';
+import RecordingFieldsElement from './recording-fields';
 import TabController from './tab-controller';
 
 type ResponseHandler = (data: any, form: HTMLElement) => void;
@@ -12,6 +13,7 @@ let updateID: string;
 
 customElements.define('player-fields', PlayerFields);
 customElements.define('tab-controller', TabController);
+customElements.define('recording-fields', RecordingFieldsElement);
 
 document.addEventListener('DOMContentLoaded', () => {
   bindForms('.js-scoreboard', '/scoreboard', handleScoreboardUpdateResponse);
