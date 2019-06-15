@@ -27,7 +27,7 @@ class RecordingFields extends Component {
     stopThumbnail: null,
   };
 
-  private constructor() {
+  public constructor() {
     super();
     this.state = {
       serverState: RecordingFields.nullState,

@@ -1,3 +1,4 @@
+import Game from './game';
 import Person from './person';
 
 export default interface Scoreboard {
@@ -6,5 +7,5 @@ export default interface Scoreboard {
     score: number;
   }[];
   match: string;
-  game: string;
+  game: Game;
 }

@@ -1,8 +1,13 @@
-export default class Game {
-  constructor(
-    public id: string,
-    public name: string,
-    public shortNames: string[],
-    public hashtags: string[],
-  ) {}
+export default interface Game {
+  id: string;
+  name: string;
+  shortNames: string[];
+  hashtags: string[];
+};
+
+export const nullGame: Game = {
+  id: '',
+  name: '',
+  shortNames: [],
+  hashtags: [],
 };

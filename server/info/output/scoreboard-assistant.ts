@@ -1,10 +1,11 @@
 import * as WebSocket from 'ws';
 
-import Output from './output';
+import LowerThird from '../../../models/lower-third';
 import Scoreboard from '../../../models/scoreboard';
 
+import Output from './output';
+
 import { getLogger } from 'log4js';
-import LowerThird from '../../../models/lower-third';
 const logger = getLogger('output/scorebaord-assistant');
 
 const PORT = 58341;
@@ -37,7 +38,7 @@ User Agent: ${req.headers['user-agent']}`);
   }
 
   public updateScoreboard(scoreboard: Scoreboard): void {
-    const converted = convert(scoreboard, 'generic');
+    const converted = convert(scoreboard);
     this.lastScoreboard = converted;
     this.broadcast(converted);
   }
@@ -46,8 +47,8 @@ User Agent: ${req.headers['user-agent']}`);
     const converted = convert({
       players: lowerThird.commentators.map(c => ({person: c.person, score: 0})),
       match: lowerThird.match,
-      game: lowerThird.game,
-    }, 'commentators');
+      game: { id: 'commentators', name: lowerThird.game, shortNames: [], hashtags: [] },
+    });
     this.lastLowerThird = converted;
     this.broadcast(converted);
   }
@@ -69,7 +70,7 @@ function sendData(client: any, data: ScoreboardAssistantData): void {
   client.send(json);
 }
 
-function convert(scoreboard: Scoreboard, tabId: string): ScoreboardAssistantData {
+function convert(scoreboard: Scoreboard): ScoreboardAssistantData {
   const players = [];
   for (let i = 0; i < 2; i++) {
     const person = scoreboard.players[i].person;
@@ -80,14 +81,21 @@ function convert(scoreboard: Scoreboard, tabId: string): ScoreboardAssistantData
     players.push(`${handle}${prefix}${twiter}`);
   }
   return {
-    'tabID': tabId,
+    'tabID': mapTabId(scoreboard.game.id),
     'player1': players[0],
     'player2': players[1],
     'score1': scoreboard.players[0].score.toString(),
     'score2': scoreboard.players[1].score.toString(),
     'match': scoreboard.match,
-    'game': scoreboard.game,
+    'game': scoreboard.game.name,
   };
+}
+
+const tabIdMapping: Record<string, string> = {
+  'uni': 'unist',
+};
+function mapTabId(tabId: string): string {
+  return tabIdMapping[tabId] || tabId;
 }
 
 function removeVerticalBars(str: string): string {
