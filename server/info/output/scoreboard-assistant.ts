@@ -47,7 +47,7 @@ User Agent: ${req.headers['user-agent']}`);
     const converted = convert({
       players: lowerThird.commentators.map(c => ({person: c.person, score: 0})),
       match: lowerThird.match,
-      game: { id: 'commentators', name: lowerThird.game, shortNames: [], hashtags: [] },
+      game: { id: 'commentators', name: lowerThird.game.name, shortNames: [], hashtags: [] },
     });
     this.lastLowerThird = converted;
     this.broadcast(converted);

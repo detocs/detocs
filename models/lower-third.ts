@@ -1,3 +1,4 @@
+import Game from './game';
 import Person from './person';
 
 export default interface LowerThird {
@@ -5,5 +6,5 @@ export default interface LowerThird {
     person: Person;
   }[];
   match: string;
-  game: string;
+  game: Game;
 }

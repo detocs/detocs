@@ -153,6 +153,7 @@ tab-controller {
   height: 135px;
   flex: 0 1 auto;
 
+  background: black;
   border: var(--width-border) solid currentColor;
 }
 

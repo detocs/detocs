@@ -5,15 +5,19 @@ import { execSync } from 'child_process';
 import cors from 'cors';
 import express, { Request, Response } from 'express';
 import formidable from 'express-formidable';
+import filenamify from 'filenamify';
 import find from 'find-process';
 import fs from 'fs';
 import { createServer, Server } from 'http';
-import moment from 'moment';
 import ObsWebSocket from 'obs-websocket-js';
 import path from 'path';
 import * as ws from 'ws';
 
+import InfoState from '../info/state';
+import { INFO_PORT } from "../ports";
+
 import State from './state';
+import { sanitizeTimestamp } from '../../util/timestamp';
 
 interface ProcessInfo{
   pid: number;
@@ -26,7 +30,6 @@ interface ProcessInfo{
 }
 
 const OBS_WEBSOCKET_PORT = 4444;
-const SCREENSHOT_TIMEOUT = 3000;
 
 const obs = new ObsWebSocket();
 let socketServer: ws.Server | null = null;
@@ -115,18 +118,12 @@ async function startClip(_req: Request, res: Response): Promise<void> {
   res.sendStatus(200);
   broadcastState(state);
 
-  setTimeout(() => {
-    if (!state.recordingFile || !state.startTimestamp) {
-      return;
-    }
-    state.startThumbnail = base64Png(
-      getPreviewScreenshot(state.recordingFile, state.startTimestamp));
-    broadcastState(state);
-  }, SCREENSHOT_TIMEOUT);
+  state.startThumbnail = await getCurrentThumbnail();
+  broadcastState(state);
 };
 
-async function stopClip(_req: Request, res: Response): Promise<void> {
-  if (!state.recordingFile) {
+async function stopClip(_: Request, res: Response): Promise<void> {
+  if (!state.recordingFile || !state.recordingFolder) {
     logger.warn('Attempted to stop clip before starting recording in OBS');
     res.sendStatus(400);
     return;
@@ -143,23 +140,19 @@ async function stopClip(_req: Request, res: Response): Promise<void> {
     return;
   }
   logger.debug(`Stopping clip at ${state.stopTimestamp}`);
-  state.clipFile = trimClip(state.recordingFile, state.startTimestamp, state.stopTimestamp);
+
+  state.clipFile = await saveRecording(
+    state.recordingFolder,
+    state.recordingFile,
+    state.startTimestamp,
+    state.stopTimestamp,
+  );
   res.sendStatus(200);
   broadcastState(state);
 
-  setTimeout(() => {
-    if (!state.recordingFile || !state.stopTimestamp) {
-      return;
-    }
-    state.stopThumbnail = base64Png(
-      getPreviewScreenshot(state.recordingFile, state.stopTimestamp));
-    broadcastState(state);
-  }, SCREENSHOT_TIMEOUT);
+  state.stopThumbnail = await getCurrentThumbnail();
+  broadcastState(state);
 };
-
-function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 async function getRecordingFile(): Promise<void> {
   const VIDEO_FILE_EXTENSIONS = ['.flv', '.mp4', '.mov', '.mkv', '.ts', '.m3u8'];
@@ -186,27 +179,61 @@ async function getRecordingFile(): Promise<void> {
   logger.info(`Recording file: ${state.recordingFile}`);
 }
 
-function trimClip(file: string, start: string, end: string): string | null {
-  if (!state.recordingFolder) {
+async function saveRecording(
+  folder: string,
+  sourceFile: string,
+  start: string,
+  end: string
+): Promise<string | null> {
+  const info = await getInfo();
+  if (!info) {
     return null;
   }
-  const outputName = `${sanitizeFilename(start)} - ${sanitizeFilename(end)}${path.extname(file)}`;
-  const outputPath = path.join(state.recordingFolder, outputName);
+  const subFolder = info.game.id || 'clips';
+  const extension = path.extname(sourceFile);
+  const sourceFilename = path.basename(sourceFile, extension);
+  const outputFilename = generateFilename(start, end, info);
+
+  const outputFolder = path.join(folder, sourceFilename, subFolder);
+  fs.mkdirSync(outputFolder, { recursive: true });
+
+  const videoOutputPath = path.join(outputFolder, outputFilename + extension);
+  trimClip(sourceFile, start, end, videoOutputPath);
+
+  const metadataOutputPath = path.join(outputFolder, outputFilename + '.json');
+  saveMetadata(info, metadataOutputPath);
+  return videoOutputPath;
+}
+
+function generateFilename(start: string, end: string, info: InfoState): string {
+  start = sanitizeTimestamp(start);
+  end = sanitizeTimestamp(end);
+  let playerSummary = '';
+  if (info.players.length) {
+    playerSummary = ' - ' + info.players
+      .map(p => p.person.handle)
+      .join(', ');
+  }
+  const gameSummary = info.game.id ? ` - ${info.game.id}` : '';
+  const matchSummary = info.match ? ` - ${info.match}` : '';
+  return filenamify(`${start} - ${end}${gameSummary}${matchSummary}${playerSummary}`);
+}
+
+function trimClip(sourceFile: string, start: string, end: string, outFile: string): void {
   const command = [
     'ffmpeg',
     `-ss ${start}`,
-    `-i "${file}"`,
+    `-i "${sourceFile}"`,
     `-to ${end}`,
-    '-c copy -avoid_negative_ts 1',
-    `"${outputPath}"`,
+    '-codec copy -avoid_negative_ts 1',
+    `"${outFile}"`,
   ].join(' ');
   logger.debug(command);
   execSync(command);
-  return outputPath;
 }
 
-function sanitizeFilename(filename: string): string {
-  return filename.replace(/:/g, '-');
+function saveMetadata(info: InfoState, outFile: string): void {
+  fs.writeFileSync(outFile, JSON.stringify(info, null, 2));
 }
 
 async function isRecording(): Promise<boolean> {
@@ -219,12 +246,43 @@ async function getRecordingTimestamp(): Promise<string | null> {
   return resp['rec-timecode'] || null;
 }
 
-function getPreviewScreenshot(file: string, timestamp: string): Buffer {
+async function getCurrentThumbnail(): Promise<string | null> {
+  const sceneResp = await obs.send('GetCurrentScene')
+    .catch(logger.error.bind(logger));
+  if (!sceneResp) {
+    return null;
+  }
+  const resp = await obs.send('TakeSourceScreenshot' as any, {
+    'sourceName': sceneResp['name'],
+    'embedPictureFormat': 'png',
+    'width': 240,
+    'height': 135,
+  }).catch(logger.error.bind(logger));
+  return resp ? resp['img'] as string : null;
+}
+
+function getThumbnailForStartTimestamp(): void {
+  if (!state.recordingFile || !state.startTimestamp) {
+    return;
+  }
+  state.startThumbnail = base64Png(getVideoThumbnail(state.recordingFile, state.startTimestamp));
+  broadcastState(state);
+}
+
+function getThumbnailForStopTimestamp(): void {
+  if (!state.recordingFile || !state.stopTimestamp) {
+    return;
+  }
+  state.stopThumbnail = base64Png(getVideoThumbnail(state.recordingFile, state.stopTimestamp));
+  broadcastState(state);
+}
+
+function getVideoThumbnail(file: string, timestamp: string): Buffer {
   const command = [
     'ffmpeg',
     `-ss ${timestamp}`,
     `-i "${file}"`,
-    '-frames:v 1 -c:v png -f rawvideo -filter:v scale="240:-1" -an',
+    '-frames:v 1 -codec:v png -f rawvideo -filter:v scale="240:-1" -an',
     'pipe:',
   ].join(' ');
   logger.debug(command);
@@ -236,9 +294,7 @@ function base64Png(image: Buffer): string {
   return `data:image/png;base64,${image.toString('base64')}`;
 }
 
-function offsetTimestamp(timestamp: string, offsetSeconds: number): string {
-  const TIMESTAMP_FORMAT = 'HH:mm:ss.SSS';
-  const time = moment(timestamp, TIMESTAMP_FORMAT);
-  time.add(offsetSeconds, 'seconds');
-  return time.format(TIMESTAMP_FORMAT);
+function getInfo(): Promise<InfoState> {
+  return fetch(`http://localhost:${INFO_PORT}/state`)
+    .then(resp => resp.json());
 }

@@ -4,7 +4,7 @@ const logger = log4js.getLogger('server/info');
 import ws from 'ws';
 import express from 'express';
 import formidable from 'express-formidable';
-import { Server, createServer } from 'http';
+import { createServer } from 'http';
 import cors from 'cors';
 
 import ScoreboardAssistant from './output/scoreboard-assistant';
@@ -16,6 +16,15 @@ import Person, { PersonUpdate } from '../../models/person';
 import Scoreboard from '../../models/scoreboard';
 import uuidv4 from '../../util/uuid';
 
+import State from './state';
+
+const state: State = {
+  players: [],
+  commentators: [],
+  match: '',
+  game: nullGame,
+};
+
 export default function start(port: number): void {
   const output = new ScoreboardAssistant();
   logger.info('Initializing overlay info server');
@@ -24,12 +33,16 @@ export default function start(port: number): void {
   // TODO: Security?
   app.use(cors());
   app.use(formidable());
+  app.get('/state', (req, res) => {
+    res.send(state);
+  });
   app.post('/scoreboard', (req, res) => {
     const uuid = uuidv4();
     logger.debug(`Scoreboard update ${uuid} received:\n`, req.fields);
     if (req.fields) {
       const scoreboard = parseScoreboard(req.fields);
-      output.updateScoreboard(scoreboard);
+      Object.assign(state, scoreboard);
+      output.updateScoreboard(state);
       res.send({
         'updateId': uuid,
         'scoreboard': scoreboard,
@@ -43,7 +56,8 @@ export default function start(port: number): void {
     logger.debug(`Lower third update ${uuid} received:\n`, req.fields);
     if (req.fields) {
       const lowerThird = parseLowerThird(req.fields);
-      output.updateLowerThird(lowerThird);
+      Object.assign(state, lowerThird);
+      output.updateLowerThird(state);
       res.send({
         'updateId': uuid,
         'lowerThird': lowerThird,
@@ -80,27 +94,26 @@ export default function start(port: number): void {
   httpServer.listen(port, () => logger.info(`Listening on port ${port}`));
 };
 
-function parseScoreboard(fields: Record<string, any>): Scoreboard {
+function parseScoreboard(fields: Record<string, unknown>): Scoreboard {
   const players = [];
   for (let i = 0; i < 2; i++) {
     const fieldPrefix = `players[${i}]`;
     const person = parsePerson(fields, fieldPrefix);
 
-    const scoreStr: string | undefined = fields[`${fieldPrefix}[score]`] || 0;
+    const scoreStr = fields[`${fieldPrefix}[score]`] as string | undefined;
     const score: number = (scoreStr && parseInt(scoreStr)) || 0;
     players.push({ person, score });
   }
   // TODO: Reload people from datastore?
 
-  const game = parseGame(fields);
   return {
     players,
-    game,
+    game: parseGame(fields),
     match: fields['match'] as string,
   };
 }
 
-function parseLowerThird(fields: Record<string, any>): LowerThird {
+function parseLowerThird(fields: Record<string, unknown>): LowerThird {
   const commentators = [];
   for (let i = 0; i < 2; i++) {
     const fieldPrefix = `players[${i}]`;
@@ -110,8 +123,8 @@ function parseLowerThird(fields: Record<string, any>): LowerThird {
   // TODO: Reload people from datastore?
   return {
     commentators,
-    match: fields['match'] as string,
-    game: fields['game'] as string,
+    game: state.game,
+    match: state.match,
   };
 }
 
