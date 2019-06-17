@@ -46,8 +46,8 @@ User Agent: ${req.headers['user-agent']}`);
   public updateLowerThird(lowerThird: LowerThird): void {
     const converted = convert({
       players: lowerThird.commentators.map(c => ({person: c.person, score: 0})),
-      match: lowerThird.match,
-      game: { id: 'commentators', name: lowerThird.game.name, shortNames: [], hashtags: [] },
+      match: { id: '', name: lowerThird.tournament, smashggId: null },
+      game: { id: 'commentators', name: lowerThird.event, shortNames: [], hashtags: [] },
     });
     this.lastLowerThird = converted;
     this.broadcast(converted);

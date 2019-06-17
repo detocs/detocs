@@ -22,9 +22,11 @@ import State from './state';
 
 const state: State = {
   players: [],
-  commentators: [],
   match: nullMatch,
   game: nullGame,
+  commentators: [],
+  tournament: '',
+  event: '',
 };
 
 export default function start(port: number): void {
@@ -128,8 +130,8 @@ function parseLowerThird(fields: Record<string, unknown>): LowerThird {
   // TODO: Reload people from datastore?
   return {
     commentators,
-    game: state.game,
-    match: state.match,
+    tournament: parseString(fields, 'tournament'),
+    event: parseString(fields, 'event'),
   };
 }
 
@@ -196,4 +198,8 @@ function parseId(idStr: unknown): number | undefined {
     return undefined;
   }
   return idStr ? parseInt(idStr) : undefined;
+}
+
+function parseString(fields: Record<string, unknown>, name: string): string {
+  return fields[name] as string;
 }
