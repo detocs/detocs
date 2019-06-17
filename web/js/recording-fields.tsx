@@ -61,6 +61,10 @@ class RecordingFields extends Component {
             name="start-timestamp"
             value={state.serverState.startTimestamp} />
         </fieldset>
+        <div className="recording__controls">
+          <button type="button" onClick={this.start}>Start</button>
+          <button type="button" onClick={this.stop}>Stop</button>
+        </div>
         <fieldset class="recording__boundary">
           <legend>End</legend>
           <Thumbnail
@@ -69,10 +73,6 @@ class RecordingFields extends Component {
             name="stop-timestamp"
             value={state.serverState.stopTimestamp} />
         </fieldset>
-        <div className="recording__controls">
-          <button type="button" onClick={this.start}>Start</button>
-          <button type="button" onClick={this.stop}>Stop</button>
-        </div>
       </form>
     );
   }

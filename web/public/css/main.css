@@ -105,6 +105,7 @@ tab-controller {
   block-size: var(--tab-height);
 
   display: flex;
+  overflow-x: scroll;
   padding: 0 1em;
 
   background-color: var(--color-bg-inactive);
@@ -153,8 +154,8 @@ tab-controller {
   border-top: var(--width-border) solid currentColor;
 }
 
-.tabbable-section-control:checked ~ .tabbable-section-content {
-  z-index: 1;
+.tabbable-section-control:not(:checked) ~ .tabbable-section-content {
+  display: none;
 } 
 
 .recording__editor {
