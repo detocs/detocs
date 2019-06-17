@@ -18,17 +18,39 @@ body {
   color: var(--color-text);
 }
 
-.input-row {
-  display: flex;
+fieldset {
+  margin-inline: 0;
+  min-inline-size: 0;
+
+  padding: 0.35em 0 0.625em;
 }
 
-.input-row > * {
+legend {
+  margin-inline-start: 0.5em;
+}
+
+input[type="text"] {
+  min-inline-size: 0;
+}
+
+.input-row {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.input-row > *, .players > * {
   flex-grow: 1;
+  margin-inline: 0.15em;
 }
 
 .input-row button {
   display: block;
-  width: 100%;
+  flex-basis: 8em;
+  inline-size: 100%;
+}
+
+.input-row label {
+  flex: 0 0 auto;
 }
 
 .players {
@@ -36,20 +58,16 @@ body {
   grid-template-columns: auto auto;
 }
 
-.player:nth-child(2n+1) > .input-row {
-  flex-direction: row;
+.player {
+  min-inline-size: 0;
 }
 
-.player:nth-child(2n) > .input-row {
-  flex-direction: row-reverse;
+.player:nth-child(2n) .score {
+  order: 1;
 }
 
 .competitor {
   flex: 1 1 auto;
-}
-
-input[type="text"] + input[type="text"] {
-  margin-left: 0.5em;
 }
 
 input:focus {
@@ -63,7 +81,7 @@ input:focus {
 
 .prefix {
   flex: 1 1 auto;
-  width: 5em;
+  inline-size: 5em;
 }
 
 .handle {
@@ -72,14 +90,19 @@ input:focus {
 
 .score {
   flex: 0 0 auto;
-  width: 2em;
+  margin-top: 0.3em;
+  inline-size: 2em;
 
   font-size: 2em;
   text-align: center;
 }
 
+.comment {
+  inline-size: 6em;
+}
+
 tab-controller {
-  height: var(--tab-height);
+  block-size: var(--tab-height);
 
   display: flex;
   padding: 0 1em;
@@ -158,8 +181,8 @@ tab-controller {
 }
 
 .recording__thumbnail-placeholder {
-  width: 100%;
-  height: 100%;
+  inline-size: 100%;
+  block-size: 100%;
 
   background-image: url(/images/thumbnail-placeholder.svg);
   background-position: center;

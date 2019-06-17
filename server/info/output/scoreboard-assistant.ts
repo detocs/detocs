@@ -73,12 +73,14 @@ function sendData(client: any, data: ScoreboardAssistantData): void {
 function convert(scoreboard: Scoreboard): ScoreboardAssistantData {
   const players = [];
   for (let i = 0; i < 2; i++) {
-    const person = scoreboard.players[i].person;
+    const player = scoreboard.players[i];
+    const person = player.person;
     const handle = removeVerticalBars(person.handle);
-    let prefix = person.prefix && removeVerticalBars(person.prefix);
-    prefix = prefix ? ` | ${prefix}` : '';
+    const prefix = person.prefix ? ` | ${removeVerticalBars(person.prefix)}` : '';
     const twiter =  person.twitter ? ` @${person.twitter}` : '';
-    players.push(`${handle}${prefix}${twiter}`);
+    const comment = player.comment ? ` (${player.comment})`: '';
+    const loser = player.inLosers ? ' [L]': '';
+    players.push(`${handle}${comment}${loser}${prefix}${twiter}`);
   }
   return {
     'tabID': mapTabId(scoreboard.game.id),

@@ -107,9 +107,11 @@ function parseScoreboard(fields: Record<string, unknown>): Scoreboard {
     const fieldPrefix = `players[${i}]`;
     const person = parsePerson(fields, fieldPrefix);
 
-    const scoreStr = fields[`${fieldPrefix}[score]`] as string | undefined;
+    const scoreStr = parseOptionalString(fields, `${fieldPrefix}[score]`);
     const score: number = (scoreStr && parseInt(scoreStr)) || 0;
-    players.push({ person, score });
+    const inLosers = parseBool(fields, `${fieldPrefix}[inLosers]`);
+    const comment = parseString(fields, `${fieldPrefix}[comment]`);
+    players.push({ person, score, inLosers, comment });
   }
   // TODO: Reload people from datastore?
 
@@ -200,6 +202,14 @@ function parseId(idStr: unknown): number | undefined {
   return idStr ? parseInt(idStr) : undefined;
 }
 
+function parseOptionalString(fields: Record<string, unknown>, name: string): string | undefined {
+  return fields[name] as string | undefined;
+}
+
 function parseString(fields: Record<string, unknown>, name: string): string {
-  return fields[name] as string;
+  return parseOptionalString(fields, name) || '';
+}
+
+function parseBool(fields: Record<string, unknown>, name: string): boolean {
+  return !!fields[name];
 }
