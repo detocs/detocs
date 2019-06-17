@@ -215,7 +215,7 @@ function generateFilename(start: string, end: string, info: InfoState): string {
       .join(', ');
   }
   const gameSummary = info.game.id ? ` - ${info.game.id}` : '';
-  const matchSummary = info.match ? ` - ${info.match}` : '';
+  const matchSummary = info.match.id ? ` - ${info.match.id}` : '';
   return filenamify(`${start} - ${end}${gameSummary}${matchSummary}${playerSummary}`);
 }
 

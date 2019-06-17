@@ -86,7 +86,7 @@ function convert(scoreboard: Scoreboard): ScoreboardAssistantData {
     'player2': players[1],
     'score1': scoreboard.players[0].score.toString(),
     'score2': scoreboard.players[1].score.toString(),
-    'match': scoreboard.match,
+    'match': scoreboard.match.name,
     'game': scoreboard.game.name,
   };
 }

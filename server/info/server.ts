@@ -11,6 +11,8 @@ import ScoreboardAssistant from './output/scoreboard-assistant';
 import Game, { nullGame } from '../../models/game';
 import gameList from '../../models/games';
 import LowerThird from '../../models/lower-third';
+import Match, { nullMatch } from '../../models/match';
+import matchList from '../../models/matches';
 import * as People from '../../models/people';
 import Person, { PersonUpdate } from '../../models/person';
 import Scoreboard from '../../models/scoreboard';
@@ -21,7 +23,7 @@ import State from './state';
 const state: State = {
   players: [],
   commentators: [],
-  match: '',
+  match: nullMatch,
   game: nullGame,
 };
 
@@ -81,13 +83,16 @@ export default function start(port: number): void {
   app.get('/games', (_, res) => {
     res.send(gameList);
   });
+  app.get('/matches', (_, res) => {
+    res.send(matchList);
+  });
 
   const httpServer = createServer(app);
   const socketServer = new ws.Server({
     server: httpServer,
   });
   socketServer.on('connection', function connection(ws): void {
-    // TODO: Send current info
+    ws.send(JSON.stringify(state));
     logger.info('Websocket connection received');
   });
 
@@ -109,7 +114,7 @@ function parseScoreboard(fields: Record<string, unknown>): Scoreboard {
   return {
     players,
     game: parseGame(fields),
-    match: fields['match'] as string,
+    match: parseMatch(fields),
   };
 }
 
@@ -163,6 +168,26 @@ function parseGame(fields: Record<string, unknown>): Game {
     name,
     shortNames: [],
     hashtags: [],
+  };
+}
+
+function parseMatch(fields: Record<string, unknown>): Match {
+  const id = fields['match[id]'];
+  if (!(typeof id === 'string')) {
+    return nullMatch;
+  }
+  const found = matchList.find(m => m.id === id);
+  if (found) {
+    return found;
+  }
+  const name = fields['match[name]'];
+  if (!(typeof name === 'string')) {
+    return nullMatch;
+  }
+  return {
+    id,
+    name,
+    smashggId: null,
   };
 }
 

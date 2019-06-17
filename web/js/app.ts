@@ -4,6 +4,7 @@ import Scoreboard from '../../models/scoreboard';
 
 import { infoEndpoint } from './api';
 import GameFieldsElement from './game-fields';
+import MatchFieldsElement from './match-fields';
 import PlayerFields from './player-fields';
 import RecordingFieldsElement from './recording-fields';
 import TabController from './tab-controller';
@@ -13,6 +14,7 @@ type ResponseHandler = (data: any, form: HTMLElement) => void;
 let updateID: string;
 
 customElements.define('game-fields', GameFieldsElement);
+customElements.define('match-fields', MatchFieldsElement);
 customElements.define('player-fields', PlayerFields);
 customElements.define('recording-fields', RecordingFieldsElement);
 customElements.define('tab-controller', TabController);
