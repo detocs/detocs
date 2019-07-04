@@ -1,3 +1,6 @@
+- Swap players/commentators
+- Person database management
+- Package as executable
 - Websocket reconencting
 - Real API module
 - SCSS

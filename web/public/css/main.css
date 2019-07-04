@@ -102,10 +102,8 @@ input:focus {
 }
 
 tab-controller {
-  block-size: var(--tab-height);
-
   display: flex;
-  overflow-x: scroll;
+  overflow-x: auto;
   padding: 0 1em;
 
   background-color: var(--color-bg-inactive);
@@ -113,16 +111,19 @@ tab-controller {
 
 .tabbable-section {
   display: inline-flex;
+  flex-shrink: 0;
 }
 
 .tabbable-section > h2 {
+  flex-shrink: 0;
+  margin: 0;
+  margin-inline-end: calc(-1 * var(--width-border));
+
   background-color: var(--color-bg);
   border: var(--width-border) solid currentColor;
   border-bottom-width: 0;
   font-size: 1rem;
   font-weight: normal;
-  margin: 0;
-  margin-inline-end: calc(-1 * var(--width-border));
 }
 
 .tabbable-section > h2 label {
