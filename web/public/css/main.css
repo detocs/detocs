@@ -200,3 +200,7 @@ tab-controller {
 .recording__controls > * {
   flex: 1 0 50%;
 }
+
+.fragment {
+  display: contents;
+}

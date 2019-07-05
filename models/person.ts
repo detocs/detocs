@@ -19,3 +19,8 @@ export function isEqual(p1: Person, p2: Person): boolean {
     p1.prefix === p2.prefix &&
     p1.twitter === p2.twitter;
 }
+
+export function getName(p: Person | PersonUpdate): string {
+  const prefix = p.prefix ? `${p.prefix} | ` : '';
+  return `${prefix}${p.handle}`;
+}

@@ -6,7 +6,7 @@ import { infoEndpoint } from './api';
 import GameFieldsElement from './game-fields';
 import MatchFieldsElement from './match-fields';
 import PersistentCheckbox from './persistent-checkbox';
-import PlayerFields from './player-fields';
+import PersonFields from './person-fields';
 import RecordingFieldsElement from './recording-fields';
 import TabController from './tab-controller';
 
@@ -17,7 +17,7 @@ let updateID: string;
 customElements.define('game-fields', GameFieldsElement);
 customElements.define('match-fields', MatchFieldsElement);
 customElements.define('persistent-checkbox', PersistentCheckbox, { extends: 'input' });
-customElements.define('player-fields', PlayerFields);
+customElements.define('person-fields', PersonFields);
 customElements.define('recording-fields', RecordingFieldsElement);
 customElements.define('tab-controller', TabController);
 
@@ -89,13 +89,13 @@ function handleLowerThirdUpdateResponse(data: LowerThirdUpdateResponse, form: HT
 
 function updatePeopleFields(people: Person[], form: HTMLElement): void {
   // Update person fields in the form that was just submitted
-  const elems: NodeListOf<PlayerFields> = form.querySelectorAll('player-fields');
+  const elems: NodeListOf<PersonFields> = form.querySelectorAll('person-fields');
   for (let i = 0; i < elems.length; i++) {
     elems[i].updatePerson(people[i]);
   }
 
   // Update person fields in other forms if IDs match
-  const allElems: NodeListOf<PlayerFields> = document.querySelectorAll('player-fields');
+  const allElems: NodeListOf<PersonFields> = document.querySelectorAll('person-fields');
   for (const elem of allElems) {
     if (form.contains(elem)) {
       continue;

@@ -3,5 +3,6 @@
 - Package as executable
 - Websocket reconencting
 - Real API module
+- Upgrade to Preact X
 - SCSS
 - Mobile-first styling

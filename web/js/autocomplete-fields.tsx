@@ -27,7 +27,7 @@ class AutocompleteFields<T extends Autocompletable>
       value: this.nullValue,
       options: [],
     };
-    this.autocompleteId = `autocomplete-${idCounter++}`;
+    this.autocompleteId = `autocomplete-fields-${idCounter++}`;
 
     const ws = new WebSocket(infoEndpoint('', 'ws:').href);
     ws.onmessage = this.receiveServerUpdate.bind(this);
