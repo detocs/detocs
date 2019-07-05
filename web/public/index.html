@@ -56,7 +56,7 @@
           </div>
           <div class="input-row">
             <button type="reset">Reset All</button>
-            <button type="button" class="js-swap-players">Swap Players</button>
+            <button type="button" class="js-swap-players">Swap</button>
             <button type="submit">Update</button>
           </div>
         </form>
@@ -66,11 +66,11 @@
         <h2><label for="tab-commentary" role="presentation">Commentary</label></h2>
         <form class="commentary js-lowerthird tabbable-section-content" autocomplete="off">
           <div class="players">
-            <fieldset name="commentator" class="commentator">
+            <fieldset name="commentator" class="commentator js-commentator">
               <legend>Commentator 1</legend>
               <person-fields class="input-row" data-fields='["handle", "prefix", "twitter"]'></person-fields>
             </fieldset>
-            <fieldset name="commentator" class="commentator">
+            <fieldset name="commentator" class="commentator js-commentator">
               <legend>Commentator 2</legend>
               <person-fields class="input-row" data-fields='["handle", "prefix", "twitter"]'></person-fields>
             </fieldset>
@@ -99,6 +99,7 @@
           </div>
           <div class="input-row">
             <button type="reset">Reset All</button>
+            <button type="button" class="js-swap-commentators">Swap</button>
             <button type="submit">Update</button>
           </div>
         </form>

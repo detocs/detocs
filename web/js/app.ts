@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
   bindForms('.js-scoreboard', '/scoreboard', handleScoreboardUpdateResponse);
   bindForms('.js-lowerthird', '/lowerthird', handleLowerThirdUpdateResponse);
   bindPlayerSwapButton();
+  bindCommentatorSwapButton();
 });
 
 function bindForms(formSelector: string, endpoint: string, responseHandler: ResponseHandler): void {
@@ -161,4 +162,15 @@ function setPlayerState(parent: Element, state: PlayerState): void {
 
   const commentInput: HTMLInputElement | null = parent.querySelector('input[name$="[comment]"');
   commentInput && (commentInput.value = state.comment || '');
+}
+
+function bindCommentatorSwapButton(): void {
+  const button = document.getElementsByClassName('js-swap-commentators')[0];
+  button.addEventListener('click', () => {
+    const fields: PersonFields[] = Array.from(
+      document.querySelectorAll('.js-commentator person-fields'));
+    const temp = fields[0].getPerson();
+    fields[0].updatePerson(fields[1].getPerson());
+    fields[1].updatePerson(temp);
+  });
 }

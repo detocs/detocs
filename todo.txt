@@ -1,4 +1,3 @@
-- Swap players/commentators
 - Person database management
 - Package as executable
 - Websocket reconencting
