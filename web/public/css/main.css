@@ -8,7 +8,7 @@
   --color-text-active: hsl(180, 13%, 16%);
   --color-focus: hsl(180, 100%, 40%);
   --color-selection: hsl(180, 80%, 20%);
-  --tab-height: 2rem;
+  --tab-height: 1.5rem;
   --width-border: 2px;
   font-size: 120%;
 }
@@ -22,7 +22,7 @@ fieldset {
   margin-inline: 0;
   min-inline-size: 0;
 
-  padding: 0.35em 0 0.625em;
+  padding: 0;
 }
 
 legend {
@@ -34,11 +34,15 @@ input[type="text"] {
 }
 
 .input-row {
+  margin-block: 0.15em;
+
   display: flex;
   flex-wrap: wrap;
 }
 
-.input-row > *, .players > * {
+.input-row > *,
+.input-row > .fragment > *,
+.players > * {
   flex-grow: 1;
   margin-inline: 0.15em;
 }
@@ -149,7 +153,6 @@ tab-controller {
   bottom: 0;
 
   overflow: auto;
-  padding-top: 0.4em;
 
   background-color: var(--color-bg);
   border-top: var(--width-border) solid currentColor;
