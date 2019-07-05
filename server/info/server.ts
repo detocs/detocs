@@ -30,6 +30,8 @@ const state: State = {
 };
 
 export default function start(port: number): void {
+  loadDatabases();
+
   const output = new ScoreboardAssistant();
   logger.info('Initializing overlay info server');
 
@@ -100,6 +102,10 @@ export default function start(port: number): void {
 
   httpServer.listen(port, () => logger.info(`Listening on port ${port}`));
 };
+
+function loadDatabases(): void {
+  People.loadDatabase();
+}
 
 function parseScoreboard(fields: Record<string, unknown>): Scoreboard {
   const players = [];
