@@ -1,16 +1,24 @@
 export default class PersistentCheckbox extends HTMLInputElement {
-  public constructor() {
-    super();
-  }
+  private readonly hiddenInput = document.createElement('input');
 
   private connectedCallback(): void {
-    const hiddenInput = document.createElement('input');
-    hiddenInput.type = 'hidden';
-    hiddenInput.name = this.name;
-    hiddenInput.value = '';
-    this.parentNode && this.parentNode.insertBefore(hiddenInput, this);
-    this.addEventListener('input', () => {
-      hiddenInput.disabled = this.checked;
-    });
+    this.hiddenInput.type = 'hidden';
+    this.hiddenInput.name = this.name;
+    this.hiddenInput.value = '';
+    this.parentNode && this.parentNode.insertBefore(this.hiddenInput, this.nextSibling);
+    this.addEventListener('input', this.update);
+  }
+
+  private update = (): void => {
+    this.hiddenInput.disabled = this.checked;
+  };
+
+  public get checked(): boolean {
+    return super.checked;
+  }
+
+  public set checked(checked: boolean) {
+    super.checked = checked;
+    this.update();
   }
 }

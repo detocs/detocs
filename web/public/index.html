@@ -15,7 +15,7 @@
         <h2><label for="tab-scoreboard" role="presentation">Scoreboard</label></h2>
         <form class="scoreboard js-scoreboard tabbable-section-content" autocomplete="off">
           <div class="players">
-            <fieldset name="player1" class="player">
+            <fieldset name="player1" class="player js-player">
               <legend>Player 1</legend>
               <div class="input-row">
                 <fieldset name="competitor" class="competitor">
@@ -32,7 +32,7 @@
                 <input type="number" name="players[][score]" class="score" value="0" min="0">
               </div>
             </fieldset>
-            <fieldset name="player2" class="player">
+            <fieldset name="player2" class="player js-player">
               <legend>Player 2</legend>
               <div class="input-row">
                 <fieldset name="competitor" class="competitor">
@@ -56,6 +56,7 @@
           </div>
           <div class="input-row">
             <button type="reset">Reset All</button>
+            <button type="button" class="js-swap-players">Swap Players</button>
             <button type="submit">Update</button>
           </div>
         </form>

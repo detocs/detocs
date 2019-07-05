@@ -1,5 +1,5 @@
 import LowerThird from '../../models/lower-third';
-import Person from '../../models/person';
+import Person, { PersonUpdate } from '../../models/person';
 import Scoreboard from '../../models/scoreboard';
 
 import { infoEndpoint } from './api';
@@ -24,6 +24,7 @@ customElements.define('tab-controller', TabController);
 document.addEventListener('DOMContentLoaded', () => {
   bindForms('.js-scoreboard', '/scoreboard', handleScoreboardUpdateResponse);
   bindForms('.js-lowerthird', '/lowerthird', handleLowerThirdUpdateResponse);
+  bindPlayerSwapButton();
 });
 
 function bindForms(formSelector: string, endpoint: string, responseHandler: ResponseHandler): void {
@@ -105,4 +106,59 @@ function updatePeopleFields(people: Person[], form: HTMLElement): void {
       elem.updatePerson(person);
     }
   }
+}
+
+interface PlayerState {
+  person: PersonUpdate;
+  score: number;
+  inLosers?: boolean;
+  comment?: string;
+}
+
+function bindPlayerSwapButton(): void {
+  const button = document.getElementsByClassName('js-swap-players')[0];
+  button.addEventListener('click', () => {
+    const playerRoots = Array.from(document.getElementsByClassName('js-player'));
+    const playerStates = playerRoots.map(getPlayerState);
+    [ playerStates[0], playerStates[1] ] = [ playerStates[1], playerStates[0] ];
+    playerRoots.forEach((root, i) => {
+      setPlayerState(root, playerStates[i]);
+    });
+  });
+}
+
+function getPlayerState(parent: Element): PlayerState {
+  const personFields: PersonFields | null = parent.querySelector('person-fields');
+  if (!personFields) {
+    throw new Error('person-fields not present');
+  }
+  const person = personFields.getPerson();
+
+  const scoreInput: HTMLInputElement | null = parent.querySelector('input[name$="[score]"');
+  const score = scoreInput ? +scoreInput.value : 0;
+
+  const losersInput: HTMLInputElement | null = parent.querySelector('input[name$="[inLosers]"]');
+  const inLosers = losersInput ? losersInput.checked : false;
+
+  const commentInput: HTMLInputElement | null = parent.querySelector('input[name$="[comment]"');
+  const comment = commentInput ? commentInput.value : '';
+
+  return { person, score, inLosers, comment };
+}
+
+function setPlayerState(parent: Element, state: PlayerState): void {
+  const personFields: PersonFields | null = parent.querySelector('person-fields');
+  if (!personFields) {
+    throw new Error('person-fields not present');
+  }
+  personFields.updatePerson(state.person);
+
+  const scoreInput: HTMLInputElement | null = parent.querySelector('input[name$="[score]"');
+  scoreInput && (scoreInput.value = `${state.score}`);
+
+  const losersInput: HTMLInputElement | null = parent.querySelector('input[name$="[inLosers]"]');
+  losersInput && (losersInput.checked = state.inLosers || false);
+
+  const commentInput: HTMLInputElement | null = parent.querySelector('input[name$="[comment]"');
+  commentInput && (commentInput.value = state.comment || '');
 }
