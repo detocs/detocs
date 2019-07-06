@@ -54,6 +54,7 @@ User Agent: ${req.headers['user-agent']}`);
   }
 
   private broadcast(converted: ScoreboardAssistantData): void {
+    logger.debug(`Sending update:\n`, converted);
     this.server.clients.forEach(client => {
       sendData(client, converted);
     });
@@ -65,7 +66,6 @@ function sendData(client: any, data: ScoreboardAssistantData): void {
   if (client.readyState !== WebSocket.OPEN) {
     return;
   }
-  logger.debug(`Sending update:\n`, data);
   const json = JSON.stringify(data);
   client.send(json);
 }
