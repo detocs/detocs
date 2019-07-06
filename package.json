@@ -12,6 +12,7 @@
     "tsc": "tsc",
     "bundle": "rollup -c -m",
     "build": "npm run tsc && npm run bundle",
+    "preinstall": "npm run build",
     "prestart": "npm run build",
     "start": "node index.js"
   },
