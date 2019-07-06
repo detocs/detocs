@@ -1,7 +1,7 @@
-import Scoreboard from '../../../models/scoreboard';
-import LowerThird from '../../../models/lower-third';
+import State from '../state';
 
 export default interface Output {
-  updateScoreboard(scoreboard: Scoreboard): void;
-  updateLowerThird(lowerThird: LowerThird): void;
+  // TODO: Single update method?
+  updateScoreboard(state: State): void;
+  updateLowerThird(state: State): void;
 }

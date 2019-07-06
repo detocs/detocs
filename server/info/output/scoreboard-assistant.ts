@@ -1,12 +1,15 @@
+import { getLogger } from 'log4js';
+const logger = getLogger('output/scorebaord-assistant');
+
 import * as WebSocket from 'ws';
 
 import LowerThird from '../../../models/lower-third';
 import Scoreboard from '../../../models/scoreboard';
 
+import State from '../state';
+
 import Output from './output';
 
-import { getLogger } from 'log4js';
-const logger = getLogger('output/scorebaord-assistant');
 
 const PORT = 58341;
 
@@ -37,18 +40,14 @@ User Agent: ${req.headers['user-agent']}`);
     });
   }
 
-  public updateScoreboard(scoreboard: Scoreboard): void {
-    const converted = convert(scoreboard);
+  public updateScoreboard(state: State): void {
+    const converted = convertToScoreboard(state);
     this.lastScoreboard = converted;
     this.broadcast(converted);
   }
 
-  public updateLowerThird(lowerThird: LowerThird): void {
-    const converted = convert({
-      players: lowerThird.commentators.map(c => ({person: c.person, score: 0})),
-      match: { id: '', name: lowerThird.tournament, smashggId: null },
-      game: { id: 'commentators', name: lowerThird.event, shortNames: [], hashtags: [] },
-    });
+  public updateLowerThird(state: State): void {
+    const converted = convertToLowerThird(state);
     this.lastLowerThird = converted;
     this.broadcast(converted);
   }
@@ -70,27 +69,57 @@ function sendData(client: any, data: ScoreboardAssistantData): void {
   client.send(json);
 }
 
-function convert(scoreboard: Scoreboard): ScoreboardAssistantData {
+function convertToScoreboard(state: State): ScoreboardAssistantData {
+  const players = getPlayerStrings(state.players);
+  return {
+    'tabID': mapTabId(state.game.id),
+    'player1': players[0],
+    'player2': players[1],
+    'score1': state.players[0].score.toString(),
+    'score2': state.players[1].score.toString(),
+    'match': state.match.name,
+    'game': state.tournament,
+  };
+}
+
+function convertToLowerThird(state: State): ScoreboardAssistantData {
+  const players = getCommentatorStrings(state.commentators);
+  return {
+    'tabID': 'commentators',
+    'player1': players[0],
+    'player2': players[1],
+    'score1': '0',
+    'score2': '0',
+    'match': state.tournament,
+    'game': state.event || state.game.name,
+  };
+}
+
+function getPlayerStrings(list: Scoreboard['players']): string[] {
   const players = [];
   for (let i = 0; i < 2; i++) {
-    const player = scoreboard.players[i];
+    const player = list[i];
     const person = player.person;
     const handle = removeVerticalBars(person.handle);
     const prefix = person.prefix ? ` | ${removeVerticalBars(person.prefix)}` : '';
-    const twiter =  person.twitter ? ` @${person.twitter}` : '';
-    const comment = player.comment ? ` (${player.comment})`: '';
-    const loser = player.inLosers ? ' [L]': '';
-    players.push(`${handle}${comment}${loser}${prefix}${twiter}`);
+    const comment = player.comment ? ` (${player.comment})` : '';
+    const loser = player.inLosers ? ' [L]' : '';
+    players.push(`${handle}${comment}${loser}${prefix}`);
   }
-  return {
-    'tabID': mapTabId(scoreboard.game.id),
-    'player1': players[0],
-    'player2': players[1],
-    'score1': scoreboard.players[0].score.toString(),
-    'score2': scoreboard.players[1].score.toString(),
-    'match': scoreboard.match.name,
-    'game': scoreboard.game.name,
-  };
+  return players;
+}
+
+function getCommentatorStrings(list: LowerThird['commentators']): string[] {
+  const players = [];
+  for (let i = 0; i < 2; i++) {
+    const player = list[i];
+    const person = player.person;
+    const handle = removeVerticalBars(person.handle);
+    const prefix = person.prefix ? ` | ${removeVerticalBars(person.prefix)}` : '';
+    const twiter = person.twitter ? ` @${person.twitter}` : '';
+    players.push(`${handle}${prefix}${twiter}`);
+  }
+  return players;
 }
 
 const tabIdMapping: Record<string, string> = {

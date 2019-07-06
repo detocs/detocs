@@ -1,3 +1,4 @@
+- Specify tournament type
 - Package as executable
 - Websocket reconencting
 - Real API module
