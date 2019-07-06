@@ -36,9 +36,18 @@ export function loadDatabase(): void {
   logger.info(`Loading person database from ${filePath}.
 version: ${db.version}
 person count: ${db.people.length}`);
-  database.people = db.people;
+  database.people = db.people.map(parsePerson);
   nextId = getNextId(database.people);
   backedUp = false;
+}
+
+function parsePerson(p: Person): Person {
+  return {
+    id: p['id'],
+    handle: p['handle'],
+    prefix: p['prefix'],
+    twitter: p['twitter'],
+  };
 }
 
 async function saveDatabase(): Promise<void> {
