@@ -37,6 +37,19 @@ export default [
     ],
   },
   {
+    id: 'ss7',
+    name: 'Samurai Shodown (2019)',
+    shortNames: [
+      'Samurai Shodown',
+      'SamSho 7',
+      'SS7',
+    ],
+    hashtags: [
+      'EmbraceDeath',
+      'SamSho',
+    ],
+  },
+  {
     id: 'ssv',
     name: 'Samurai Shodown V Special',
     shortNames: [
