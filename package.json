@@ -2,13 +2,17 @@
   "name": "detocs",
   "version": "0.0.1",
   "description": "Datagram's Esports Tournament Overlay Control System",
-  "main": "main.js",
+  "main": "index.js",
+  "bin": {
+    "detocs": "index.js"
+  },
   "module": "main.ts",
   "license": "AGPL-3.0",
   "scripts": {
     "tsc": "tsc",
     "bundle": "rollup -c -m",
-    "prestart": "npm run tsc && npm run bundle",
+    "build": "npm run tsc && npm run bundle",
+    "prestart": "npm run build",
     "start": "node index.js"
   },
   "dependencies": {
