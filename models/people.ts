@@ -3,7 +3,8 @@ const logger = log4js.getLogger('people');
 
 import Person, { isEqual, PersonUpdate } from './person';
 import { getVersion } from '../util/meta';
-import { readFileSync, renameSync, writeFileSync } from 'fs';
+import { readFileSync, renameSync, writeFileSync, mkdirSync } from 'fs';
+import { dirname } from 'path';
 
 // TODO: Proper serialization
 interface Database {
@@ -47,6 +48,7 @@ async function saveDatabase(): Promise<void> {
     backedUp = true;
   }
   logger.debug(`Saving ${database.people.length} person records`);
+  mkdirSync(dirname(filePath), { recursive: true });
   writeFileSync(filePath, JSON.stringify(database, null, 2));
 }
 
