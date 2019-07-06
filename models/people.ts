@@ -3,8 +3,9 @@ const logger = log4js.getLogger('people');
 
 import Person, { isEqual, PersonUpdate } from './person';
 import { getVersion } from '../util/meta';
-import { readFileSync, renameSync, writeFileSync, mkdirSync } from 'fs';
-import { dirname } from 'path';
+import { readFileSync, renameSync, writeFileSync, mkdirSync, existsSync } from 'fs';
+import { dirname, join } from 'path';
+import { getConfig } from '../util/config';
 
 // TODO: Proper serialization
 interface Database {
@@ -13,7 +14,7 @@ interface Database {
 }
 
 const DEFAULTS: Person = { id: -1, handle: '', prefix: null, twitter: null};
-const DEFAULT_DATABASE_PATH = './database/people.json';
+const DATABASE_FILE = 'people.json';
 
 // TODO: Make PersonDatabase class
 const database: Database = {
@@ -21,30 +22,31 @@ const database: Database = {
   people: [],
 };
 let nextId = getNextId(database.people);
-let filePath = DEFAULT_DATABASE_PATH;
-let backedUp = true;
+let backedUp = false;
 
-export function loadDatabase(path: string = DEFAULT_DATABASE_PATH): void {
+export function loadDatabase(): void {
+  const filePath = join(getConfig().databaseDirectory, DATABASE_FILE);
   let db: Database;
   try {
-    db = JSON.parse(readFileSync(path).toString());
+    db = JSON.parse(readFileSync(filePath).toString());
   } catch (error) {
-    logger.warn(`Unable to load database from ${path}: ${error}`);
+    logger.warn(`Unable to load database from ${filePath}: ${error}`);
     return;
   }
-  logger.info(`Loading person database from ${path}.
+  logger.info(`Loading person database from ${filePath}.
 version: ${db.version}
 person count: ${db.people.length}`);
   database.people = db.people;
   nextId = getNextId(database.people);
-  filePath = path;
   backedUp = false;
 }
 
 async function saveDatabase(): Promise<void> {
-  if (!backedUp) {
-    logger.info(`Backing-up previous person database to ${filePath}`);
-    renameSync(filePath, filePath + '.bak');
+  const filePath = join(getConfig().databaseDirectory, DATABASE_FILE);
+  if (!backedUp && existsSync(filePath)) {
+    const backupPath = filePath + '.bak';
+    logger.info(`Backing-up previous person database to ${backupPath}`);
+    renameSync(filePath, backupPath);
     backedUp = true;
   }
   logger.debug(`Saving ${database.people.length} person records`);
