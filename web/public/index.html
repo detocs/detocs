@@ -15,47 +15,16 @@
         <h2><label for="tab-scoreboard" role="presentation">Scoreboard</label></h2>
         <form class="scoreboard js-scoreboard tabbable-section-content" autocomplete="off">
           <div class="players">
-            <fieldset name="player1" class="player js-player">
-              <legend>Player 1</legend>
-              <div class="input-row">
-                <fieldset name="competitor" class="competitor">
-                  <legend>Competitor</legend>
-                  <person-fields class="input-row" data-fields='["handle", "prefix"]'></person-fields>
-                </fieldset>
-                <fieldset name="extra">
-                  <legend>Extra</legend>
-                  <div class="input-row">
-                    <label>[L] <input is="persistent-checkbox" type="checkbox" name="players[][inLosers]"></label>
-                    <input type="text" name="players[][comment]" class="comment" placeholder="Comment">
-                  </div>
-                </fieldset>
-                <input type="number" name="players[][score]" class="score" value="0" min="0">
-              </div>
-            </fieldset>
-            <fieldset name="player2" class="player js-player">
-              <legend>Player 2</legend>
-              <div class="input-row">
-                <fieldset name="competitor" class="competitor">
-                  <legend>Competitor</legend>
-                  <person-fields class="input-row" data-fields='["handle", "prefix"]'></person-fields>
-                </fieldset>
-                <fieldset name="extra">
-                  <legend>Extra</legend>
-                  <div class="input-row">
-                    <label>[L] <input is="persistent-checkbox" type="checkbox" name="players[][inLosers]"></label>
-                    <input type="text" name="players[][comment]" class="comment" placeholder="Comment">
-                  </div>
-                </fieldset>
-                <input type="number" name="players[][score]" class="score" value="0" min="0">
-              </div>
-            </fieldset>
+            <player-fields data-index="0"></player-fields>
+            <player-fields data-index="1"></player-fields>
           </div>
           <div class="input-row">
             <match-fields></match-fields>
             <game-fields></game-fields>
           </div>
           <div class="input-row">
-            <button type="reset">Reset All</button>
+            <button type="button" class="js-reset-players">Reset Players</button>
+            <button type="button" class="js-reset-scores">Reset Scores</button>
             <button type="button" class="js-swap-players">Swap</button>
             <button type="submit">Update</button>
           </div>

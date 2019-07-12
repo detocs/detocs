@@ -5,8 +5,9 @@ import Scoreboard from '../../models/scoreboard';
 import { infoEndpoint } from './api';
 import GameFieldsElement from './game-fields';
 import MatchFieldsElement from './match-fields';
-import PersistentCheckbox from './persistent-checkbox';
-import PersonFields from './person-fields';
+import { PersistentCheckboxElement } from './persistent-checkbox';
+import { PersonFieldsElement } from './person-fields';
+import { PlayerFieldsElement } from './player-fields';
 import RecordingFieldsElement from './recording-fields';
 import TabController from './tab-controller';
 
@@ -16,8 +17,9 @@ let updateID: string;
 
 customElements.define('game-fields', GameFieldsElement);
 customElements.define('match-fields', MatchFieldsElement);
-customElements.define('persistent-checkbox', PersistentCheckbox, { extends: 'input' });
-customElements.define('person-fields', PersonFields);
+customElements.define('persistent-checkbox', PersistentCheckboxElement, { extends: 'input' });
+customElements.define('person-fields', PersonFieldsElement);
+customElements.define('player-fields', PlayerFieldsElement);
 customElements.define('recording-fields', RecordingFieldsElement);
 customElements.define('tab-controller', TabController);
 
@@ -25,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
   bindForms('.js-scoreboard', '/scoreboard', handleScoreboardUpdateResponse);
   bindForms('.js-lowerthird', '/lowerthird', handleLowerThirdUpdateResponse);
   bindPlayerSwapButton();
+  bindPlayerResetButtons();
   bindCommentatorSwapButton();
 });
 
@@ -91,13 +94,13 @@ function handleLowerThirdUpdateResponse(data: LowerThirdUpdateResponse, form: HT
 
 function updatePeopleFields(people: Person[], form: HTMLElement): void {
   // Update person fields in the form that was just submitted
-  const elems: NodeListOf<PersonFields> = form.querySelectorAll('person-fields');
+  const elems: NodeListOf<PersonFieldsElement> = form.querySelectorAll('person-fields');
   for (let i = 0; i < elems.length; i++) {
     elems[i].updatePerson(people[i]);
   }
 
   // Update person fields in other forms if IDs match
-  const allElems: NodeListOf<PersonFields> = document.querySelectorAll('person-fields');
+  const allElems: NodeListOf<PersonFieldsElement> = document.querySelectorAll('person-fields');
   for (const elem of allElems) {
     if (form.contains(elem)) {
       continue;
@@ -109,68 +112,44 @@ function updatePeopleFields(people: Person[], form: HTMLElement): void {
   }
 }
 
-interface PlayerState {
-  person: PersonUpdate;
-  score: number;
-  inLosers?: boolean;
-  comment?: string;
-}
-
 function bindPlayerSwapButton(): void {
   const button = document.getElementsByClassName('js-swap-players')[0];
   button.addEventListener('click', () => {
-    const playerRoots = Array.from(document.getElementsByClassName('js-player'));
-    const playerStates = playerRoots.map(getPlayerState);
-    [ playerStates[0], playerStates[1] ] = [ playerStates[1], playerStates[0] ];
-    playerRoots.forEach((root, i) => {
-      setPlayerState(root, playerStates[i]);
-    });
+    const playerFields: PlayerFieldsElement[] = Array.from(
+      document.querySelectorAll('.js-scoreboard player-fields'));
+    const a = playerFields[0].state;
+    const b = playerFields[1].state;
+    [ a.person, b.person ] = [ b.person, a.person ];
+    [ a.score, b.score ] = [ b.score, a.score ];
+    [ a.inLosers, b.inLosers ] = [ b.inLosers, a.inLosers ];
+    [ a.comment, b.comment ] = [ b.comment, a.comment ];
+    playerFields.forEach(p => p.render());
   });
-}
-
-function getPlayerState(parent: Element): PlayerState {
-  const personFields: PersonFields | null = parent.querySelector('person-fields');
-  if (!personFields) {
-    throw new Error('person-fields not present');
-  }
-  const person = personFields.getPerson();
-
-  const scoreInput: HTMLInputElement | null = parent.querySelector('input[name$="[score]"');
-  const score = scoreInput ? +scoreInput.value : 0;
-
-  const losersInput: HTMLInputElement | null = parent.querySelector('input[name$="[inLosers]"]');
-  const inLosers = losersInput ? losersInput.checked : false;
-
-  const commentInput: HTMLInputElement | null = parent.querySelector('input[name$="[comment]"');
-  const comment = commentInput ? commentInput.value : '';
-
-  return { person, score, inLosers, comment };
-}
-
-function setPlayerState(parent: Element, state: PlayerState): void {
-  const personFields: PersonFields | null = parent.querySelector('person-fields');
-  if (!personFields) {
-    throw new Error('person-fields not present');
-  }
-  personFields.updatePerson(state.person);
-
-  const scoreInput: HTMLInputElement | null = parent.querySelector('input[name$="[score]"');
-  scoreInput && (scoreInput.value = `${state.score}`);
-
-  const losersInput: HTMLInputElement | null = parent.querySelector('input[name$="[inLosers]"]');
-  losersInput && (losersInput.checked = state.inLosers || false);
-
-  const commentInput: HTMLInputElement | null = parent.querySelector('input[name$="[comment]"');
-  commentInput && (commentInput.value = state.comment || '');
 }
 
 function bindCommentatorSwapButton(): void {
   const button = document.getElementsByClassName('js-swap-commentators')[0];
   button.addEventListener('click', () => {
-    const fields: PersonFields[] = Array.from(
+    const fields: PersonFieldsElement[] = Array.from(
       document.querySelectorAll('.js-commentator person-fields'));
     const temp = fields[0].getPerson();
     fields[0].updatePerson(fields[1].getPerson());
     fields[1].updatePerson(temp);
+  });
+}
+
+function bindPlayerResetButtons(): void {
+  const resetPlayers = document.getElementsByClassName('js-reset-players')[0];
+  resetPlayers.addEventListener('click', () => {
+    const fields: PlayerFieldsElement[] = Array.from(
+      document.querySelectorAll('.js-scoreboard player-fields'));
+    fields.forEach(f => f.reset());
+  });
+
+  const resetScores = document.getElementsByClassName('js-reset-scores')[0];
+  resetScores.addEventListener('click', () => {
+    const fields: PlayerFieldsElement[] = Array.from(
+      document.querySelectorAll('.js-scoreboard player-fields'));
+    fields.forEach(f => f.resetScore());
   });
 }

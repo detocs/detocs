@@ -7,7 +7,7 @@ import Autocomplete from './autocomplete';
 import { createRef, Fragment } from '../../util/preact';
 import { capitalize } from '../../util/string';
 
-export default class PersonFieldsElement extends HTMLElement {
+export class PersonFieldsElement extends HTMLElement {
   private fieldList: string[] = [];
   private person: PersonUpdate = {};
   private componentElement?: Element;
@@ -33,9 +33,9 @@ export default class PersonFieldsElement extends HTMLElement {
   private render(): void {
     this.componentElement = render(<PersonFields
       prefix="players[]"
-      fields={this.fieldList}
+      personFields={this.fieldList}
       person={this.person}
-      onUpdate={this.updatePerson}
+      onUpdatePerson={this.updatePerson}
     />, this, this.componentElement);
   }
 }
@@ -71,16 +71,18 @@ const fieldMappings: Record<string, FieldMapping> = {
 
 interface Props {
   prefix: string;
-  fields: string[];
+  personFields: string[];
   person: PersonUpdate;
-  onUpdate: (p: PersonUpdate) => void;
+  onUpdatePerson: (p: PersonUpdate) => void;
 }
+export type PersonFieldsProps = Props;
 
 interface State {
   options: Person[];
 }
+export type PersonFieldsState = State;
 
-class PersonFields extends Component<Props, State> {
+export default class PersonFields extends Component<Props, State> {
   private autocompleteId = Autocomplete.newId();
   private handleRef = createRef<HTMLInputElement>();
 
@@ -89,7 +91,7 @@ class PersonFields extends Component<Props, State> {
     this.state = {
       options: [],
     };
-    if (!props.fields.includes('handle')) {
+    if (!props.personFields.includes('handle')) {
       throw new Error('Handle field must be included');
     }
   }
@@ -104,7 +106,7 @@ class PersonFields extends Component<Props, State> {
   };
 
   public updatePerson = (person: PersonUpdate): void => {
-    this.props.onUpdate(person);
+    this.props.onUpdatePerson(person);
   };
 
   public updateAutocomplete = (options: Person[]): void => {
@@ -160,7 +162,7 @@ class PersonFields extends Component<Props, State> {
     return (
       <Fragment>
         <input type="hidden" name={`${props.prefix}[id]`} value={props.person.id}/>
-        {props.fields.map(this.createFieldInput)}
+        {props.personFields.map(this.createFieldInput)}
         <Autocomplete<Person>
           id={this.autocompleteId}
           inputRef={this.handleRef}
