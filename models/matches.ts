@@ -51,6 +51,11 @@ const matches: Match[] = [
     name: 'Round Robin',
     smashggId: null,
   },
+  {
+    id: 'cas',
+    name: 'Casuals',
+    smashggId: null,
+  },
 ];
 
 for(let i = 1; i < 10; i++) {
