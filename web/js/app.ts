@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
   bindPlayerSwapButton();
   bindPlayerResetButtons();
   bindCommentatorSwapButton();
+  bindCommentatorResetButton();
 });
 
 function bindForms(formSelector: string, endpoint: string, responseHandler: ResponseHandler): void {
@@ -151,5 +152,14 @@ function bindPlayerResetButtons(): void {
     const fields: PlayerFieldsElement[] = Array.from(
       document.querySelectorAll('.js-scoreboard player-fields'));
     fields.forEach(f => f.resetScore());
+  });
+}
+
+function bindCommentatorResetButton(): void {
+  const resetCommentators = document.getElementsByClassName('js-reset-commentators')[0];
+  resetCommentators.addEventListener('click', () => {
+    const fields: PersonFieldsElement[] = Array.from(
+      document.querySelectorAll('.js-lowerthird person-fields'));
+    fields.forEach(f => f.updatePerson({}));
   });
 }
