@@ -12,7 +12,9 @@
     <tab-controller>
       <section class="tabbable-section">
         <input type="radio" class="tabbable-section-control" id="tab-scoreboard" name="main-tabs" hidden checked>
-        <h2><label for="tab-scoreboard" role="presentation">Scoreboard</label></h2>
+        <h2 class="tabbable-section__tab">
+          <label for="tab-scoreboard" role="presentation">Scoreboard</label>
+        </h2>
         <form class="scoreboard js-scoreboard tabbable-section-content" autocomplete="off">
           <div class="players">
             <player-fields data-index="0"></player-fields>
@@ -32,7 +34,9 @@
       </section>
       <section class="tabbable-section">
         <input type="radio" class="tabbable-section-control" id="tab-commentary" name="main-tabs" hidden>
-        <h2><label for="tab-commentary" role="presentation">Commentary</label></h2>
+        <h2 class="tabbable-section__tab">
+          <label for="tab-commentary" role="presentation">Commentary</label>
+        </h2>
         <form class="commentary js-lowerthird tabbable-section-content" autocomplete="off">
           <div class="players">
             <fieldset name="commentator" class="commentator js-commentator">
@@ -75,7 +79,9 @@
       </section>
       <section class="tabbable-section">
         <input type="radio" class="tabbable-section-control" id="tab-recording" name="main-tabs" hidden>
-        <h2><label for="tab-recording" role="presentation">Recording</label></h2>
+        <h2 class="tabbable-section__tab">
+          <label for="tab-recording" role="presentation">Recording</label>
+        </h2>
         <recording-fields class="tabbable-section-content"></recording-fields>
       </section>
     </tab-controller>

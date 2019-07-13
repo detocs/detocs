@@ -1,7 +1,7 @@
 import log4js from 'log4js';
 const logger = log4js.getLogger('server/recording');
+logger.error = logger.error.bind(logger);
 
-import { execSync } from 'child_process';
 import cors from 'cors';
 import express, { Request, Response } from 'express';
 import formidable from 'express-formidable';
@@ -13,11 +13,13 @@ import ObsWebSocket from 'obs-websocket-js';
 import path from 'path';
 import * as ws from 'ws';
 
+import * as ffmpeg from '../../util/ffmpeg';
+import * as obsUtil from '../../util/obs';
+import { sanitizeTimestamp } from '../../util/timestamp';
 import InfoState from '../info/state';
 import { INFO_PORT } from "../ports";
 
 import State from './state';
-import { sanitizeTimestamp } from '../../util/timestamp';
 
 interface ProcessInfo{
   pid: number;
@@ -46,11 +48,11 @@ const state: State = {
 export default function start(port: number): void {
   logger.info('Initializing match recording server');
 
-  obs.on('error' as any, logger.error);
+  obs.on('error' as any, logger.error); // eslint-disable-line @typescript-eslint/no-explicit-any
   // The recording file doesn't appear immediately
   obs.on('RecordingStarted', () => setTimeout(getRecordingFile, 2000));
   connect(obs, async () => {
-    if (await isRecording()) {
+    if (await obsUtil.isRecording(obs)) {
       getRecordingFile();
     }
   });
@@ -106,19 +108,25 @@ async function startClip(_req: Request, res: Response): Promise<void> {
     res.sendStatus(400);
     return;
   }
-  state.startTimestamp = await getRecordingTimestamp();
-  if (!state.startTimestamp) {
+  const timestamp = await obsUtil.getRecordingTimestamp(obs).catch(logger.error);
+  if (!timestamp) {
     logger.warn('Unable to get start timestamp');
     res.sendStatus(500);
     return;
   }
-  logger.debug(`Starting clip at ${state.startTimestamp}`);
-  state.stopTimestamp = null;
-  state.clipFile = null;
-  res.sendStatus(200);
-  broadcastState(state);
 
-  state.startThumbnail = await getCurrentThumbnail();
+  state.startTimestamp = timestamp;
+  logger.debug(`Starting clip at ${state.startTimestamp}`);
+  res.sendStatus(200);
+
+  obsUtil.getCurrentThumbnail(obs).then(img => {
+    state.startThumbnail = img;
+    broadcastState(state);
+  }).catch(logger.error);
+
+  state.stopTimestamp = null;
+  state.stopThumbnail = null;
+  state.clipFile = null;
   broadcastState(state);
 };
 
@@ -133,31 +141,37 @@ async function stopClip(_: Request, res: Response): Promise<void> {
     res.sendStatus(400);
     return;
   }
-  state.stopTimestamp = await getRecordingTimestamp();
-  if (!state.stopTimestamp) {
+  const timestamp = await obsUtil.getRecordingTimestamp(obs).catch(logger.error);
+  if (!timestamp) {
     logger.warn('Unable to get stop timestamp');
     res.sendStatus(500);
     return;
   }
-  logger.debug(`Stopping clip at ${state.stopTimestamp}`);
 
-  state.clipFile = await saveRecording(
+  state.stopTimestamp = timestamp;
+  logger.debug(`Stopping clip at ${state.stopTimestamp}`);
+  res.sendStatus(200);
+  broadcastState(state);
+
+  obsUtil.getCurrentThumbnail(obs).then(img => {
+    state.stopThumbnail = img;
+    broadcastState(state);
+  }).catch(logger.error);
+
+  saveRecording(
     state.recordingFolder,
     state.recordingFile,
     state.startTimestamp,
     state.stopTimestamp,
-  );
-  res.sendStatus(200);
-  broadcastState(state);
-
-  state.stopThumbnail = await getCurrentThumbnail();
-  broadcastState(state);
+  ).then(file => {
+    state.clipFile = file;
+    broadcastState(state);
+  }).catch(logger.error);
 };
 
 async function getRecordingFile(): Promise<void> {
   const VIDEO_FILE_EXTENSIONS = ['.flv', '.mp4', '.mov', '.mkv', '.ts', '.m3u8'];
-  const resp = await obs.send('GetRecordingFolder');
-  let folder = resp['rec-folder'];
+  let folder = await obsUtil.getRecordingFolder(obs);
   if (!path.isAbsolute(folder)) {
     // Some super cool guy is using relative paths with OBS
     const listeners = await find('port', OBS_WEBSOCKET_PORT);
@@ -198,7 +212,7 @@ async function saveRecording(
   fs.mkdirSync(outputFolder, { recursive: true });
 
   const videoOutputPath = path.join(outputFolder, outputFilename + extension);
-  trimClip(sourceFile, start, end, videoOutputPath);
+  await ffmpeg.trimClip(sourceFile, start, end, videoOutputPath);
 
   const metadataOutputPath = path.join(outputFolder, outputFilename + '.json');
   saveMetadata(info, metadataOutputPath);
@@ -219,75 +233,28 @@ function generateFilename(start: string, end: string, info: InfoState): string {
   return filenamify(`${start} - ${end}${gameSummary}${matchSummary}${playerSummary}`);
 }
 
-function trimClip(sourceFile: string, start: string, end: string, outFile: string): void {
-  const command = [
-    'ffmpeg',
-    `-ss ${start}`,
-    `-i "${sourceFile}"`,
-    `-to ${end}`,
-    '-codec copy -avoid_negative_ts 1',
-    `"${outFile}"`,
-  ].join(' ');
-  logger.debug(command);
-  execSync(command);
-}
-
 function saveMetadata(info: InfoState, outFile: string): void {
   fs.writeFileSync(outFile, JSON.stringify(info, null, 2));
 }
 
-async function isRecording(): Promise<boolean> {
-  const resp = await obs.send('GetStreamingStatus');
-  return resp['recording'] || false;
-}
-
-async function getRecordingTimestamp(): Promise<string | null> {
-  const resp = await obs.send('GetStreamingStatus');
-  return resp['rec-timecode'] || null;
-}
-
-async function getCurrentThumbnail(): Promise<string | null> {
-  const sceneResp = await obs.send('GetCurrentScene')
-    .catch(logger.error.bind(logger));
-  if (!sceneResp) {
-    return null;
-  }
-  const resp = await obs.send('TakeSourceScreenshot' as any, {
-    'sourceName': sceneResp['name'],
-    'embedPictureFormat': 'png',
-    'width': 240,
-    'height': 135,
-  }).catch(logger.error.bind(logger));
-  return resp ? resp['img'] as string : null;
-}
-
-function getThumbnailForStartTimestamp(): void {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function getThumbnailForStartTimestamp(): Promise<void> {
   if (!state.recordingFile || !state.startTimestamp) {
     return;
   }
-  state.startThumbnail = base64Png(getVideoThumbnail(state.recordingFile, state.startTimestamp));
+  const img = await ffmpeg.getVideoThumbnail(state.recordingFile, state.startTimestamp);
+  state.startThumbnail = base64Png(img);
   broadcastState(state);
 }
 
-function getThumbnailForStopTimestamp(): void {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function getThumbnailForStopTimestamp(): Promise<void> {
   if (!state.recordingFile || !state.stopTimestamp) {
     return;
   }
-  state.stopThumbnail = base64Png(getVideoThumbnail(state.recordingFile, state.stopTimestamp));
+  const img = await ffmpeg.getVideoThumbnail(state.recordingFile, state.stopTimestamp);
+  state.stopThumbnail = base64Png(img);
   broadcastState(state);
-}
-
-function getVideoThumbnail(file: string, timestamp: string): Buffer {
-  const command = [
-    'ffmpeg',
-    `-ss ${timestamp}`,
-    `-i "${file}"`,
-    '-frames:v 1 -codec:v png -f rawvideo -filter:v scale="240:-1" -an',
-    'pipe:',
-  ].join(' ');
-  logger.debug(command);
-  const img = execSync(command);
-  return img;
 }
 
 function base64Png(image: Buffer): string {

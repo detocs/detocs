@@ -118,7 +118,7 @@ tab-controller {
   flex-shrink: 0;
 }
 
-.tabbable-section > h2 {
+.tabbable-section__tab {
   flex-shrink: 0;
   margin: 0;
   margin-inline-end: calc(-1 * var(--width-border));
@@ -130,7 +130,7 @@ tab-controller {
   font-weight: normal;
 }
 
-.tabbable-section > h2 label {
+.tabbable-section__tab label {
   display: block;
 
   line-height: var(--tab-height);
@@ -202,6 +202,20 @@ tab-controller {
 
 .recording__controls > * {
   flex: 1 0 50%;
+}
+
+.recording__file {
+  width: 100%;
+}
+
+.recording__tab-label--recording {
+  color: red;
+}
+
+.recording__tab-label--recording::after {
+  vertical-align: top;
+  content: '🔴';
+  font-size: 0.4em;
 }
 
 .fragment {

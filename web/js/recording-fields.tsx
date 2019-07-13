@@ -1,23 +1,11 @@
 import { h, render, Component, ComponentChild, VNode, FunctionalComponent } from 'preact';
 
-import State from '../../server/recording/state';
+import ServerState from '../../server/recording/state';
 
 import { recordingEndpoint } from './api';
 
 export default class RecordingFieldsElement extends HTMLElement {
-  private connectedCallback(): void {
-    render(<RecordingFields />, this);
-  }
-}
-
-interface RecordingFieldsState {
-  serverState: State;
-}
-
-class RecordingFields extends Component {
-  private static readonly startEndpoint = recordingEndpoint('/start').href;
-  private static readonly stopEndpoint = recordingEndpoint('/stop').href;
-  private static readonly nullState: State = {
+  private static readonly nullState: ServerState = {
     recordingFolder: null,
     recordingFile: null,
     clipFile: null,
@@ -27,20 +15,49 @@ class RecordingFields extends Component {
     stopThumbnail: null,
   };
 
+  private componentElement?: Element;
+  public state: Props = { serverState: RecordingFieldsElement.nullState };
+
   public constructor() {
     super();
-    this.state = {
-      serverState: RecordingFields.nullState,
-    };
     const ws = new WebSocket(recordingEndpoint('', 'ws:').href);
     ws.onmessage = this.updateServerState.bind(this);
     ws.onerror = console.error;
   }
 
   private updateServerState(ev: MessageEvent): void {
-    const newState = JSON.parse(ev.data) as State;
-    this.setState({ serverState: newState });
+    this.state = { serverState: JSON.parse(ev.data) as ServerState };
+    let tabElement = this.closest('.tabbable-section');
+    tabElement = tabElement && tabElement.querySelector('.tabbable-section__tab label');
+    console.log(tabElement);
+    if (tabElement) {
+      tabElement.classList.toggle(
+        'recording__tab-label--recording',
+        !!this.state.serverState.startTimestamp && !this.state.serverState.stopTimestamp);
+    }
+    this.render();
   }
+
+  private connectedCallback(): void {
+    this.render();
+  }
+
+  public render(): void {
+    this.componentElement = render(
+      <RecordingFields {...this.state} />,
+      this,
+      this.componentElement
+    );
+  }
+}
+
+interface Props {
+  serverState: ServerState;
+}
+
+class RecordingFields extends Component<Props> {
+  private static readonly startEndpoint = recordingEndpoint('/start').href;
+  private static readonly stopEndpoint = recordingEndpoint('/stop').href;
 
   private start(): void {
     fetch(RecordingFields.startEndpoint).catch(console.error);
@@ -50,16 +67,16 @@ class RecordingFields extends Component {
     fetch(RecordingFields.stopEndpoint).catch(console.error);
   }
 
-  public render(_: unknown, state: RecordingFieldsState): ComponentChild {
+  public render(props: Props): ComponentChild {
     return (
       <form class="recording__editor">
         <fieldset class="recording__boundary">
           <legend>Beginning</legend>
           <Thumbnail
-            src={state.serverState.startThumbnail} />
+            src={props.serverState.startThumbnail} />
           <TimestampInput
             name="start-timestamp"
-            value={state.serverState.startTimestamp} />
+            value={props.serverState.startTimestamp} />
         </fieldset>
         <div className="recording__controls">
           <button type="button" onClick={this.start}>Start</button>
@@ -68,11 +85,18 @@ class RecordingFields extends Component {
         <fieldset class="recording__boundary">
           <legend>End</legend>
           <Thumbnail
-            src={state.serverState.stopThumbnail} />
+            src={props.serverState.stopThumbnail} />
           <TimestampInput
             name="stop-timestamp"
-            value={state.serverState.stopTimestamp} />
+            value={props.serverState.stopTimestamp} />
         </fieldset>
+        <input
+          readOnly
+          value={props.serverState.clipFile || ''}
+          placeholder="Output File"
+          class="recording__file"
+          dir="rtl" // TODO: This is a hack
+        />
       </form>
     );
   }
