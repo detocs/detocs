@@ -124,6 +124,8 @@ function getCommentatorStrings(list: LowerThird['commentators']): string[] {
 
 const tabIdMapping: Record<string, string> = {
   'uni': 'unist',
+  'kof13': 'kof',
+  'bbcf': 'bb',
 };
 function mapTabId(tabId: string): string {
   return tabIdMapping[tabId] || tabId;
