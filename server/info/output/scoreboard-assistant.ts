@@ -101,7 +101,7 @@ function getPlayerStrings(list: Scoreboard['players']): string[] {
     const player = list[i];
     const person = player.person;
     const handle = removeVerticalBars(person.handle);
-    const prefix = person.prefix ? ` | ${removeVerticalBars(person.prefix)}` : '';
+    const prefix = person.prefix ? ` || ${removeVerticalBars(person.prefix)}` : '';
     const comment = player.comment ? ` (${player.comment})` : '';
     const loser = player.inLosers ? ' [L]' : '';
     players.push(`${handle}${comment}${loser}${prefix}`);
@@ -115,7 +115,7 @@ function getCommentatorStrings(list: LowerThird['commentators']): string[] {
     const player = list[i];
     const person = player.person;
     const handle = removeVerticalBars(person.handle);
-    const prefix = person.prefix ? ` | ${removeVerticalBars(person.prefix)}` : '';
+    const prefix = person.prefix ? ` || ${removeVerticalBars(person.prefix)}` : '';
     const twiter = person.twitter ? ` @${person.twitter}` : '';
     players.push(`${handle}${prefix}${twiter}`);
   }
@@ -132,5 +132,5 @@ function mapTabId(tabId: string): string {
 }
 
 function removeVerticalBars(str: string): string {
-  return str.replace('|', ' ');
+  return str.replace('||', '|');
 }
