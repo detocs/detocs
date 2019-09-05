@@ -15,6 +15,7 @@ export default [
     ],
     serviceInfo: {
       twitch: { id: 'Under Night In-Birth Exe:Late[st]' },
+      smashgg: { id: 451 },
     },
   },
   {
@@ -29,6 +30,7 @@ export default [
     ],
     serviceInfo: {
       twitch: { id: 'Melty Blood: Actress Again: Current Code' },
+      smashgg: { id: 22407 },
     },
   },
   {
@@ -43,6 +45,7 @@ export default [
     ],
     serviceInfo: {
       twitch: { id: 'BlazBlue: Central Fiction' },
+      smashgg: { id: 37 },
     },
   },
   {
@@ -59,6 +62,7 @@ export default [
     ],
     serviceInfo: {
       twitch: { id: 'Samurai Shodown' },
+      smashgg: { id: 3568 },
     },
   },
   {
@@ -75,6 +79,7 @@ export default [
     ],
     serviceInfo: {
       twitch: { id: 'Samurai Shodown V Special' },
+      smashgg: { id: 16391 },
     },
   },
   {
@@ -90,6 +95,7 @@ export default [
     ],
     serviceInfo: {
       twitch: { id: 'The King of Fighters XIII' },
+      smashgg: { id: 9690 },
     },
   },
   {
@@ -105,6 +111,7 @@ export default [
     ],
     serviceInfo: {
       twitch: { id: 'Dengeki Bunko: Fighting Climax Ignition' },
+      smashgg: { id: 4267 },
     },
   },
 ] as Game[];

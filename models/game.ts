@@ -7,6 +7,9 @@ export default interface Game {
     twitch?: {
       id: string;
     };
+    smashgg?: {
+      id: number;
+    };
   };
 };
 
