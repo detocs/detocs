@@ -1,3 +1,4 @@
+import json from 'rollup-plugin-json';
 import resolve from 'rollup-plugin-node-resolve';
 
 export default {
@@ -7,6 +8,10 @@ export default {
     format: 'iife',
   },
   plugins: [
+    json({
+      indent: '    ',
+      preferConst: true,
+    }),
     resolve(),
   ],
 };

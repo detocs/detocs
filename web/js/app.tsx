@@ -1,6 +1,10 @@
+import { h, render, Component, ComponentChild } from 'preact';
+
 import LowerThird from '../../models/lower-third';
 import Person, { PersonUpdate } from '../../models/person';
 import Scoreboard from '../../models/scoreboard';
+import { getVersion } from "../../util/meta";
+import { Fragment } from "../../util/preact";
 
 import { infoEndpoint } from './api';
 import GameFieldsElement from './game-fields';
@@ -30,7 +34,26 @@ document.addEventListener('DOMContentLoaded', () => {
   bindPlayerResetButtons();
   bindCommentatorSwapButton();
   bindCommentatorResetButton();
+
+  render(<App />, document.getElementById('version') || document.body);
 });
+
+interface AppState {
+  version: string;
+}
+
+class App extends Component<{}, AppState> {
+  private constructor(props: {}) {
+    super(props);
+    this.state = {
+      version: getVersion(),
+    };
+  }
+
+  public render(_: {}, state: AppState): ComponentChild {
+    return <Fragment>DETOCS {state.version}</Fragment>;
+  }
+}
 
 function bindForms(formSelector: string, endpoint: string, responseHandler: ResponseHandler): void {
   const forms = document.querySelectorAll(formSelector) as NodeListOf<HTMLFormElement>;
