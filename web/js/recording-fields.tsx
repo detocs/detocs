@@ -29,7 +29,6 @@ export default class RecordingFieldsElement extends HTMLElement {
     this.state = { serverState: JSON.parse(ev.data) as ServerState };
     let tabElement = this.closest('.tabbable-section');
     tabElement = tabElement && tabElement.querySelector('.tabbable-section__tab label');
-    console.log(tabElement);
     if (tabElement) {
       tabElement.classList.toggle(
         'recording__tab-label--recording',

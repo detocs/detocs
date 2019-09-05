@@ -95,21 +95,42 @@ function handleLowerThirdUpdateResponse(data: LowerThirdUpdateResponse, form: HT
 
 function updatePeopleFields(people: Person[], form: HTMLElement): void {
   // Update person fields in the form that was just submitted
-  const elems: NodeListOf<PersonFieldsElement> = form.querySelectorAll('person-fields');
+  const elems = [
+    ...form.querySelectorAll('person-fields') as NodeListOf<PersonFieldsElement>,
+    ...form.querySelectorAll('player-fields') as NodeListOf<PlayerFieldsElement>,
+  ];
   for (let i = 0; i < elems.length; i++) {
     elems[i].updatePerson(people[i]);
   }
 
   // Update person fields in other forms if IDs match
-  const allElems: NodeListOf<PersonFieldsElement> = document.querySelectorAll('person-fields');
-  for (const elem of allElems) {
+  people = people.filter(p => p.id != null);
+  if (people.length === 0) {
+    return;
+  }
+  const allPersonFields: NodeListOf<PersonFieldsElement> =
+      document.querySelectorAll('person-fields');
+  for (let elem of allPersonFields) {
     if (form.contains(elem)) {
       continue;
     }
     const person = people.find(p => p.id === elem.getId());
-    if (person) {
-      elem.updatePerson(person);
+    if (!person) {
+      continue;
     }
+    elem.updatePerson(person);
+  }
+  const allPlayerFields: NodeListOf<PlayerFieldsElement> =
+      document.querySelectorAll('player-fields');
+  for (let elem of allPlayerFields) {
+    if (form.contains(elem)) {
+      continue;
+    }
+    const person = people.find(p => p.id === elem.state.person.id);
+    if (!person) {
+      continue;
+    }
+    elem.updatePerson(person);
   }
 }
 
