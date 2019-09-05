@@ -13,6 +13,9 @@ export default [
       'UNIst',
       'inbirth',
     ],
+    serviceInfo: {
+      twitch: { id: 'Under Night In-Birth Exe:Late[st]' },
+    },
   },
   {
     id: 'melty',
@@ -24,6 +27,9 @@ export default [
     hashtags: [
       'MBAACC',
     ],
+    serviceInfo: {
+      twitch: { id: 'Melty Blood: Actress Again: Current Code' },
+    },
   },
   {
     id: 'bbcf',
@@ -35,6 +41,9 @@ export default [
     hashtags: [
       'BBCF',
     ],
+    serviceInfo: {
+      twitch: { id: 'BlazBlue: Central Fiction' },
+    },
   },
   {
     id: 'ss7',
@@ -48,6 +57,9 @@ export default [
       'EmbraceDeath',
       'SamSho',
     ],
+    serviceInfo: {
+      twitch: { id: 'Samurai Shodown' },
+    },
   },
   {
     id: 'ssv',
@@ -61,6 +73,9 @@ export default [
       'SSVSP',
       'SamSho',
     ],
+    serviceInfo: {
+      twitch: { id: 'Samurai Shodown V Special' },
+    },
   },
   {
     id: 'kof13',
@@ -73,6 +88,9 @@ export default [
       'KOFXIII',
       'KOF',
     ],
+    serviceInfo: {
+      twitch: { id: 'The King of Fighters XIII' },
+    },
   },
   {
     id: 'dfc',
@@ -85,5 +103,8 @@ export default [
     hashtags: [
       'DFCI',
     ],
+    serviceInfo: {
+      twitch: { id: 'Dengeki Bunko: Fighting Climax Ignition' },
+    },
   },
 ] as Game[];

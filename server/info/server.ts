@@ -173,12 +173,10 @@ function parseGame(fields: Record<string, unknown>): Game {
   if (!(typeof name === 'string')) {
     return nullGame;
   }
-  return {
+  return Object.assign({}, nullGame, {
     id,
     name,
-    shortNames: [],
-    hashtags: [],
-  };
+  });
 }
 
 function parseMatch(fields: Record<string, unknown>): Match {

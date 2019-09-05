@@ -3,6 +3,11 @@ export default interface Game {
   name: string;
   shortNames: string[];
   hashtags: string[];
+  serviceInfo: {
+    twitch?: {
+      id: string;
+    };
+  };
 };
 
 export const nullGame: Game = {
@@ -10,4 +15,5 @@ export const nullGame: Game = {
   name: '',
   shortNames: [],
   hashtags: [],
+  serviceInfo: {},
 };
