@@ -154,7 +154,7 @@ function parsePerson(fields: Record<string, unknown>, fieldPrefix: string): Pers
     update.prefix = prefix;
   }
   const twitter = fields[`${fieldPrefix}[twitter]`] as string | null | undefined;
-  if (twitter != null) {
+  if (twitter != null && twitter.length) {
     update.twitter = twitter;
   }
   return People.save(update);
