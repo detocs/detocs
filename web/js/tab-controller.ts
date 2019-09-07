@@ -14,6 +14,7 @@ export default class TabController extends HTMLElement {
       this.shortcut('^1', 'First', () => 0),
       this.shortcut('^2', 'Second', () => 1),
       this.shortcut('^3', 'Third', () => 2),
+      this.shortcut('^4', 'Fourth', () => 3),
       // TODO: Vary shortcuts with number of tabs
     ];
   }

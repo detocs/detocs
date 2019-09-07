@@ -18,3 +18,13 @@ export async function getUser(twit: Twit): Promise<User> {
     avatar: user['profile_image_url_https'],
   };
 }
+
+export async function tweet(twit: Twit, body: string): Promise<string> {
+  const { data } = await twit.post(
+    'statuses/update',
+    { 
+      'status': body,
+    });
+  const status = data as Twitter.Status;
+  return status.id_str;
+}

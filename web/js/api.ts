@@ -1,3 +1,5 @@
+import { INFO_PORT, RECORDING_PORT, TWITTER_PORT } from "../../server/ports";
+
 function endpoint(port: string, path: string, protocol?: string): URL {
   const url = new URL(window.location.origin);
   url.port = port;
@@ -9,9 +11,13 @@ function endpoint(port: string, path: string, protocol?: string): URL {
 }
 
 export function infoEndpoint(path: string, protocol?: string): URL {
-  return endpoint('58586', path, protocol);
+  return endpoint(INFO_PORT.toString(), path, protocol);
 }
 
 export function recordingEndpoint(path: string, protocol?: string): URL {
-  return endpoint('58587', path, protocol);
+  return endpoint(RECORDING_PORT.toString(), path, protocol);
+}
+
+export function twitterEndpoint(path: string, protocol?: string): URL {
+  return endpoint(TWITTER_PORT.toString(), path, protocol);
 }

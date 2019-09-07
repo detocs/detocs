@@ -11,11 +11,10 @@ import Twit from 'twit';
 import * as ws from 'ws';
 
 import { AccessToken } from '../../models/twitter';
-import { sleep } from '../../util/async';
 import { getCredentials, saveCredentials } from '../../util/credentials';
 import * as twitter from '../../util/twitter';
 
-import ClientState from './client-state';
+import ClientState, { nullState } from './client-state';
 import TwitterOAuth from './oauth';
 
 interface InternalState {
@@ -27,11 +26,7 @@ interface InternalState {
   } | null;
 }
 
-const clientState: ClientState = {
-  loggedIn: false,
-  authorizeUrl: null,
-  user: null,
-};
+const clientState = Object.assign({}, nullState);
 const internalState: InternalState = {
   apiKey: null,
   apiKeySecret: null,
@@ -76,6 +71,7 @@ export default async function start(port: number): Promise<void> {
     const params: Record<string, string> = req.query;
     res.send(await oauth.authorize(params));
   });
+  app.post('/tweet', tweet);
 
   const httpServer = createServer(app);
   socketServer = new ws.Server({
@@ -123,4 +119,18 @@ function initTwitClient(apiKey: string, apiKeySecret: string, accessToken: Acces
     'access_token': accessToken.key,
     'access_token_secret': accessToken.secret,
   });
+}
+
+async function tweet(req: express.Request, res: express.Response): Promise<void> {
+  if (!req.fields) {
+    res.sendStatus(400);
+    return;
+  }
+  const body = req.fields['body'] as string;
+  if (!body || !twit) {
+    res.sendStatus(400);
+    return;
+  }
+  twitter.tweet(twit, body);
+  res.sendStatus(200);
 }

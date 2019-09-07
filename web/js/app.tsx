@@ -3,6 +3,7 @@ import { h, render, Component, ComponentChild } from 'preact';
 import LowerThird from '../../models/lower-third';
 import Person, { PersonUpdate } from '../../models/person';
 import Scoreboard from '../../models/scoreboard';
+import { massagedFormData } from '../../util/forms';
 import { getVersion } from "../../util/meta";
 import { Fragment } from "../../util/preact";
 
@@ -13,6 +14,7 @@ import { PersistentCheckboxElement } from './persistent-checkbox';
 import { PersonFieldsElement } from './person-fields';
 import { PlayerFieldsElement } from './player-fields';
 import RecordingFieldsElement from './recording-fields';
+import TwitterDashboardElement from './twitter-dashboard';
 import TabController from './tab-controller';
 
 type ResponseHandler = (data: any, form: HTMLElement) => void;
@@ -25,6 +27,7 @@ customElements.define('persistent-checkbox', PersistentCheckboxElement, { extend
 customElements.define('person-fields', PersonFieldsElement);
 customElements.define('player-fields', PlayerFieldsElement);
 customElements.define('recording-fields', RecordingFieldsElement);
+customElements.define('twitter-dashboard', TwitterDashboardElement);
 customElements.define('tab-controller', TabController);
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -67,31 +70,12 @@ function bindForm(form: HTMLFormElement, endpoint: string, responseHandler: Resp
     event.preventDefault();
     const form = event.target as HTMLFormElement;
     let data = new FormData(form);
-    data = massagedFormDate(data);
+    data = massagedFormData(data);
     fetch(infoEndpoint(endpoint).href, { method: 'POST', body: data })
       .catch(alert)
       .then(res => res && res.json())
       .then(data => responseHandler(data, form));
   };
-}
-
-/**
- * Shim that lets us pretend that the server can handle repeated keys in
- * multipart form data
- * @param data The original form data
- */
-function massagedFormDate(data: FormData): FormData {
-  const keyCounts = new Map();
-  const ret = new FormData();
-  for (let [key, value] of data.entries()) {
-    if (key.includes('[]')) {
-      const count = keyCounts.get(key) || 0;
-      keyCounts.set(key, count + 1);
-      key = key.replace('[]', `[${count}]`);
-    }
-    ret.set(key, value);
-  }
-  return ret;
 }
 
 interface ScoreboardUpdateResponse {
