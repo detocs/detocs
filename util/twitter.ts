@@ -19,17 +19,27 @@ export async function getUser(twit: Twit): Promise<User> {
   };
 }
 
-export async function tweet(twit: Twit, body: string, img?: string): Promise<string> {
-  const mediaIds: string[] = [];
-  if (img) {
-    mediaIds.push(await uploadImage(twit, img));
-  }
-  const { data } = await twit.post(
-    'statuses/update',
-    { 
-      'status': body,
-      'media_ids': mediaIds,
+export async function tweet(
+  twit: Twit,
+  body: string,
+  replyTo: string | null,
+  img?: string,
+): Promise<string> {
+  const params: Twit.Params = {
+    'status': body,
+  };
+  if (replyTo) {
+    Object.assign(params, {
+      'in_reply_to_status_id': replyTo,
+      'auto_populate_reply_metadata': true,
     });
+  }
+  if (img) {
+    Object.assign(params, {
+      'media_ids': [await uploadImage(twit, img)],
+    });
+  }
+  const { data } = await twit.post('statuses/update', params);
   const status = data as Twitter.Status;
   return status.id_str;
 }

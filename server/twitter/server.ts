@@ -147,8 +147,12 @@ async function tweet(req: express.Request, res: express.Response): Promise<void>
     return;
   }
   const img = req.fields['image'] as string | undefined;
-  const tweetId = await twitter.tweet(twit, body, img && dataFromUri(img));
-  logger.info(`Created tweet ${tweetId}`);
+  let replyTo: string | null = null;
+  if (!!req.fields['thread'] && internalState.lastTweetId) {
+    replyTo = internalState.lastTweetId;
+  }
+  const tweetId = await twitter.tweet(twit, body, replyTo, img && dataFromUri(img));
+  logger.info(`Created tweet ${tweetId}${replyTo ? ` as a reply to ${replyTo}` : ''}`);
   internalState.lastTweetId = tweetId;
   res.sendStatus(200);
   clientState.screenshot = null;

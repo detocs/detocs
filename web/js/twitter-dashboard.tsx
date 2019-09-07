@@ -4,10 +4,14 @@ import ClientState, { nullState } from '../../server/twitter/client-state';
 
 import { twitterEndpoint } from './api';
 import { Thumbnail } from './thumbnail';
+import { PersistentCheckbox } from './persistent-checkbox';
 
 export default class TwitterDashboardElement extends HTMLElement {
   private componentElement?: Element;
-  public state: Props = nullState;
+  public state: Props = Object.assign({}, nullState, {
+    thread: false,
+    onThreadToggle: this.toggleThreaded.bind(this),
+  });
 
   public constructor() {
     super();
@@ -17,9 +21,15 @@ export default class TwitterDashboardElement extends HTMLElement {
   }
 
   private updateServerState(ev: MessageEvent): void {
-    this.state = JSON.parse(ev.data) as ClientState;
+    this.state = Object.assign(this.state, JSON.parse(ev.data) as ClientState);
     this.render();
   }
+
+  private toggleThreaded(): void {
+    this.state = Object.assign(this.state, {
+      thread: !this.state.thread,
+    });
+  };
 
   private connectedCallback(): void {
     this.render();
@@ -34,7 +44,10 @@ export default class TwitterDashboardElement extends HTMLElement {
   }
 }
 
-type Props = ClientState;
+type Props = ClientState & {
+  thread: boolean;
+  onThreadToggle: () => void;
+};
 
 class TwitterDashboard extends Component<Props> {
   private static readonly tweetEndpoint = twitterEndpoint('/tweet').href;
@@ -50,7 +63,7 @@ class TwitterDashboard extends Component<Props> {
         body: new FormData(form),
       })
       .catch(console.error)
-      .then(() => { form.reset(); });
+      .then(() => { (form.querySelector('textarea') as HTMLTextAreaElement).value = ''; });
   }
 
   private takeScreenshot(): void {
@@ -67,7 +80,11 @@ class TwitterDashboard extends Component<Props> {
           }
           <a href={props.authorizeUrl} target="_blank" rel="noopener noreferrer">Log In</a>
         </header>
-        <textarea name="body" {...{ maxlength: '280' }}></textarea>
+        <div>
+          <PersistentCheckbox name="thread" checked={props.thread} onChange={props.onThreadToggle}/>
+          Thread under previous tweet
+        </div>
+        <textarea name="body" required {...{ maxlength: '280' }}></textarea>
         <Thumbnail src={props.screenshot} />
         <input type="hidden" name="image" value={props.screenshot || undefined}/>
         <button type="button" onClick={this.takeScreenshot}>Take Screenshot</button>
