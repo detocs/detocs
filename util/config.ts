@@ -2,41 +2,64 @@ import log4js from 'log4js';
 const logger = log4js.getLogger('config');
 
 import { dirname, join } from "path";
-import { readFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 
-// TODO: Proper serialization
 interface Config {
   databaseDirectory: string;
 }
 
-const CONFIG_FILE_NAME = 'detocs-config.json';
 const DEFAULTS: Config = {
   databaseDirectory: './databases',
 };
-let config = DEFAULTS;
+let currentConfig = DEFAULTS;
 
 export function getConfig(): Config {
-  return config;
+  return currentConfig;
 }
 
-export function loadConfig(): void {
+export async function loadConfig(): Promise<void> {
+  const { config } = await loadConfigFile('detocs-config.json', DEFAULTS);
+  currentConfig = config;
+}
+
+export async function loadConfigFile<T>(
+  fileName: string,
+  defaults: T,
+): Promise<{config: T; filePath: string}>
+{
   let dir: string | null = process.cwd();
   do {
-    const file = join(dir, CONFIG_FILE_NAME);
+    const filePath = join(dir, fileName);
     try {
-      const data = readFileSync(file);
-      logger.info(`Loading config from ${file}`);
-      parseConfig(data, dir);
-      return;
+      const data = readFileSync(filePath);
+      logger.info(`Loading config from ${filePath}`);
+      return {
+        config: parseConfig(data, defaults, dir),
+        filePath,
+      };
     } catch { /* continue */ }
   } while (dir = getParentDir(dir));
+  logger.info(`Unable to load ${fileName}, using defaults`);
+  return {
+    config: defaults,
+    filePath: join(process.cwd(), fileName),
+  };
 }
 
-function parseConfig(data: Buffer, dir: string): void {
-  let parsed: Config = JSON.parse(data.toString());
-  parsed.databaseDirectory = join(dir, parsed.databaseDirectory);
-  config = Object.assign({}, DEFAULTS, parsed);
+export async function saveConfigFile<T>(filePath: string, config: T): Promise<void> {
+  writeFileSync(filePath, JSON.stringify(config));
+}
+
+function parseConfig<T>(data: Buffer, defaults: T, dir: string): T {
+  let parsed: Record<string, string> = JSON.parse(data.toString());
+  for (const key of Object.keys(parsed)) {
+    if (key.endsWith('Directory')) {
+      parsed[key] = join(dir, parsed[key]);
+    }
+  }
+  const config = Object.assign({}, defaults, parsed);
   logger.info('Loaded config:', config);
+  return config;
 }
 
 function getParentDir(path: string | null): string | null {
