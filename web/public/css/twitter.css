@@ -1,3 +1,12 @@
+.twitter__editor header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.twitter__editor textarea {
+  flex: 4 1 15rem;
+}
+
 .twitter__editor .thumbnail {
-  flex-basis: 20%;
+  flex: 1 1 10rem;
 }

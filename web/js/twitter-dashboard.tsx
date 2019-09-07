@@ -75,15 +75,17 @@ class TwitterDashboard extends Component<Props> {
     return (
       <form class="twitter__editor" onSubmit={this.onSubmit}>
         <header>
-          {props.user &&
-            <span>Tweeting as {props.user.name} ({props.user.handle})</span>
-          }
-          <a href={props.authorizeUrl} target="_blank" rel="noopener noreferrer">Log In</a>
+          <span>
+            <PersistentCheckbox name="thread" checked={props.thread} onChange={props.onThreadToggle}/>
+            Thread under previous tweet
+          </span>
+          <span>
+            {props.user &&
+              <span>Tweeting as {props.user.name} ({props.user.handle})</span>
+            }
+            <a href={props.authorizeUrl} target="_blank" rel="noopener noreferrer">Log In</a>
+          </span>
         </header>
-        <div>
-          <PersistentCheckbox name="thread" checked={props.thread} onChange={props.onThreadToggle}/>
-          Thread under previous tweet
-        </div>
         <div class="input-row">
           <textarea name="body" required {...{ maxlength: '280' }}></textarea>
           <Thumbnail src={props.screenshot} />
