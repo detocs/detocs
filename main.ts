@@ -9,7 +9,11 @@ import { loadConfig } from './util/config';
 import { loadCredentials } from './util/credentials';
 import web from './web/server';
 
-loadConfig();
-loadCredentials();
-server();
-web();
+async function main(): Promise<void> {
+  await loadConfig();
+  await loadCredentials();
+  server();
+  web();
+}
+
+main();
