@@ -1,5 +1,7 @@
 import ObsWebSocket from 'obs-websocket-js';
 
+import { getConfig } from './config';
+
 export async function isRecording(obs: ObsWebSocket): Promise<boolean> {
   const resp = await obs.send('GetStreamingStatus');
   return resp['recording'] || false;
@@ -31,5 +33,16 @@ export async function getCurrentThumbnail(
     height: height,
   });
   return resp ? resp['img'] as string : null;
+}
+
+export function connect(obs: ObsWebSocket, callback: () => void): void {
+  obs.connect({ address: `localhost:${getConfig().obsWebsocketPort}` })
+    .then(callback)
+    .catch(() => {
+      //logger.warn('Unable to connect to OBS:', error);
+      setTimeout(() => {
+        connect(obs, callback);
+      }, 10000);
+    });
 }
 

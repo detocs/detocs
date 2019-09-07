@@ -3,6 +3,7 @@ import { h, render, Component, ComponentChild, VNode, FunctionalComponent } from
 import ServerState from '../../server/recording/state';
 
 import { recordingEndpoint } from './api';
+import { Thumbnail } from './thumbnail';
 
 export default class RecordingFieldsElement extends HTMLElement {
   private static readonly nullState: ServerState = {
@@ -112,13 +113,4 @@ const TimestampInput: FunctionalComponent<{ name: string; value: string | null }
     size={12}
     title="Timestamp in the form HH:mm:ss.SSS"
     class="recording__timestamp" />
-);
-
-const Thumbnail: FunctionalComponent<{ src: string | null }> =
-({ src }): VNode => (
-  <object
-    data={src || ''}
-    class="recording__thumbnail">
-    <div class="recording__thumbnail-placeholder" />
-  </object>
 );

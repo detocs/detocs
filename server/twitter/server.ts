@@ -7,11 +7,14 @@ import express from 'express';
 import formidable from 'express-formidable';
 import fs from 'fs';
 import { createServer } from 'http';
+import ObsWebSocket from 'obs-websocket-js';
 import Twit from 'twit';
 import * as ws from 'ws';
 
 import { AccessToken } from '../../models/twitter';
 import { getCredentials, saveCredentials } from '../../util/credentials';
+import { dataFromUri } from '../../util/image';
+import * as obs from '../../util/obs';
 import * as twitter from '../../util/twitter';
 
 import ClientState, { nullState } from './client-state';
@@ -24,6 +27,7 @@ interface InternalState {
     key: string;
     secret: string;
   } | null;
+  lastTweetId: string | null;
 }
 
 const clientState = Object.assign({}, nullState);
@@ -31,9 +35,11 @@ const internalState: InternalState = {
   apiKey: null,
   apiKeySecret: null,
   accessToken: null,
+  lastTweetId: null,
 };
 let socketServer: ws.Server | null = null;
 let twit: Twit | null = null;
+const obsWs = new ObsWebSocket();
 
 export default async function start(port: number): Promise<void> {
   logger.info('Initializing Twitter server');
@@ -63,6 +69,8 @@ export default async function start(port: number): Promise<void> {
   clientState.authorizeUrl =  await oauth.getAuthorizeUrl('http://localhost:58588/authorize');
   broadcastState(clientState);
 
+  initObs();
+
   const app = express();
   // TODO: Security?
   app.use(cors());
@@ -72,6 +80,7 @@ export default async function start(port: number): Promise<void> {
     res.send(await oauth.authorize(params));
   });
   app.post('/tweet', tweet);
+  app.post('/take_screenshot', getScreenshot);
 
   const httpServer = createServer(app);
   socketServer = new ws.Server({
@@ -85,12 +94,18 @@ export default async function start(port: number): Promise<void> {
   httpServer.listen(port, () => logger.info(`Listening on port ${port}`));
 };
 
+function initObs(): void {
+  obsWs.on('error' as any, logger.error); // eslint-disable-line @typescript-eslint/no-explicit-any
+  obs.connect(obsWs, async () => {
+    logger.info('Connected to OBS');
+  });
+}
+
 function broadcastState(state: ClientState): void {
-  console.log('Broadcasting state: ', state);
   if (!socketServer) {
     return;
   }
-  logger.debug('Broadcasting state: ', state);
+  //logger.debug('Broadcasting state: ', state);
   socketServer.clients.forEach(client => {
     if (client.readyState === ws.OPEN) {
       client.send(JSON.stringify(state));
@@ -131,6 +146,23 @@ async function tweet(req: express.Request, res: express.Response): Promise<void>
     res.sendStatus(400);
     return;
   }
-  twitter.tweet(twit, body);
+  const img = req.fields['image'] as string | undefined;
+  const tweetId = await twitter.tweet(twit, body, img && dataFromUri(img));
+  logger.info(`Created tweet ${tweetId}`);
+  internalState.lastTweetId = tweetId;
+  res.sendStatus(200);
+  clientState.screenshot = null;
+  broadcastState(clientState);
+}
+
+async function getScreenshot(_: express.Request, res: express.Response): Promise<void> {
+  const img = await obs.getCurrentThumbnail(obsWs, 1280, 720)
+    .catch(logger.error);
+  if (!img) {
+    res.sendStatus(500);
+    return;
+  }
+  clientState.screenshot = img;
+  broadcastState(clientState);
   res.sendStatus(200);
 }

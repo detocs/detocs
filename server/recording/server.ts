@@ -13,7 +13,9 @@ import ObsWebSocket from 'obs-websocket-js';
 import path from 'path';
 import * as ws from 'ws';
 
+import { getConfig } from '../../util/config';
 import * as ffmpeg from '../../util/ffmpeg';
+import { pngDataUri } from '../../util/image';
 import * as obsUtil from '../../util/obs';
 import { sanitizeTimestamp } from '../../util/timestamp';
 import InfoState from '../info/state';
@@ -30,8 +32,6 @@ interface ProcessInfo{
   cmd: string;
   bin: string;
 }
-
-const OBS_WEBSOCKET_PORT = 4444;
 
 const obs = new ObsWebSocket();
 let socketServer: ws.Server | null = null;
@@ -51,7 +51,8 @@ export default function start(port: number): void {
   obs.on('error' as any, logger.error); // eslint-disable-line @typescript-eslint/no-explicit-any
   // The recording file doesn't appear immediately
   obs.on('RecordingStarted', () => setTimeout(getRecordingFile, 2000));
-  connect(obs, async () => {
+  obsUtil.connect(obs, async () => {
+    logger.info('Connected to OBS');
     if (await obsUtil.isRecording(obs)) {
       getRecordingFile();
     }
@@ -75,20 +76,6 @@ export default function start(port: number): void {
 
   httpServer.listen(port, () => logger.info(`Listening on port ${port}`));
 };
-
-function connect(obs: ObsWebSocket, callback: () => void): void {
-  obs.connect({ address: `localhost:${OBS_WEBSOCKET_PORT}` })
-    .then(() => {
-      logger.info('Connected to OBS');
-      callback();
-    })
-    .catch((error) => {
-      logger.warn('Unable to connect to OBS:', error);
-      setTimeout(() => {
-        connect(obs, callback);
-      }, 10000);
-    });
-}
 
 function broadcastState(state: State): void {
   if (!socketServer) {
@@ -174,7 +161,7 @@ async function getRecordingFile(): Promise<void> {
   let folder = await obsUtil.getRecordingFolder(obs);
   if (!path.isAbsolute(folder)) {
     // Some super cool guy is using relative paths with OBS
-    const listeners = await find('port', OBS_WEBSOCKET_PORT);
+    const listeners = await find('port', getConfig().obsWebsocketPort);
     if (listeners.length) {
       folder = path.join(path.dirname((listeners[0] as ProcessInfo).bin), folder);
     }
@@ -243,7 +230,7 @@ async function getThumbnailForStartTimestamp(): Promise<void> {
     return;
   }
   const img = await ffmpeg.getVideoThumbnail(state.recordingFile, state.startTimestamp);
-  state.startThumbnail = base64Png(img);
+  state.startThumbnail = pngDataUri(img);
   broadcastState(state);
 }
 
@@ -253,12 +240,8 @@ async function getThumbnailForStopTimestamp(): Promise<void> {
     return;
   }
   const img = await ffmpeg.getVideoThumbnail(state.recordingFile, state.stopTimestamp);
-  state.stopThumbnail = base64Png(img);
+  state.stopThumbnail = pngDataUri(img);
   broadcastState(state);
-}
-
-function base64Png(image: Buffer): string {
-  return `data:image/png;base64,${image.toString('base64')}`;
 }
 
 function getInfo(): Promise<InfoState> {

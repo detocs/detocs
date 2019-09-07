@@ -3,6 +3,7 @@ import { h, render, Component, ComponentChild } from 'preact';
 import ClientState, { nullState } from '../../server/twitter/client-state';
 
 import { twitterEndpoint } from './api';
+import { Thumbnail } from './thumbnail';
 
 export default class TwitterDashboardElement extends HTMLElement {
   private componentElement?: Element;
@@ -37,6 +38,7 @@ type Props = ClientState;
 
 class TwitterDashboard extends Component<Props> {
   private static readonly tweetEndpoint = twitterEndpoint('/tweet').href;
+  private static readonly screenshotEndpoint = twitterEndpoint('/take_screenshot').href;
 
   private onSubmit(event: Event): void {
     event.preventDefault();
@@ -51,6 +53,11 @@ class TwitterDashboard extends Component<Props> {
       .then(() => { form.reset(); });
   }
 
+  private takeScreenshot(): void {
+    fetch(TwitterDashboard.screenshotEndpoint, { method: 'POST' })
+      .catch(console.error);
+  }
+
   public render(props: Props): ComponentChild {
     return (
       <form class="twitter__editor" onSubmit={this.onSubmit}>
@@ -60,7 +67,10 @@ class TwitterDashboard extends Component<Props> {
           }
           <a href={props.authorizeUrl} target="_blank" rel="noopener noreferrer">Log In</a>
         </header>
-        <textarea name="body"></textarea>
+        <textarea name="body" {...{ maxlength: '280' }}></textarea>
+        <Thumbnail src={props.screenshot} />
+        <input type="hidden" name="image" value={props.screenshot || undefined}/>
+        <button type="button" onClick={this.takeScreenshot}>Take Screenshot</button>
         <button type="submit">Tweet</button>
       </form>
     );

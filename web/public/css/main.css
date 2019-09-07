@@ -162,6 +162,20 @@ tab-controller {
   display: none;
 } 
 
+.thumbnail {
+  background: black;
+  border: var(--width-border) solid currentColor;
+}
+
+.thumbnail-placeholder {
+  inline-size: 100%;
+  block-size: 100%;
+
+  background-image: url(/images/thumbnail-placeholder.svg);
+  background-position: center;
+  background-size: cover;
+}
+
 .recording__editor {
   display: flex;
   flex-flow: row wrap;
@@ -176,22 +190,10 @@ tab-controller {
   align-items: center;
 }
 
-.recording__thumbnail {
+.recording__boundary .thumbnail {
   width: 240px;
   height: 135px;
   flex: 0 1 auto;
-
-  background: black;
-  border: var(--width-border) solid currentColor;
-}
-
-.recording__thumbnail-placeholder {
-  inline-size: 100%;
-  block-size: 100%;
-
-  background-image: url(/images/thumbnail-placeholder.svg);
-  background-position: center;
-  background-size: cover;
 }
 
 .recording__controls {
