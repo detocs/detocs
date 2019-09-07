@@ -1,0 +1,16 @@
+.thumbnail {
+  height: max-content;
+
+  background: black;
+  border: var(--width-border) solid currentColor;
+}
+
+.thumbnail-placeholder {
+  inline-size: 100%;
+
+  padding-block-end: calc(100% / (var(--stream-aspect-ratio)));
+
+  background-image: url(/images/thumbnail-placeholder.svg);
+  background-position: center;
+  background-size: cover;
+}

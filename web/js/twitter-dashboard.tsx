@@ -84,11 +84,15 @@ class TwitterDashboard extends Component<Props> {
           <PersistentCheckbox name="thread" checked={props.thread} onChange={props.onThreadToggle}/>
           Thread under previous tweet
         </div>
-        <textarea name="body" required {...{ maxlength: '280' }}></textarea>
-        <Thumbnail src={props.screenshot} />
+        <div class="input-row">
+          <textarea name="body" required {...{ maxlength: '280' }}></textarea>
+          <Thumbnail src={props.screenshot} />
+        </div>
         <input type="hidden" name="image" value={props.screenshot || undefined}/>
-        <button type="button" onClick={this.takeScreenshot}>Take Screenshot</button>
-        <button type="submit">Tweet</button>
+        <div class="input-row">
+          <button type="submit">Tweet</button>
+          <button type="button" onClick={this.takeScreenshot}>Take Screenshot</button>
+        </div>
       </form>
     );
   }

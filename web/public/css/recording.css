@@ -1,0 +1,43 @@
+.recording__editor {
+  display: flex;
+  flex-flow: row wrap;
+}
+
+.recording__boundary {
+  flex: 1 1 auto;
+
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.recording__boundary .thumbnail {
+  width: 240px;
+  height: 135px;
+  flex: 0 1 auto;
+}
+
+.recording__controls {
+  flex: 1 0 auto;
+  display: flex;
+  flex-flow: row wrap;
+}
+
+.recording__controls > * {
+  flex: 1 0 50%;
+}
+
+.recording__file {
+  width: 100%;
+}
+
+.recording__tab-label--recording {
+  color: red;
+}
+
+.recording__tab-label--recording::after {
+  vertical-align: top;
+  content: '🔴';
+  font-size: 0.4em;
+}

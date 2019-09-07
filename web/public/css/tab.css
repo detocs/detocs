@@ -1,0 +1,56 @@
+tab-controller {
+  display: flex;
+  overflow-x: auto;
+  padding: 0 1em;
+
+  background-color: var(--color-bg-inactive);
+}
+
+.tabbable-section {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.tabbable-section__tab {
+  flex-shrink: 0;
+  margin: 0;
+  margin-inline-end: calc(-1 * var(--width-border));
+
+  background-color: var(--color-bg);
+  border: var(--width-border) solid currentColor;
+  border-bottom-width: 0;
+  font-size: 1rem;
+  font-weight: normal;
+}
+
+.tabbable-section__tab label {
+  display: block;
+
+  line-height: var(--tab-height);
+  padding: 0 1em;
+}
+
+.tabbable-section-control:checked ~ h2 {
+  z-index: 1;
+
+  color: var(--color-text-active);
+  background-color: var(--color-bg-active);
+  border-color: var(--color-bg-active);
+}
+
+.tabbable-section-content {
+  position: fixed;
+  top: var(--tab-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  overflow: auto;
+
+  background-color: var(--color-bg);
+  border-top: var(--width-border) solid currentColor;
+}
+
+.tabbable-section-control:not(:checked) ~ .tabbable-section-content {
+  display: none;
+} 
