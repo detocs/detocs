@@ -43,11 +43,7 @@ export default class RecordingFieldsElement extends HTMLElement {
   }
 
   public render(): void {
-    this.componentElement = render(
-      <RecordingFields {...this.state} />,
-      this,
-      this.componentElement
-    );
+    render(<RecordingFields {...this.state} />, this);
   }
 }
 

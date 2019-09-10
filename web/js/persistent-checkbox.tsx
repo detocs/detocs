@@ -1,5 +1,4 @@
-import { h, VNode, FunctionalComponent } from "preact";
-import { Fragment } from "../../util/preact";
+import { h, VNode, FunctionalComponent, Fragment } from "preact";
 
 interface Props {
   name: string;

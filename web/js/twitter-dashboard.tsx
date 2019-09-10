@@ -36,11 +36,7 @@ export default class TwitterDashboardElement extends HTMLElement {
   }
 
   public render(): void {
-    this.componentElement = render(
-      <TwitterDashboard {...this.state} />,
-      this,
-      this.componentElement
-    );
+    render(<TwitterDashboard {...this.state} />, this);
   }
 }
 

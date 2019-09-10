@@ -6,8 +6,6 @@ import PersonFields, { PersonFieldsProps } from "./person-fields";
 import { PersistentCheckbox } from "./persistent-checkbox";
 
 export class PlayerFieldsElement extends HTMLElement {
-  private componentElement?: Element;
-
   public state: Props = {
     index: 0,
     prefix: 'players[]',
@@ -62,11 +60,7 @@ export class PlayerFieldsElement extends HTMLElement {
   };
 
   public render(): void {
-    this.componentElement = render(
-      <PlayerFields {...this.state} />,
-      this,
-      this.componentElement
-    );
+    render(<PlayerFields {...this.state} />, this);
   }
 }
 

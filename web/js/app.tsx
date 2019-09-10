@@ -1,11 +1,10 @@
-import { h, render, Component, ComponentChild } from 'preact';
+import { h, render, Component, ComponentChild, Fragment } from 'preact';
 
 import LowerThird from '../../models/lower-third';
 import Person, { PersonUpdate } from '../../models/person';
 import Scoreboard from '../../models/scoreboard';
 import { massagedFormData } from '../../util/forms';
 import { getVersion } from "../../util/meta";
-import { Fragment } from "../../util/preact";
 
 import { infoEndpoint } from './api';
 import GameFieldsElement from './game-fields';

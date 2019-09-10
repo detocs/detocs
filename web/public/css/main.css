@@ -106,10 +106,6 @@ input:focus {
   inline-size: 6em;
 }
 
-.fragment {
-  display: contents;
-}
-
 #version {
   position: fixed;
   bottom: 0;

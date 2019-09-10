@@ -1,16 +1,14 @@
-import { h, createRef, render, Component, ComponentChild } from 'preact';
+import { h, createRef, render, Component, ComponentChild, Fragment } from 'preact';
 
 import Person, { PersonUpdate, getName } from '../../models/person';
 
 import { infoEndpoint } from './api';
 import Autocomplete from './autocomplete';
-import { Fragment } from '../../util/preact';
 import { capitalize } from '../../util/string';
 
 export class PersonFieldsElement extends HTMLElement {
   private fieldList: string[] = [];
   private person: PersonUpdate = {};
-  private componentElement?: Element;
 
   private connectedCallback(): void {
     this.fieldList = JSON.parse(this.dataset.fields || '[]');
@@ -31,12 +29,12 @@ export class PersonFieldsElement extends HTMLElement {
   };
 
   private render(): void {
-    this.componentElement = render(<PersonFields
+    render(<PersonFields
       prefix="players[]"
       personFields={this.fieldList}
       person={this.person}
       onUpdatePerson={this.updatePerson}
-    />, this, this.componentElement);
+    />, this);
   }
 }
 
