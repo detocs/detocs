@@ -1,6 +1,4 @@
-import { h, Component, ComponentChild, Ref } from 'preact';
-
-import { RefObject } from '../../util/preact';
+import { h, Component, ComponentChild, RefObject } from 'preact';
 
 const idRegex = /\{\{(\w+)\}\}/;
 let idCounter = 0;

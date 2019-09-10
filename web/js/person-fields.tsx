@@ -1,10 +1,10 @@
-import { h, render, Component, ComponentChild } from 'preact';
+import { h, createRef, render, Component, ComponentChild } from 'preact';
 
 import Person, { PersonUpdate, getName } from '../../models/person';
 
 import { infoEndpoint } from './api';
 import Autocomplete from './autocomplete';
-import { createRef, Fragment } from '../../util/preact';
+import { Fragment } from '../../util/preact';
 import { capitalize } from '../../util/string';
 
 export class PersonFieldsElement extends HTMLElement {
