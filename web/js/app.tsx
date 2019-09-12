@@ -7,14 +7,19 @@ import { massagedFormData } from '../../util/forms';
 import { getVersion } from "../../util/meta";
 
 import { infoEndpoint } from './api';
+import CommentaryDashboard from './commentary-dashboard';
 import GameFieldsElement from './game-fields';
 import MatchFieldsElement from './match-fields';
 import { PersistentCheckboxElement } from './persistent-checkbox';
 import { PersonFieldsElement } from './person-fields';
+import PlayerDashboard from './player-dashboard';
 import { PlayerFieldsElement } from './player-fields';
+import RecordingDashboard from './recording-dashboard';
 import RecordingFieldsElement from './recording-fields';
-import TwitterDashboardElement from './twitter-dashboard';
+import Tab from './tab';
 import TabController from './tab-controller';
+import TwitterDashboardElement from './twitter-dash';
+import TwitterDashboard from './twitter-dashboard';
 
 type ResponseHandler = (data: any, form: HTMLElement) => void;
 
@@ -27,17 +32,16 @@ customElements.define('person-fields', PersonFieldsElement);
 customElements.define('player-fields', PlayerFieldsElement);
 customElements.define('recording-fields', RecordingFieldsElement);
 customElements.define('twitter-dashboard', TwitterDashboardElement);
-customElements.define('tab-controller', TabController);
 
 document.addEventListener('DOMContentLoaded', () => {
+  render(<App />, document.body);
+
   bindForms('.js-scoreboard', '/scoreboard', handleScoreboardUpdateResponse);
   bindForms('.js-lowerthird', '/lowerthird', handleLowerThirdUpdateResponse);
   bindPlayerSwapButton();
   bindPlayerResetButtons();
   bindCommentatorSwapButton();
   bindCommentatorResetButton();
-
-  render(<App />, document.getElementById('version') || document.body);
 });
 
 interface AppState {
@@ -53,7 +57,25 @@ class App extends Component<{}, AppState> {
   }
 
   public render(_: {}, state: AppState): ComponentChild {
-    return <Fragment>DETOCS {state.version}</Fragment>;
+    return (
+      <Fragment>
+        <TabController>
+          <Tab id="scoreboard">
+            <PlayerDashboard/>
+          </Tab>
+          <Tab id="commentary">
+            <CommentaryDashboard/>
+          </Tab>
+          <Tab id="recording">
+            <RecordingDashboard/>
+          </Tab>
+          <Tab id="twitter">
+            <TwitterDashboard/>
+          </Tab>
+        </TabController>
+        <footer id="version">DETOCS {state.version}</footer>
+      </Fragment>
+    );
   }
 }
 

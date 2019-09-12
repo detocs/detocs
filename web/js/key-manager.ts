@@ -18,6 +18,12 @@ interface Shortcut extends Keystroke {
 
 let shortcutList: Shortcut[] = [];
 
+/**
+ * @param keystroke Keyboard shortcut shorthand
+ * @param name Display name for the shortcut
+ * @param handler Callback
+ * @returns A callback to unregister the shortcut
+ */
 export function register(keystroke: string, name: string, handler: KeyHandler): () => void {
   const ks = parseKeystroke(keystroke);
   const shortcut = {
