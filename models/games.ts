@@ -114,4 +114,20 @@ export default [
       smashgg: { id: 4267 },
     },
   },
+  {
+    id: 'kof98',
+    name: 'The King of Fighters \'98: Ultimate Match',
+    shortNames: [
+      'King of Fighters 98 UM',
+      'KOF 98 UM',
+    ],
+    hashtags: [
+      'KOF98',
+      'KOF',
+    ],
+    serviceInfo: {
+      twitch: { id: 'The King of Fighters \'98 Ultimate Match' },
+      smashgg: { id: 17413 },
+    },
+  },
 ] as Game[];
