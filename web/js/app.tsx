@@ -3,6 +3,7 @@ import { h, render, Component, ComponentChild, Fragment } from 'preact';
 import LowerThird from '../../models/lower-third';
 import Person, { PersonUpdate } from '../../models/person';
 import Scoreboard from '../../models/scoreboard';
+import ServerState, { nullState } from '../../server/info/state';
 import { massagedFormData } from '../../util/forms';
 import { getVersion } from "../../util/meta";
 
@@ -44,16 +45,25 @@ document.addEventListener('DOMContentLoaded', () => {
   bindCommentatorResetButton();
 });
 
-interface AppState {
+type AppState = ServerState & {
   version: string;
-}
+};
 
 class App extends Component<{}, AppState> {
   private constructor(props: {}) {
     super(props);
-    this.state = {
+    this.state = Object.assign({
       version: getVersion(),
-    };
+    }, nullState);
+    const ws = new WebSocket(infoEndpoint('', 'ws:').href);
+    ws.onmessage = this.updateServerState.bind(this);
+    ws.onerror = console.error;
+  }
+
+  private updateServerState(ev: MessageEvent): void {
+    const newState = JSON.parse(ev.data) as ServerState;
+    console.log('updateServerState:', newState);
+    this.setState(state => Object.assign(state, newState));
   }
 
   public render(_: {}, state: AppState): ComponentChild {
@@ -61,7 +71,7 @@ class App extends Component<{}, AppState> {
       <Fragment>
         <TabController>
           <Tab id="scoreboard">
-            <PlayerDashboard/>
+            <PlayerDashboard {...state} updateSet={console.log}/>
           </Tab>
           <Tab id="commentary">
             <CommentaryDashboard/>

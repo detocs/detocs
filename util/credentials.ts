@@ -1,15 +1,14 @@
+import { ApiToken } from '../models/smashgg';
+import { AccessToken } from '../models/twitter';
+
 import { loadConfigFile, saveConfigFile } from './config';
 
 interface Credentials {
-  twitterAccessToken: {
-    key: string;
-    secret: string;
-  } | null;
+  twitterAccessToken?: AccessToken;
+  smashggApiToken?: ApiToken;
 }
 
-const DEFAULTS: Credentials = {
-  twitterAccessToken: null,
-};
+const DEFAULTS: Credentials = {};
 let currentCreds = DEFAULTS;
 let credsFile: string | null = null;
 

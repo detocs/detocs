@@ -1,6 +1,10 @@
-import { h, FunctionalComponent, RenderableProps, VNode } from 'preact';
+import { h, FunctionalComponent, VNode } from 'preact';
 
-const PlayerDashboard: FunctionalComponent = ({}: RenderableProps<{}>): VNode => {
+import SetSelector, { Props as SetSelectorProps } from './set-selector';
+
+export type Props = SetSelectorProps;
+
+const PlayerDashboard: FunctionalComponent<Props> = (props): VNode => {
   return(
     <form class="scoreboard js-scoreboard tabbable-section-content" autocomplete="off">
       <div class="players">
@@ -18,6 +22,8 @@ const PlayerDashboard: FunctionalComponent = ({}: RenderableProps<{}>): VNode =>
         {/* 
           // @ts-ignore */}
         <game-fields></game-fields>
+        <input type="text" name="phaseId" placeholder="Phase" size={7} style="flex: 0 0 auto;" />
+        <SetSelector {...props}/>
       </div>
       <div class="input-row">
         <button type="button" class="js-reset-players">Reset Players</button>

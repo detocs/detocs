@@ -1,6 +1,7 @@
 import Game from './game';
 import Match from './match';
 import Person from './person';
+import TournamentSet from './tournament-set';
 
 export default interface Scoreboard {
   players: {
@@ -11,4 +12,7 @@ export default interface Scoreboard {
   }[];
   match: Match;
   game: Game;
+  phaseId?: string;
+  set?: TournamentSet;
+  unfinishedSets?: TournamentSet[];
 }

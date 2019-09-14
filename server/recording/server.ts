@@ -22,8 +22,9 @@ import InfoState from '../info/state';
 import { INFO_PORT } from "../ports";
 
 import State from './state';
+import SmashggClient from '../../util/smashgg';
 
-interface ProcessInfo{
+interface ProcessInfo {
   pid: number;
   ppid?: number;
   uid?: number;
@@ -33,8 +34,25 @@ interface ProcessInfo{
   bin: string;
 }
 
+interface Log {
+  file: string;
+  eventId?: string;
+  phaseId?: string;
+  start: string | null;
+  end: string | null;
+  sets: {
+    id?: string;
+    displayName?: string;
+    start: string;
+    end: string;
+    state: InfoState;
+  }[];
+}
+
 const obs = new ObsWebSocket();
 let socketServer: ws.Server | null = null;
+let smashgg: SmashggClient | null = null;
+let currentLog: Log | null = null;
 const state: State = {
   recordingFolder: null,
   recordingFile: null,
@@ -44,6 +62,7 @@ const state: State = {
   startThumbnail: null,
   stopThumbnail: null,
 };
+
 
 export default function start(port: number): void {
   logger.info('Initializing match recording server');
@@ -57,6 +76,8 @@ export default function start(port: number): void {
       getRecordingFile();
     }
   });
+
+  smashgg = new SmashggClient();
 
   const app = express();
   // TODO: Security?
@@ -199,10 +220,35 @@ async function saveRecording(
   fs.mkdirSync(outputFolder, { recursive: true });
 
   const videoOutputPath = path.join(outputFolder, outputFilename + extension);
-  await ffmpeg.trimClip(sourceFile, start, end, videoOutputPath);
+  //await ffmpeg.trimClip(sourceFile, start, end, videoOutputPath);
 
-  const metadataOutputPath = path.join(outputFolder, outputFilename + '.json');
-  saveMetadata(info, metadataOutputPath);
+  if (!currentLog || info.phaseId != currentLog.phaseId) {
+    let eventId;
+    if (info.phaseId && smashgg) {
+      eventId = await smashgg.eventIdForPhase(info.phaseId);
+    }
+    currentLog = {
+      file: sourceFile,
+      eventId,
+      phaseId: info.phaseId,
+      start,
+      end: null,
+      sets: [],
+    };
+  }
+  currentLog.sets.push({
+    id: info.set && info.set.id,
+    displayName: info.set ? info.set.displayName : info.match.name,
+    start,
+    end,
+    state: Object.assign({}, info, { unfinishedSets: undefined }),
+  });
+
+  const metadataFolder = path.join(folder, sourceFilename);
+  const metadataFilename =
+    `${subFolder}-${info.phaseId || ''}-${sanitizeTimestamp(currentLog.start as string)}`;
+  const metadataOutputPath = path.join(metadataFolder, metadataFilename + '.json');
+  saveMetadata(currentLog as Log, metadataOutputPath);
   return videoOutputPath;
 }
 
@@ -220,8 +266,8 @@ function generateFilename(start: string, end: string, info: InfoState): string {
   return filenamify(`${start} - ${end}${gameSummary}${matchSummary}${playerSummary}`);
 }
 
-function saveMetadata(info: InfoState, outFile: string): void {
-  fs.writeFileSync(outFile, JSON.stringify(info, null, 2));
+function saveMetadata(log: Log, outFile: string): void {
+  fs.writeFileSync(outFile, JSON.stringify(log, null, 2));
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

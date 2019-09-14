@@ -27,6 +27,7 @@
     "express-formidable": "^1.2.0",
     "filenamify": "^4.1.0",
     "find-process": "^1.4.2",
+    "graphql-request": "^1.8.2",
     "isomorphic-fetch": "^2.2.1",
     "log4js": "^4.5.1",
     "moment": "^2.24.0",

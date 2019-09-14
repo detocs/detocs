@@ -49,7 +49,7 @@ export async function loadConfigFile<T>(
 }
 
 export async function saveConfigFile<T>(filePath: string, config: T): Promise<void> {
-  writeFileSync(filePath, JSON.stringify(config));
+  writeFileSync(filePath, JSON.stringify(config, null, 2));
 }
 
 function parseConfig<T>(data: Buffer, defaults: T, dir: string): T {

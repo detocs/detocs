@@ -18,22 +18,21 @@ import Person, { PersonUpdate } from '../../models/person';
 import Scoreboard from '../../models/scoreboard';
 import uuidv4 from '../../util/uuid';
 
-import State from './state';
+import State, { nullState } from './state';
+import SmashggClient from '../../util/smashgg';
+import TournamentSet from '../../models/tournament-set';
 
-const state: State = {
-  players: [],
-  match: nullMatch,
-  game: nullGame,
-  commentators: [],
-  tournament: '',
-  event: '',
-};
+const state: State = Object.assign({}, nullState);
+let socketServer: ws.Server | null = null;
 
 export default function start(port: number): void {
   loadDatabases();
 
   const output = new ScoreboardAssistant();
   logger.info('Initializing overlay info server');
+
+  const smashgg = new SmashggClient();
+  setInterval(fetchSets, 5 * 60 * 1000, smashgg);
 
   const app = express();
   // TODO: Security?
@@ -47,7 +46,11 @@ export default function start(port: number): void {
     logger.debug(`Scoreboard update ${uuid} received:\n`, req.fields);
     if (req.fields) {
       const scoreboard = parseScoreboard(req.fields);
+      const phaseChanged = scoreboard.phaseId != state.phaseId;
       Object.assign(state, scoreboard);
+      if (phaseChanged) {
+        fetchSets(smashgg);
+      }
       output.updateScoreboard(state);
       res.send({
         'updateId': uuid,
@@ -92,7 +95,7 @@ export default function start(port: number): void {
   });
 
   const httpServer = createServer(app);
-  const socketServer = new ws.Server({
+  socketServer = new ws.Server({
     server: httpServer,
   });
   socketServer.on('connection', function connection(ws): void {
@@ -103,8 +106,30 @@ export default function start(port: number): void {
   httpServer.listen(port, () => logger.info(`Listening on port ${port}`));
 };
 
+function broadcastState(state: State): void {
+  if (!socketServer) {
+    return;
+  }
+  //logger.debug('Broadcasting state: ', state);
+  socketServer.clients.forEach(client => {
+    if (client.readyState === ws.OPEN) {
+      client.send(JSON.stringify(state));
+    }
+  });
+}
+
 function loadDatabases(): void {
   People.loadDatabase();
+}
+
+async function fetchSets(smashgg: SmashggClient): Promise<void> {
+  if (!state.phaseId) {
+    state.unfinishedSets = [];
+    return;
+  }
+  logger.debug(`Fetching sets for phase ${state.phaseId}`);
+  state.unfinishedSets = await smashgg.upcomingSetsByPhase(state.phaseId);
+  broadcastState(state);
 }
 
 function parseScoreboard(fields: Record<string, unknown>): Scoreboard {
@@ -125,6 +150,8 @@ function parseScoreboard(fields: Record<string, unknown>): Scoreboard {
     players,
     game: parseGame(fields),
     match: parseMatch(fields),
+    phaseId: parseOptionalString(fields, 'phaseId'),
+    set: parseSet(fields),
   };
 }
 
@@ -197,6 +224,14 @@ function parseMatch(fields: Record<string, unknown>): Match {
     name,
     smashggId: null,
   };
+}
+
+function parseSet(fields: Record<string, unknown>): TournamentSet | undefined {
+  const setId = fields['set'];
+  if (!setId || !state.unfinishedSets) {
+    return;
+  }
+  return state.unfinishedSets.find(s => s.id === setId);
 }
 
 function parseId(idStr: unknown): number | undefined {
