@@ -15,6 +15,8 @@
 }
 
 body {
+  margin: 0;
+
   background-color: var(--color-bg);
   color: var(--color-text);
 }
@@ -33,6 +35,8 @@ legend {
 input[type="text"] {
   min-inline-size: 0;
 }
+
+/* TODO: Link color */
 
 .input-row {
   margin-block: 0.15em;

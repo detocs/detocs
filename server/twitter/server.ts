@@ -64,8 +64,10 @@ export default async function start(port: number): Promise<void> {
   if (accessToken) {
     // TODO: Handle revoked tokens
     logger.info('Already logged in');
+    // TODO: Be more tolerant of lack of network connection
     await logIn(accessToken);
   }
+  // TODO: Use redirect instead of sending url to client
   clientState.authorizeUrl =  await oauth.getAuthorizeUrl('http://localhost:58588/authorize');
   broadcastState(clientState);
 

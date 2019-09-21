@@ -1,13 +1,17 @@
-import { h, render, Component, ComponentChild, Fragment } from 'preact';
+import { h, render, FunctionalComponent, ComponentChild, Fragment } from 'preact';
 
 import LowerThird from '../../models/lower-third';
 import Person, { PersonUpdate } from '../../models/person';
 import Scoreboard from '../../models/scoreboard';
-import ServerState, { nullState } from '../../server/info/state';
+import InfoState, { nullState as nullInfoState } from '../../server/info/state';
+import TwitterState, { nullState as nullTwitterState } from '../../server/twitter/client-state';
 import { massagedFormData } from '../../util/forms';
 import { getVersion } from "../../util/meta";
 
-import { infoEndpoint } from './api';
+import { useServerState } from './hooks/server-state';
+import { useToggle } from './hooks/toggle';
+
+import { infoEndpoint, twitterEndpoint } from './api';
 import CommentaryDashboard from './commentary-dashboard';
 import GameFieldsElement from './game-fields';
 import MatchFieldsElement from './match-fields';
@@ -19,7 +23,6 @@ import RecordingDashboard from './recording-dashboard';
 import RecordingFieldsElement from './recording-fields';
 import Tab from './tab';
 import TabController from './tab-controller';
-import TwitterDashboardElement from './twitter-dash';
 import TwitterDashboard from './twitter-dashboard';
 
 type ResponseHandler = (data: any, form: HTMLElement) => void;
@@ -32,7 +35,6 @@ customElements.define('persistent-checkbox', PersistentCheckboxElement, { extend
 customElements.define('person-fields', PersonFieldsElement);
 customElements.define('player-fields', PlayerFieldsElement);
 customElements.define('recording-fields', RecordingFieldsElement);
-customElements.define('twitter-dashboard', TwitterDashboardElement);
 
 document.addEventListener('DOMContentLoaded', () => {
   render(<App />, document.body);
@@ -45,48 +47,42 @@ document.addEventListener('DOMContentLoaded', () => {
   bindCommentatorResetButton();
 });
 
-type AppState = ServerState & {
-  version: string;
-};
+const version = getVersion();
 
-class App extends Component<{}, AppState> {
-  private constructor(props: {}) {
-    super(props);
-    this.state = Object.assign({
-      version: getVersion(),
-    }, nullState);
-    const ws = new WebSocket(infoEndpoint('', 'ws:').href);
-    ws.onmessage = this.updateServerState.bind(this);
-    ws.onerror = console.error;
-  }
+const App: FunctionalComponent<{}> = () => {
+  const [ infoState, updateInfoState ] = useServerState<InfoState>(
+    infoEndpoint('', 'ws:'),
+    nullInfoState,
+  );
+  const [ twitterState, updateTwitterState ] = useServerState<TwitterState>(
+    twitterEndpoint('', 'ws:'),
+    nullTwitterState,
+  );
+  const [ twitterThread, toggleTwitterThread ] = useToggle(false);
 
-  private updateServerState(ev: MessageEvent): void {
-    const newState = JSON.parse(ev.data) as ServerState;
-    console.log('updateServerState:', newState);
-    this.setState(state => Object.assign(state, newState));
-  }
-
-  public render(_: {}, state: AppState): ComponentChild {
-    return (
-      <Fragment>
-        <TabController>
-          <Tab id="scoreboard">
-            <PlayerDashboard {...state} updateSet={console.log}/>
-          </Tab>
-          <Tab id="commentary">
-            <CommentaryDashboard/>
-          </Tab>
-          <Tab id="recording">
-            <RecordingDashboard/>
-          </Tab>
-          <Tab id="twitter">
-            <TwitterDashboard/>
-          </Tab>
-        </TabController>
-        <footer id="version">DETOCS {state.version}</footer>
-      </Fragment>
-    );
-  }
+  return (
+    <Fragment>
+      <TabController>
+        <Tab id="scoreboard">
+          <PlayerDashboard {...infoState} updateSet={console.log}/>
+        </Tab>
+        <Tab id="commentary">
+          <CommentaryDashboard/>
+        </Tab>
+        <Tab id="recording">
+          <RecordingDashboard/>
+        </Tab>
+        <Tab id="twitter">
+          <TwitterDashboard
+            {...twitterState}
+            thread={twitterThread}
+            onThreadToggle={toggleTwitterThread}
+          />
+        </Tab>
+      </TabController>
+      <footer id="version">DETOCS {version}</footer>
+    </Fragment>
+  );
 }
 
 function bindForms(formSelector: string, endpoint: string, responseHandler: ResponseHandler): void {

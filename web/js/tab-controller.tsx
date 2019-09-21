@@ -13,7 +13,7 @@ const TabController: FunctionalComponent = ({ children }: RenderableProps<{}>): 
     move(node, 0);
   }, []);
   return (
-    <main ref={ref}>
+    <main class="tab-controller" ref={ref}>
       {children}
     </main>
   );

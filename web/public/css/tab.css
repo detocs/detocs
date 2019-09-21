@@ -1,4 +1,4 @@
-tab-controller {
+.tab-controller {
   display: flex;
   overflow-x: auto;
   padding: 0 1em;
