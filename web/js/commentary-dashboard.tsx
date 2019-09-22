@@ -2,7 +2,7 @@ import { h, FunctionalComponent, RenderableProps, VNode } from 'preact';
 
 const CommentaryDashboard: FunctionalComponent = ({}: RenderableProps<{}>): VNode => {
   return(
-    <form class="commentary js-lowerthird tabbable-section-content" autocomplete="off">
+    <form class="commentary js-lowerthird" autocomplete="off">
       <div class="players">
         <fieldset name="commentator" class="commentator js-commentator">
           <legend>Commentator 1</legend>

@@ -7,3 +7,13 @@ export default interface State {
   startThumbnail: string | null;
   stopThumbnail: string | null;
 }
+
+export const nullState: State = {
+  recordingFolder: null,
+  recordingFile: null,
+  clipFile: null,
+  startTimestamp: null,
+  stopTimestamp: null,
+  startThumbnail: null,
+  stopThumbnail: null,
+};

@@ -6,7 +6,7 @@ export type Props = SetSelectorProps;
 
 const PlayerDashboard: FunctionalComponent<Props> = (props): VNode => {
   return(
-    <form class="scoreboard js-scoreboard tabbable-section-content" autocomplete="off">
+    <form class="scoreboard js-scoreboard" autocomplete="off">
       <div class="players">
         {/* 
           // @ts-ignore */}

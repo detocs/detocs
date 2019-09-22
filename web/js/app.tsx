@@ -4,6 +4,7 @@ import LowerThird from '../../models/lower-third';
 import Person, { PersonUpdate } from '../../models/person';
 import Scoreboard from '../../models/scoreboard';
 import InfoState, { nullState as nullInfoState } from '../../server/info/state';
+import RecordingState, { nullState as nullRecordingState } from '../../server/recording/state';
 import TwitterState, { nullState as nullTwitterState } from '../../server/twitter/client-state';
 import { massagedFormData } from '../../util/forms';
 import { getVersion } from "../../util/meta";
@@ -11,7 +12,7 @@ import { getVersion } from "../../util/meta";
 import { useServerState } from './hooks/server-state';
 import { useToggle } from './hooks/toggle';
 
-import { infoEndpoint, twitterEndpoint } from './api';
+import { infoEndpoint, twitterEndpoint, recordingEndpoint } from './api';
 import CommentaryDashboard from './commentary-dashboard';
 import GameFieldsElement from './game-fields';
 import MatchFieldsElement from './match-fields';
@@ -20,7 +21,6 @@ import { PersonFieldsElement } from './person-fields';
 import PlayerDashboard from './player-dashboard';
 import { PlayerFieldsElement } from './player-fields';
 import RecordingDashboard from './recording-dashboard';
-import RecordingFieldsElement from './recording-fields';
 import Tab from './tab';
 import TabController from './tab-controller';
 import TwitterDashboard from './twitter-dashboard';
@@ -34,7 +34,6 @@ customElements.define('match-fields', MatchFieldsElement);
 customElements.define('persistent-checkbox', PersistentCheckboxElement, { extends: 'input' });
 customElements.define('person-fields', PersonFieldsElement);
 customElements.define('player-fields', PlayerFieldsElement);
-customElements.define('recording-fields', RecordingFieldsElement);
 
 document.addEventListener('DOMContentLoaded', () => {
   render(<App />, document.body);
@@ -54,6 +53,10 @@ const App: FunctionalComponent<{}> = () => {
     infoEndpoint('', 'ws:'),
     nullInfoState,
   );
+  const [ recordingState ] = useServerState<RecordingState>(
+    recordingEndpoint('', 'ws:'),
+    nullRecordingState,
+  );
   const [ twitterState, updateTwitterState ] = useServerState<TwitterState>(
     twitterEndpoint('', 'ws:'),
     nullTwitterState,
@@ -70,7 +73,7 @@ const App: FunctionalComponent<{}> = () => {
           <CommentaryDashboard/>
         </Tab>
         <Tab id="recording">
-          <RecordingDashboard/>
+          <RecordingDashboard {...recordingState}/>
         </Tab>
         <Tab id="twitter">
           <TwitterDashboard

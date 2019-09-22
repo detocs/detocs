@@ -24,7 +24,9 @@ const Tab: FunctionalComponent<Props> = ({
       <h2 class="tabbable-section__tab">
         <label for={inputId} role="presentation">{name}</label>
       </h2>
-      {children}
+      <div class="tabbable-section-content">
+        {children}
+      </div>
     </section>
   );
 };

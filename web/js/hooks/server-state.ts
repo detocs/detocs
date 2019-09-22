@@ -8,9 +8,9 @@ import { twitterEndpoint } from '../api';
 export function useServerState<T>(endpoint: URL, initialState: T): [ T, StateUpdater<T> ] {
   const [ state, updateState ] = useState(initialState);
   useEffect(() => {
-    const ws = new WebSocket(twitterEndpoint('', 'ws:').href);
+    const ws = new WebSocket(endpoint.href);
     ws.onmessage = (ev: MessageEvent) => {
-      const newState = (JSON.parse(ev.data) as T);
+      const newState = JSON.parse(ev.data) as T;
       updateState(newState);
     };
     ws.onerror = console.error;
