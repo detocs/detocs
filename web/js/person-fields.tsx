@@ -1,42 +1,10 @@
-import { h, createRef, render, Component, ComponentChild, Fragment } from 'preact';
+import { h, createRef, Component, ComponentChild, Fragment } from 'preact';
 
 import Person, { PersonUpdate, getName } from '../../models/person';
+import { capitalize } from '../../util/string';
 
 import { infoEndpoint } from './api';
 import Autocomplete from './autocomplete';
-import { capitalize } from '../../util/string';
-
-export class PersonFieldsElement extends HTMLElement {
-  private fieldList: string[] = [];
-  private person: PersonUpdate = {};
-
-  private connectedCallback(): void {
-    this.fieldList = JSON.parse(this.dataset.fields || '[]');
-    this.render();
-  }
-
-  public getId(): number | undefined {
-    return this.person.id;
-  }
-
-  public getPerson = (): PersonUpdate => {
-    return this.person;
-  };
-
-  public updatePerson = (p: PersonUpdate): void => {
-    this.person = p;
-    this.render();
-  };
-
-  private render(): void {
-    render(<PersonFields
-      prefix="players[]"
-      personFields={this.fieldList}
-      person={this.person}
-      onUpdatePerson={this.updatePerson}
-    />, this);
-  }
-}
 
 type PersonUpdater = (p: PersonUpdate, val: string) => PersonUpdate;
 interface FieldMapping {
@@ -67,13 +35,12 @@ const fieldMappings: Record<string, FieldMapping> = {
   },
 };
 
-interface Props {
+export interface Props {
   prefix: string;
   personFields: string[];
   person: PersonUpdate;
   onUpdatePerson: (p: PersonUpdate) => void;
 }
-export type PersonFieldsProps = Props;
 
 interface State {
   options: Person[];

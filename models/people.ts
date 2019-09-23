@@ -1,11 +1,13 @@
 import log4js from 'log4js';
 const logger = log4js.getLogger('people');
 
-import Person, { isEqual, PersonUpdate } from './person';
-import { getVersion } from '../util/meta';
 import { readFileSync, renameSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { dirname, join } from 'path';
+
 import { getConfig } from '../util/config';
+import { getVersion } from '../util/meta';
+
+import Person, { isEqual, PersonUpdate, nullPerson } from './person';
 
 // TODO: Proper serialization
 interface Database {
@@ -13,7 +15,7 @@ interface Database {
   people: Person[];
 }
 
-const DEFAULTS: Person = { id: -1, handle: '', prefix: null, twitter: null};
+const DEFAULTS = nullPerson;
 const DATABASE_FILE = 'people.json';
 
 // TODO: Make PersonDatabase class

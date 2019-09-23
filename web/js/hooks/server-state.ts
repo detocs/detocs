@@ -1,10 +1,5 @@
 import { useState, useEffect, StateUpdater } from 'preact/hooks';
 
-import ClientState, { nullState } from '../../../server/twitter/client-state';
-
-import { twitterEndpoint } from '../api';
-
-
 export function useServerState<T>(endpoint: URL, initialState: T): [ T, StateUpdater<T> ] {
   const [ state, updateState ] = useState(initialState);
   useEffect(() => {

@@ -13,6 +13,13 @@ export interface PersonUpdate {
   twitter?: string | null;
 };
 
+export const nullPerson: Person = Object.freeze({
+  id: -1,
+  handle: '',
+  prefix: null,
+  twitter: null
+});
+
 export function isEqual(p1: Person, p2: Person): boolean {
   return p1.id === p2.id &&
     p1.handle === p2.handle &&

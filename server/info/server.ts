@@ -7,7 +7,6 @@ import formidable from 'express-formidable';
 import { createServer } from 'http';
 import cors from 'cors';
 
-import ScoreboardAssistant from './output/scoreboard-assistant';
 import Game, { nullGame } from '../../models/game';
 import gameList from '../../models/games';
 import LowerThird from '../../models/lower-third';
@@ -16,11 +15,11 @@ import matchList from '../../models/matches';
 import * as People from '../../models/people';
 import Person, { PersonUpdate } from '../../models/person';
 import Scoreboard from '../../models/scoreboard';
-import uuidv4 from '../../util/uuid';
-
-import State, { nullState } from './state';
-import SmashggClient from '../../util/smashgg';
 import TournamentSet from '../../models/tournament-set';
+import SmashggClient from '../../util/smashgg';
+
+import ScoreboardAssistant from './output/scoreboard-assistant';
+import State, { nullState } from './state';
 
 const state: State = Object.assign({}, nullState);
 let socketServer: ws.Server | null = null;
@@ -42,38 +41,34 @@ export default function start(port: number): void {
     res.send(state);
   });
   app.post('/scoreboard', (req, res) => {
-    const uuid = uuidv4();
-    logger.debug(`Scoreboard update ${uuid} received:\n`, req.fields);
-    if (req.fields) {
-      const scoreboard = parseScoreboard(req.fields);
-      const phaseChanged = scoreboard.phaseId != state.phaseId;
-      Object.assign(state, scoreboard);
-      if (phaseChanged) {
-        fetchSets(smashgg);
-      }
-      output.updateScoreboard(state);
-      res.send({
-        'updateId': uuid,
-        'scoreboard': scoreboard,
-      });
-    } else {
+    logger.debug(`Scoreboard update received:\n`, req.fields);
+    if (!req.fields) {
       res.sendStatus(400);
+      return;
     }
+    const scoreboard = parseScoreboard(req.fields);
+    updatePeople(state.commentators);
+    const phaseChanged = scoreboard.phaseId != state.phaseId;
+    Object.assign(state, scoreboard);
+    if (phaseChanged) {
+      fetchSets(smashgg);
+    }
+    res.sendStatus(200);
+    broadcastState(state);
+    output.updateScoreboard(state);
   });
   app.post('/lowerthird', (req, res) => {
-    const uuid = uuidv4();
-    logger.debug(`Lower third update ${uuid} received:\n`, req.fields);
-    if (req.fields) {
-      const lowerThird = parseLowerThird(req.fields);
-      Object.assign(state, lowerThird);
-      output.updateLowerThird(state);
-      res.send({
-        'updateId': uuid,
-        'lowerThird': lowerThird,
-      });
-    } else {
+    logger.debug(`Lower third update received:\n`, req.fields);
+    if (!req.fields) {
       res.sendStatus(400);
+      return;
     }
+    const lowerThird = parseLowerThird(req.fields);
+    updatePeople(state.players);
+    Object.assign(state, lowerThird);
+    res.sendStatus(200);
+    broadcastState(state);
+    output.updateLowerThird(state);
   });
   app.get('/people', (req, res) => {
     const query = req.query['q'];
@@ -120,6 +115,20 @@ function broadcastState(state: State): void {
 
 function loadDatabases(): void {
   People.loadDatabase();
+}
+
+// TODO: Subscribe to player id?
+function updatePeople(list: { person: Person }[]) {
+  list.forEach(x => {
+    if (x.person.id == null || x.person.id < 0) {
+      return;
+    }
+    const p = People.getById(x.person.id);
+    if (p == null) {
+      return;
+    }
+    x.person = p;
+  });
 }
 
 async function fetchSets(smashgg: SmashggClient): Promise<void> {

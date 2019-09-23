@@ -79,6 +79,7 @@ input[type="text"] {
   flex: 1 1 auto;
 }
 
+/* TODO: Button focus */
 input:focus {
   outline: 0.2rem solid var(--color-focus);
 }
