@@ -118,7 +118,7 @@ function loadDatabases(): void {
 }
 
 // TODO: Subscribe to player id?
-function updatePeople(list: { person: Person }[]) {
+function updatePeople(list: { person: Person }[]): void {
   list.forEach(x => {
     if (x.person.id == null || x.person.id < 0) {
       return;

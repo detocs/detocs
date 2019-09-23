@@ -1,4 +1,4 @@
-import { h, FunctionalComponent, ComponentChild } from 'preact';
+import { h, FunctionalComponent, VNode } from 'preact';
 
 import ClientState from '../../server/twitter/client-state';
 import { twitterEndpoint } from './api';
@@ -31,7 +31,7 @@ function takeScreenshot(): void {
     .catch(console.error);
 }
 
-const TwitterDashboard: FunctionalComponent<Props> = (props) => {
+const TwitterDashboard: FunctionalComponent<Props> = (props): VNode => {
   return (
     <form class="twitter__editor" onSubmit={onSubmit}>
       <header>

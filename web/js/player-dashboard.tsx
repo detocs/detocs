@@ -4,7 +4,12 @@ import { StateUpdater } from 'preact/hooks';
 import { nullPerson } from '../../models/person';
 import InfoState from '../../server/info/state';
 
-import { usePlayer1, usePlayer2, useScore1, useScore2, useComment1, useComment2, useInLosers1, useInLosers2 } from './hooks/info';
+import {
+  usePlayer1, usePlayer2,
+  useScore1, useScore2,
+  useComment1, useComment2,
+  useInLosers1, useInLosers2
+} from './hooks/info';
 
 import PlayerFields from './player-fields';
 import SetSelector from './set-selector';
@@ -64,9 +69,15 @@ const PlayerDashboard: FunctionalComponent<Props> = ({ state, updateState }): VN
         <SetSelector {...state} updateSet={console.log}/>
       </div>
       <div class="input-row">
-        <button type="button" onClick={resetPlayers.bind({}, state, updateState)}>Reset Players</button>
-        <button type="button" onClick={resetScores.bind({}, state, updateState)}>Reset Scores</button>
-        <button type="button" onClick={swapPlayers.bind({}, state, updateState)}>Swap</button>
+        <button type="button" onClick={resetPlayers.bind({}, state, updateState)}>
+          Reset Players
+        </button>
+        <button type="button" onClick={resetScores.bind({}, state, updateState)}>
+          Reset Scores
+        </button>
+        <button type="button" onClick={swapPlayers.bind({}, state, updateState)}>
+          Swap
+        </button>
         <button type="submit">Update</button>
       </div>
     </form>
@@ -74,23 +85,23 @@ const PlayerDashboard: FunctionalComponent<Props> = ({ state, updateState }): VN
 };
 export default PlayerDashboard;
 
-function resetPlayers(state: InfoState, updateState: StateUpdater<InfoState>) {
+function resetPlayers(state: InfoState, updateState: StateUpdater<InfoState>): void {
   const newState = Object.assign({}, state);
   newState.players = newState.players.map(() => ({
     person: nullPerson,
     score: 0,
   }));
-  updateState(newState)
+  updateState(newState);
 }
 
-function resetScores(state: InfoState, updateState: StateUpdater<InfoState>) {
+function resetScores(state: InfoState, updateState: StateUpdater<InfoState>): void {
   const newState = Object.assign({}, state);
   newState.players.forEach(p => p.score = 0);
-  updateState(newState)
+  updateState(newState);
 }
 
-function swapPlayers(state: InfoState, updateState: StateUpdater<InfoState>) {
+function swapPlayers(state: InfoState, updateState: StateUpdater<InfoState>): void {
   const newState = Object.assign({}, state);
   newState.players = [ newState.players[1], newState.players[0] ];
-  updateState(newState)
+  updateState(newState);
 }

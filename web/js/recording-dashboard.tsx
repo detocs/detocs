@@ -1,11 +1,10 @@
-import { h, render, Component, ComponentChild, VNode, FunctionalComponent } from 'preact';
+import { h, FunctionalComponent, VNode } from 'preact';
+import { useEffect, useRef } from 'preact/hooks';
 
-import ServerState, { nullState } from '../../server/recording/state';
+import ServerState from '../../server/recording/state';
 
 import { recordingEndpoint } from './api';
 import { Thumbnail } from './thumbnail';
-import { useServerState } from './hooks/server-state';
-import { useEffect, useRef } from 'preact/hooks';
 
 type Props = ServerState;
 
@@ -20,7 +19,7 @@ function stop(): void {
   fetch(stopEndpoint).catch(console.error);
 }
 
-const RecordingDashboard: FunctionalComponent<Props> = (props) => {
+const RecordingDashboard: FunctionalComponent<Props> = (props): VNode => {
   const ref = useRef();
   useEffect(() => {
     let tabElement = (ref.current as HTMLElement).closest('.tabbable-section');

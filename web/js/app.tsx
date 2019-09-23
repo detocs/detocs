@@ -1,4 +1,4 @@
-import { h, render, FunctionalComponent, ComponentChild, Fragment } from 'preact';
+import { h, render, FunctionalComponent, VNode, Fragment } from 'preact';
 
 import InfoState, { nullState as nullInfoState } from '../../server/info/state';
 import RecordingState, { nullState as nullRecordingState } from '../../server/recording/state';
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const version = getVersion();
 
-const App: FunctionalComponent<{}> = () => {
+const App: FunctionalComponent<{}> = (): VNode => {
   const [ infoState, updateInfoState ] = useServerState<InfoState>(
     infoEndpoint('', 'ws:'),
     nullInfoState,
@@ -42,7 +42,7 @@ const App: FunctionalComponent<{}> = () => {
     recordingEndpoint('', 'ws:'),
     nullRecordingState,
   );
-  const [ twitterState, updateTwitterState ] = useServerState<TwitterState>(
+  const [ twitterState ] = useServerState<TwitterState>(
     twitterEndpoint('', 'ws:'),
     nullTwitterState,
   );
@@ -71,7 +71,7 @@ const App: FunctionalComponent<{}> = () => {
       <footer id="version">DETOCS {version}</footer>
     </Fragment>
   );
-}
+};
 
 function bindForms(formSelector: string, endpoint: string): void {
   const forms = document.querySelectorAll(formSelector) as NodeListOf<HTMLFormElement>;

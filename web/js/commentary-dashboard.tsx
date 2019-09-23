@@ -1,4 +1,4 @@
-import { h, FunctionalComponent } from 'preact';
+import { h, FunctionalComponent, VNode } from 'preact';
 import { StateUpdater } from 'preact/hooks';
 
 import { nullPerson } from '../../models/person';
@@ -13,7 +13,7 @@ interface Props {
   updateState: StateUpdater<InfoState>;
 }
 
-const CommentaryDashboard: FunctionalComponent<Props> = ({ state, updateState }) => {
+const CommentaryDashboard: FunctionalComponent<Props> = ({ state, updateState }): VNode => {
   const [ com1, updateCom1 ] = useCommentator1(state, updateState);
   const [ com2, updateCom2 ] = useCommentator2(state, updateState);
   return(
@@ -65,8 +65,12 @@ const CommentaryDashboard: FunctionalComponent<Props> = ({ state, updateState })
         </fieldset>
       </div>
       <div class="input-row">
-        <button type="button" onClick={resetCommentators.bind({}, state, updateState)}>Reset</button>
-        <button type="button" onClick={swapCommentators.bind({}, state, updateState)}>Swap</button>
+        <button type="button" onClick={resetCommentators.bind({}, state, updateState)}>
+          Reset
+        </button>
+        <button type="button" onClick={swapCommentators.bind({}, state, updateState)}>
+          Swap
+        </button>
         <button type="submit">Update</button>
       </div>
     </form>
@@ -74,16 +78,16 @@ const CommentaryDashboard: FunctionalComponent<Props> = ({ state, updateState })
 };
 export default CommentaryDashboard;
 
-function resetCommentators(state: InfoState, updateState: StateUpdater<InfoState>) {
+function resetCommentators(state: InfoState, updateState: StateUpdater<InfoState>): void {
   const newState = Object.assign({}, state);
   newState.commentators = newState.commentators.map(() => ({
     person: nullPerson,
   }));
-  updateState(newState)
+  updateState(newState);
 }
 
-function swapCommentators(state: InfoState, updateState: StateUpdater<InfoState>) {
+function swapCommentators(state: InfoState, updateState: StateUpdater<InfoState>): void {
   const newState = Object.assign({}, state);
   newState.commentators = [ newState.commentators[1], newState.commentators[0] ];
-  updateState(newState)
+  updateState(newState);
 }
