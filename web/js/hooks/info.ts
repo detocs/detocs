@@ -1,5 +1,7 @@
 import { StateUpdater } from 'preact/hooks';
 
+import Game from '../../../models/game';
+import Match from '../../../models/match';
 import Person, { PersonUpdate } from '../../../models/person';
 import InfoState from '../../../server/info/state';
 
@@ -56,4 +58,12 @@ export const useCommentator1 = useInfoState<PersonUpdate>(
 export const useCommentator2 = useInfoState<PersonUpdate>(
   state => state.commentators[1].person,
   (state, value) => state.commentators[1].person = value as Person,
+);
+export const useMatch = useInfoState<Match>(
+  state => state.match,
+  (state, value) => state.match = value,
+);
+export const useGame = useInfoState<Game>(
+  state => state.game,
+  (state, value) => state.game = value,
 );

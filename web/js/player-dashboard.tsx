@@ -8,9 +8,13 @@ import {
   usePlayer1, usePlayer2,
   useScore1, useScore2,
   useComment1, useComment2,
-  useInLosers1, useInLosers2
+  useInLosers1, useInLosers2,
+  useMatch,
+  useGame,
 } from './hooks/info';
 
+import GameFields from './game-fields';
+import MatchFields from './match-fields';
 import PlayerFields from './player-fields';
 import SetSelector from './set-selector';
 
@@ -28,6 +32,8 @@ const PlayerDashboard: FunctionalComponent<Props> = ({ state, updateState }): VN
   const [ score2, updateScore2 ] = useScore2(state, updateState);
   const [ comment2, updateComment2 ] = useComment2(state, updateState);
   const [ inLosers2, updateInLosers2 ] = useInLosers2(state, updateState);
+  const [ match, updateMatch ] = useMatch(state, updateState);
+  const [ game, updateGame ] = useGame(state, updateState);
   return(
     <form class="scoreboard js-scoreboard" autocomplete="off">
       <div class="players">
@@ -59,12 +65,8 @@ const PlayerDashboard: FunctionalComponent<Props> = ({ state, updateState }): VN
         />
       </div>
       <div class="input-row">
-        {/* 
-          // @ts-ignore */}
-        <match-fields></match-fields>
-        {/* 
-          // @ts-ignore */}
-        <game-fields></game-fields>
+        <MatchFields value={match} updateValue={updateMatch} />
+        <GameFields value={game} updateValue={updateGame} />
         <input type="text" name="phaseId" placeholder="Phase" size={7} style="flex: 0 0 auto;" />
         <SetSelector {...state} updateSet={console.log}/>
       </div>

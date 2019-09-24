@@ -1,7 +1,5 @@
 import { h, Component, ComponentChild } from 'preact';
 
-import { infoEndpoint } from './api';
-
 interface Autocompletable {
   id: string;
   name: string;
@@ -10,8 +8,18 @@ interface Autocompletable {
 const idRegex = /\{(\w+)\}/;
 let idCounter = 0;
 
+interface Props<T> {
+  value: T;
+  updateValue: (value: T) => void;
+}
+
+interface State<T> {
+  options: T[];
+}
+
+// TODO: Replace usages with Autocomplete
 class AutocompleteFields<T extends Autocompletable>
-  extends Component<{}, { value: T; options: T[] }>
+  extends Component<Props<T>, State<T>>
 {
   private readonly autocompleteId: string;
   private readonly nullValue: T;
@@ -20,33 +28,19 @@ class AutocompleteFields<T extends Autocompletable>
 
   public constructor(id: string, displayName: string, nullValue: T) {
     super();
-    this.nullValue = Object.freeze(Object.assign({}, nullValue));
+    this.nullValue = nullValue;
     this.id = id;
     this.displayName = displayName;
     this.state = {
-      value: this.nullValue,
       options: [],
     };
     this.autocompleteId = `autocomplete-fields-${idCounter++}`;
-
-    const ws = new WebSocket(infoEndpoint('', 'ws:').href);
-    ws.onmessage = this.receiveServerUpdate.bind(this);
-    ws.onerror = console.error;
-  }
-
-  private receiveServerUpdate(ev: MessageEvent): void {
-    const newValue = JSON.parse(ev.data) as T;
-    this.setValue(newValue);
   }
 
   private findValueInOptions(id: string): T {
     return this.state.options
       .find(t => t.id === id) ||
       this.nullValue;
-  }
-
-  protected setValue(value: T): void {
-    this.setState({ value });
   }
 
   protected setOptions(options: T[]): void {
@@ -58,13 +52,13 @@ class AutocompleteFields<T extends Autocompletable>
     const match = idRegex.exec(name);
     if (match) {
       const id = match[1];
-      this.setValue(this.findValueInOptions(id));
+      this.props.updateValue(this.findValueInOptions(id));
       return;
     }
-    this.setValue(Object.assign({}, this.nullValue, { name }));
+    this.props.updateValue(Object.assign({}, this.nullValue, { name }));
   };
 
-  public render(_: unknown, state: { value: T; options: T[] }): ComponentChild {
+  public render(props: Props<T>, state: State<T>): ComponentChild {
     return (
       <fieldset name={this.id}>
         <legend>{this.displayName}</legend>
@@ -72,12 +66,12 @@ class AutocompleteFields<T extends Autocompletable>
           <input
             type="hidden"
             name={`${this.id}[id]`}
-            value={state.value.id}
+            value={props.value.id}
           />
           <input
             type="text"
             name={`${this.id}[name]`}
-            value={state.value.name}
+            value={props.value.name}
             onInput={this.handleInput}
             list={this.autocompleteId}
             placeholder={this.displayName}
