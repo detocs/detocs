@@ -17,7 +17,6 @@ export function getCredentials(): Credentials {
 }
 
 export async function loadCredentials(): Promise<void> {
-  console.log('loadCredentials');
   const { config, filePath } = await loadConfigFile('detocs-credentials.json', DEFAULTS);
   currentCreds = config;
   credsFile = filePath;

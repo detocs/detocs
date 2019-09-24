@@ -6,11 +6,13 @@ import { readFileSync, writeFileSync } from "fs";
 
 interface Config {
   databaseDirectory: string;
+  logDirectory: string | null;
   obsWebsocketPort: number;
 }
 
 const DEFAULTS: Config = {
   databaseDirectory: './databases',
+  logDirectory: null,
   obsWebsocketPort: 4444,
 };
 let currentConfig = DEFAULTS;

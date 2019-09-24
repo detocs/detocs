@@ -2,6 +2,7 @@ databases/
 node_modules/
 *.js
 *.js.map
+detocs-config.json
 detocs-credentials.json
 TWITTER_API_KEY
 TWITTER_API_KEY_SECRET
