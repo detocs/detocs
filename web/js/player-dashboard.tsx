@@ -16,7 +16,7 @@ import {
 import GameFields from './game-fields';
 import MatchFields from './match-fields';
 import PlayerFields from './player-fields';
-import SetSelector from './set-selector';
+import SmashggPhase from './smashgg-phase';
 
 interface Props {
   state: InfoState;
@@ -67,8 +67,11 @@ const PlayerDashboard: FunctionalComponent<Props> = ({ state, updateState }): VN
       <div class="input-row">
         <MatchFields value={match} updateValue={updateMatch} />
         <GameFields value={game} updateValue={updateGame} />
-        <input type="text" name="phaseId" placeholder="Phase" size={7} style="flex: 0 0 auto;" />
-        <SetSelector {...state} updateSet={console.log}/>
+        <SmashggPhase
+          phaseId={state.phaseId}
+          set={state.set}
+          unfinishedSets={state.unfinishedSets}
+        />
       </div>
       <div class="input-row">
         <button type="button" onClick={resetPlayers.bind({}, state, updateState)}>

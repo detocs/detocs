@@ -111,6 +111,10 @@ input:focus {
   inline-size: 6em;
 }
 
+.smashgg__phase-id {
+  flex: 0 0 auto;
+}
+
 #version {
   position: fixed;
   bottom: 0;

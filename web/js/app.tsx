@@ -11,18 +11,11 @@ import { useToggle } from './hooks/toggle';
 
 import { infoEndpoint, twitterEndpoint, recordingEndpoint } from './api';
 import CommentaryDashboard from './commentary-dashboard';
-import GameFieldsElement from './game-fields';
-import MatchFieldsElement from './match-fields';
-import { PersistentCheckboxElement } from './persistent-checkbox';
 import PlayerDashboard from './player-dashboard';
 import RecordingDashboard from './recording-dashboard';
 import Tab from './tab';
 import TabController from './tab-controller';
 import TwitterDashboard from './twitter-dashboard';
-
-customElements.define('game-fields', GameFieldsElement);
-customElements.define('match-fields', MatchFieldsElement);
-customElements.define('persistent-checkbox', PersistentCheckboxElement, { extends: 'input' });
 
 document.addEventListener('DOMContentLoaded', () => {
   render(<App />, document.body);
