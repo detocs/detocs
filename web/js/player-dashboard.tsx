@@ -13,6 +13,7 @@ import {
   useGame,
 } from './hooks/info';
 
+import { infoEndpoint } from './api';
 import GameFields from './game-fields';
 import MatchFields from './match-fields';
 import PlayerFields from './player-fields';
@@ -35,7 +36,12 @@ const PlayerDashboard: FunctionalComponent<Props> = ({ state, updateState }): VN
   const [ match, updateMatch ] = useMatch(state, updateState);
   const [ game, updateGame ] = useGame(state, updateState);
   return(
-    <form class="scoreboard js-scoreboard" autocomplete="off">
+    <form
+      action={infoEndpoint('/scoreboard').href}
+      method="post"
+      class="scoreboard"
+      autocomplete="off"
+    >
       <div class="players">
         <PlayerFields
           prefix="players[]"

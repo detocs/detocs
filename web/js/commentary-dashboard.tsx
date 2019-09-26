@@ -6,6 +6,7 @@ import InfoState from '../../server/info/state';
 
 import { useCommentator1, useCommentator2 } from './hooks/info';
 
+import { infoEndpoint } from './api';
 import PersonFields from './person-fields';
 
 interface Props {
@@ -17,7 +18,12 @@ const CommentaryDashboard: FunctionalComponent<Props> = ({ state, updateState })
   const [ com1, updateCom1 ] = useCommentator1(state, updateState);
   const [ com2, updateCom2 ] = useCommentator2(state, updateState);
   return(
-    <form class="commentary js-lowerthird" autocomplete="off">
+    <form
+      action={infoEndpoint('/lowerthird').href}
+      method="post"
+      class="commentary"
+      autocomplete="off"
+    >
       <div class="players">
         <fieldset name="commentator" class="commentator js-commentator">
           <legend>Commentator 1</legend>

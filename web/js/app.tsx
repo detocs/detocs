@@ -19,9 +19,7 @@ import TwitterDashboard from './twitter-dashboard';
 
 document.addEventListener('DOMContentLoaded', () => {
   render(<App />, document.body);
-
-  bindForms('.js-scoreboard', '/scoreboard');
-  bindForms('.js-lowerthird', '/lowerthird');
+  bindSubmitHandler();
 });
 
 const version = getVersion();
@@ -66,20 +64,16 @@ const App: FunctionalComponent<{}> = (): VNode => {
   );
 };
 
-function bindForms(formSelector: string, endpoint: string): void {
-  const forms = document.querySelectorAll(formSelector) as NodeListOf<HTMLFormElement>;
-  for (const form of forms) {
-    bindForm(form, endpoint);
-  }
-}
-
-function bindForm(form: HTMLFormElement, endpoint: string): void {
-  form.onsubmit = (event: Event) => {
-    event.preventDefault();
+function bindSubmitHandler(): void {
+  document.addEventListener('submit', (event: Event) => {
     const form = event.target as HTMLFormElement;
     let data = new FormData(form);
     data = massagedFormData(data);
-    fetch(infoEndpoint(endpoint).href, { method: 'POST', body: data })
-      .catch(console.error);
-  };
+    fetch(form.action, {
+      method: form.method,
+      body: data,
+    }).catch(console.error);
+
+    event.preventDefault();
+  });
 }
