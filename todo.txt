@@ -3,5 +3,4 @@
 - Websocket reconencting
 - Real API module
 - SCSS
-- normalize.css
 - Mobile-first styling
