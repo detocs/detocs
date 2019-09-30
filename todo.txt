@@ -1,6 +1,0 @@
-- Specify tournament type
-- Package as executable
-- Websocket reconencting
-- Real API module
-- SCSS
-- Mobile-first styling
