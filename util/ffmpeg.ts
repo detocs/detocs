@@ -30,7 +30,6 @@ export async function trimClip(
   }
 }
 
-// unteste
 export async function getVideoThumbnail(
   file: string,
   timestamp: string,
@@ -39,11 +38,11 @@ export async function getVideoThumbnail(
   const args = [
     '-ss', timestamp,
     '-an',
-    '-i', `"${file}"`,
+    '-i', file,
     '-frames:v', '1',
     '-codec:v', 'png',
     '-f', 'rawvideo',
-    '-filter:v', `scale="${width}:-1"`,
+    '-filter:v', `scale=${width}:-1`,
     'pipe:',
   ];
   logger.debug(COMMAND, args.join(' '));

@@ -17,7 +17,7 @@ import { getConfig } from '../../util/config';
 import * as ffmpeg from '../../util/ffmpeg';
 import { pngDataUri } from '../../util/image';
 import * as obsUtil from '../../util/obs';
-import { sanitizeTimestamp } from '../../util/timestamp';
+import { sanitizeTimestamp, validateTimestamp } from '../../util/timestamp';
 import InfoState from '../info/state';
 import { INFO_PORT } from "../ports";
 
@@ -47,6 +47,11 @@ interface Log {
     end: string;
     state: InfoState;
   }[];
+}
+
+interface UpdateRequest {
+  'start-timestamp'?: string;
+  'stop-timestamp'?: string;
 }
 
 const obs = new ObsWebSocket();
@@ -85,6 +90,7 @@ export default function start(port: number): void {
   app.use(formidable());
   app.get('/start', startClip);
   app.get('/stop', stopClip);
+  app.post('/update', update);
 
   const httpServer = createServer(app);
   socketServer = new ws.Server({
@@ -176,6 +182,44 @@ async function stopClip(_: Request, res: Response): Promise<void> {
     broadcastState(state);
   }).catch(logger.error);
 };
+
+async function update(req: Request, res: Response): Promise<void> {
+  if (!state.recordingFile) {
+    res.sendStatus(400);
+    return;
+  }
+  const fields = req.fields as UpdateRequest;
+  const start = fields['start-timestamp'] || null;
+  const stop = fields['stop-timestamp'] || null;
+  let startChanged = false;
+  let stopChanged = false;
+  if (start && !validateTimestamp(start)) {
+    res.sendStatus(400);
+    return;
+  }
+  if (stop && !validateTimestamp(stop)) {
+    res.sendStatus(400);
+    return;
+  }
+  if (start != state.startTimestamp) {
+    state.startThumbnail = null;
+    startChanged = true;
+  }
+  if (stop != state.stopTimestamp) {
+    state.stopThumbnail = null;
+    stopChanged = true;
+  }
+  state.startTimestamp = start;
+  state.stopTimestamp = stop;
+  res.sendStatus(200);
+  broadcastState(state);
+  if (startChanged) {
+    getThumbnailForStartTimestamp();
+  }
+  if (stopChanged) {
+    getThumbnailForStopTimestamp();
+  }
+}
 
 async function getRecordingFile(): Promise<void> {
   const VIDEO_FILE_EXTENSIONS = ['.flv', '.mp4', '.mov', '.mkv', '.ts', '.m3u8'];
@@ -275,7 +319,11 @@ async function getThumbnailForStartTimestamp(): Promise<void> {
   if (!state.recordingFile || !state.startTimestamp) {
     return;
   }
-  const img = await ffmpeg.getVideoThumbnail(state.recordingFile, state.startTimestamp);
+  const img = await ffmpeg.getVideoThumbnail(state.recordingFile, state.startTimestamp)
+    .catch(logger.error);
+  if (!img) {
+    return;
+  }
   state.startThumbnail = pngDataUri(img);
   broadcastState(state);
 }
@@ -285,7 +333,11 @@ async function getThumbnailForStopTimestamp(): Promise<void> {
   if (!state.recordingFile || !state.stopTimestamp) {
     return;
   }
-  const img = await ffmpeg.getVideoThumbnail(state.recordingFile, state.stopTimestamp);
+  const img = await ffmpeg.getVideoThumbnail(state.recordingFile, state.stopTimestamp)
+    .catch(logger.error);
+  if (!img) {
+    return;
+  }
   state.stopThumbnail = pngDataUri(img);
   broadcastState(state);
 }

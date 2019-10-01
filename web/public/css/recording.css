@@ -30,6 +30,8 @@
 
 .recording__file {
   width: 100%;
+
+  box-sizing: border-box;
 }
 
 .recording__tab-label--recording {
