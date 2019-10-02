@@ -314,7 +314,6 @@ function saveMetadata(log: Log, outFile: string): void {
   fs.writeFileSync(outFile, JSON.stringify(log, null, 2));
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function getThumbnailForStartTimestamp(): Promise<void> {
   if (!state.recordingFile || !state.startTimestamp) {
     return;
@@ -328,7 +327,6 @@ async function getThumbnailForStartTimestamp(): Promise<void> {
   broadcastState(state);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function getThumbnailForStopTimestamp(): Promise<void> {
   if (!state.recordingFile || !state.stopTimestamp) {
     return;

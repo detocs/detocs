@@ -33,10 +33,11 @@ export async function trimClip(
 export async function getVideoThumbnail(
   file: string,
   timestamp: string,
-  width: number = 240
+  width: number = 240,
 ): Promise<Buffer> {
   const args = [
     '-ss', timestamp,
+    '-noaccurate_seek',
     '-an',
     '-i', file,
     '-frames:v', '1',
@@ -46,9 +47,12 @@ export async function getVideoThumbnail(
     'pipe:',
   ];
   logger.debug(COMMAND, args.join(' '));
-  const { stdout, stderr } = await pExecFile(COMMAND, args, { encoding: 'buffer' });
+  const hrstart = process.hrtime();
+  const { stdout, stderr } = await pExecFile(COMMAND, args, { encoding: 'buffer' })
+  const hrend = process.hrtime(hrstart);
   if (stderr.length) {
     logger.debug(stderr.toString());
   }
+  logger.debug(`Getting thumbnail took ${hrend[0]}s ${hrend[1] / 1e6}ms`);
   return stdout;
 }
