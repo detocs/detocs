@@ -46,7 +46,7 @@ const TwitterDashboard: FunctionalComponent<Props> = (props): VNode => {
           <a href={props.authorizeUrl} target="_blank" rel="noopener noreferrer">Log In</a>
         </span>
       </header>
-      <div class="input-row">
+      <div class="input-row twitter__tweet-content">
         <textarea name="body" required {...{ maxlength: '280' }}></textarea>
         <Thumbnail src={props.screenshot} />
       </div>

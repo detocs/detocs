@@ -1,3 +1,9 @@
+.twitter__editor {
+  height: 100%;
+  display: flex;
+  flex-flow: column nowrap;
+}
+
 .twitter__editor header {
   display: flex;
   justify-content: space-between;
@@ -5,8 +11,13 @@
 
 .twitter__editor textarea {
   flex: 4 1 15rem;
+  min-height: 8em;
 }
 
 .twitter__editor .thumbnail {
   flex: 1 1 10rem;
+}
+
+.twitter__tweet-content {
+  flex-grow: 1;
 }
