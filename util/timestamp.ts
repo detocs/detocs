@@ -1,3 +1,4 @@
+// TODO: Remove momentjs dependency
 import moment from 'moment';
 
 const TIMESTAMP_FORMAT = 'HH:mm:ss.SSS';

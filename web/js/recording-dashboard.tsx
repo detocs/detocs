@@ -1,12 +1,17 @@
 import { h, FunctionalComponent, VNode, Fragment } from 'preact';
-import { useEffect, useRef } from 'preact/hooks';
+import { useEffect, useRef, StateUpdater } from 'preact/hooks';
 
 import ServerState from '../../server/recording/state';
 
 import { recordingEndpoint } from './api';
+import { useStartTimestamp, useStopTimestamp } from './hooks/recording';
 import { Thumbnail } from './thumbnail';
+import { TimestampInput } from './timestamp';
 
-type Props = ServerState;
+interface Props {
+  state: ServerState;
+  updateState: StateUpdater<ServerState>;
+}
 
 const startEndpoint = recordingEndpoint('/start').href;
 const stopEndpoint = recordingEndpoint('/stop').href;
@@ -19,7 +24,11 @@ function stop(): void {
   fetch(stopEndpoint).catch(console.error);
 }
 
-const RecordingDashboard: FunctionalComponent<Props> = (props): VNode => {
+const RecordingDashboard: FunctionalComponent<Props> = ({ state, updateState }): VNode => {
+  const [ startTimestamp, updateStart ] = useStartTimestamp(state, updateState);
+  const [ stopTimestamp, updateStop ] = useStopTimestamp(state, updateState);
+  console.log(startTimestamp, stopTimestamp);
+
   const ref = useRef();
   useEffect(() => {
     let tabElement = (ref.current as HTMLElement).closest('.tabbable-section');
@@ -27,9 +36,9 @@ const RecordingDashboard: FunctionalComponent<Props> = (props): VNode => {
     if (tabElement) {
       tabElement.classList.toggle(
         'recording__tab-label--recording',
-        !!props.startTimestamp && !props.stopTimestamp);
+        !!startTimestamp && !stopTimestamp);
     }
-  }, [props.startTimestamp, props.stopTimestamp]);
+  }, [startTimestamp, stopTimestamp]);
 
   return (
     <Fragment>
@@ -43,10 +52,12 @@ const RecordingDashboard: FunctionalComponent<Props> = (props): VNode => {
         <fieldset class="recording__boundary">
           <legend>Beginning</legend>
           <Thumbnail
-            src={props.startThumbnail} />
+            src={state.startThumbnail} />
           <TimestampInput
             name="start-timestamp"
-            value={props.startTimestamp} />
+            value={startTimestamp}
+            updater={updateStart}
+          />
         </fieldset>
         <div className="recording__controls">
           <button type="button" onClick={start}>Start</button>
@@ -56,15 +67,17 @@ const RecordingDashboard: FunctionalComponent<Props> = (props): VNode => {
         <fieldset class="recording__boundary">
           <legend>End</legend>
           <Thumbnail
-            src={props.stopThumbnail} />
+            src={state.stopThumbnail} />
           <TimestampInput
             name="stop-timestamp"
-            value={props.stopTimestamp} />
+            value={stopTimestamp}
+            updater={updateStop}
+          />
         </fieldset>
       </form>
       <input
         readOnly
-        value={props.clipFile || ''}
+        value={state.clipFile || ''}
         placeholder="Output File"
         class="recording__file"
         dir="rtl" // TODO: This is a hack
@@ -74,15 +87,4 @@ const RecordingDashboard: FunctionalComponent<Props> = (props): VNode => {
 };
 export default RecordingDashboard;
 
-const TimestampInput: FunctionalComponent<{ name: string; value: string | null }> =
-({ name, value }): VNode => (
-  <input
-    type="text"
-    name={name}
-    value={value || ''}
-    pattern="\d\d:\d\d:\d\d(\.\d\d\d)?"
-    placeholder="00:00:00:000"
-    size={12}
-    title="Timestamp in the form HH:mm:ss.SSS"
-    class="recording__timestamp" />
-);
+

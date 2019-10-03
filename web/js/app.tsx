@@ -29,7 +29,7 @@ const App: FunctionalComponent<{}> = (): VNode => {
     infoEndpoint('', 'ws:'),
     nullInfoState,
   );
-  const [ recordingState ] = useServerState<RecordingState>(
+  const [ recordingState, updateRecordingState ] = useServerState<RecordingState>(
     recordingEndpoint('', 'ws:'),
     nullRecordingState,
   );
@@ -49,7 +49,7 @@ const App: FunctionalComponent<{}> = (): VNode => {
           <CommentaryDashboard state={infoState} updateState={updateInfoState}/>
         </Tab>
         <Tab id="recording">
-          <RecordingDashboard {...recordingState}/>
+          <RecordingDashboard state={recordingState} updateState={updateRecordingState}/>
         </Tab>
         <Tab id="twitter">
           <TwitterDashboard
