@@ -15,13 +15,18 @@ interface Props {
 
 const startEndpoint = recordingEndpoint('/start').href;
 const stopEndpoint = recordingEndpoint('/stop').href;
+const saveEndpoint = recordingEndpoint('/save').href;
 
 function start(): void {
-  fetch(startEndpoint).catch(console.error);
+  fetch(startEndpoint, { method: 'POST' }).catch(console.error);
 }
 
 function stop(): void {
-  fetch(stopEndpoint).catch(console.error);
+  fetch(stopEndpoint, { method: 'POST' }).catch(console.error);
+}
+
+function save(): void {
+  fetch(saveEndpoint, { method: 'POST' }).catch(console.error);
 }
 
 const RecordingDashboard: FunctionalComponent<Props> = ({ state, updateState }): VNode => {
@@ -39,6 +44,10 @@ const RecordingDashboard: FunctionalComponent<Props> = ({ state, updateState }):
         !!startTimestamp && !stopTimestamp);
     }
   }, [startTimestamp, stopTimestamp]);
+
+  const canStop = !startTimestamp;
+  // TODO: Prevent saving if start > stop
+  const canSave = !(startTimestamp && stopTimestamp);
 
   return (
     <Fragment>
@@ -59,11 +68,12 @@ const RecordingDashboard: FunctionalComponent<Props> = ({ state, updateState }):
             updater={updateStart}
           />
         </fieldset>
-        <div className="recording__controls">
+        <span className="recording__controls">
           <button type="button" onClick={start}>Start</button>
-          <button type="button" onClick={stop}>Stop</button>
+          <button type="button" onClick={stop} disabled={canStop}>Stop</button>
           <button type="submit">Update</button>
-        </div>
+          <button type="button" onClick={save} disabled={canSave}>Save</button>
+        </span>
         <fieldset class="recording__boundary">
           <legend>End</legend>
           <Thumbnail

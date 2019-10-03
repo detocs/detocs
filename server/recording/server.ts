@@ -89,7 +89,11 @@ export default function start(port: number): void {
   app.use(cors());
   app.use(formidable());
   app.get('/start', startClip);
+  app.post('/start', startClip);
   app.get('/stop', stopClip);
+  app.post('/stop', stopClip);
+  app.get('/save', save);
+  app.post('/save', save);
   app.post('/update', update);
 
   const httpServer = createServer(app);
@@ -171,16 +175,6 @@ async function stopClip(_: Request, res: Response): Promise<void> {
     state.stopThumbnail = img;
     broadcastState(state);
   }).catch(logger.error);
-
-  saveRecording(
-    state.recordingFolder,
-    state.recordingFile,
-    state.startTimestamp,
-    state.stopTimestamp,
-  ).then(file => {
-    state.clipFile = file;
-    broadcastState(state);
-  }).catch(logger.error);
 };
 
 async function update(req: Request, res: Response): Promise<void> {
@@ -220,6 +214,29 @@ async function update(req: Request, res: Response): Promise<void> {
     getThumbnailForStopTimestamp();
   }
 }
+
+async function save(_: Request, res: Response): Promise<void> {
+  if (!state.recordingFile || !state.recordingFolder) {
+    logger.warn('Attempted to save clip before starting recording in OBS');
+    res.sendStatus(400);
+    return;
+  }
+  if (!state.startTimestamp || !state.stopTimestamp) {
+    logger.warn('Attempted to save clip with start and end time');
+    res.sendStatus(400);
+    return;
+  }
+
+  saveRecording(
+    state.recordingFolder,
+    state.recordingFile,
+    state.startTimestamp,
+    state.stopTimestamp,
+  ).then(file => {
+    state.clipFile = file;
+    broadcastState(state);
+  }).catch(logger.error);
+};
 
 async function getRecordingFile(): Promise<void> {
   const VIDEO_FILE_EXTENSIONS = ['.flv', '.mp4', '.mov', '.mkv', '.ts', '.m3u8'];
