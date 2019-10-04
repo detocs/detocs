@@ -6,12 +6,12 @@ import { register } from './key-manager';
 const CONTROL_SELECTOR = ':scope > .tabbable-section > .tabbable-section-control';
 const INTERACTIVE_SELECTOR =
   'input:not([type="hidden"]), button, a, select, textarea, [tabindex]:not([tabindex="-2"])';
-
 const TabController: FunctionalComponent = ({ children }: RenderableProps<{}>): VNode => {
-  const ref = useCallback((node: Element) => { 
-    // TODO: Select tab based on url hash
-    move(node, 0);
+  const ref = useCallback((node: Element | null) => {
+    selectFirstTab(node);
+    registerKeyboardShortcuts(node);
   }, []);
+
   return (
     <main class="tab-controller" ref={ref}>
       {children}
@@ -20,48 +20,42 @@ const TabController: FunctionalComponent = ({ children }: RenderableProps<{}>): 
 };
 export default TabController;
 
-// TODO: Get keyboard shortcuts working again
-class OldController extends HTMLElement {
-  private unregister: (() => void)[] = [];
-
-  private connectedCallback(): void {
-    this.unregister = [
-      this.shortcut('PageUp', 'Previous', i => i - 1),
-      this.shortcut('PageDown', 'Next', i => i + 1),
-      this.shortcut('^1', 'First', () => 0),
-      this.shortcut('^2', 'Second', () => 1),
-      this.shortcut('^3', 'Third', () => 2),
-      this.shortcut('^4', 'Fourth', () => 3),
-      // TODO: Vary shortcuts with number of tabs
-    ];
+function selectFirstTab(node: Element | null): void {
+  // TODO: Select tab based on url hash
+  if (node) {
+    move(node, 0);
   }
+};
 
-  private disconnectedCallback(): void {
-    this.unregister.forEach(f => f());
+function registerKeyboardShortcuts(node: Element | null): VoidFunction[] {
+  if (!node) {
+    return [];
   }
+  return [
+    shortcut(node, 'PageUp', 'Previous', i => i - 1),
+    shortcut(node, 'PageDown', 'Next', i => i + 1),
+    shortcut(node, '^1', 'First', () => 0),
+    shortcut(node, '^2', 'Second', () => 1),
+    shortcut(node, '^3', 'Third', () => 2),
+    shortcut(node, '^4', 'Fourth', () => 3),
+    // TODO: Vary shortcuts with number of tabs
+  ];
+}
 
-  private shortcut(
-    keystroke: string,
-    name: string,
-    idxFunc: (index: number) => number
-  ): () => void {
-    return register(
-      keystroke,
-      `Tabs: ${name}`,
-      () => {
-        const newIndex = idxFunc(this.getIndex());
-        this.move(newIndex);
-      },
-    );
-  }
-
-  private getIndex(): number {
-    return getIndex(this);
-  }
-
-  private move(index: number): void {
-    move(this, index);
-  }
+function shortcut(
+  node: Element,
+  keystroke: string,
+  name: string,
+  idxFunc: (index: number) => number
+): () => void {
+  return register(
+    keystroke,
+    `Tabs: ${name}`,
+    () => {
+      const newIndex = idxFunc(getIndex(node));
+      move(node, newIndex);
+    },
+  );
 }
 
 function getIndex(root: Element): number {

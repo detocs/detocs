@@ -19,6 +19,8 @@ interface Shortcut extends Keystroke {
 let shortcutList: Shortcut[] = [];
 
 /**
+ * // TODO: Support registering multiple keystrokes?
+ * 
  * @param keystroke Keyboard shortcut shorthand
  * @param name Display name for the shortcut
  * @param handler Callback
