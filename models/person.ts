@@ -3,7 +3,7 @@ export default interface Person {
   handle: string;
   prefix: string | null;
   twitter: string | null;
-  //smashggId: string;
+  smashggId?: string;
 };
 
 export interface PersonUpdate {
@@ -11,6 +11,7 @@ export interface PersonUpdate {
   handle?: string;
   prefix?: string | null;
   twitter?: string | null;
+  smashggId?: string;
 };
 
 export const nullPerson: Person = Object.freeze({
@@ -24,7 +25,8 @@ export function isEqual(p1: Person, p2: Person): boolean {
   return p1.id === p2.id &&
     p1.handle === p2.handle &&
     p1.prefix === p2.prefix &&
-    p1.twitter === p2.twitter;
+    p1.twitter === p2.twitter &&
+    p1.smashggId === p2.smashggId;
 }
 
 export function getName(p: Person | PersonUpdate): string {

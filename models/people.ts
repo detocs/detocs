@@ -7,7 +7,7 @@ import { dirname, join } from 'path';
 import { getConfig } from '../util/config';
 import { getVersion } from '../util/meta';
 
-import Person, { isEqual, PersonUpdate, nullPerson } from './person';
+import Person, { isEqual, PersonUpdate, nullPerson, getName } from './person';
 
 // TODO: Proper serialization
 interface Database {
@@ -78,6 +78,10 @@ export function getById(id?: number): Person | null {
   return database.people.find(p => p.id === id) || null;
 }
 
+export function getBySmashggId(id: string): Person | null {
+  return database.people.find(p => p.smashggId === id) || null;
+}
+
 export function save(upd: PersonUpdate): Person {
   let existingPerson = getById(upd.id);
   if (existingPerson) {
@@ -117,4 +121,9 @@ function update(old: Person, upd: PersonUpdate): Person {
 export function searchByHandle(query: string): Person[] {
   query = query.toLowerCase();
   return database.people.filter(p => p.handle.toLowerCase().includes(query));
+}
+
+export function findByFullName(query: string): Person[] {
+  query = query.toLowerCase();
+  return database.people.filter(p => getName(p).toLowerCase() === query);
 }

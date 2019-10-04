@@ -13,7 +13,8 @@ import LowerThird from '../../models/lower-third';
 import Match, { nullMatch } from '../../models/match';
 import matchList from '../../models/matches';
 import * as People from '../../models/people';
-import Person, { PersonUpdate } from '../../models/person';
+import Person, { PersonUpdate, getName } from '../../models/person';
+import Player from '../../models/player';
 import Scoreboard from '../../models/scoreboard';
 import TournamentSet from '../../models/tournament-set';
 import SmashggClient from '../../util/smashgg';
@@ -142,7 +143,7 @@ async function fetchSets(smashgg: SmashggClient): Promise<void> {
 }
 
 function parseScoreboard(fields: Record<string, unknown>): Scoreboard {
-  const players = [];
+  let players = [];
   for (let i = 0; i < 2; i++) {
     const fieldPrefix = `players[${i}]`;
     const person = parsePerson(fields, fieldPrefix);
@@ -153,15 +154,83 @@ function parseScoreboard(fields: Record<string, unknown>): Scoreboard {
     const comment = parseString(fields, `${fieldPrefix}[comment]`);
     players.push({ person, score, inLosers, comment });
   }
+
+  let match = parseMatch(fields);
+
   // TODO: Reload people from datastore?
+  const set = parseSet(fields);
+  const playersUnset = players.filter(p => !!p.person.handle).length == 0;
+  if (isSetChanged(set) && playersUnset) {
+    players = playersFromSet(set);
+    match = set.match || nullMatch;
+  }
 
   return {
     players,
     game: parseGame(fields),
-    match: parseMatch(fields),
+    match,
     phaseId: parseOptionalString(fields, 'phaseId'),
-    set: parseSet(fields),
+    set,
   };
+}
+
+function isSetChanged(set: TournamentSet | undefined): set is TournamentSet {
+  return !!set && (!state.set || state.set.id != set.id);
+}
+
+function playersFromSet(set: TournamentSet): Player[] {
+  // TODO: Handle discrepancies between numbers of players and entrants?
+  return set.entrants.map(entrant => {
+    const soloParticipant = entrant.participants.length == 1;
+    if (soloParticipant) {
+      const participant = entrant.participants[0];
+
+      const foundById = People.getBySmashggId(participant.smashggId);
+      if (foundById) {
+        return {
+          person: foundById,
+          score: 0,
+          inLosers: entrant.inLosers,
+        };
+      }
+
+      const foundPeople = People.findByFullName(getName(participant));
+      if (foundPeople.length == 1) {
+        const foundByName = People.save({
+          id: foundPeople[0].id,
+          smashggId: participant.smashggId,
+        });
+        return {
+          person: foundByName,
+          score: 0,
+          inLosers: entrant.inLosers,
+        };
+      }
+
+      const newPerson = People.save(participant);
+      return {
+        person: newPerson,
+        score: 0,
+        inLosers: entrant.inLosers,
+      };
+    } else {
+      const foundPeople = People.findByFullName(entrant.name);
+      if (foundPeople.length == 1) {
+        return {
+          person: foundPeople[0],
+          score: 0,
+          inLosers: entrant.inLosers,
+        };
+      }
+
+      const newPerson = People.save({ handle: entrant.name });
+      return {
+        person: newPerson,
+        score: 0,
+        inLosers: entrant.inLosers,
+      };
+    }
+  });
 }
 
 function parseLowerThird(fields: Record<string, unknown>): LowerThird {
@@ -186,7 +255,7 @@ function parsePerson(fields: Record<string, unknown>, fieldPrefix: string): Pers
     handle: fields[`${fieldPrefix}[handle]`] as string,
   };
   const prefix = fields[`${fieldPrefix}[prefix]`] as string | null | undefined;
-  if (prefix != null) {
+  if (prefix != null && prefix.length) {
     update.prefix = prefix;
   }
   const twitter = fields[`${fieldPrefix}[twitter]`] as string | null | undefined;

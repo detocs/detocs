@@ -4,6 +4,7 @@ import TournamentSet from '../../models/tournament-set';
 
 import SetSelector from './set-selector';
 
+// TODO: Take in set updater
 interface Props {
   phaseId?: string;
   set?: TournamentSet;

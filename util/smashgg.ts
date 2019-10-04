@@ -1,8 +1,9 @@
 import { GraphQLClient } from 'graphql-request';
 
-import { ApiToken } from "../models/smashgg";
+import { getMatchBySmashggId, isGrandFinals } from '../models/matches';
 import TournamentSet from "../models/tournament-set";
 import { getCredentials } from './credentials';
+import { nonNull } from './predicates';
 
 const ENDPOINT = 'https://api.smash.gg/gql/alpha';
 
@@ -25,6 +26,12 @@ query PhaseQuery($phaseId: ID!) {
             name
             participants {
               playerId
+              player {
+                gamerTag
+                prefix
+                twitterHandle
+              }
+              prefix
             }
           }
         }
@@ -48,6 +55,12 @@ interface PhaseSetQueryResponse {
             name: string;
             participants: [{
               playerId: number;
+              player: {
+                gamerTag: string;
+                prefix: string | null;
+                twitterHandle: string | null;
+              };
+              prefix: string | null;
             }];
           } | null;
         }];
@@ -97,15 +110,31 @@ export default class SmashggClient {
   public async upcomingSetsByPhase(phaseId: string): Promise<TournamentSet[]> {
     const resp: PhaseSetQueryResponse = await this.client.request(PHASE_SET_QUERY, { phaseId });
     let sets = resp.phase.sets.nodes;
-    return sets.map(s => ({
-      id: `${s.id}`,
-      shortIdentifier: s.identifier,
-      displayName: `${s.fullRoundText} - ${s.identifier}: ${
-        s.slots
-          .map(slot => slot.entrant ? slot.entrant.name : '???')
-          .join(' vs ')
-      }`,
-    }));
+    return sets.map(s => {
+      const match = getMatchBySmashggId(s.fullRoundText);
+      return {
+        id: `${s.id}`,
+        match,
+        shortIdentifier: s.identifier,
+        displayName: `${s.fullRoundText} - ${s.identifier}: ${
+          s.slots
+            .map(slot => slot.entrant ? slot.entrant.name : '???')
+            .join(' vs ')
+        }`,
+        entrants: s.slots.map(slot => slot.entrant)
+          .filter(nonNull)
+          .map((entrant, index) => ({
+            name: entrant.name,
+            participants: entrant.participants.map(p => ({
+              smashggId: p.playerId.toString(),
+              handle: p.player.gamerTag,
+              prefix: p.prefix || (p.player.prefix || null),
+              twitter: p.player.twitterHandle || null,
+            })),
+            inLosers: isGrandFinals(match) ? index == 1 : undefined,
+          })),
+      };
+    });
   }
 
   public async eventIdForPhase(phaseId: string): Promise<string> {

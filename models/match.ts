@@ -1,7 +1,7 @@
 export default interface Match {
-  id: string;
-  name: string;
-  smashggId: string | null;
+  readonly id: string;
+  readonly name: string;
+  readonly smashggId: string | null;
 }
 
 export const nullMatch: Match = {
