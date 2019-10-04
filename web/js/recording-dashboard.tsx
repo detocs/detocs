@@ -32,7 +32,6 @@ function save(): void {
 const RecordingDashboard: FunctionalComponent<Props> = ({ state, updateState }): VNode => {
   const [ startTimestamp, updateStart ] = useStartTimestamp(state, updateState);
   const [ stopTimestamp, updateStop ] = useStopTimestamp(state, updateState);
-  console.log(startTimestamp, stopTimestamp);
 
   const ref = useRef();
   useEffect(() => {
