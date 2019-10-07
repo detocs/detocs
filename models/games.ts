@@ -27,6 +27,7 @@ export default [
     ],
     hashtags: [
       'MBAACC',
+      'メルブラ',
     ],
     serviceInfo: {
       twitch: { id: 'Melty Blood: Actress Again: Current Code' },
