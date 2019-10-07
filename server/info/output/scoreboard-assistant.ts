@@ -13,7 +13,7 @@ import Output from './output';
 
 const PORT = 58341;
 
-interface ScoreboardAssistantData {
+interface ScoreboardAssistantScoreboard {
   'tabID': string;
   'player1': string;
   'player2': string;
@@ -23,10 +23,19 @@ interface ScoreboardAssistantData {
   'game': string;
 }
 
+interface ScoreboardAssistantText {
+  'tabID': string;
+  'text1': string;
+  'text2': string;
+  'text3': string;
+  'text4': string;
+}
+
 export default class ScoreboardAssistant implements Output {
   private readonly server: WebSocket.Server;
-  private lastScoreboard?: ScoreboardAssistantData;
-  private lastLowerThird?: ScoreboardAssistantData;
+  private lastScoreboard?: ScoreboardAssistantScoreboard;
+  private lastLowerThird?: ScoreboardAssistantScoreboard;
+  private lastBreak?: ScoreboardAssistantText;
 
   public constructor() {
     logger.info(`Initializing Scoreboard Assistant adapter on port ${PORT}`);
@@ -35,8 +44,9 @@ export default class ScoreboardAssistant implements Output {
     this.server.on('connection', (ws, req) => {
       logger.info(`New client; Address: ${req.connection.remoteAddress}
 User Agent: ${req.headers['user-agent']}`);
-      this.lastScoreboard && sendData(ws, this.lastScoreboard);
-      this.lastLowerThird && sendData(ws, this.lastLowerThird);
+      this.lastScoreboard && sendData(ws as WebSocket, this.lastScoreboard);
+      this.lastLowerThird && sendData(ws as WebSocket, this.lastLowerThird);
+      this.lastBreak && sendData(ws as WebSocket, this.lastBreak);
     });
   }
 
@@ -52,15 +62,21 @@ User Agent: ${req.headers['user-agent']}`);
     this.broadcast(converted);
   }
 
-  private broadcast(converted: ScoreboardAssistantData): void {
+  public updateBreak(state: State): void {
+    const converted = convertToBreak(state);
+    this.lastBreak = converted;
+    this.broadcast(converted);
+  }
+
+  private broadcast(converted: ScoreboardAssistantScoreboard | ScoreboardAssistantText): void {
     logger.debug(`Sending update:\n`, converted);
     this.server.clients.forEach(client => {
-      sendData(client, converted);
+      sendData(client as WebSocket, converted);
     });
   }
 }
 
-function sendData(client: any, data: ScoreboardAssistantData): void {
+function sendData(client: WebSocket, data: unknown): void {
   // TODO: What's up with the parameter types?
   if (client.readyState !== WebSocket.OPEN) {
     return;
@@ -69,7 +85,7 @@ function sendData(client: any, data: ScoreboardAssistantData): void {
   client.send(json);
 }
 
-function convertToScoreboard(state: State): ScoreboardAssistantData {
+function convertToScoreboard(state: State): ScoreboardAssistantScoreboard {
   const players = getPlayerStrings(state.players);
   return {
     'tabID': mapTabId(state.game.id),
@@ -82,7 +98,7 @@ function convertToScoreboard(state: State): ScoreboardAssistantData {
   };
 }
 
-function convertToLowerThird(state: State): ScoreboardAssistantData {
+function convertToLowerThird(state: State): ScoreboardAssistantScoreboard {
   const players = getCommentatorStrings(state.commentators);
   return {
     'tabID': 'commentators',
@@ -92,6 +108,16 @@ function convertToLowerThird(state: State): ScoreboardAssistantData {
     'score2': '0',
     'match': state.tournament,
     'game': state.event || state.game.name,
+  };
+}
+
+function convertToBreak(state: State): ScoreboardAssistantText {
+  return {
+    'tabID': 'break',
+    'text1': state.messages[0],
+    'text2': state.messages[1],
+    'text3': state.messages[2],
+    'text4': state.messages[3],
   };
 }
 

@@ -53,3 +53,7 @@ export const useGame = useSubstate<InfoState, Game>(
   state => state.game,
   (state, value) => state.game = value,
 );
+export const useBreakMessages = useSubstate<InfoState, string[]>(
+  state => state.messages,
+  (state, value) => state.messages = value,
+);

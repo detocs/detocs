@@ -10,6 +10,7 @@ import { useServerState } from './hooks/server-state';
 import { useToggle } from './hooks/toggle';
 
 import { infoEndpoint, twitterEndpoint, recordingEndpoint } from './api';
+import BreakDashboard from './break-dashboard';
 import CommentaryDashboard from './commentary-dashboard';
 import PlayerDashboard from './player-dashboard';
 import RecordingDashboard from './recording-dashboard';
@@ -57,6 +58,9 @@ const App: FunctionalComponent<{}> = (): VNode => {
             thread={twitterThread}
             onThreadToggle={toggleTwitterThread}
           />
+        </Tab>
+        <Tab id="break">
+          <BreakDashboard state={infoState} updateState={updateInfoState}/>
         </Tab>
       </TabController>
       <footer id="version">DETOCS {version}</footer>

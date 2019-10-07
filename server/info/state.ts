@@ -1,10 +1,11 @@
+import Break from '../../models/break';
 import { nullGame } from '../../models/game';
 import LowerThird from '../../models/lower-third';
 import { nullMatch } from '../../models/match';
 import { nullPerson } from '../../models/person';
 import Scoreboard from '../../models/scoreboard';
 
-type State = Scoreboard & LowerThird;
+type State = Scoreboard & LowerThird & Break;
 export default State;
 
 export const nullState: State = Object.freeze({
@@ -20,4 +21,5 @@ export const nullState: State = Object.freeze({
   ],
   tournament: '',
   event: '',
+  messages: [],
 });

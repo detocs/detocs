@@ -7,6 +7,7 @@ import formidable from 'express-formidable';
 import { createServer } from 'http';
 import cors from 'cors';
 
+import Break from '../../models/break';
 import Game, { nullGame } from '../../models/game';
 import gameList from '../../models/games';
 import LowerThird from '../../models/lower-third';
@@ -70,6 +71,18 @@ export default function start(port: number): void {
     res.sendStatus(200);
     broadcastState(state);
     output.updateLowerThird(state);
+  });
+  app.post('/break', (req, res) => {
+    logger.debug(`Break update received:\n`, req.fields);
+    if (!req.fields) {
+      res.sendStatus(400);
+      return;
+    }
+    const brk = parseBreak(req.fields);
+    Object.assign(state, brk);
+    res.sendStatus(200);
+    broadcastState(state);
+    output.updateBreak(state);
   });
   app.get('/people', (req, res) => {
     const query = req.query['q'];
@@ -245,6 +258,20 @@ function parseLowerThird(fields: Record<string, unknown>): LowerThird {
     commentators,
     tournament: parseString(fields, 'tournament'),
     event: parseString(fields, 'event'),
+  };
+}
+
+function parseBreak(fields: Record<string, unknown>): Break {
+  const messages = [];
+  for (let i = 0; i < 4; i++) {
+    const field = `messages[${i}]`;
+    const msg = parseOptionalString(fields, field);
+    if (msg != null) {
+      messages[i] = msg;
+    }
+  }
+  return {
+    messages,
   };
 }
 

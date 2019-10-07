@@ -38,6 +38,7 @@ function registerKeyboardShortcuts(node: Element | null): VoidFunction[] {
     shortcut(node, '^2', 'Second', () => 1),
     shortcut(node, '^3', 'Third', () => 2),
     shortcut(node, '^4', 'Fourth', () => 3),
+    shortcut(node, '^5', 'Fifth', () => 4),
     // TODO: Vary shortcuts with number of tabs
   ];
 }
