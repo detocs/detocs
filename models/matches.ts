@@ -95,3 +95,10 @@ export function isGrandFinals(match: Match | null | undefined): boolean {
   }
   return match.id === 'gf';
 }
+
+export function isTrueFinals(match: Match | null | undefined): boolean {
+  if (match == null) {
+    return false;
+  }
+  return match.id === 'tf';
+}

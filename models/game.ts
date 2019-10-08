@@ -1,3 +1,5 @@
+import { SmashggId } from "./smashgg";
+
 export default interface Game {
   id: string;
   name: string;
@@ -8,7 +10,7 @@ export default interface Game {
       id: string;
     };
     smashgg?: {
-      id: number;
+      id: SmashggId;
     };
   };
 };

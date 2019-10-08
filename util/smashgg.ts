@@ -1,7 +1,9 @@
 import { GraphQLClient } from 'graphql-request';
 
-import { getMatchBySmashggId, isGrandFinals } from '../models/matches';
+import { getGameBySmashggId } from '../models/games';
+import { getMatchBySmashggId, isGrandFinals, isTrueFinals } from '../models/matches';
 import TournamentSet from "../models/tournament-set";
+
 import { getCredentials } from './credentials';
 import { nonNull } from './predicates';
 
@@ -21,6 +23,9 @@ query PhaseQuery($phaseId: ID!) {
         fullRoundText
         state
         completedAt
+        event {
+          videogameId
+        }
         slots {
           entrant {
             name
@@ -50,6 +55,9 @@ interface PhaseSetQueryResponse {
         fullRoundText: string;
         state: number;
         completedAt: number | null;
+        event: {
+          videogameId: number;
+        };
         slots: [{
           entrant: {
             name: string;
@@ -112,9 +120,11 @@ export default class SmashggClient {
     let sets = resp.phase.sets.nodes;
     return sets.map(s => {
       const match = getMatchBySmashggId(s.fullRoundText);
+      const videogame = getGameBySmashggId(s.event.videogameId.toString());
       return {
         id: `${s.id}`,
         match,
+        videogame,
         shortIdentifier: s.identifier,
         displayName: `${s.fullRoundText} - ${s.identifier}: ${
           s.slots
@@ -131,7 +141,7 @@ export default class SmashggClient {
               prefix: p.prefix || (p.player.prefix || null),
               twitter: p.player.twitterHandle || null,
             })),
-            inLosers: isGrandFinals(match) ? index == 1 : undefined,
+            inLosers: isTrueFinals(match) || (isGrandFinals(match) && index === 1),
           })),
       };
     });

@@ -1,6 +1,8 @@
 import Game from './game';
+import { SmashggId } from './smashgg';
 
-export default [
+// TODO: Use separate IDs for separate releases
+const games: Game[] = [
   {
     id: 'uni',
     name: 'Under Night In-Birth Exe:Late[st]',
@@ -15,7 +17,7 @@ export default [
     ],
     serviceInfo: {
       twitch: { id: 'Under Night In-Birth Exe:Late[st]' },
-      smashgg: { id: 451 },
+      smashgg: { id: '451' },
     },
   },
   {
@@ -31,7 +33,7 @@ export default [
     ],
     serviceInfo: {
       twitch: { id: 'Melty Blood: Actress Again: Current Code' },
-      smashgg: { id: 22407 },
+      smashgg: { id: '22407' },
     },
   },
   {
@@ -46,7 +48,7 @@ export default [
     ],
     serviceInfo: {
       twitch: { id: 'BlazBlue: Central Fiction' },
-      smashgg: { id: 37 },
+      smashgg: { id: '37' },
     },
   },
   {
@@ -63,7 +65,7 @@ export default [
     ],
     serviceInfo: {
       twitch: { id: 'Samurai Shodown' },
-      smashgg: { id: 3568 },
+      smashgg: { id: '3568' },
     },
   },
   {
@@ -80,7 +82,7 @@ export default [
     ],
     serviceInfo: {
       twitch: { id: 'Samurai Shodown V Special' },
-      smashgg: { id: 16391 },
+      smashgg: { id: '16391' },
     },
   },
   {
@@ -96,7 +98,7 @@ export default [
     ],
     serviceInfo: {
       twitch: { id: 'The King of Fighters XIII' },
-      smashgg: { id: 9690 },
+      smashgg: { id: '9690' },
     },
   },
   {
@@ -112,7 +114,7 @@ export default [
     ],
     serviceInfo: {
       twitch: { id: 'Dengeki Bunko: Fighting Climax Ignition' },
-      smashgg: { id: 4267 },
+      smashgg: { id: '4267' },
     },
   },
   {
@@ -128,7 +130,12 @@ export default [
     ],
     serviceInfo: {
       twitch: { id: 'The King of Fighters \'98 Ultimate Match' },
-      smashgg: { id: 17413 },
+      smashgg: { id: '17413' },
     },
   },
-] as Game[];
+];
+export default games;
+
+export function getGameBySmashggId(id: SmashggId): Game | null {
+  return games.find(g => g.serviceInfo.smashgg && g.serviceInfo.smashgg.id === id) || null;
+}

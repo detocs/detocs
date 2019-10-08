@@ -169,6 +169,7 @@ function parseScoreboard(fields: Record<string, unknown>): Scoreboard {
   }
 
   let match = parseMatch(fields);
+  let game = parseGame(fields);
 
   // TODO: Reload people from datastore?
   const set = parseSet(fields);
@@ -176,11 +177,12 @@ function parseScoreboard(fields: Record<string, unknown>): Scoreboard {
   if (isSetChanged(set) && playersUnset) {
     players = playersFromSet(set);
     match = set.match || nullMatch;
+    game = set.videogame || nullGame;
   }
 
   return {
     players,
-    game: parseGame(fields),
+    game,
     match,
     phaseId: parseOptionalString(fields, 'phaseId'),
     set,
