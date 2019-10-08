@@ -6,6 +6,7 @@ import InfoState from '../../server/info/state';
 import { useBreakMessages } from './hooks/info';
 
 import { infoEndpoint } from './api';
+import { inputHandler } from '../../util/dom';
 
 interface Props {
   state: InfoState;
@@ -13,7 +14,10 @@ interface Props {
 }
 
 const BreakDashboard: FunctionalComponent<Props> = ({ state, updateState }): VNode => {
-  const [ messages ] = useBreakMessages(state, updateState);
+  let [ messages, updateMessages ] = useBreakMessages(state, updateState);
+  messages = messages.length ? messages : [''];
+  const appendMsg = (): void => updateMessages(messages.concat(['']));
+  const removeLastMsg = (): void => updateMessages(m => m.slice(0, -1));
   return(
     <form
       action={infoEndpoint('/break').href}
@@ -22,13 +26,36 @@ const BreakDashboard: FunctionalComponent<Props> = ({ state, updateState }): VNo
     >
       <fieldset name="messages">
         <legend>Messages</legend>
+        {messages.map((m, i) => 
+          <div class="input-row">
+            <input
+              type="text"
+              name="messages[]"
+              placeholder={`Message ${i + 1}`}
+              value={m}
+              onInput={inputHandler(str => updateMessages(mm => {
+                const ret = mm.slice();
+                ret[i] = str;
+                return ret;
+              }))}
+            />
+          </div>
+        )}
         <div class="input-row">
-          <input
-            type="text"
-            name="messages[]"
-            placeholder="Message"
-            value={messages[0]}
-          />
+          <button
+            type="button"
+            onClick={appendMsg}
+            disabled={messages.length >= 4}
+          >
+            Add
+          </button>
+          <button
+            type="button"
+            onClick={removeLastMsg}
+            disabled={messages.length <= 1}
+          >
+            Remove
+          </button>
         </div>
       </fieldset>
       <div class="input-row">
