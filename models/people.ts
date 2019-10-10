@@ -118,6 +118,10 @@ function update(old: Person, upd: PersonUpdate): Person {
   return updated;
 }
 
+export function all(): Person[] {
+  return database.people;
+}
+
 export function searchByHandle(query: string): Person[] {
   query = query.toLowerCase();
   return database.people.filter(p => p.handle.toLowerCase().includes(query));
