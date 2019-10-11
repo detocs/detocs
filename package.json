@@ -1,6 +1,6 @@
 {
   "name": "detocs",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Datagram's Esports Tournament Overlay Control System",
   "main": "index.js",
   "bin": {
