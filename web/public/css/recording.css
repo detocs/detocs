@@ -19,7 +19,7 @@
 }
 
 .recording__controls {
-  flex: 1 0 auto;
+  flex: 1 0 0;
   display: flex;
   flex-flow: row wrap;
 }
