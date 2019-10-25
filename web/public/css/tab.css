@@ -21,6 +21,7 @@
   border-bottom-width: 0;
   font-size: 1rem;
   font-weight: normal;
+  user-select: none;
 }
 
 .tabbable-section__tab label {
