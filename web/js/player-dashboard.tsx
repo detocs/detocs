@@ -1,6 +1,7 @@
 import { h, FunctionalComponent, VNode } from 'preact';
 import { StateUpdater } from 'preact/hooks';
 
+import { nullMatch } from '../../models/match';
 import { nullPerson } from '../../models/person';
 import InfoState from '../../server/info/state';
 
@@ -102,6 +103,7 @@ function resetPlayers(state: InfoState, updateState: StateUpdater<InfoState>): v
     person: nullPerson,
     score: 0,
   }));
+  newState.match = nullMatch;
   updateState(newState);
 }
 
