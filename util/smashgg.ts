@@ -126,7 +126,7 @@ export default class SmashggClient {
         match,
         videogame,
         shortIdentifier: s.identifier,
-        displayName: `${s.fullRoundText} - ${s.identifier}: ${
+        displayName: `${s.identifier} - ${match ? match.name : s.fullRoundText}: ${
           s.slots
             .map(slot => slot.entrant ? slot.entrant.name : '???')
             .join(' vs ')

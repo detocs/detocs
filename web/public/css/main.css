@@ -115,6 +115,10 @@ input:focus {
   flex: 0 0 auto;
 }
 
+.set-selector {
+  width: 12em;
+}
+
 #version {
   position: fixed;
   bottom: 0;
