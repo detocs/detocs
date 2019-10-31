@@ -279,17 +279,18 @@ function parseBreak(fields: Record<string, unknown>): Break {
 
 function parsePerson(fields: Record<string, unknown>, fieldPrefix: string): Person {
   const id: number | undefined = parseId(fields[`${fieldPrefix}[id]`]);
-  const update: PersonUpdate = {
-    id,
-    handle: fields[`${fieldPrefix}[handle]`] as string,
-  };
-  const prefix = fields[`${fieldPrefix}[prefix]`] as string | null | undefined;
-  if (prefix != null && prefix.length) {
-    update.prefix = prefix;
+  const update: PersonUpdate = { id };
+  const handle = fields[`${fieldPrefix}[handle]`] as string | undefined;
+  if (handle != null) {
+    update.handle = handle.trim();
   }
-  const twitter = fields[`${fieldPrefix}[twitter]`] as string | null | undefined;
-  if (twitter != null && twitter.length) {
-    update.twitter = twitter;
+  const prefix = fields[`${fieldPrefix}[prefix]`] as string | undefined;
+  if (prefix != null) {
+    update.prefix = prefix.trim() || null;
+  }
+  const twitter = fields[`${fieldPrefix}[twitter]`] as string | undefined;
+  if (twitter != null) {
+    update.twitter = twitter.trim() || null;
   }
   return People.save(update);
 }

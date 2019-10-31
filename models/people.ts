@@ -72,13 +72,14 @@ function getNextId(people: Person[]): number {
 }
 
 export function getById(id?: number): Person | null {
-  if (id == null) {
+  if (id == null || id < 0) {
     return null;
   }
   return database.people.find(p => p.id === id) || null;
 }
 
 export function getBySmashggId(id: string): Person | null {
+  // TODO: Choose latest person if multiple have same ID?
   return database.people.find(p => p.smashggId === id) || null;
 }
 

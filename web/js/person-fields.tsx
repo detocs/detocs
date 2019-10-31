@@ -17,7 +17,7 @@ const fieldMappings: Record<string, FieldMapping> = {
     updatedWithValue: (p, val) => {
       return Object.assign({}, p, {
         handle: val,
-        id: undefined,
+        id: -1,
       });
     },
   },
