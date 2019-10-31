@@ -34,6 +34,9 @@ const CommentaryDashboard: FunctionalComponent<Props> = ({ state, updateState })
               personFields={[ "handle", "prefix", "twitter" ]}
               onUpdatePerson={updateCom1}
             />
+            <button type="button" onClick={updateCom1.bind(null, nullPerson)}>
+              Reset 1
+            </button>
           </div>
         </fieldset>
         <fieldset name="commentator" class="commentator js-commentator">
@@ -45,6 +48,9 @@ const CommentaryDashboard: FunctionalComponent<Props> = ({ state, updateState })
               personFields={["handle", "prefix", "twitter"]}
               onUpdatePerson={updateCom2}
             />
+            <button type="button" onClick={updateCom2.bind(null, nullPerson)}>
+              Reset 2
+            </button>
           </div>
         </fieldset>
       </div>
@@ -71,10 +77,10 @@ const CommentaryDashboard: FunctionalComponent<Props> = ({ state, updateState })
         </fieldset>
       </div>
       <div class="input-row">
-        <button type="button" onClick={resetCommentators.bind({}, state, updateState)}>
+        <button type="button" onClick={resetCommentators.bind(null, state, updateState)}>
           Reset
         </button>
-        <button type="button" onClick={swapCommentators.bind({}, state, updateState)}>
+        <button type="button" onClick={swapCommentators.bind(null, state, updateState)}>
           Swap
         </button>
         <button type="submit">Update</button>
@@ -94,6 +100,6 @@ function resetCommentators(state: InfoState, updateState: StateUpdater<InfoState
 
 function swapCommentators(state: InfoState, updateState: StateUpdater<InfoState>): void {
   const newState = Object.assign({}, state);
-  newState.commentators = [ newState.commentators[1], newState.commentators[0] ];
+  newState.commentators = newState.commentators.slice().reverse();
   updateState(newState);
 }
