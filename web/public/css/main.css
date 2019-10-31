@@ -79,9 +79,17 @@ input[type="text"] {
   flex: 1 1 auto;
 }
 
-/* TODO: Button focus */
-input:focus {
+:focus,
+button:focus,
+[type="button"]:focus,
+[type="reset"]:focus,
+[type="submit"]:focus {
+  /* Overrides normalize.css Firefox styles */
   outline: 0.2rem solid var(--color-focus);
+}
+
+button:focus {
+  border: none;
 }
 
 ::selection {
