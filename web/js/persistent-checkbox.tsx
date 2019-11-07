@@ -34,7 +34,6 @@ export class PersistentCheckboxElement extends HTMLInputElement {
   }
 
   private update = (): void => {
-    console.log('update checkbox');
     this.hiddenInput.disabled = this.checked;
   };
 
