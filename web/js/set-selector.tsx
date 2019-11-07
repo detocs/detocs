@@ -13,7 +13,7 @@ const SetSelector: FunctionalComponent<Props> = (props: RenderableProps<Props>):
     <select
       name="set"
       class="set-selector"
-      value={props.set && props.set.id}
+      value={props.set?.id}
       onChange={(e: Event) => {
         const select = e.target as HTMLSelectElement;
         return props.updateSet(
