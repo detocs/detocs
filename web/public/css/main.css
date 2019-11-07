@@ -88,10 +88,6 @@ button:focus,
   outline: 0.2rem solid var(--color-focus);
 }
 
-button:focus {
-  border: none;
-}
-
 ::selection {
   background: var(--color-selection);
   color: white;

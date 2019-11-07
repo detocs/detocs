@@ -1,3 +1,17 @@
+.recording__list {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+.recording__list-item {
+  margin-top: 1rem;
+}
+
+.recording__block {
+  padding: 0.15rem;
+}
+
 .recording__editor {
   display: flex;
   flex-flow: row wrap;
@@ -32,6 +46,11 @@
   width: 100%;
 
   box-sizing: border-box;
+  direction: rtl;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .recording__tab-label--recording {

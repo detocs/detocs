@@ -7,7 +7,7 @@ import { truncateTimestamp, offsetTimestamp, validateTimestamp } from '../../uti
 export const TimestampInput: FunctionalComponent<{
   name: string;
   value: string | null;
-  updater: StateUpdater<string | null>;
+  updater: StateUpdater<string> | StateUpdater<string | null>,
 }> = ({ name, value, updater }): VNode => {
   const backwardMedium = adjustTimestamp(updater, -3);
   const backwardSmall = adjustTimestamp(updater, -1);
@@ -47,11 +47,14 @@ export const TimestampInput: FunctionalComponent<{
   </fieldset>);
 };
 
-function adjustTimestamp(updater: StateUpdater<string | null>, offsetSeconds: number): () => void {
+function adjustTimestamp(
+  updater: StateUpdater<string> | StateUpdater<string | null>,
+  offsetSeconds: number,
+): () => void {
   return () => {
-    updater(prev => {
+    updater((prev: string | null) => {
       if (prev == null || !validateTimestamp(prev)) {
-        return prev;
+        return prev || '';
       }
       let ts = truncateTimestamp(prev);
       ts = offsetTimestamp(ts, offsetSeconds);

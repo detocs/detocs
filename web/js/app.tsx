@@ -71,12 +71,18 @@ const App: FunctionalComponent<{}> = (): VNode => {
 function bindSubmitHandler(): void {
   document.addEventListener('submit', (event: Event) => {
     const form = event.target as HTMLFormElement;
-    let data = new FormData(form);
-    data = massagedFormData(data);
-    fetch(form.action, {
-      method: form.method,
-      body: data,
-    }).catch(console.error);
+    let action = form.action;
+    let method = form.method;
+    if (document.activeElement) {
+      const triggerAttributes = document.activeElement.attributes;
+      const actionAttr = triggerAttributes.getNamedItem('formaction');
+      const methodAttr = triggerAttributes.getNamedItem('formmethod');
+      action = (actionAttr && actionAttr.value) || action;
+      method = (methodAttr && methodAttr.value) || method;
+    }
+    const body = massagedFormData(new FormData(form));
+    fetch(action, { method, body })
+      .catch(console.error);
 
     event.preventDefault();
   });

@@ -1,10 +1,10 @@
 import { h, FunctionalComponent, VNode, Fragment } from 'preact';
 import { useEffect, useRef, StateUpdater } from 'preact/hooks';
 
-import ServerState from '../../server/recording/state';
+import ServerState, { Recording } from '../../server/recording/state';
 
 import { recordingEndpoint } from './api';
-import { useStartTimestamp, useStopTimestamp } from './hooks/recording';
+import { useStartTimestamp, useStopTimestamp, useRecording } from './hooks/recording';
 import { Thumbnail } from './thumbnail';
 import { TimestampInput } from './timestamp';
 
@@ -15,7 +15,8 @@ interface Props {
 
 const startEndpoint = recordingEndpoint('/start').href;
 const stopEndpoint = recordingEndpoint('/stop').href;
-const saveEndpoint = recordingEndpoint('/save').href;
+const updateEndpoint = recordingEndpoint('/update').href;
+const cutEndpoint = recordingEndpoint('/cut').href;
 
 function start(): void {
   fetch(startEndpoint, { method: 'POST' }).catch(console.error);
@@ -25,75 +26,86 @@ function stop(): void {
   fetch(stopEndpoint, { method: 'POST' }).catch(console.error);
 }
 
-function save(): void {
-  fetch(saveEndpoint, { method: 'POST' }).catch(console.error);
-}
-
 const RecordingDashboard: FunctionalComponent<Props> = ({ state, updateState }): VNode => {
-  const [ startTimestamp, updateStart ] = useStartTimestamp(state, updateState);
-  const [ stopTimestamp, updateStop ] = useStopTimestamp(state, updateState);
+  const recording = state.recordings[0];
+  const isRecording = !!recording && !!recording.startTimestamp && !recording.stopTimestamp;
 
   const ref = useRef();
   useEffect(() => {
     let tabElement = (ref.current as HTMLElement).closest('.tabbable-section');
     tabElement = tabElement && tabElement.querySelector('.tabbable-section__tab label');
-    if (tabElement) {
-      tabElement.classList.toggle(
-        'recording__tab-label--recording',
-        !!startTimestamp && !stopTimestamp);
+    if (!tabElement) {
+      return;
     }
-  }, [startTimestamp, stopTimestamp]);
-
-  const canStop = !startTimestamp;
-  // TODO: Prevent saving if start > stop
-  const canSave = !(startTimestamp && stopTimestamp);
+    tabElement.classList.toggle('recording__tab-label--recording', isRecording);
+  });
 
   return (
     <Fragment>
-      <form
-        ref={ref}
-        action={recordingEndpoint('/update').href}
-        method="post"
-        class="recording__editor"
-        autocomplete="off"
-      >
-        <fieldset class="recording__boundary">
-          <legend>Beginning</legend>
-          <Thumbnail
-            src={state.startThumbnail} />
-          <TimestampInput
-            name="start-timestamp"
-            value={startTimestamp}
-            updater={updateStart}
-          />
-        </fieldset>
-        <span className="recording__controls">
-          <button type="button" onClick={start}>Start</button>
-          <button type="button" onClick={stop} disabled={canStop}>Stop</button>
-          <button type="submit">Update</button>
-          <button type="button" onClick={save} disabled={canSave}>Save</button>
-        </span>
-        <fieldset class="recording__boundary">
-          <legend>End</legend>
-          <Thumbnail
-            src={state.stopThumbnail} />
-          <TimestampInput
-            name="stop-timestamp"
-            value={stopTimestamp}
-            updater={updateStop}
-          />
-        </fieldset>
-      </form>
-      <input
-        readOnly
-        value={state.clipFile || ''}
-        placeholder="Output File"
-        class="recording__file"
-        dir="rtl" // TODO: This is a hack
-      />
+      <div class="input-row">
+        <button type="button" onClick={start}>Start</button>
+        <button type="button" onClick={stop} disabled={!isRecording}>Stop</button>
+      </div>
+      <ol ref={ref} class="recording__list">
+        {Array.from(state.recordings.keys()).map(index => {
+          const [ recording, updateRecording ] = useRecording(state, updateState, index);
+          return Recording({ recording, updateRecording });
+        })}
+      </ol>
     </Fragment>
   );
 };
 export default RecordingDashboard;
 
+interface RecordingProps {
+  recording: Recording;
+  updateRecording: StateUpdater<Recording>;
+}
 
+const Recording: FunctionalComponent<RecordingProps> = ({ recording, updateRecording }): VNode => {
+  const [ startTimestamp, updateStart ] = useStartTimestamp(recording, updateRecording);
+  const [ stopTimestamp, updateStop ] = useStopTimestamp(recording, updateRecording);
+  const canCut = startTimestamp && stopTimestamp && !recording.recordingFile;
+  // TODO: Prevent saving if start > stop
+  // TODO: Recut recordings
+  return (
+    <li key={recording.id} class="recording__list-item">
+      <fieldset class="recording__block">
+        { recording.displayName && <legend>{recording.displayName}</legend>}
+        <form
+          method="post"
+          action={updateEndpoint}
+          class="recording__editor"
+          autocomplete="off"
+        >
+          <input type="hidden" name="id" value={recording.id}/>
+          <fieldset class="recording__boundary">
+            <legend>Beginning</legend>
+            <Thumbnail
+              src={recording.startThumbnail} />
+            <TimestampInput
+              name="start-timestamp"
+              value={startTimestamp}
+              updater={updateStart}
+            />
+          </fieldset>
+          <span className="recording__controls">
+            <button type="submit">Update</button>
+            <button type="submit" formAction={cutEndpoint} disabled={!canCut}>Cut</button>
+          </span>
+          <fieldset class="recording__boundary">
+            <legend>End</legend>
+            <Thumbnail
+              src={recording.stopThumbnail} />
+            <TimestampInput
+              name="stop-timestamp"
+              value={stopTimestamp}
+              updater={updateStop}
+            />
+          </fieldset>
+        </form>
+        { recording.recordingFile && <div class="recording__file">{recording.recordingFile}</div> }
+      </fieldset>
+    </li>
+  );
+};

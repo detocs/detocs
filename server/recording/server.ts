@@ -8,9 +8,10 @@ import formidable from 'express-formidable';
 import filenamify from 'filenamify';
 import find from 'find-process';
 import fs from 'fs';
-import { createServer, Server } from 'http';
+import { createServer } from 'http';
 import ObsWebSocket from 'obs-websocket-js';
 import path from 'path';
+import { promisify } from 'util';
 import * as ws from 'ws';
 
 import { getConfig } from '../../util/config';
@@ -21,8 +22,12 @@ import { sanitizeTimestamp, validateTimestamp } from '../../util/timestamp';
 import InfoState from '../info/state';
 import { INFO_PORT } from "../ports";
 
-import State from './state';
+import State, { Recording } from './state';
 import SmashggClient from '../../util/smashgg';
+import uuidv4 from '../../util/uuid';
+import RecordingLogger from './log';
+
+const asyncMkdir = promisify(fs.mkdir);
 
 interface ProcessInfo {
   pid: number;
@@ -34,38 +39,19 @@ interface ProcessInfo {
   bin: string;
 }
 
-interface Log {
-  file: string;
-  eventId?: string;
-  phaseId?: string;
-  start: string | null;
-  end: string | null;
-  sets: {
-    id?: string;
-    displayName?: string;
-    start: string;
-    end: string;
-    state: InfoState;
-  }[];
-}
-
 interface UpdateRequest {
+  'id'?: string;
   'start-timestamp'?: string;
   'stop-timestamp'?: string;
 }
 
 const obs = new ObsWebSocket();
 let socketServer: ws.Server | null = null;
-let smashgg: SmashggClient | null = null;
-let currentLog: Log | null = null;
+let recordingLogger: RecordingLogger | null = null;
 const state: State = {
-  recordingFolder: null,
-  recordingFile: null,
-  clipFile: null,
-  startTimestamp: null,
-  stopTimestamp: null,
-  startThumbnail: null,
-  stopThumbnail: null,
+  streamRecordingFolder: null,
+  streamRecordingFile: null,
+  recordings: [],
 };
 
 
@@ -82,19 +68,18 @@ export default function start(port: number): void {
     }
   });
 
-  smashgg = new SmashggClient();
+  recordingLogger = new RecordingLogger(new SmashggClient());
 
   const app = express();
   // TODO: Security?
   app.use(cors());
   app.use(formidable());
-  app.get('/start', startClip);
-  app.post('/start', startClip);
-  app.get('/stop', stopClip);
-  app.post('/stop', stopClip);
-  app.get('/save', save);
-  app.post('/save', save);
-  app.post('/update', update);
+  app.get('/start', startRecording);
+  app.post('/start', startRecording);
+  app.get('/stop', stopRecording);
+  app.post('/stop', stopRecording);
+  app.post('/update', updateRecording);
+  app.post('/cut', cutRecording);
 
   const httpServer = createServer(app);
   socketServer = new ws.Server({
@@ -120,10 +105,16 @@ function broadcastState(state: State): void {
   });
 }
 
-async function startClip(_req: Request, res: Response): Promise<void> {
-  if (!state.recordingFile) {
-    logger.warn('Attempted to start clip before starting recording in OBS');
-    res.sendStatus(400);
+function saveLogs(state: State): void {
+  if (!recordingLogger) {
+    return;
+  }
+  recordingLogger.saveLogs(state);
+}
+
+async function startRecording(_req: Request, res: Response): Promise<void> {
+  if (!state.streamRecordingFile || !state.streamRecordingFolder) {
+    sendUserError(res, 'Attempted to start recording before starting stream recording');
     return;
   }
   const timestamp = await obsUtil.getRecordingTimestamp(obs).catch(logger.error);
@@ -133,107 +124,149 @@ async function startClip(_req: Request, res: Response): Promise<void> {
     return;
   }
 
-  state.startTimestamp = timestamp;
-  logger.debug(`Starting clip at ${state.startTimestamp}`);
+  let recording = state.recordings[0];
+  if (!recording || recording.stopTimestamp) {
+    recording = newRecording(state.streamRecordingFile, timestamp);
+    state.recordings.unshift(recording);
+  } else {
+    recording.startTimestamp = timestamp;
+  }
+  logger.debug(`Starting clip at ${timestamp}`);
   res.sendStatus(200);
-
-  obsUtil.getCurrentThumbnail(obs).then(img => {
-    state.startThumbnail = img;
-    broadcastState(state);
-  }).catch(logger.error);
-
-  state.stopTimestamp = null;
-  state.stopThumbnail = null;
-  state.clipFile = null;
   broadcastState(state);
+  saveLogs(state);
+  getCurrentThumbnail(recording.id, 'startThumbnail');
 };
 
-async function stopClip(_: Request, res: Response): Promise<void> {
-  if (!state.recordingFile || !state.recordingFolder) {
-    logger.warn('Attempted to stop clip before starting recording in OBS');
-    res.sendStatus(400);
+async function stopRecording(_: Request, res: Response): Promise<void> {
+  if (!state.streamRecordingFile || !state.streamRecordingFolder) {
+    sendUserError(res, 'Attempted to stop recording before starting stream recording');
     return;
   }
-  if (!state.startTimestamp) {
-    logger.warn('Attempted to stop clip before starting clip');
-    res.sendStatus(400);
+  if (!state.recordings[0].startTimestamp) {
+    sendUserError(res, 'Attempted to stop recording before starting');
     return;
   }
   const timestamp = await obsUtil.getRecordingTimestamp(obs).catch(logger.error);
   if (!timestamp) {
-    logger.warn('Unable to get stop timestamp');
-    res.sendStatus(500);
+    sendServerError(res, 'Unable to get stop timestamp');
     return;
   }
 
-  state.stopTimestamp = timestamp;
-  logger.debug(`Stopping clip at ${state.stopTimestamp}`);
+  const recordingId = state.recordings[0].id;
+  state.recordings[0].stopTimestamp = timestamp;
+  logger.debug(`Stopping clip at ${timestamp}`);
   res.sendStatus(200);
   broadcastState(state);
-
-  obsUtil.getCurrentThumbnail(obs).then(img => {
-    state.stopThumbnail = img;
-    broadcastState(state);
-  }).catch(logger.error);
-};
-
-async function update(req: Request, res: Response): Promise<void> {
-  if (!state.recordingFile) {
-    res.sendStatus(400);
-    return;
-  }
-  const fields = req.fields as UpdateRequest;
-  const start = fields['start-timestamp'] || null;
-  const stop = fields['stop-timestamp'] || null;
-  let startChanged = false;
-  let stopChanged = false;
-  if (start && !validateTimestamp(start)) {
-    res.sendStatus(400);
-    return;
-  }
-  if (stop && !validateTimestamp(stop)) {
-    res.sendStatus(400);
-    return;
-  }
-  if (start != state.startTimestamp) {
-    state.startThumbnail = null;
-    startChanged = true;
-  }
-  if (stop != state.stopTimestamp) {
-    state.stopThumbnail = null;
-    stopChanged = true;
-  }
-  state.startTimestamp = start;
-  state.stopTimestamp = stop;
-  res.sendStatus(200);
-  broadcastState(state);
-  if (startChanged) {
-    getThumbnailForStartTimestamp();
-  }
-  if (stopChanged) {
-    getThumbnailForStopTimestamp();
-  }
+  saveLogs(state);
+  getCurrentThumbnail(recordingId, 'stopThumbnail');
+  setMetadata(recordingId);
 }
 
-async function save(_: Request, res: Response): Promise<void> {
-  if (!state.recordingFile || !state.recordingFolder) {
-    logger.warn('Attempted to save clip before starting recording in OBS');
-    res.sendStatus(400);
+async function setMetadata(recordingId: string): Promise<void> {
+  const info = await getInfo();
+  if (!info) {
     return;
   }
-  if (!state.startTimestamp || !state.stopTimestamp) {
-    logger.warn('Attempted to save clip with start and end time');
-    res.sendStatus(400);
+  const recording = getRecordingById(recordingId);
+  if (recording == null) {
+    logger.error(`Recording with id ${recordingId} no longer present`);
+    return;
+  }
+
+  Object.assign(info, { unfinishedSets: undefined });
+  recording.displayName = info.set ? info.set.displayName : info.match.name,
+  recording.metadata = info;
+  broadcastState(state);
+  saveLogs(state);
+}
+
+function getCurrentThumbnail(
+  recordingId: string,
+  thumbnailProp: 'startThumbnail' | 'stopThumbnail',
+): Promise<void> {
+  return obsUtil.getCurrentThumbnail(obs).then(img => {
+    const recording = getRecordingById(recordingId);
+    if (!recording) {
+      return;
+    }
+    recording[thumbnailProp] = img;
+    broadcastState(state);
+  }).catch(logger.error);
+}
+
+async function updateRecording(req: Request, res: Response): Promise<void> {
+  const fields = req.fields as UpdateRequest;
+  const recordingId = fields['id'];
+  const start = fields['start-timestamp'] || null;
+  const stop = fields['stop-timestamp'] || null;
+  if (recordingId == null) {
+    sendUserError(res, 'No recording ID provided');
+    return;
+  }
+  const recording = getRecordingById(recordingId);
+  if (recording == null) {
+    sendUserError(res, 'No recording matches provided ID');
+    return;
+  }
+  if ((start && !validateTimestamp(start)) ||
+    (stop && !validateTimestamp(stop)))
+  {
+    sendUserError(res, 'Invalid timestamp');
+    return;
+  }
+
+  if (start && start != recording.startTimestamp) {
+    recording.startTimestamp = start;
+    recording.startThumbnail = null;
+    getThumbnailForTimestamp(recordingId, 'startTimestamp', 'startThumbnail');
+  }
+  if (stop != recording.stopTimestamp) {
+    recording.stopTimestamp = stop;
+    recording.stopThumbnail = null;
+    getThumbnailForTimestamp(recordingId, 'stopTimestamp', 'stopThumbnail');
+  }
+  res.sendStatus(200);
+  broadcastState(state);
+  saveLogs(state);
+}
+
+async function cutRecording(req: Request, res: Response): Promise<void> {
+  if (!state.streamRecordingFile || !state.streamRecordingFolder) {
+    sendUserError(res, 'Attempted to cut recording before starting stream recording');
+    return;
+  }
+  const recordingId = req.fields && req.fields['id'];
+  if (recordingId == null || typeof recordingId != 'string') {
+    sendUserError(res, 'No recording ID provided');
+    return;
+  }
+  const recording = getRecordingById(recordingId);
+  if (recording == null) {
+    sendUserError(res, 'No recording matches provided ID');
+    return;
+  }
+  if (!recording.startTimestamp || !recording.stopTimestamp || !recording.streamRecordingFile) {
+    sendUserError(res, 'Attempted to save recording without start time, end time, and file');
+    return;
+  }
+  if (!recording.metadata) {
+    sendUserError(res, 'Attempted to save recording without metadata');
     return;
   }
 
   saveRecording(
-    state.recordingFolder,
-    state.recordingFile,
-    state.startTimestamp,
-    state.stopTimestamp,
+    state.streamRecordingFolder,
+    recording.streamRecordingFile,
+    recording.startTimestamp,
+    recording.stopTimestamp,
+    recording.metadata,
   ).then(file => {
-    state.clipFile = file;
+    const recording = getRecordingById(recordingId);
+    if (!recording) {
+      return;
+    }
+    recording.recordingFile = file;
     broadcastState(state);
   }).catch(logger.error);
 };
@@ -248,8 +281,8 @@ async function getRecordingFile(): Promise<void> {
       folder = path.join(path.dirname((listeners[0] as ProcessInfo).bin), folder);
     }
   }
-  state.recordingFolder = folder;
-  logger.info(`Recording folder: ${state.recordingFolder}`);
+  state.streamRecordingFolder = folder;
+  logger.info(`Recording folder: ${state.streamRecordingFolder}`);
 
   let files = fs.readdirSync(folder);
   files = files.filter(f => VIDEO_FILE_EXTENSIONS.includes(path.extname(f)));
@@ -258,58 +291,27 @@ async function getRecordingFile(): Promise<void> {
     return map;
   }, new Map());
   files.sort((a: string, b: string) => (timestamps.get(a) || 0) - (timestamps.get(b) || 0));
-  state.recordingFile = path.join(folder, files.pop() || '');
-  logger.info(`Recording file: ${state.recordingFile}`);
+  state.streamRecordingFile = path.join(folder, files.pop() || '');
+  logger.info(`Recording file: ${state.streamRecordingFile}`);
 }
 
 async function saveRecording(
   folder: string,
   sourceFile: string,
   start: string,
-  end: string
+  end: string,
+  metadata: InfoState,
 ): Promise<string | null> {
-  const info = await getInfo();
-  if (!info) {
-    return null;
-  }
-  const subFolder = info.game.id || 'clips';
   const extension = path.extname(sourceFile);
   const sourceFilename = path.basename(sourceFile, extension);
-  const outputFilename = generateFilename(start, end, info);
+  const outputFilename = generateFilename(start, end, metadata);
 
+  const subFolder = metadata.game.id || 'recordings';
   const outputFolder = path.join(folder, sourceFilename, subFolder);
-  fs.mkdirSync(outputFolder, { recursive: true });
+  await asyncMkdir(outputFolder, { recursive: true });
 
   const videoOutputPath = path.join(outputFolder, outputFilename + extension);
-  //await ffmpeg.trimClip(sourceFile, start, end, videoOutputPath);
-
-  if (!currentLog || info.phaseId != currentLog.phaseId) {
-    let eventId;
-    if (info.phaseId && smashgg) {
-      eventId = await smashgg.eventIdForPhase(info.phaseId);
-    }
-    currentLog = {
-      file: sourceFile,
-      eventId,
-      phaseId: info.phaseId,
-      start,
-      end: null,
-      sets: [],
-    };
-  }
-  currentLog.sets.push({
-    id: info.set && info.set.id,
-    displayName: info.set ? info.set.displayName : info.match.name,
-    start,
-    end,
-    state: Object.assign({}, info, { unfinishedSets: undefined }),
-  });
-
-  const metadataFolder = path.join(folder, sourceFilename);
-  const metadataFilename =
-    `${subFolder}-${info.phaseId || ''}-${sanitizeTimestamp(currentLog.start as string)}`;
-  const metadataOutputPath = path.join(metadataFolder, metadataFilename + '.json');
-  saveMetadata(currentLog as Log, metadataOutputPath);
+  await ffmpeg.trimClip(sourceFile, start, end, videoOutputPath);
   return videoOutputPath;
 }
 
@@ -327,37 +329,64 @@ function generateFilename(start: string, end: string, info: InfoState): string {
   return filenamify(`${start} - ${end}${gameSummary}${matchSummary}${playerSummary}`);
 }
 
-function saveMetadata(log: Log, outFile: string): void {
-  fs.writeFileSync(outFile, JSON.stringify(log, null, 2));
-}
-
-async function getThumbnailForStartTimestamp(): Promise<void> {
-  if (!state.recordingFile || !state.startTimestamp) {
+async function getThumbnailForTimestamp(
+  recordingId: string,
+  timestampProp: 'startTimestamp' | 'stopTimestamp',
+  thumbnailProp: 'startThumbnail' | 'stopThumbnail',
+): Promise<void> {
+  let recording = getRecordingById(recordingId);
+  if (recording == null) {
+    logger.error(`Recording with id ${recordingId} no longer present`);
     return;
   }
-  const img = await ffmpeg.getVideoThumbnail(state.recordingFile, state.startTimestamp)
+  const timestamp = recording[timestampProp];
+  if (!recording.streamRecordingFile || !timestamp) {
+    logger.warn('Recording missing stream recording file or timestamp');
+    return;
+  }
+  const img = await ffmpeg.getVideoThumbnail(recording.streamRecordingFile, timestamp)
     .catch(logger.error);
   if (!img) {
     return;
   }
-  state.startThumbnail = pngDataUri(img);
-  broadcastState(state);
-}
-
-async function getThumbnailForStopTimestamp(): Promise<void> {
-  if (!state.recordingFile || !state.stopTimestamp) {
+  recording = getRecordingById(recordingId);
+  if (recording == null) {
+    logger.error(`Recording with id ${recordingId} no longer present`);
     return;
   }
-  const img = await ffmpeg.getVideoThumbnail(state.recordingFile, state.stopTimestamp)
-    .catch(logger.error);
-  if (!img) {
-    return;
-  }
-  state.stopThumbnail = pngDataUri(img);
+  recording[thumbnailProp] = pngDataUri(img);
   broadcastState(state);
 }
 
 function getInfo(): Promise<InfoState> {
   return fetch(`http://localhost:${INFO_PORT}/state`)
     .then(resp => resp.json());
+}
+
+function newRecording(streamRecordingFile: string, startTimestamp: string): Recording {
+  return {
+    id: uuidv4(),
+    streamRecordingFile: streamRecordingFile,
+    recordingFile: null,
+    startTimestamp: startTimestamp,
+    stopTimestamp: null,
+    startThumbnail: null,
+    stopThumbnail: null,
+    displayName: null,
+    metadata: null,
+  };
+}
+
+function getRecordingById(id: string): Recording | undefined {
+  return state.recordings.find(r => r.id === id);
+}
+
+function sendUserError(res: express.Response, msg: string): void {
+  logger.warn(msg);
+  res.status(400).send(msg);
+}
+
+function sendServerError(res: express.Response, msg: string): void {
+  logger.error(msg);
+  res.status(500).send(msg);
 }

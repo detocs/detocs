@@ -1,9 +1,12 @@
 import { StateUpdater } from 'preact/hooks';
 
+export type SubstateTransformer<Full, Subset> =
+  (state: Full, updateState: StateUpdater<Full>) => [Subset, StateUpdater<Subset>];
+
 export function useSubstate<Full, Subset>(
   getter: (state: Full) => Subset,
   setter: (state: Full, value: Subset) => void,
-): (state: Full, updateState: StateUpdater<Full>) => [Subset, StateUpdater<Subset>] {
+): SubstateTransformer<Full, Subset> {
   return (state, updateState) => [
     getter(state),
     valueOrUpdater => {

@@ -15,12 +15,10 @@ export async function trimClip(
 ): Promise<void> {
   const args = [
     '-ss', start,
-    //'-i', `"${sourceFile}"`,
-    '-i', sourceFile,
     '-to', end,
+    '-i', sourceFile,
     '-codec', 'copy',
     '-avoid_negative_ts', '1',
-    //`"${outFile}"`,
     outFile,
   ];
   logger.debug(COMMAND, args.join(' '));

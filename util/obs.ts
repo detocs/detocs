@@ -21,10 +21,10 @@ export async function getCurrentThumbnail(
   obs: ObsWebSocket,
   width: number = 240,
   height: number = 135,
-): Promise<string | null> {
+): Promise<string> {
   const sceneResp = await obs.send('GetCurrentScene');
   if (!sceneResp) {
-    return null;
+    throw new Error('GetCurrentScene failed');
   }
   const resp = await obs.send('TakeSourceScreenshot', {
     sourceName: sceneResp['name'],
@@ -32,7 +32,10 @@ export async function getCurrentThumbnail(
     width: width,
     height: height,
   });
-  return resp ? resp['img'] as string : null;
+  if (!resp) {
+    throw new Error('TakeSourceScreenshot failed');
+  }
+  return resp['img'] as string;
 }
 
 export function connect(obs: ObsWebSocket, callback: () => void): void {
