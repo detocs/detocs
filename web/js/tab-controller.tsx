@@ -6,6 +6,8 @@ import { register } from './key-manager';
 const CONTROL_SELECTOR = ':scope > .tabbable-section > .tabbable-section-control';
 const INTERACTIVE_SELECTOR =
   'input:not([type="hidden"]), button, a, select, textarea, [tabindex]:not([tabindex="-2"])';
+const AUTOFOCUS_SELECTOR = '[autofocus]';
+
 const TabController: FunctionalComponent = ({ children }: RenderableProps<{}>): VNode => {
   const ref = useCallback((node: Element | null) => {
     selectFirstTab(node);
@@ -70,7 +72,8 @@ function move(root: Element, index: number): void {
   targetTab.checked = true;
   const section = targetTab.closest('.tabbable-section') as HTMLElement;
   const content = section.querySelector('.tabbable-section-content') as HTMLElement;
-  const input = content.querySelector(INTERACTIVE_SELECTOR) as HTMLElement | null;
+  let input = content.querySelector<HTMLElement>(AUTOFOCUS_SELECTOR) ||
+    content.querySelector<HTMLElement>(INTERACTIVE_SELECTOR);
   if (!input) {
     return;
   }
