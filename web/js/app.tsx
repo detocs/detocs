@@ -1,5 +1,6 @@
 import { h, render, FunctionalComponent, VNode, Fragment } from 'preact';
 
+import BracketState, { nullState as nullBracketState } from '../../server/bracket/state';
 import InfoState, { nullState as nullInfoState } from '../../server/info/state';
 import RecordingState, { nullState as nullRecordingState } from '../../server/recording/state';
 import TwitterState, { nullState as nullTwitterState } from '../../server/twitter/client-state';
@@ -9,7 +10,8 @@ import { getVersion } from "../../util/meta";
 import { useServerState } from './hooks/server-state';
 import { useToggle } from './hooks/toggle';
 
-import { infoEndpoint, twitterEndpoint, recordingEndpoint } from './api';
+import { infoEndpoint, twitterEndpoint, recordingEndpoint, bracketEndpoint } from './api';
+import BracketDashboard from './bracket-dashboard';
 import BreakDashboard from './break-dashboard';
 import CommentaryDashboard from './commentary-dashboard';
 import PlayerDashboard from './player-dashboard';
@@ -39,18 +41,29 @@ const App: FunctionalComponent<{}> = (): VNode => {
     nullTwitterState,
   );
   const [ twitterThread, toggleTwitterThread ] = useToggle(false);
+  const [ bracketState, updateBracketState ] = useServerState<BracketState>(
+    bracketEndpoint('', 'ws:'),
+    nullBracketState,
+  );
 
   return (
     <Fragment>
       <TabController>
         <Tab id="scoreboard">
-          <PlayerDashboard state={infoState} updateState={updateInfoState}/>
+          <PlayerDashboard
+            state={infoState}
+            updateState={updateInfoState}
+            bracketState={bracketState}
+          />
         </Tab>
         <Tab id="commentary">
           <CommentaryDashboard state={infoState} updateState={updateInfoState}/>
         </Tab>
         <Tab id="recording">
           <RecordingDashboard state={recordingState} updateState={updateRecordingState}/>
+        </Tab>
+        <Tab id="bracket">
+          <BracketDashboard state={bracketState} updateState={updateBracketState}/>
         </Tab>
         <Tab id="twitter">
           <TwitterDashboard

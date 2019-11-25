@@ -6,6 +6,10 @@ import TournamentSet from "../models/tournament-set";
 
 import { getCredentials } from './credentials';
 import { nonNull } from './predicates';
+import { SmashggSlug, TOURNAMENT_URL_REGEX, SMASHGG_BASE_URL } from '../models/smashgg';
+import Tournament from '../models/tournament';
+import TournamentEvent from '../models/tournament-event';
+import TournamentPhase from '../models/tournament-phase';
 
 const ENDPOINT = 'https://api.smash.gg/gql/alpha';
 
@@ -102,6 +106,41 @@ interface PhaseEventQueryResponse {
   };
 };
 
+const TOURNAMENT_PHASES_QUERY = `
+query TournamentPhasesQuery($slug: String) {
+  tournament(slug: $slug) {
+    id
+    name
+    url(tab: "events")
+    events {
+      id
+      name
+      slug
+      phases {
+        id
+        name
+      }
+    }
+  }
+}
+`;
+interface TournamentPhasesQueryResponse {
+  tournament: {
+    id: number;
+    name: string;
+    url: string;
+    events: [{
+      id: number;
+      name: string;
+      slug: SmashggSlug;
+      phases: [{
+        id: number;
+        name: string;
+      }];
+    }];
+  } | null;
+};
+
 export default class SmashggClient {
   private client: GraphQLClient;
 
@@ -150,5 +189,57 @@ export default class SmashggClient {
   public async eventIdForPhase(phaseId: string): Promise<string> {
     const resp: PhaseEventQueryResponse = await this.client.request(PHASE_EVENT_QUERY, { phaseId });
     return `${resp.phase.sets.nodes[0].event.id}`;
+  }
+
+  public async phasesForTournament(
+    slug: SmashggSlug,
+  ): Promise<{ tournament: Tournament; events: TournamentEvent[]; phases: TournamentPhase[] }> {
+    const resp: TournamentPhasesQueryResponse = await this.client.request(
+      TOURNAMENT_PHASES_QUERY,
+      { slug },
+    );
+    if (!resp.tournament) {
+      throw new Error(`tournament "${slug}" not found`);
+    }
+    const t = resp.tournament;
+    return {
+      tournament: {
+        id: t.id.toString(),
+        name: t.name,
+        url: fullSmashggUrl(t.url),
+      },
+      events: t.events.map(e => ({
+        id: e.id.toString(),
+        name: e.name,
+        url: fullSmashggUrl(e.slug),
+      })),
+      phases: t.events.reduce<TournamentPhase[]>(
+        (acc, e) => acc.concat(
+          e.phases.map(p => ({
+            id: p.id.toString(),
+            name: p.name,
+            eventId: e.id.toString(),
+            url: fullSmashggUrl(e.slug.replace('event', 'events') + `/brackets/${p.id}`),
+          }))
+        ),
+        [],
+      ),
+    };
+  }
+}
+
+export function parseTournamentSlug(url: string): SmashggSlug | null {
+  const match = TOURNAMENT_URL_REGEX.exec(url);
+  if (!match) {
+    return null;
+  }
+  return match[1];
+}
+
+function fullSmashggUrl(relative: string): string {
+  if (relative[0] === '/') {
+    return SMASHGG_BASE_URL + relative;
+  } else {
+    return SMASHGG_BASE_URL + '/' + relative;
   }
 }

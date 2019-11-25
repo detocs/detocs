@@ -9,5 +9,4 @@ export default interface Scoreboard {
   game: Game;
   phaseId?: string;
   set?: TournamentSet;
-  unfinishedSets?: TournamentSet[];
 }

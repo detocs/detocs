@@ -1,0 +1,24 @@
+.bracket__container {
+  display: flex;
+  height: 100%;
+  margin-inline: 0.15em;
+
+  flex-flow: column nowrap; 
+}
+
+.bracket__container > * {
+  margin-block: 0.15em;
+}
+
+.bracket__sets {
+  display: flex;
+  flex: 1 1 auto;
+  flex-flow: column nowrap; 
+}
+
+.bracket__set-list {
+  flex: 1 0 5.2em;
+  margin-block: 0.15em;
+  overflow: auto;
+  background-color: var(--color-bg-inactive);
+}

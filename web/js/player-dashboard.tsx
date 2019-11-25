@@ -3,6 +3,7 @@ import { StateUpdater } from 'preact/hooks';
 
 import { nullMatch } from '../../models/match';
 import { nullPerson } from '../../models/person';
+import BracketState from '../../server/bracket/state';
 import InfoState from '../../server/info/state';
 
 import {
@@ -18,14 +19,19 @@ import { infoEndpoint } from './api';
 import GameFields from './game-fields';
 import MatchFields from './match-fields';
 import PlayerFields from './player-fields';
-import SmashggPhase from './smashgg-phase';
+import SmashggSet from './smashgg-set';
 
 interface Props {
   state: InfoState;
   updateState: StateUpdater<InfoState>;
+  bracketState: BracketState;
 }
 
-const PlayerDashboard: FunctionalComponent<Props> = ({ state, updateState }): VNode => {
+const PlayerDashboard: FunctionalComponent<Props> = ({
+  state,
+  updateState,
+  bracketState,
+}): VNode => {
   const [ player1, updatePlayer1 ] = usePlayer1(state, updateState);
   const [ score1, updateScore1 ] = useScore1(state, updateState);
   const [ comment1, updateComment1 ] = useComment1(state, updateState);
@@ -74,10 +80,9 @@ const PlayerDashboard: FunctionalComponent<Props> = ({ state, updateState }): VN
       <div class="input-row">
         <MatchFields value={match} updateValue={updateMatch} />
         <GameFields value={game} updateValue={updateGame} />
-        <SmashggPhase
-          phaseId={state.phaseId}
+        <SmashggSet
           set={state.set}
-          unfinishedSets={state.unfinishedSets}
+          unfinishedSets={bracketState.unfinishedSets}
         />
       </div>
       <div class="input-row">

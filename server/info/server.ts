@@ -18,10 +18,11 @@ import Person, { PersonUpdate, getName } from '../../models/person';
 import Player from '../../models/player';
 import Scoreboard from '../../models/scoreboard';
 import TournamentSet from '../../models/tournament-set';
-import SmashggClient from '../../util/smashgg';
+import BracketState from '../bracket/state';
 
 import ScoreboardAssistant from './output/scoreboard-assistant';
 import State, { nullState } from './state';
+import { BRACKETS_PORT } from '../ports';
 
 const state: State = Object.assign({}, nullState);
 let socketServer: ws.Server | null = null;
@@ -32,9 +33,6 @@ export default function start(port: number): void {
   const output = new ScoreboardAssistant();
   logger.info('Initializing overlay info server');
 
-  const smashgg = new SmashggClient();
-  setInterval(fetchSets, 5 * 60 * 1000, smashgg);
-
   const app = express();
   // TODO: Security?
   app.use(cors());
@@ -42,19 +40,16 @@ export default function start(port: number): void {
   app.get('/state', (req, res) => {
     res.send(state);
   });
-  app.post('/scoreboard', (req, res) => {
+  app.post('/scoreboard', async (req, res) => {
     logger.debug(`Scoreboard update received:\n`, req.fields);
     if (!req.fields) {
       res.sendStatus(400);
       return;
     }
-    const scoreboard = parseScoreboard(req.fields);
+    const { unfinishedSets } = await getBracketState();
+    const scoreboard = parseScoreboard(req.fields, unfinishedSets);
     updatePeople(state.commentators);
-    const phaseChanged = scoreboard.phaseId != state.phaseId;
     Object.assign(state, scoreboard);
-    if (phaseChanged) {
-      fetchSets(smashgg);
-    }
     res.sendStatus(200);
     broadcastState(state);
     output.updateScoreboard(state);
@@ -145,17 +140,10 @@ function updatePeople(list: { person: Person }[]): void {
   });
 }
 
-async function fetchSets(smashgg: SmashggClient): Promise<void> {
-  if (!state.phaseId) {
-    state.unfinishedSets = [];
-    return;
-  }
-  logger.debug(`Fetching sets for phase ${state.phaseId}`);
-  state.unfinishedSets = await smashgg.upcomingSetsByPhase(state.phaseId);
-  broadcastState(state);
-}
-
-function parseScoreboard(fields: Record<string, unknown>): Scoreboard {
+function parseScoreboard(
+  fields: Record<string, unknown>,
+  unfinishedSets: TournamentSet[],
+): Scoreboard {
   let players = [];
   for (let i = 0; i < 2; i++) {
     const fieldPrefix = `players[${i}]`;
@@ -172,7 +160,7 @@ function parseScoreboard(fields: Record<string, unknown>): Scoreboard {
   let game = parseGame(fields);
 
   // TODO: Reload people from datastore?
-  const set = parseSet(fields);
+  const set = parseSet(fields, unfinishedSets);
   const playersUnset = players.filter(p => !!p.person.handle).length == 0;
   if (isSetChanged(set) && playersUnset) {
     players = playersFromSet(set);
@@ -334,12 +322,15 @@ function parseMatch(fields: Record<string, unknown>): Match {
   };
 }
 
-function parseSet(fields: Record<string, unknown>): TournamentSet | undefined {
+function parseSet(
+  fields: Record<string, unknown>,
+  unfinishedSets: TournamentSet[],
+): TournamentSet | undefined {
   const setId = fields['set'];
-  if (!setId || !state.unfinishedSets) {
+  if (!setId) {
     return;
   }
-  return state.unfinishedSets.find(s => s.id === setId);
+  return unfinishedSets.find(s => s.id === setId);
 }
 
 function parseId(idStr: unknown): number | undefined {
@@ -359,4 +350,9 @@ function parseString(fields: Record<string, unknown>, name: string): string {
 
 function parseBool(fields: Record<string, unknown>, name: string): boolean {
   return !!fields[name];
+}
+
+function getBracketState(): Promise<BracketState> {
+  return fetch(`http://localhost:${BRACKETS_PORT}/state`)
+    .then(resp => resp.json());
 }

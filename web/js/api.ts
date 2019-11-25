@@ -1,4 +1,4 @@
-import { INFO_PORT, RECORDING_PORT, TWITTER_PORT } from "../../server/ports";
+import { INFO_PORT, RECORDING_PORT, TWITTER_PORT, BRACKETS_PORT } from "../../server/ports";
 
 function endpoint(port: string, path: string, protocol?: string): URL {
   const url = new URL(window.location.origin);
@@ -20,4 +20,8 @@ export function recordingEndpoint(path: string, protocol?: string): URL {
 
 export function twitterEndpoint(path: string, protocol?: string): URL {
   return endpoint(TWITTER_PORT.toString(), path, protocol);
+}
+
+export function bracketEndpoint(path: string, protocol?: string): URL {
+  return endpoint(BRACKETS_PORT.toString(), path, protocol);
 }
