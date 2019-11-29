@@ -13,12 +13,22 @@ import TournamentPhase from '../models/tournament-phase';
 
 const ENDPOINT = 'https://api.smash.gg/gql/alpha';
 
+interface PageInfo {
+  total: number;
+  totalPages: number;
+  page: number;
+  perPage: number;
+  sortby: string;
+  filter: unknown;
+}
+
 const PHASE_SET_QUERY = `
-query PhaseQuery($phaseId: ID!) {
+query PhaseQuery($phaseId: ID!, $page: Int) {
   phase(id: $phaseId) {
     sets(
-      perPage: 128,
-      sortType: MAGIC
+      sortType: MAGIC,
+      perPage: 64,
+      page: $page
     ) {
       nodes {
         id
@@ -45,6 +55,9 @@ query PhaseQuery($phaseId: ID!) {
           }
         }
       }
+      pageInfo {
+        totalPages
+      }
     }
   }
 }
@@ -52,7 +65,7 @@ query PhaseQuery($phaseId: ID!) {
 interface PhaseSetQueryResponse {
   phase: {
     sets: {
-      nodes: [{
+      nodes: {
         id: number;
         identifier: string;
         round: number;
@@ -62,10 +75,10 @@ interface PhaseSetQueryResponse {
         event: {
           videogameId: number;
         };
-        slots: [{
+        slots: {
           entrant: {
             name: string;
-            participants: [{
+            participants: {
               playerId: number;
               player: {
                 gamerTag: string;
@@ -73,10 +86,11 @@ interface PhaseSetQueryResponse {
                 twitterHandle: string | null;
               };
               prefix: string | null;
-            }];
+            }[];
           } | null;
-        }];
-      }];
+        }[];
+      }[];
+      pageInfo: Pick<PageInfo, 'totalPages'>;
     };
   };
 };
@@ -97,11 +111,11 @@ query PhaseEventQuery($phaseId: ID!) {
 interface PhaseEventQueryResponse {
   phase: {
     sets: {
-      nodes: [{
+      nodes: {
         event: {
           id: number;
         };
-      }];
+      }[];
     };
   };
 };
@@ -129,15 +143,15 @@ interface TournamentPhasesQueryResponse {
     id: number;
     name: string;
     url: string;
-    events: [{
+    events: {
       id: number;
       name: string;
       slug: SmashggSlug;
-      phases: [{
+      phases: {
         id: number;
         name: string;
-      }];
-    }];
+      }[];
+    }[];
   } | null;
 };
 
@@ -155,8 +169,17 @@ export default class SmashggClient {
   }
 
   public async upcomingSetsByPhase(phaseId: string): Promise<TournamentSet[]> {
-    const resp: PhaseSetQueryResponse = await this.client.request(PHASE_SET_QUERY, { phaseId });
-    let sets = resp.phase.sets.nodes;
+    let sets: PhaseSetQueryResponse['phase']['sets']['nodes'] = [];
+    let page = 0;
+    let totalPages = 0;
+    while (page <= totalPages) {
+      const resp: PhaseSetQueryResponse = await this.client.request(
+        PHASE_SET_QUERY,
+        { phaseId, page: page++ },
+      );
+      sets = sets.concat(resp.phase.sets.nodes);
+      totalPages = resp.phase.sets.pageInfo.totalPages;
+    }
     return sets.map(s => {
       const match = getMatchBySmashggId(s.fullRoundText);
       const videogame = getGameBySmashggId(s.event.videogameId.toString());
