@@ -163,7 +163,7 @@ function parseScoreboard(
   const set = parseSet(fields, unfinishedSets);
   const playersUnset = players.filter(p => !!p.person.handle).length == 0;
   if (isSetChanged(set) && playersUnset) {
-    players = playersFromSet(set);
+    players = playersFromSet(set).concat(players).slice(0, 2);
     match = set.match || nullMatch;
     game = set.videogame || nullGame;
   }
