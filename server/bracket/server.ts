@@ -15,7 +15,7 @@ type WebSocketClient = ws;
 
 interface UpdateRequest {
   tournamentUrl?: string;
-  tournamentSlug?: string;
+  tournamentId?: string;
   eventId?: string;
   phaseId?: string;
 }
@@ -81,10 +81,12 @@ class BracketServer {
       return;
     }
     const fields = req.fields as UpdateRequest;
-    const tournamentUrl = fields.tournamentUrl || null;
-    const tournamentSlug = fields.tournamentSlug || null;
+    const tourneyUrlOrSlug = fields.tournamentUrl || null;
+    const tourneyId = fields.tournamentId || null;
     const update: Partial<State> = {
-      tournamentId: tournamentUrl ? parseTournamentSlug(tournamentUrl) : tournamentSlug,
+      tournamentId: tourneyUrlOrSlug && parseTournamentSlug(tourneyUrlOrSlug)||
+        tourneyUrlOrSlug ||
+        tourneyId,
       eventId: emptyToNull(fields.eventId),
       phaseId: emptyToNull(fields.phaseId),
     };
@@ -104,6 +106,7 @@ class BracketServer {
     }
     if (!update.phaseId || phaseChanged) {
       update.unfinishedSets = [];
+      this.stopSetRefresh();
     }
 
     this.selectSingletonPhase(update);
@@ -141,17 +144,15 @@ class BracketServer {
           this.state = updateImmutable(this.state, { $merge: updates });
           this.broadcastState();
         })
-        .catch(logger.error);
+        .catch(() => {
+          logger.error(`Unable to find tournament ${update.tournamentId}`);
+          this.state = nullState;
+          this.broadcastState();
+        });
     }
     if (update.phaseId && phaseChanged) {
       this.fetchSets(update.phaseId)
-        .then(() => {
-          if (this.refreshTimer) {
-            clearTimeout(this.refreshTimer);
-            this.refreshTimer = null;
-          }
-          this.refreshTimer = setInterval(this.refreshSets, 60 * 1000);
-        });
+        .then(this.startSetRefresh);
     }
 
     update.eventId = update.eventId || null;
@@ -187,6 +188,18 @@ class BracketServer {
       })
       .catch(logger.error);
   }
+
+  private startSetRefresh = (): void => {
+    this.stopSetRefresh();
+    this.refreshTimer = setInterval(this.refreshSets, 60 * 1000);
+  };
+
+  private stopSetRefresh = (): void => {
+    if (this.refreshTimer) {
+      clearTimeout(this.refreshTimer);
+      this.refreshTimer = null;
+    }
+  };
 
   private refreshSets = async (): Promise<void> => {
     if (!this.state.phaseId) {

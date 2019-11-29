@@ -27,7 +27,7 @@ const BracketDashboard: FunctionalComponent<Props> = ({ state, updateState }): V
     >
       {state.tournamentId ?
         <div>
-          <input type="hidden" name="tournamentSlug" value={state.tournamentId}/>
+          <input type="hidden" name="tournamentId" value={state.tournamentId}/>
           Tournament: {tournament ?
             <a href={tournament.url}>{tournament.name}</a> :
             <code>{state.tournamentId} </code>}
@@ -35,7 +35,7 @@ const BracketDashboard: FunctionalComponent<Props> = ({ state, updateState }): V
           <button type="button" onClick={clearTournament}>Clear</button>
         </div> :
         <label>
-          Tournament URL: <input
+          Tournament URL or slug: <input
             type="text"
             name="tournamentUrl"
             pattern={TOURNAMENT_PATTERN}
