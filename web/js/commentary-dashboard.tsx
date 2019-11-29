@@ -62,6 +62,7 @@ const CommentaryDashboard: FunctionalComponent<Props> = ({ state, updateState })
               type="text"
               name="tournament"
               placeholder="Tournament"
+              value={state.tournament}
             />
           </div>
         </fieldset>
@@ -72,6 +73,7 @@ const CommentaryDashboard: FunctionalComponent<Props> = ({ state, updateState })
               type="text"
               name="event"
               placeholder="Event"
+              value={state.event}
             />
           </div>
         </fieldset>
