@@ -3,6 +3,7 @@
   --color-bg-focus: hsl(180, 13%, 32%);
   --color-bg-inactive: hsl(180, 13%, 8%);
   --color-bg-active: #ddd;
+  --color-bg-error: hsl(0, 100%, 90%);
   --color-text: #ddd;
   --color-text-focus: #ddd;
   --color-text-active: hsl(180, 13%, 16%);
@@ -34,11 +35,13 @@ legend {
   margin-inline-start: 0.5em;
 }
 
+input:invalid {
+  background-color: var(--color-bg-error);
+}
+
 input[type="text"] {
   min-inline-size: 0;
 }
-
-/* TODO: Link color */
 
 .input-row {
   margin-block: 0.15em;
