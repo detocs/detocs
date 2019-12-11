@@ -1,0 +1,29 @@
+---
+{
+  "tabIdMappings": {
+    "uni": "unist",
+    "kof13": "kof",
+    "bbcf": "bb"
+  }
+}
+---
+{{#*inline "escapeName"}}
+{{~escapeJson (escapeString . "||" "|")}}
+{{~/inline}}
+{{#*inline "player"}}
+{{~> escapeName person.handle}}
+{{~#if comment}} ({{> escapeName comment}}){{/if}}
+{{~#if inLosers}} [L]{{/if}}
+{{~#if person.prefix}} || {{> escapeName person.prefix}}{{/if}}
+{{~/inline}}
+{
+  {{#with (lookup userData.tabIdMappings state.game.id) as | mapping |}}
+  "tabID": "{{#if mapping}}{{mapping}}{{else}}{{state.game.id}}{{/if}}",
+  {{/with}}
+  "player1": "{{> player state.players.[0]}}",
+  "player2": "{{> player state.players.[1]}}",
+  "score1": "{{escapeJson state.players.[0].score}}",
+  "score2": "{{escapeJson state.players.[1].score}}",
+  "match": "{{escapeJson state.match.name}}",
+  "game": "{{escapeJson state.tournament}}"
+}

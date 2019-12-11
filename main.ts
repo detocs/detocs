@@ -69,8 +69,10 @@ yargs
   .parse();
 
 async function startServer(): Promise<void> {
+  enableBasicLogging();
   await loadConfig();
   configureLogger();
+  logConfig();
   await loadCredentials();
 
   server();
@@ -102,6 +104,11 @@ async function exportPeople(opts: yargs.Arguments<PersonExportOptions>): Promise
   process.exit();
 };
 
+function enableBasicLogging(): void {
+  const logger = log4js.getLogger();
+  logger.level = 'debug';
+}
+
 function configureLogger(): void {
   const appenders: Configuration['appenders'] = {
     'out': { type: 'stdout' },
@@ -123,4 +130,9 @@ function configureLogger(): void {
       },
     },
   });
+}
+
+function logConfig(): void {
+  const logger = log4js.getLogger('main');
+  logger.info('Loaded config:', JSON.stringify(getConfig(), null, 2));
 }

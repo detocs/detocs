@@ -1,19 +1,35 @@
 import log4js from 'log4js';
 const logger = log4js.getLogger('config');
 
-import { dirname, join } from "path";
+import { dirname, join, resolve } from "path";
 import { readFileSync, writeFileSync } from "fs";
 
 interface Config {
   databaseDirectory: string;
   logDirectory: string | null;
   obsWebsocketPort: number;
+  outputs: (WebSocketOutputConfig | FileOutputConfig)[];
 }
 
+export interface OutputConfig {
+  templates: string[];
+}
+
+export type WebSocketOutputConfig = OutputConfig & {
+  type: 'websocket';
+  port: number;
+};
+
+export type FileOutputConfig = OutputConfig & {
+  type: 'file';
+  path: string;
+};
+
 const DEFAULTS: Config = {
-  databaseDirectory: './databases',
+  databaseDirectory: resolve('./databases'),
   logDirectory: null,
   obsWebsocketPort: 4444,
+  outputs: [],
 };
 let currentConfig = DEFAULTS;
 
@@ -22,14 +38,26 @@ export function getConfig(): Config {
 }
 
 export async function loadConfig(): Promise<void> {
-  const { config } = await loadConfigFile('detocs-config.json', DEFAULTS);
+  const { config, fileDir } = await loadConfigFile('detocs-config.json', DEFAULTS);
+  resolveConfigDirectories(config, fileDir);
   currentConfig = config;
+}
+
+function resolveConfigDirectories(config: Config, fileDir: string): void {
+  const rslve = (path: string): string => resolve(fileDir, path);
+  config.databaseDirectory = rslve(config.databaseDirectory);
+  if (config.logDirectory) {
+    config.logDirectory = rslve(config.logDirectory);
+  }
+  for (const output of config.outputs) {
+    output.templates = output.templates.map(rslve);
+  }
 }
 
 export async function loadConfigFile<T>(
   fileName: string,
   defaults: T,
-): Promise<{config: T; filePath: string}>
+): Promise<{config: T; filePath: string; fileDir: string}>
 {
   let dir: string | null = process.cwd();
   do {
@@ -38,15 +66,17 @@ export async function loadConfigFile<T>(
       const data = readFileSync(filePath);
       logger.info(`Loading config from ${filePath}`);
       return {
-        config: parseConfig(data, defaults, dir),
+        config: parseConfig(data, defaults),
         filePath,
+        fileDir: dir,
       };
     } catch { /* continue */ }
   } while (dir = getParentDir(dir));
   logger.info(`Unable to load ${fileName}, using defaults`);
   return {
     config: defaults,
-    filePath: join(process.cwd(), fileName),
+    filePath: resolve(fileName),
+    fileDir: process.cwd(),
   };
 }
 
@@ -54,15 +84,9 @@ export async function saveConfigFile<T>(filePath: string, config: T): Promise<vo
   writeFileSync(filePath, JSON.stringify(config, null, 2));
 }
 
-function parseConfig<T>(data: Buffer, defaults: T, dir: string): T {
-  let parsed: Record<string, string> = JSON.parse(data.toString());
-  for (const key of Object.keys(parsed)) {
-    if (key.endsWith('Directory')) {
-      parsed[key] = join(dir, parsed[key]);
-    }
-  }
+function parseConfig<T>(data: Buffer, defaults: T): T {
+  let parsed: unknown = JSON.parse(data.toString());
   const config = Object.assign({}, defaults, parsed);
-  logger.info('Loaded config:', config);
   return config;
 }
 

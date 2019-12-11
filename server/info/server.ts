@@ -18,11 +18,14 @@ import Person, { PersonUpdate, getName } from '../../models/person';
 import Player from '../../models/player';
 import Scoreboard from '../../models/scoreboard';
 import TournamentSet from '../../models/tournament-set';
+import { getConfig } from '../../util/config';
 import BracketState from '../bracket/state';
-
-import ScoreboardAssistant from './output/scoreboard-assistant';
-import State, { nullState } from './state';
 import { BRACKETS_PORT } from '../ports';
+
+import Output from './output/output';
+import ScoreboardAssistant from './output/scoreboard-assistant';
+import WebSocketOutput from './output/websocket/output';
+import State, { nullState } from './state';
 
 const state: State = Object.assign({}, nullState);
 let socketServer: ws.Server | null = null;
@@ -30,7 +33,8 @@ let socketServer: ws.Server | null = null;
 export default function start(port: number): void {
   loadDatabases();
 
-  const output = new ScoreboardAssistant();
+  const outputs = loadOutputs();
+  Promise.all(outputs.map(o => o.init()));
   logger.info('Initializing overlay info server');
 
   const app = express();
@@ -52,7 +56,7 @@ export default function start(port: number): void {
     Object.assign(state, scoreboard);
     res.sendStatus(200);
     broadcastState(state);
-    output.updateScoreboard(state);
+    outputs.forEach(o => o.update(state));
   });
   app.post('/lowerthird', (req, res) => {
     logger.debug(`Lower third update received:\n`, req.fields);
@@ -65,7 +69,7 @@ export default function start(port: number): void {
     Object.assign(state, lowerThird);
     res.sendStatus(200);
     broadcastState(state);
-    output.updateLowerThird(state);
+    outputs.forEach(o => o.update(state));
   });
   app.post('/break', (req, res) => {
     logger.debug(`Break update received:\n`, req.fields);
@@ -77,7 +81,7 @@ export default function start(port: number): void {
     Object.assign(state, brk);
     res.sendStatus(200);
     broadcastState(state);
-    output.updateBreak(state);
+    outputs.forEach(o => o.update(state));
   });
   app.get('/people', (req, res) => {
     const query = req.query['q'];
@@ -124,6 +128,22 @@ function broadcastState(state: State): void {
 
 function loadDatabases(): void {
   People.loadDatabase();
+}
+
+function loadOutputs(): Output[] {
+  const outputs = getConfig().outputs;
+  if (outputs.length === 0) {
+    return [ new ScoreboardAssistant() ];
+  }
+  return outputs.map((conf): Output => {
+    switch (conf.type) {
+      case 'websocket':
+        return new WebSocketOutput(conf);
+        break;
+      default:
+        throw new Error('Output type not supported');
+    }
+  });
 }
 
 // TODO: Subscribe to player id?

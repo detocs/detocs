@@ -6,8 +6,8 @@ import Handlebars from 'handlebars';
 import { promisify } from "util";
 
 import { all, loadDatabase } from "../models/people";
+import { escapeCsv, escapeDoublePipe } from "../util/escaping";
 
-import { escapeCsv, escapeDoublePipe } from "./escaping";
 import ExportFormat from "./export-format";
 
 const asyncWriteFile = promisify(writeFile);

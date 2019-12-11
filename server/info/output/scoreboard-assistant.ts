@@ -5,6 +5,7 @@ import * as WebSocket from 'ws';
 
 import LowerThird from '../../../models/lower-third';
 import Scoreboard from '../../../models/scoreboard';
+import { sendData, broadcastData } from '../../../util/websocket';
 
 import State from '../state';
 
@@ -32,12 +33,12 @@ interface ScoreboardAssistantText {
 }
 
 export default class ScoreboardAssistant implements Output {
-  private readonly server: WebSocket.Server;
+  private server: WebSocket.Server | undefined;
   private lastScoreboard?: ScoreboardAssistantScoreboard;
   private lastLowerThird?: ScoreboardAssistantScoreboard;
   private lastBreak?: ScoreboardAssistantText;
 
-  public constructor() {
+  public async init(): Promise<void> {
     logger.info(`Initializing Scoreboard Assistant adapter on port ${PORT}`);
     this.server = new WebSocket.Server({ port: PORT });
 
@@ -50,39 +51,27 @@ User Agent: ${req.headers['user-agent']}`);
     });
   }
 
-  public updateScoreboard(state: State): void {
-    const converted = convertToScoreboard(state);
-    this.lastScoreboard = converted;
-    this.broadcast(converted);
-  }
+  public update(state: State): void {
+    const convertedScoreboard = convertToScoreboard(state);
+    this.lastScoreboard = convertedScoreboard;
+    this.broadcast(convertedScoreboard);
 
-  public updateLowerThird(state: State): void {
-    const converted = convertToLowerThird(state);
-    this.lastLowerThird = converted;
-    this.broadcast(converted);
-  }
+    const convertedLowerThird = convertToLowerThird(state);
+    this.lastLowerThird = convertedLowerThird;
+    this.broadcast(convertedLowerThird);
 
-  public updateBreak(state: State): void {
-    const converted = convertToBreak(state);
-    this.lastBreak = converted;
-    this.broadcast(converted);
+    const convertedBreak = convertToBreak(state);
+    this.lastBreak = convertedBreak;
+    this.broadcast(convertedBreak);
   }
 
   private broadcast(converted: ScoreboardAssistantScoreboard | ScoreboardAssistantText): void {
+    if (!this.server) {
+      throw new Error('Server not initialized');
+    }
     logger.debug(`Sending update:\n`, converted);
-    this.server.clients.forEach(client => {
-      sendData(client as WebSocket, converted);
-    });
+    broadcastData(this.server, converted);
   }
-}
-
-function sendData(client: WebSocket, data: unknown): void {
-  // TODO: What's up with the parameter types?
-  if (client.readyState !== WebSocket.OPEN) {
-    return;
-  }
-  const json = JSON.stringify(data);
-  client.send(json);
 }
 
 function convertToScoreboard(state: State): ScoreboardAssistantScoreboard {
