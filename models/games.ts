@@ -133,6 +133,21 @@ const games: Game[] = [
       smashgg: { id: '17413' },
     },
   },
+  {
+    id: 'sg',
+    name: 'Skullgirls 2nd Encore',
+    shortNames: [
+      'Skullgirls',
+      'SG2E',
+    ],
+    hashtags: [
+      'Skullgirls',
+    ],
+    serviceInfo: {
+      twitch: { id: 'Skullgirls' },
+      smashgg: { id: '32' },
+    },
+  },
 ];
 export default games;
 
