@@ -44,12 +44,14 @@ person count: ${db.people.length}`);
 }
 
 function parsePerson(p: Person): Person {
-  return {
+  return p;
+  // TODO: Figure out a way to automate keeping this up to date?
+  /*return {
     id: p['id'],
     handle: p['handle'],
     prefix: p['prefix'],
     twitter: p['twitter'],
-  };
+  };*/
 }
 
 async function saveDatabase(): Promise<void> {
