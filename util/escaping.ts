@@ -22,8 +22,7 @@ export function escapeJson(value: unknown): unknown {
   if (!(typeof value === 'string')) {
     return value;
   }
-  // TODO: implement
-  return value;
+  return JSON.stringify(value).slice(1, -1);
 }
 
 export function escapeDoublePipe(value: unknown): unknown {

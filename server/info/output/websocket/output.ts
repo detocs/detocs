@@ -1,14 +1,13 @@
 import { getLogger } from 'log4js';
 const logger = getLogger('output/websocket');
 
-import { promises as fs } from 'fs';
 import * as WebSocket from 'ws';
 
 import { WebSocketOutputConfig } from '../../../../util/config';
 import { broadcastAllData, sendAllData } from '../../../../util/websocket';
 import State from '../../state';
 import Output from '../output';
-import { OutputTemplate, parseTemplate } from '../templates';
+import { OutputTemplate, parseTemplateFile } from '../templates';
 
 
 export default class WebSocketOutput implements Output {
@@ -24,8 +23,7 @@ export default class WebSocketOutput implements Output {
   }
 
   public async init(): Promise<void> {
-    this.templates = (await Promise.all(this.templateFiles.map(loadTemplateFile)))
-      .map(parseTemplate);
+    this.templates = await Promise.all(this.templateFiles.map(parseTemplateFile));
 
     logger.info(`Initializing websocket output adapter on port ${this.port}`);
     this.server = new WebSocket.Server({ port: this.port });
@@ -44,8 +42,4 @@ User Agent: ${req.headers['user-agent']}`);
     logger.debug(`Sending update:\n`, this.currentData.join('\n'));
     broadcastAllData(this.server, this.currentData);
   }
-}
-
-function loadTemplateFile(path: string): Promise<string> {
-  return fs.readFile(path, { encoding: 'utf8' });
 }

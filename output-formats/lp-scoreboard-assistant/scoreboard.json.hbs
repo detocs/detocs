@@ -18,7 +18,9 @@
 {{~/inline}}
 {
   {{#with (lookup userData.tabIdMappings state.game.id) as | mapping |}}
-  "tabID": "{{#if mapping}}{{mapping}}{{else}}{{state.game.id}}{{/if}}",
+  "tabID": "{{mapping}}",
+  {{else}}
+  "tabID": "{{state.game.id}}",
   {{/with}}
   "player1": "{{> player state.players.[0]}}",
   "player2": "{{> player state.players.[1]}}",
