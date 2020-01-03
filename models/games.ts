@@ -155,8 +155,8 @@ const games: Game[] = [
       'SC6',
     ],
     hashtags: [
+      'SOULCALIBURVI',
       'SC6',
-      'SOULCALIBUR',
       'ソウルキャリバー',
     ],
     serviceInfo: {
