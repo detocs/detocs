@@ -61,6 +61,7 @@ export default function start(port: number): void {
   obs.on('error' as any, logger.error); // eslint-disable-line @typescript-eslint/no-explicit-any
   // The recording file doesn't appear immediately
   obs.on('RecordingStarted', () => setTimeout(getRecordingFile, 2000));
+  obs.on('RecordingStopping', stopInProgressRecording);
   obsUtil.connect(obs, async () => {
     logger.info('Connected to OBS');
     if (await obsUtil.isRecording(obs)) {
@@ -76,8 +77,8 @@ export default function start(port: number): void {
   app.use(formidable());
   app.get('/start', startRecording);
   app.post('/start', startRecording);
-  app.get('/stop', stopRecording);
-  app.post('/stop', stopRecording);
+  app.get('/stop', stopRecordingHandler);
+  app.post('/stop', stopRecordingHandler);
   app.post('/update', updateRecording);
   app.post('/cut', cutRecording);
 
@@ -138,25 +139,38 @@ async function startRecording(_req: Request, res: Response): Promise<void> {
   getCurrentThumbnail(recording.id, 'startThumbnail');
 };
 
-async function stopRecording(_: Request, res: Response): Promise<void> {
+async function stopRecordingHandler(_: Request, res: Response): Promise<void> {
   if (!state.streamRecordingFile || !state.streamRecordingFolder) {
     sendUserError(res, 'Attempted to stop recording before starting stream recording');
     return;
   }
-  if (!state.recordings[0].startTimestamp) {
+  if (!state.recordings[0]?.startTimestamp) {
     sendUserError(res, 'Attempted to stop recording before starting');
     return;
   }
+
+  await stopRecording(() => res.sendStatus(200))
+    .catch((err: Error) => sendServerError(res, err.message));
+}
+
+async function stopInProgressRecording(): Promise<void> {
+  if (!state.recordings[0]?.startTimestamp || state.recordings[0].stopTimestamp) {
+    return;
+  }
+
+  await stopRecording().catch(logger.error);
+}
+
+async function stopRecording(callback?: Function): Promise<void> {
   const timestamp = await obsUtil.getRecordingTimestamp(obs).catch(logger.error);
   if (!timestamp) {
-    sendServerError(res, 'Unable to get stop timestamp');
-    return;
+    throw new Error('Unable to get stop timestamp');
   }
 
   const recordingId = state.recordings[0].id;
   state.recordings[0].stopTimestamp = timestamp;
   logger.debug(`Stopping clip at ${timestamp}`);
-  res.sendStatus(200);
+  callback && callback();
   broadcastState(state);
   saveLogs(state);
   getCurrentThumbnail(recordingId, 'stopThumbnail');
