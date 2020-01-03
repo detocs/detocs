@@ -192,7 +192,6 @@ function parseScoreboard(
     players,
     game,
     match,
-    phaseId: parseOptionalString(fields, 'phaseId'),
     set,
   };
 }

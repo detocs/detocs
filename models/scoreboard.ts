@@ -7,6 +7,5 @@ export default interface Scoreboard {
   players: Player[];
   match: Match;
   game: Game;
-  phaseId?: string;
   set?: TournamentSet;
 }

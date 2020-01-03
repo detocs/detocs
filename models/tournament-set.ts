@@ -4,6 +4,7 @@ import { SmashggId } from "./smashgg";
 
 export default interface TournamentSet {
   id: SmashggId;
+  phaseId: SmashggId;
   match: Match | null;
   videogame: Game | null;
   shortIdentifier: string;

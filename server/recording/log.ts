@@ -66,7 +66,7 @@ export default class RecordingLogger {
       sets: Log['sets'];
     }> = {};
     for (const r of state.recordings.filter(hasMetadata).reverse()) {
-      const phaseId = r.metadata.phaseId || 'unknown';
+      const phaseId = r.metadata.set?.phaseId || 'unknown';
       const data = byPhase[phaseId] || {
         gameId: r.metadata.game.id || 'recordings',
         recordingFile: r.streamRecordingFile,

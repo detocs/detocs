@@ -185,6 +185,7 @@ export default class SmashggClient {
       const videogame = getGameBySmashggId(s.event.videogameId.toString());
       return {
         id: `${s.id}`,
+        phaseId,
         match,
         videogame,
         shortIdentifier: s.identifier,
