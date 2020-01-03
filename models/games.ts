@@ -148,6 +148,22 @@ const games: Game[] = [
       smashgg: { id: '32' },
     },
   },
+  {
+    id: 'sc6',
+    name: 'SOULCALIBUR VI',
+    shortNames: [
+      'SC6',
+    ],
+    hashtags: [
+      'SC6',
+      'SOULCALIBUR',
+      'ソウルキャリバー',
+    ],
+    serviceInfo: {
+      twitch: { id: 'Soulcalibur VI' },
+      smashgg: { id: '904' },
+    },
+  },
 ];
 export default games;
 
