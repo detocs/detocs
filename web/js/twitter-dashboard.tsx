@@ -35,10 +35,10 @@ const TwitterDashboard: FunctionalComponent<Props> = (props): VNode => {
   return (
     <form class="twitter__editor" onSubmit={onSubmit}>
       <header>
-        <span>
+        <label>
           <PersistentCheckbox name="thread" checked={props.thread} onChange={props.onThreadToggle}/>
           Thread under previous tweet
-        </span>
+        </label>
         <span>
           {props.user &&
             <span>Tweeting as {props.user.name} ({props.user.handle})</span>
