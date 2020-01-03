@@ -24,7 +24,11 @@ const SmashggSet: FunctionalComponent<Props> = ({
     <fieldset name="smashgg">
       <legend>Smash.gg Set</legend>
       <div class="input-row">
-        <SetSelector {...{ localSet, unfinishedSets, updateSet: () => {} }}/>
+        <SetSelector
+          set={localSet}
+          unfinishedSets={unfinishedSets}
+          updateSet={updateSet}
+        />
       </div>
     </fieldset>
   );
