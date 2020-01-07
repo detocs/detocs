@@ -22,6 +22,7 @@ import { getConfig } from '../../util/config';
 import BracketState from '../bracket/state';
 import { BRACKETS_PORT } from '../ports';
 
+import FileOutput from './output/file/output';
 import Output from './output/output';
 import ScoreboardAssistant from './output/scoreboard-assistant';
 import WebSocketOutput from './output/websocket/output';
@@ -139,6 +140,9 @@ function loadOutputs(): Output[] {
     switch (conf.type) {
       case 'websocket':
         return new WebSocketOutput(conf);
+        break;
+      case 'file':
+        return new FileOutput(conf);
         break;
       default:
         throw new Error('Output type not supported');

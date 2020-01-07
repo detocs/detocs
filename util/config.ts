@@ -50,6 +50,9 @@ function resolveConfigDirectories(config: Config, fileDir: string): void {
     config.logDirectory = rslve(config.logDirectory);
   }
   for (const output of config.outputs) {
+    if (output.type == 'file') {
+      output.path = rslve(output.path);
+    }
     output.templates = output.templates.map(rslve);
   }
 }
