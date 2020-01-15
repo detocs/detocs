@@ -164,6 +164,20 @@ const games: Game[] = [
       smashgg: { id: '904' },
     },
   },
+  {
+    id: 't7',
+    name: 'Tekken 7',
+    shortNames: [
+      'T7',
+    ],
+    hashtags: [
+      'TEKKEN7',
+    ],
+    serviceInfo: {
+      twitch: { id: 'Tekken 7' },
+      smashgg: { id: '17' },
+    },
+  },
 ];
 export default games;
 
