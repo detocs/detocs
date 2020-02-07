@@ -48,9 +48,9 @@ const TwitterDashboard: FunctionalComponent<Props> = (props): VNode => {
       </header>
       <div class="input-row twitter__tweet-content">
         <textarea name="body" required {...{ maxlength: '280' }} autofocus={true}></textarea>
-        <Thumbnail src={props.screenshot} />
+        <Thumbnail src={props.screenshot?.url || null} />
       </div>
-      <input type="hidden" name="image" value={props.screenshot || undefined}/>
+      <input type="hidden" name="image" value={props.screenshot?.url}/>
       <div class="input-row">
         <button type="submit">Tweet</button>
         <button type="button" onClick={takeScreenshot}>Take Screenshot</button>

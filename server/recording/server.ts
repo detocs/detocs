@@ -16,15 +16,16 @@ import * as ws from 'ws';
 
 import { getConfig } from '../../util/config';
 import * as ffmpeg from '../../util/ffmpeg';
-import { pngDataUri } from '../../util/image';
 import * as obsUtil from '../../util/obs';
+import SmashggClient from '../../util/smashgg';
 import { sanitizeTimestamp, validateTimestamp } from '../../util/timestamp';
+import uuidv4 from '../../util/uuid';
+
 import InfoState from '../info/state';
+import { MediaServer } from '../media/server';
 import { INFO_PORT } from "../ports";
 
 import State, { Recording } from './state';
-import SmashggClient from '../../util/smashgg';
-import uuidv4 from '../../util/uuid';
 import RecordingLogger from './log';
 
 const asyncMkdir = promisify(fs.mkdir);
@@ -46,6 +47,7 @@ interface UpdateRequest {
 }
 
 const obs = new ObsWebSocket();
+let media: MediaServer | null = null;
 let socketServer: ws.Server | null = null;
 let recordingLogger: RecordingLogger | null = null;
 const state: State = {
@@ -55,8 +57,10 @@ const state: State = {
 };
 
 
-export default function start(port: number): void {
+export default function start(port: number, mediaServer: MediaServer): void {
   logger.info('Initializing match recording server');
+
+  media = mediaServer;
 
   obs.on('error' as any, logger.error); // eslint-disable-line @typescript-eslint/no-explicit-any
   // The recording file doesn't appear immediately
@@ -199,7 +203,10 @@ function getCurrentThumbnail(
   recordingId: string,
   thumbnailProp: 'startThumbnail' | 'stopThumbnail',
 ): Promise<void> {
-  return obsUtil.getCurrentThumbnail(obs).then(img => {
+  if (!media) {
+    throw new Error('No media server');
+  }
+  return media.getCurrentThumbnail().then(img => {
     const recording = getRecordingById(recordingId);
     if (!recording) {
       return;
@@ -358,7 +365,7 @@ async function getThumbnailForTimestamp(
     logger.warn('Recording missing stream recording file or timestamp');
     return;
   }
-  const img = await ffmpeg.getVideoThumbnail(recording.streamRecordingFile, timestamp)
+  const img = await media?.getThumbnail(timestamp)
     .catch(logger.error);
   if (!img) {
     return;
@@ -368,7 +375,7 @@ async function getThumbnailForTimestamp(
     logger.error(`Recording with id ${recordingId} no longer present`);
     return;
   }
-  recording[thumbnailProp] = pngDataUri(img);
+  recording[thumbnailProp] = img;
   broadcastState(state);
 }
 

@@ -7,15 +7,14 @@ import express from 'express';
 import formidable from 'express-formidable';
 import fs from 'fs';
 import { createServer } from 'http';
-import ObsWebSocket from 'obs-websocket-js';
 import Twit from 'twit';
 import * as ws from 'ws';
 
 import { AccessToken } from '../../models/twitter';
 import { getCredentials, saveCredentials } from '../../util/credentials';
 import { dataFromUri } from '../../util/image';
-import * as obs from '../../util/obs';
 import * as twitter from '../../util/twitter';
+import { MediaServer } from '../media/server';
 
 import ClientState, { nullState } from './client-state';
 import TwitterOAuth from './oauth';
@@ -39,10 +38,12 @@ const internalState: InternalState = {
 };
 let socketServer: ws.Server | null = null;
 let twit: Twit | null = null;
-const obsWs = new ObsWebSocket();
+let media: MediaServer | null = null;
 
-export default async function start(port: number): Promise<void> {
+export default async function start(port: number, mediaServer: MediaServer): Promise<void> {
   logger.info('Initializing Twitter server');
+
+  media = mediaServer;
 
   await loadApiKeys();
   if (!internalState.apiKey || !internalState.apiKeySecret) {
@@ -71,8 +72,6 @@ export default async function start(port: number): Promise<void> {
   clientState.authorizeUrl =  await oauth.getAuthorizeUrl('http://localhost:58588/authorize');
   broadcastState(clientState);
 
-  initObs();
-
   const app = express();
   // TODO: Security?
   app.use(cors());
@@ -95,13 +94,6 @@ export default async function start(port: number): Promise<void> {
 
   httpServer.listen(port, () => logger.info(`Listening on port ${port}`));
 };
-
-function initObs(): void {
-  obsWs.on('error' as any, logger.error); // eslint-disable-line @typescript-eslint/no-explicit-any
-  obs.connect(obsWs, async () => {
-    logger.info('Connected to OBS');
-  });
-}
 
 function broadcastState(state: ClientState): void {
   if (!socketServer) {
@@ -149,11 +141,12 @@ async function tweet(req: express.Request, res: express.Response): Promise<void>
     return;
   }
   const img = req.fields['image'] as string | undefined;
+  const imgPath = img && media?.getPathFromUrl(img);
   let replyTo: string | null = null;
   if (!!req.fields['thread'] && internalState.lastTweetId) {
     replyTo = internalState.lastTweetId;
   }
-  const tweetId = await twitter.tweet(twit, body, replyTo, img && dataFromUri(img));
+  const tweetId = await twitter.tweet(twit, body, replyTo, imgPath);
   logger.info(`Created tweet ${tweetId}${replyTo ? ` as a reply to ${replyTo}` : ''}`);
   internalState.lastTweetId = tweetId;
   res.sendStatus(200);
@@ -162,7 +155,7 @@ async function tweet(req: express.Request, res: express.Response): Promise<void>
 }
 
 async function getScreenshot(_: express.Request, res: express.Response): Promise<void> {
-  const img = await obs.getCurrentThumbnail(obsWs, 1280, 720)
+  const img = await media?.getCurrentFullScreenshot()
     .catch(logger.error);
   if (!img) {
     res.sendStatus(500);

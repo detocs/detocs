@@ -1,10 +1,11 @@
 import { User } from "../../models/twitter";
+import { MediaFile } from "../media/server";
 
 export default interface ClientState {
   loggedIn: boolean;
   authorizeUrl: string;
   user: User | null;
-  screenshot: string | null;
+  screenshot: MediaFile | null;
 }
 
 

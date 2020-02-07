@@ -23,7 +23,7 @@ export async function tweet(
   twit: Twit,
   body: string,
   replyTo: string | null,
-  img?: string,
+  imgPath?: string,
 ): Promise<string> {
   const params: Twit.Params = {
     'status': body,
@@ -34,9 +34,9 @@ export async function tweet(
       'auto_populate_reply_metadata': true,
     });
   }
-  if (img) {
+  if (imgPath) {
     Object.assign(params, {
-      'media_ids': [await uploadImage(twit, img)],
+      'media_ids': [await uploadImage(twit, imgPath)],
     });
   }
   const { data } = await twit.post('statuses/update', params);
@@ -44,12 +44,26 @@ export async function tweet(
   return status.id_str;
 }
 
-export async function uploadImage(twit: Twit, img: string): Promise<string> {
+export async function uploadImageData(twit: Twit, imgData: string): Promise<string> {
   const { data } = await twit.post(
     'media/upload',
     {
-      'media_data': img,
+      'media_data': imgData,
     });
   const resp = data as Record<string, string>;
+  return resp['media_id_string'];
+}
+
+export async function uploadImage(twit: Twit, imgPath: string): Promise<string> {
+  const upload = new Promise((resolve, reject) => {
+    twit.postMediaChunked({ 'file_path': imgPath }, (err, data) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(data);
+    });
+  });
+  const resp = (await upload) as Record<string, string>;
   return resp['media_id_string'];
 }

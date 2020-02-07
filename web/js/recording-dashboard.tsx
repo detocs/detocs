@@ -82,7 +82,7 @@ const Recording: FunctionalComponent<RecordingProps> = ({ recording, updateRecor
           <fieldset class="recording__boundary">
             <legend>Beginning</legend>
             <Thumbnail
-              src={recording.startThumbnail} />
+              src={recording.startThumbnail?.url || null} />
             <TimestampInput
               name="start-timestamp"
               value={startTimestamp}
@@ -96,7 +96,7 @@ const Recording: FunctionalComponent<RecordingProps> = ({ recording, updateRecor
           <fieldset class="recording__boundary">
             <legend>End</legend>
             <Thumbnail
-              src={recording.stopThumbnail} />
+              src={recording.stopThumbnail?.url || null} />
             <TimestampInput
               name="stop-timestamp"
               value={stopTimestamp}

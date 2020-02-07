@@ -1,4 +1,5 @@
 import InfoState from '../info/state';
+import { ImageFile } from '../media/server';
 
 export default interface State {
   streamRecordingFolder: string | null;
@@ -18,8 +19,8 @@ export interface Recording {
   recordingFile: string | null;
   startTimestamp: string;
   stopTimestamp: string | null;
-  startThumbnail: string | null;
-  stopThumbnail: string | null;
+  startThumbnail: ImageFile | null;
+  stopThumbnail: ImageFile | null;
   displayName: string | null;
   metadata: InfoState | null;
 }

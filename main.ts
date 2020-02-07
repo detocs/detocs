@@ -14,6 +14,7 @@ import {
   StreamControlPeopleWithTwitter,
 } from './export/formats';
 import importPeopleDatabase from './import/import-people';
+import { MediaServer } from './server/media/server';
 import server from './server/server';
 import { VodUploader, Style, Command } from './upload/vod-uploader';
 import { loadConfig, getConfig } from './util/config';
@@ -125,8 +126,11 @@ async function startServer(): Promise<void> {
   logConfig();
   await loadCredentials();
 
-  server();
-  web();
+  const mediaServer = new MediaServer();
+  mediaServer.start();
+
+  server(mediaServer);
+  web(mediaServer);
 }
 
 async function exportPeople(opts: yargs.Arguments<PersonExportOptions>): Promise<void> {
