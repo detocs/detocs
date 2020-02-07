@@ -1,7 +1,7 @@
 import Game from './game';
 import { SmashggId } from './smashgg';
 
-// TODO: Use separate IDs for separate releases
+// TODO: Use separate IDs for separate releases?
 const games: Game[] = [
   {
     id: 'uni',
@@ -86,7 +86,7 @@ const games: Game[] = [
     },
   },
   {
-    id: 'kof13',
+    id: 'kofxiii',
     name: 'The King of Fighters XIII',
     shortNames: [
       'King of Fighters XIII',
@@ -119,10 +119,10 @@ const games: Game[] = [
   },
   {
     id: 'kof98',
-    name: 'The King of Fighters \'98: Ultimate Match',
+    name: 'The King of Fighters \'98: UMFE',
     shortNames: [
-      'King of Fighters 98 UM',
-      'KOF 98 UM',
+      'King of Fighters 98 UMFE',
+      'KOF 98 UMFE',
     ],
     hashtags: [
       'KOF98',
@@ -176,6 +176,70 @@ const games: Game[] = [
     serviceInfo: {
       twitch: { id: 'Tekken 7' },
       smashgg: { id: '17' },
+    },
+  },
+  {
+    id: 'kofxiv',
+    name: 'The King of Fighters XIV',
+    shortNames: [
+      'King of Fighters XIV',
+      'KOF XIV',
+    ],
+    hashtags: [
+      'KOFXIV',
+      'KOF',
+    ],
+    serviceInfo: {
+      twitch: { id: 'The King of Fighters XIV' },
+      smashgg: { id: '38' },
+    },
+  },
+  {
+    id: 'garou',
+    name: 'Garou: Mark of the Wolves',
+    shortNames: [
+      'Garou',
+    ],
+    hashtags: [
+      'GarouMOTW',
+      'MOTW',
+      'Garou',
+    ],
+    serviceInfo: {
+      twitch: { id: 'Garou: Mark of the Wolves' },
+      smashgg: { id: '10838' },
+    },
+  },
+  {
+    id: 'kof02',
+    name: 'The King of Fighters 2002: UM',
+    shortNames: [
+      'King of Fighters 2002 UM',
+      'KOF 2002 UM',
+    ],
+    hashtags: [
+      'KOF2K2UM',
+      'KOF2002',
+      'KOF',
+    ],
+    serviceInfo: {
+      twitch: { id: 'The King of Fighters 2002 Unlimited Match' },
+      smashgg: { id: '33632' },
+    },
+  },
+  {
+    id: 'ffs',
+    name: 'Fatal Fury Special',
+    shortNames: [
+      'Fatal Fury SP',
+    ],
+    hashtags: [
+      'FatalFurySpecial',
+      'FatalFury',
+    ],
+    serviceInfo: {
+      twitch: { id: 'Fatal Fury Special' },
+      smashgg: { id: '8093' },
     },
   },
 ];
