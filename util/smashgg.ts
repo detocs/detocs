@@ -25,6 +25,12 @@ interface PageInfo {
 const PHASE_SET_QUERY = `
 query PhaseQuery($phaseId: ID!, $page: Int) {
   phase(id: $phaseId) {
+    phaseGroups(query: { perPage: 64 }) {
+      nodes {
+        id
+        displayIdentifier
+      }
+    }
     sets(
       sortType: MAGIC,
       perPage: 64,
@@ -33,6 +39,7 @@ query PhaseQuery($phaseId: ID!, $page: Int) {
       nodes {
         id
         identifier
+        phaseGroupId
         round
         fullRoundText
         state
@@ -64,10 +71,17 @@ query PhaseQuery($phaseId: ID!, $page: Int) {
 `;
 interface PhaseSetQueryResponse {
   phase: {
+    phaseGroups: {
+      nodes: {
+        id: number;
+        displayIdentifier: string;
+      }[];
+    };
     sets: {
       nodes: {
         id: number;
         identifier: string;
+        phaseGroupId: number;
         round: number;
         fullRoundText: string;
         state: number;
@@ -170,6 +184,7 @@ export default class SmashggClient {
 
   public async upcomingSetsByPhase(phaseId: string): Promise<TournamentSet[]> {
     let sets: PhaseSetQueryResponse['phase']['sets']['nodes'] = [];
+    let pg: PhaseSetQueryResponse['phase']['phaseGroups']['nodes'] = [];
     let page = 0;
     let totalPages = 0;
     while (page <= totalPages) {
@@ -178,18 +193,32 @@ export default class SmashggClient {
         { phaseId, page: page++ },
       );
       sets = sets.concat(resp.phase.sets.nodes);
+      pg = resp.phase.phaseGroups.nodes;
       totalPages = resp.phase.sets.pageInfo.totalPages;
     }
+    const phaseGroups = new Map(pg.map(
+      ({ id, displayIdentifier }) => [ id, displayIdentifier ]
+    ));
+    const multiGroup = phaseGroups.size > 1;
     return sets.map(s => {
-      const match = getMatchBySmashggId(s.fullRoundText);
+      const phaseGroupPrefix = multiGroup ? `${phaseGroups.get(s.phaseGroupId)} ` : '';
+      const origMatch = getMatchBySmashggId(s.fullRoundText);
+      let match = origMatch;
+      if (match && multiGroup) {
+        match = {
+          ...match,
+          name: phaseGroupPrefix + match?.name,
+        };
+      }
       const videogame = getGameBySmashggId(s.event.videogameId.toString());
+      const matchName = origMatch ? origMatch.name : s.fullRoundText;
       return {
         id: `${s.id}`,
         phaseId,
         match,
         videogame,
         shortIdentifier: s.identifier,
-        displayName: `${s.identifier} - ${match ? match.name : s.fullRoundText}: ${
+        displayName: `${phaseGroupPrefix}${s.identifier} - ${matchName}: ${
           s.slots
             .map(slot => slot.entrant ? slot.entrant.name : '???')
             .join(' vs ')
