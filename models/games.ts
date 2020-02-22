@@ -21,6 +21,23 @@ const games: Game[] = [
     },
   },
   {
+    id: 'uni',
+    name: 'Under Night In-Birth Exe:Late[cl-r]',
+    shortNames: [
+      'Under Night In-Birth',
+      'Under Night',
+      'UNIclr',
+    ],
+    hashtags: [
+      'UNIclr',
+      'inbirth',
+    ],
+    serviceInfo: {
+      twitch: { id: 'Under Night In-Birth Exe:Late[cl-r]' },
+      smashgg: { id: '33870' },
+    },
+  },
+  {
     id: 'melty',
     name: 'Melty Blood Actress Again Current Code',
     shortNames: [
@@ -240,6 +257,22 @@ const games: Game[] = [
     serviceInfo: {
       twitch: { id: 'Fatal Fury Special' },
       smashgg: { id: '8093' },
+    },
+  },
+  {
+    id: 'gbvs',
+    name: 'Granblue Fantasy: Versus',
+    shortNames: [
+      'Granblue Fantasy Versus',
+      'Granblue Versus',
+      'Granblue',
+    ],
+    hashtags: [
+      'GBVS',
+    ],
+    serviceInfo: {
+      twitch: { id: 'Granblue Fantasy: Versus' },
+      smashgg: { id: '22107' },
     },
   },
 ];
