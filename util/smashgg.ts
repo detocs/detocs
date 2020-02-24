@@ -182,6 +182,10 @@ export default class SmashggClient {
     });
   }
 
+  public getClient(): GraphQLClient {
+    return this.client;
+  }
+
   public async upcomingSetsByPhase(phaseId: string): Promise<TournamentSet[]> {
     let sets: PhaseSetQueryResponse['phase']['sets']['nodes'] = [];
     let pg: PhaseSetQueryResponse['phase']['phaseGroups']['nodes'] = [];

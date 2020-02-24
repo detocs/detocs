@@ -14,7 +14,7 @@ type FilePath = string;
 const asyncMkdir = promisify(mkdir);
 const asyncWriteFile = promisify(writeFile);
 
-interface Log {
+export interface Log {
   file: string;
   eventId?: SmashggId;
   phaseId?: SmashggId;
