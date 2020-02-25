@@ -14,6 +14,7 @@ import {
   StreamControlPeopleWithTwitter,
 } from './export/formats';
 import server from './server/server';
+import { VodUploader, Style, Command } from './upload/vod-uploader';
 import { loadConfig, getConfig } from './util/config';
 import { loadCredentials } from './util/credentials';
 import { getVersion } from './util/meta';
@@ -24,7 +25,13 @@ interface PersonExportOptions {
   sat?: boolean;
   sc?: boolean;
   sct?: boolean;
-  destination?: string;
+  destination: string;
+}
+
+interface VodOptions {
+  logFile: string;
+  command: string;
+  ps: boolean;
 }
 
 yargs
@@ -42,6 +49,7 @@ yargs
       .positional('destination', {
         describe: 'output file path',
         type: 'string',
+        demandOption: 'you must provide a destination path',
       })
       .option('sa', {
         describe: 'use Scoreboard Assistant format',
@@ -64,6 +72,32 @@ yargs
         group: 'Formats',
       }),
   })
+  .command({
+    command: 'vod <logFile> [command]',
+    describe: 'cut vods and upload to YouTube',
+    handler: vods,
+    builder: (y: yargs.Argv<{}>): yargs.Argv<VodOptions> => y
+      .positional('logFile', {
+        describe: 'DETOCS recording log file',
+        type: 'string',
+        demandOption: 'you must provide a detocs log file',
+      })
+      .positional('command', {
+        describe: 'upload to YouTube',
+        type: 'string',
+        choices: ['metadata', 'video', 'upload'],
+        default: 'metadata',
+      })
+      .option('ps', {
+        alias: 'per-set',
+        describe: 'One video per set',
+        type: 'boolean',
+        default: false,
+        group: 'Options',
+      }),
+  })
+  .help('h')
+  .alias('h', 'help')
   .version(getVersion())
   .strict()
   .parse();
@@ -100,7 +134,29 @@ async function exportPeople(opts: yargs.Arguments<PersonExportOptions>): Promise
       throw new Error('output format must be specified');
       break;
   }
-  await exportPeopleDatabase(format, opts.destination as string);
+  await exportPeopleDatabase(format, opts.destination);
+  process.exit();
+};
+
+async function vods(opts: yargs.Arguments<VodOptions>): Promise<void> {
+  await loadConfig();
+  await loadCredentials();
+
+  let command = Command.Metadata;
+  switch (opts.command) {
+    case 'upload':
+      command = Command.Upload;
+      break;
+    case 'video':
+      command = Command.Video;
+      break;
+  }
+  const uploader = new VodUploader({
+    logFile: opts.logFile,
+    command,
+    style: opts.ps ? Style.PerSet : Style.Full,
+  });
+  await uploader.run();
   process.exit();
 };
 

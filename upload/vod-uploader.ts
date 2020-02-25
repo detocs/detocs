@@ -65,8 +65,35 @@ type Log = RecordingLog & {
 };
 type SetPhaseGroupMapping = Record<SmashggId, string>;
 
+interface Metadata {
+  fileName: string;
+  title: string;
+  description: string;
+  tags: string[];
+  start: Timestamp;
+  end: Timestamp;
+}
+
+export enum Command {
+  Metadata,
+  Video,
+  Upload,
+}
+
+export enum Style {
+  Full,
+  PerSet,
+}
+
+interface VodUploaderParams {
+  logFile: string;
+  command: Command;
+  style: Style;
+}
+
 const pExecFile = util.promisify(childProcess.execFile);
 const NON_EMPTY = (str: string | null): str is string => !!str;
+const GAMING_CATEGORY_ID = '20';
 
 const gameHashtags: Record<number, string> = {
   7: 'SFV',
@@ -91,6 +118,7 @@ const gameHashtags: Record<number, string> = {
   9690: 'KOFXIII',
   16391: 'SSVSP',
   17413: 'KOF98UMFE',
+  22107: 'GBVS',
   22407: 'MBAACC',
 };
 
@@ -106,25 +134,9 @@ const additionalTags: Record<number, string[]> = {
   451: ['Under Night In-Birth', 'Under Night'],
   3958: ['Melty Blood', 'Melty'],
   17413: ['KOF98', 'KOF98UM'],
+  22107: ['Granblue Fantasy', 'Granblue', 'GBFV'],
   22407: ['Melty Blood', 'Melty'],
 };
-
-export enum Command {
-  Metadata,
-  Video,
-  Upload,
-}
-
-export enum Style {
-  Full,
-  PerSet,
-}
-
-interface VodUploaderParams {
-  logFile: string;
-  command: Command;
-  style: Style;
-}
 
 export class VodUploader {
   private logFile: string;
@@ -171,8 +183,10 @@ export class VodUploader {
     const tournament: Tournament = partialTournament as Tournament;
 
     const partialVg: Partial<Videogame> & QueryVideogame = event.videogame;
+    console.log(partialVg);
     partialVg.name = nameOverrides[partialVg.id] || partialVg.name;
-    partialVg.hashtag = gameHashtags[partialVg.id];
+    partialVg.hashtag = getGameHashtag(partialVg.id);
+    console.log(partialVg);
     partialVg.shortName = partialVg.name.length - partialVg.hashtag.length < 3 ?
       partialVg.name :
       partialVg.hashtag;
@@ -317,6 +331,14 @@ export class VodUploader {
       await trimClip(setList.file, setList.start, setList.end, outputPath);
     }
   }
+}
+
+function getGameHashtag(id: number): string {
+  const hashtag = gameHashtags[id];
+  if (hashtag == null) {
+    throw new Error(`no hashtag for game ${id}`);
+  }
+  return hashtag;
 }
 
 async function getPhaseGroupMapping(
