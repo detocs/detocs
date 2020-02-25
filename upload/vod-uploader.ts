@@ -2,8 +2,9 @@
 
 import childProcess from 'child_process';
 import filenamify from 'filenamify';
-import fs from 'fs';
+import { promises as fs } from 'fs';
 import { GraphQLClient } from 'graphql-request';
+import yaml from 'js-yaml';
 import merge from 'lodash.merge';
 import moment from 'moment';
 import path from 'path';
@@ -66,12 +67,13 @@ type Log = RecordingLog & {
 type SetPhaseGroupMapping = Record<SmashggId, string>;
 
 interface Metadata {
-  fileName: string;
+  sourcePath: string;
+  start: Timestamp;
+  end: Timestamp;
+  filename: string;
   title: string;
   description: string;
   tags: string[];
-  start: Timestamp;
-  end: Timestamp;
 }
 
 export enum Command {
@@ -155,123 +157,111 @@ export class VodUploader {
   }
 
   public async run(): Promise<void> {
-    fs.mkdirSync(this.dirName, {
-      recursive: true,
-    });
-
+    await fs.mkdir(this.dirName, { recursive: true });
     const graphqlClient = new SmashggClient().getClient();
-
-    const setList: Log = JSON.parse(fs.readFileSync(this.logFile).toString());
-    console.log(setList.sets);
-
-    const phase = (await graphqlClient.request(PHASE_QUERY, {
-      phaseId: setList.phaseId,
-    }) as PhaseQueryResponse).phase || { name: '' };
-    phase.name = setList.phaseName ||
-        (phase.name === 'Bracket' ? '' : phase.name);
-    console.log(phase);
-
+    const setList: Log = JSON.parse(await fs.readFile(this.logFile, { encoding: 'utf8' }));
+    const { tournament, videogame, phase } = await getEventInfo(graphqlClient, setList);
     const setToPhaseGroupId = await getPhaseGroupMapping(graphqlClient, setList.phaseId);
 
-    const smashggEvent: QueryEvent = setList.eventId &&
-      (await graphqlClient.request(EVENT_QUERY, { eventId: setList.eventId })).event;
-    const event: QueryEvent = merge({}, smashggEvent, setList.event);
-    console.log(event);
-    const partialTournament: Partial<Tournament> & QueryTournament = event.tournament;
-    partialTournament.shortName = partialTournament.shortName || partialTournament.name;
-    partialTournament.additionalTags = partialTournament.additionalTags || [];
-    const tournament: Tournament = partialTournament as Tournament;
-
-    const partialVg: Partial<Videogame> & QueryVideogame = event.videogame;
-    console.log(partialVg);
-    partialVg.name = nameOverrides[partialVg.id] || partialVg.name;
-    partialVg.hashtag = getGameHashtag(partialVg.id);
-    console.log(partialVg);
-    partialVg.shortName = partialVg.name.length - partialVg.hashtag.length < 3 ?
-      partialVg.name :
-      partialVg.hashtag;
-    partialVg.additionalTags = additionalTags[partialVg.id] || [];
-    const videogame: Videogame = partialVg as Videogame;
-
-    if (setList.start) {
-      await this.singleVideo(graphqlClient,
-        setList,
-        tournament,
-        videogame,
-        phase,
-        setToPhaseGroupId);
+    let metadata: Metadata[] = [];
+    if (this.command >= Command.Metadata) {
+      if (this.style === Style.PerSet) {
+        metadata = await this.writePerSetMetadata(
+          graphqlClient,
+          setList,
+          tournament,
+          videogame,
+          phase,
+          setToPhaseGroupId,
+        );
+      } else {
+        metadata = [await this.writeSingleVideoMetadata(
+          graphqlClient,
+          setList,
+          tournament,
+          videogame,
+          phase,
+          setToPhaseGroupId,
+        )];
+      }
     }
 
-    if (setList.sets) {
-      await this.perSetVideos(setList,
-        graphqlClient,
-        tournament,
-        videogame,
-        phase,
-        setToPhaseGroupId);
+    if (this.command >= Command.Video) {
+      for (const m of metadata) {
+        // Don't bother parallelizing, since reading from the source file is the bottleneck
+        const filepath = path.join(this.dirName, m.filename);
+        try {
+          await fs.access(filepath);
+        } catch {
+          // File does not exist
+          await trimClip(
+            m.sourcePath,
+            m.start,
+            m.end,
+            filepath,
+          );
+        }
+      }
+    }
+
+    if (this.command >= Command.Upload) {
     }
   }
 
-  private async perSetVideos(
-    setList: Log,
-    graphqlClient: GraphQLClient,
-    tournament: Tournament,
-    videogame: Videogame,
-    phase: Phase,
-    setToPhaseGroupId: SetPhaseGroupMapping,
-  ): Promise<void> {
-    for (const timestampedSet of setList.sets) {
-      if (!timestampedSet.end) {
-        continue;
-      }
-
-      const smashggSet = timestampedSet.id ? (await graphqlClient.request(SET_QUERY, {
-        setId: timestampedSet.id,
-      }) as SetQueryResponse).set || undefined : undefined;
-      console.log(smashggSet);
-      const set = getSetData(timestampedSet, smashggSet);
-      console.log(set);
-      const players = set.players;
-      const title = [
-        `${tournament.shortName}:`,
-        `${players[0].name} vs ${players[1].name}`,
-        '-',
-        videogame.shortName,
-        setToPhaseGroupId[set.id],
-        phase.name,
-        set.fullRoundText,
-      ].filter(NON_EMPTY).join(' ');
-      const matchDesc = [
-        videogame.name,
-        phase.name,
-        setToPhaseGroupId[set.id],
-        `${set.fullRoundText}:`,
-        `${players[0].name} vs ${players[1].name}`,
-      ].filter(NON_EMPTY).join(' ');
-      const metadata = `${title}
-
-  ${matchData(tournament, videogame, phase, players, matchDesc, [set.fullRoundText])}
-
-  ${timestampedSet.start}
-  ${timestampedSet.end}`;
-      const baseFilename = filenamify(`${timestampedSet.start} `, { replacement: '-' }) +
-          filenamify(title, { replacement: ' ' });
-      fs.writeFileSync(path.join(this.dirName, baseFilename + '.txt'), metadata);
-      if (this.command === Command.Video && this.style === Style.PerSet) {
-        const outputPath = path.join(this.dirName, baseFilename + '.mkv');
-        await trimClip(setList.file, timestampedSet.start, timestampedSet.end, outputPath);
-      }
-    }
-  }
-
-  private async singleVideo(
+  private async writeSingleVideoMetadata(
     graphqlClient: GraphQLClient,
     setList: Log,
     tournament: Tournament,
     videogame: Videogame,
     phase: Phase,
     setToPhaseGroupId: SetPhaseGroupMapping,
-  ): Promise<void> {
+  ): Promise<Metadata> {
+    const metadata = await this.singleVideoMetadata(
+      graphqlClient,
+      setList,
+      tournament,
+      videogame,
+      phase,
+      setToPhaseGroupId,
+    );
+    const file = path.join(this.dirName, 'full.yml');
+    const data = yaml.safeDump(metadata);
+    fs.writeFile(file, data);
+    return metadata;
+  }
+
+  private async writePerSetMetadata(
+    graphqlClient: GraphQLClient,
+    setList: Log,
+    tournament: Tournament,
+    videogame: Videogame,
+    phase: Phase,
+    setToPhaseGroupId: SetPhaseGroupMapping,
+  ): Promise<Metadata[]> {
+    const metadata = await this.perSetMetadata(
+      graphqlClient,
+      setList,
+      tournament,
+      videogame,
+      phase,
+      setToPhaseGroupId,
+    );
+    metadata.forEach((m, i) => {
+      const file = path.join(this.dirName, `set-${i.toString().padStart(2, '0')}.yml`);
+      const data = yaml.safeDump(m);
+      fs.writeFile(file, data);
+    });
+    return metadata;
+  }
+
+  private async singleVideoMetadata(
+    graphqlClient: GraphQLClient,
+    setList: Log,
+    tournament: Tournament,
+    videogame: Videogame,
+    phase: Phase,
+    setToPhaseGroupId: SetPhaseGroupMapping,
+  ): Promise<Metadata> {
     if (!setList.start) {
       throw new Error('No start timestamp on log');
     }
@@ -307,6 +297,7 @@ export class VodUploader {
       videogame.name,
       phase.name,
     ].filter(NON_EMPTY).join(' ');
+
     const matchDescs = sets.map(set => {
       const players = set.players;
       const groupId = setToPhaseGroupId[set.id] ? `${setToPhaseGroupId[set.id]} ` : '';
@@ -314,23 +305,121 @@ export class VodUploader {
       const p2 = players[1].name;
       return `${set.start} - ${p1} vs ${p2} (${groupId}${set.fullRoundText})`;
     }).join('\n');
-    ;
+    const description = videoDescription(tournament, videogame, phase, matchDescs);
+
     const players = sets.map(s => s.players)
       .reduce((acc, val) => acc.concat(val), []);
-    const metadata = `${title}
+    const tags = videoTags(tournament, videogame, phase, players, [phase.name]);
 
-  ${matchData(tournament, videogame, phase, players, matchDescs, [phase.name])}
+    const filename = filenamify(`${setList.start} `, { replacement: '-' }) +
+        filenamify(title, { replacement: ' ' }) +
+        '.mkv';
 
-  ${setList.start}
-  ${setList.end}`;
-    const baseFilename = filenamify(`${setList.start} `, { replacement: '-' }) +
-        filenamify(title, { replacement: ' ' });
-    fs.writeFileSync(path.join(this.dirName, baseFilename + '.txt'), metadata);
-    if (this.command === Command.Video && this.style === Style.Full) {
-      const outputPath = path.join(this.dirName, baseFilename + '.mkv');
-      await trimClip(setList.file, setList.start, setList.end, outputPath);
-    }
+    return {
+      sourcePath: setList.file,
+      start: setList.start,
+      end: setList.end,
+      filename,
+      title,
+      description,
+      tags,
+    };
   }
+
+  private async perSetMetadata(
+    graphqlClient: GraphQLClient,
+    setList: Log,
+    tournament: Tournament,
+    videogame: Videogame,
+    phase: Phase,
+    setToPhaseGroupId: SetPhaseGroupMapping,
+  ): Promise<Metadata[]> {
+    const promises = setList.sets.map(async (timestampedSet, index) => {
+      if (!timestampedSet.start || !timestampedSet.end) {
+        throw new Error(`set ${index} is missing timestamps`);
+      }
+
+      const smashggSet = timestampedSet.id ? (await graphqlClient.request(SET_QUERY, {
+        setId: timestampedSet.id,
+      }) as SetQueryResponse).set || undefined : undefined;
+      console.log(smashggSet);
+      const set = getSetData(timestampedSet, smashggSet);
+      console.log(set);
+      const players = set.players;
+
+      const title = [
+        `${tournament.shortName}:`,
+        `${players[0].name} vs ${players[1].name}`,
+        '-',
+        videogame.shortName,
+        setToPhaseGroupId[set.id],
+        phase.name,
+        set.fullRoundText,
+      ].filter(NON_EMPTY).join(' ');
+
+      const matchDesc = [
+        videogame.name,
+        phase.name,
+        setToPhaseGroupId[set.id],
+        `${set.fullRoundText}:`,
+        `${players[0].name} vs ${players[1].name}`,
+      ].filter(NON_EMPTY).join(' ');
+      const description = videoDescription(tournament, videogame, phase, matchDesc);
+
+      const tags = videoTags(tournament, videogame, phase, players, [phase.name]);
+
+      const filename = filenamify(`${timestampedSet.start} `, { replacement: '-' }) +
+          filenamify(title, { replacement: ' ' }) +
+          '.mkv';
+
+      return {
+        sourcePath: setList.file,
+        start: timestampedSet.start,
+        end: timestampedSet.end,
+        filename,
+        title,
+        description,
+        tags,
+      };
+    });
+    return Promise.all(promises);
+  }
+}
+
+async function getEventInfo(graphqlClient: GraphQLClient, setList: Log): Promise<{
+  tournament: Tournament;
+  videogame: Videogame;
+  phase: Phase;
+}> {
+  const phase = (await graphqlClient.request(PHASE_QUERY, {
+    phaseId: setList.phaseId,
+  }) as PhaseQueryResponse).phase || { name: '' };
+  phase.name = setList.phaseName ||
+    (phase.name === 'Bracket' ? '' : phase.name);
+  console.log(phase);
+
+  const smashggEvent: QueryEvent = setList.eventId &&
+    (await graphqlClient.request(EVENT_QUERY, { eventId: setList.eventId })).event;
+  const event: QueryEvent = merge({}, smashggEvent, setList.event);
+  console.log(event);
+
+  const partialTournament: Partial<Tournament> & QueryTournament = event.tournament;
+  partialTournament.shortName = partialTournament.shortName || partialTournament.name;
+  partialTournament.additionalTags = partialTournament.additionalTags || [];
+  const tournament: Tournament = partialTournament as Tournament;
+
+  const partialVg: Partial<Videogame> & QueryVideogame = event.videogame;
+  console.log(partialVg);
+  partialVg.name = nameOverrides[partialVg.id] || partialVg.name;
+  partialVg.hashtag = getGameHashtag(partialVg.id);
+  console.log(partialVg);
+  partialVg.shortName = partialVg.name.length - partialVg.hashtag.length < 3 ?
+    partialVg.name :
+    partialVg.hashtag;
+  partialVg.additionalTags = additionalTags[partialVg.id] || [];
+  const videogame: Videogame = partialVg as Videogame;
+
+  return { tournament, videogame, phase };
 }
 
 function getGameHashtag(id: number): string {
@@ -364,38 +453,18 @@ async function getPhaseGroupMapping(
   return mapping;
 }
 
-function matchData(
+function videoDescription(
   tournament: Tournament,
   videogame: Videogame,
   phase: Phase,
-  players: Set['players'],
   matchDesc: string,
-  additionalTags: string[],
 ): string {
   const timestamp = phase.waves ? phase.waves[0].startAt : tournament.startAt;
   const date = moment.unix(timestamp).format('LL');
-  const playerTags = Array.from(new Set(players.map(
-    p => p.name === p.handle ? p.name : `${p.name}, ${p.handle}`
-  ))).join(', ');
 
   const hashtags = [
     tournament.hashtag,
     videogame.hashtag,
-  ];
-
-  const tags = [
-    videogame.name,
-    videogame.hashtag,
-    ...videogame.additionalTags,
-    `${videogame.shortName} ${phase.name}`,
-    ...interpolate(
-      [tournament.shortName, ...tournament.additionalTags],
-      [videogame.name, videogame.hashtag],
-    ),
-    playerTags,
-    ...additionalTags,
-    ...tournamentTags(tournament),
-    ...groupTags(),
   ];
 
   return `${matchDesc}
@@ -410,10 +479,35 @@ Twitch ► https://twitch.tv/lunarphaselive
 Twitter ► https://twitter.com/LunarPhaseProd
 Store ► https://store.lunarphase.nyc
 
-${hashtags.filter(NON_EMPTY).map(str => "#" + str).join(' ')}
+${hashtags.filter(NON_EMPTY).map(str => "#" + str).join(' ')}`;
+}
 
-${tags.filter(NON_EMPTY).join(', ')}
-`;
+function videoTags(
+  tournament: Tournament,
+  videogame: Videogame,
+  phase: Phase,
+  players: Set['players'],
+  additionalTags: string[],
+): string[] {
+  const playerTags = players.map(p => [p.name, p.handle])
+    .reduce((acc, val) => acc.concat(val), []);
+
+  const tags = [
+    videogame.name,
+    videogame.hashtag,
+    ...videogame.additionalTags,
+    `${videogame.shortName} ${phase.name}`,
+    ...interpolate(
+      [tournament.shortName, ...tournament.additionalTags],
+      [videogame.name, videogame.hashtag],
+    ),
+    ...playerTags,
+    ...additionalTags,
+    ...tournamentTags(tournament),
+    ...groupTags(),
+  ].filter(NON_EMPTY);
+
+  return Array.from(new Set(tags));
 }
 
 function getSetData(logSet: Partial<Log['sets'][0]> = {}, smashggSet: Partial<QuerySet> = {}): Set {
