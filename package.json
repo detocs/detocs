@@ -35,6 +35,7 @@
     "filenamify": "^4.1.0",
     "find-process": "^1.4.2",
     "front-matter": "^3.0.2",
+    "googleapis": "^47.0.0",
     "graphql-request": "^1.8.2",
     "handlebars": "^4.5.3",
     "immutability-helper": "^3.0.1",

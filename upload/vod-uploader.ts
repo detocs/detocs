@@ -2,7 +2,8 @@
 
 import childProcess from 'child_process';
 import filenamify from 'filenamify';
-import { promises as fs } from 'fs';
+import fsSync, { promises as fs } from 'fs';
+import { google, youtube_v3 } from 'googleapis';
 import { GraphQLClient } from 'graphql-request';
 import yaml from 'js-yaml';
 import merge from 'lodash.merge';
@@ -13,6 +14,7 @@ import util from 'util';
 import { SmashggId } from '../models/smashgg';
 import { Timestamp } from '../models/timestamp';
 import { Log as RecordingLog } from '../server/recording/log';
+import { getCredentials } from '../util/credentials';
 import SmashggClient from '../util/smashgg';
 
 import {
@@ -205,6 +207,19 @@ export class VodUploader {
     }
 
     if (this.command >= Command.Upload) {
+      const token = getCredentials().youtubeAccessToken;
+      if (!token) {
+        throw new Error('YouTube access token not provided in detocs-credentials.json');
+      }
+      // TODO: OAuth
+      const youtube = google.youtube('v3');
+      const auth = new google.auth.OAuth2();
+      auth.credentials = {
+        'access_token': token,
+      };
+      for (const m of metadata) {
+        await this.upload(youtube, auth, m);
+      }
     }
   }
 
@@ -383,6 +398,38 @@ export class VodUploader {
       };
     });
     return Promise.all(promises);
+  }
+
+  private async upload(youtube: youtube_v3.Youtube, auth: any, m: Metadata): Promise<void> {
+    const videoFile = path.join(this.dirName, m.filename);
+    const uploadFile = videoFile + '.upload.json';
+    try {
+      await fs.access(uploadFile);
+    } catch {
+      console.log(`Uploading "${m.filename}"...`);
+      // File does not exist
+      const video = await youtube.videos.insert({
+        auth,
+        part: 'id, snippet, status',
+        requestBody: {
+          snippet: {
+            title: m.title,
+            description: m.description,
+            tags: m.tags,
+            categoryId: GAMING_CATEGORY_ID,
+          },
+          status: {
+            privacyStatus: 'private',
+          },
+        },
+        media: {
+          mimeType: 'video/x-matroska',
+          body: fsSync.createReadStream(videoFile),
+        },
+      });
+      console.log(`Video "${m.filename}" uploaded with id ${video.data.id}`);
+      fs.writeFile(uploadFile, video);
+    }
   }
 }
 
