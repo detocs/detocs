@@ -97,6 +97,8 @@ interface VodUploaderParams {
 }
 
 const pExecFile = util.promisify(childProcess.execFile);
+const REMOVE_UNICODE = (str: string | null): string | null =>
+  str && str.replace(/[\u{0080}-\u{FFFF}]/gu, '');
 const NON_EMPTY = (str: string | null): str is string => !!str;
 const GAMING_CATEGORY_ID = '20';
 
@@ -286,10 +288,19 @@ export class VodUploader {
       throw new Error('No end timestamp on log');
     }
 
-    const phaseSets = (await graphqlClient.request(PHASE_SET_QUERY, {
-      phaseId: setList.phaseId,
-    }) as PhaseSetQueryResponse).phase;
-    let smashggSets = phaseSets ? phaseSets.sets.nodes : [];
+    let smashggSets: PhaseSetQueryResponse['phase']['sets']['nodes'] = [];
+    let page = 0;
+    let totalPages = 0;
+    while (page <= totalPages) {
+      const phaseSets = (await graphqlClient.request(PHASE_SET_QUERY, {
+        phaseId: setList.phaseId,
+        page: page++,
+      }) as PhaseSetQueryResponse).phase;
+      if (phaseSets) {
+        smashggSets = smashggSets.concat(phaseSets.sets.nodes);
+        totalPages = phaseSets.sets.pageInfo.totalPages;
+      }
+    }
 
     let sets;
     if (setList.sets) {
@@ -428,7 +439,7 @@ export class VodUploader {
       resumable.monitor = true;
       resumable.retry = -1;
       const video = await runUpload(resumable);
-      console.log(video);
+      console.log('video:', video);
       fs.writeFile(uploadFile, JSON.stringify(video, null, 2));
       console.log(`Video "${m.filename}" uploaded with id ${video.id}`);
     }
@@ -441,7 +452,7 @@ function runUpload(resumable: ResumableUpload): Promise<youtubeV3.Schema$Video> 
     const total = fileSize.toString();
     resumable.on('progress', function(progress: string) {
       const current = progress.padStart(total.length, ' ');
-      const percentage = (+progress / fileSize * 100).toFixed(2);
+      const percentage = (+progress / fileSize * 100).toFixed(2).padStart(5, ' ');
       console.log(`${current}B / ${total}B (${percentage}%)`);
     });
     resumable.on('error', function(error: unknown) {
@@ -557,6 +568,7 @@ function videoTags(
   players: Set['players'],
   additionalTags: string[],
 ): string[] {
+  // TODO: Properly count and limit tags
   const playerTags = players.map(p => [p.name, p.handle])
     .reduce((acc, val) => acc.concat(val), []);
 

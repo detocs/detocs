@@ -55,9 +55,12 @@ export interface SetQueryResponse {
 }
 
 export const PHASE_SET_QUERY = `
-query PhaseQuery($phaseId: ID!) {
+query PhaseQuery($phaseId: ID!, $page: Int) {
   phase(id: $phaseId) {
-    sets(perPage: 100) {
+    sets(
+      perPage: 64
+      page: $page
+    ) {
       nodes {
         id
         fullRoundText
@@ -75,6 +78,9 @@ query PhaseQuery($phaseId: ID!) {
             }
           }
         }
+      }
+      pageInfo {
+        totalPages
       }
     }
   }
@@ -100,6 +106,9 @@ export interface PhaseSetQueryResponse {
           };
         }[];
       }[];
+      pageInfo: {
+        totalPages: number;
+      };
     };
   };
 }
