@@ -12,7 +12,7 @@ declare module 'node-youtube-resumable-upload' {
     public upload(): void;
     public on(event: 'progress', callback: (progress: string) => void): void;
     public on(event: 'error', callback: (error: Error) => void): void;
-    public on(event: 'success', callback: (video: youtubeV3.Schema$Video) => void): void;
+    public on(event: 'success', callback: (response: string) => void): void;
   }
 }
 

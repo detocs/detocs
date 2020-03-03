@@ -439,7 +439,8 @@ export class VodUploader {
       resumable.monitor = true;
       resumable.retry = -1;
       const video = await runUpload(resumable);
-      console.log('video:', video);
+      console.log(typeof video);
+      console.log(video.snippet?.title);
       fs.writeFile(uploadFile, JSON.stringify(video, null, 2));
       console.log(`Video "${m.filename}" uploaded with id ${video.id}`);
     }
@@ -458,8 +459,8 @@ function runUpload(resumable: ResumableUpload): Promise<youtubeV3.Schema$Video> 
     resumable.on('error', function(error: unknown) {
       reject(error);
     });
-    resumable.on('success', function(video: youtubeV3.Schema$Video) {
-      resolve(video);
+    resumable.on('success', function(resp: string) {
+      resolve(JSON.parse(resp) as youtubeV3.Schema$Video);
     });
     resumable.upload();
   });
@@ -644,17 +645,17 @@ async function trimClip(
   const keyframe = nearestKeyframe(start);
   console.log(start, keyframe, end);
   const args = [
-    '-ss', keyframe,
-    '-to', end,
-    '-i', sourceFile,
-    '-codec', 'copy',
-    '-avoid_negative_ts', '1',
-    '-y',
-    outFile,
+    '--verbose',
+    '--output', outFile,
+    '--split', `parts:${keyframe}-${end}`,
+    sourceFile,
   ];
-  const { stderr } = await pExecFile('ffmpeg', args);
+  const { stdout, stderr } = await pExecFile('mkvmerge', args);
+  if (stdout) {
+    console.log(stdout);
+  }
   if (stderr) {
-    console.log(stderr);
+    console.warn(stderr);
   }
 }
 
