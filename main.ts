@@ -85,7 +85,7 @@ yargs
       .positional('command', {
         describe: 'upload to YouTube',
         type: 'string',
-        choices: ['metadata', 'video', 'upload'],
+        choices: ['metadata', 'video', 'dump', 'upload'],
         default: 'metadata',
       })
       .option('ps', {
@@ -146,6 +146,9 @@ async function vods(opts: yargs.Arguments<VodOptions>): Promise<void> {
   switch (opts.command) {
     case 'upload':
       command = Command.Upload;
+      break;
+    case 'dump':
+      command = Command.Dump;
       break;
     case 'video':
       command = Command.Video;

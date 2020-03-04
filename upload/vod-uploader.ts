@@ -66,6 +66,7 @@ type Log = RecordingLog & {
     tournament: Partial<Tournament>;
     videogame: Partial<Videogame>;
   }>;
+  keyframeInterval?: number;
 };
 type SetPhaseGroupMapping = Record<SmashggId, string>;
 
@@ -82,6 +83,7 @@ interface Metadata {
 export enum Command {
   Metadata,
   Video,
+  Dump,
   Upload,
 }
 
@@ -99,8 +101,10 @@ interface VodUploaderParams {
 const pExecFile = util.promisify(childProcess.execFile);
 const REMOVE_UNICODE = (str: string | null): string | null =>
   str && str.replace(/[\u{0080}-\u{FFFF}]/gu, '');
+const REMOVE_COMMAS = (str: string): string => str.replace(/,/g, '');
 const NON_EMPTY = (str: string | null): str is string => !!str;
 const GAMING_CATEGORY_ID = '20';
+let keyframeInterval = 3;
 
 const gameHashtags: Record<number, string> = {
   7: 'SFV',
@@ -169,6 +173,7 @@ export class VodUploader {
     const setList: Log = JSON.parse(await fs.readFile(this.logFile, { encoding: 'utf8' }));
     const { tournament, videogame, phase } = await getEventInfo(graphqlClient, setList);
     const setToPhaseGroupId = await getPhaseGroupMapping(graphqlClient, setList.phaseId);
+    keyframeInterval = setList.keyframeInterval || keyframeInterval;
 
     let metadata: Metadata[] = [];
     if (this.command >= Command.Metadata) {
@@ -211,7 +216,21 @@ export class VodUploader {
       }
     }
 
-    if (this.command >= Command.Upload) {
+    if (this.command == Command.Dump) {
+      for (const m of metadata) {
+        console.log(`
+Title:
+${m.title}
+
+Description:
+${m.description}
+
+Tags:
+${m.tags.join(', ')}`);
+      }
+    }
+
+    if (this.command == Command.Upload) {
       const token = getCredentials().youtubeAccessToken;
       if (!token) {
         throw new Error('YouTube access token not provided in detocs-credentials.json');
@@ -440,6 +459,7 @@ export class VodUploader {
       resumable.retry = -1;
       const video = await runUpload(resumable);
       console.log(typeof video);
+      console.log(Object.keys(video));
       console.log(video.snippet?.title);
       fs.writeFile(uploadFile, JSON.stringify(video, null, 2));
       console.log(`Video "${m.filename}" uploaded with id ${video.id}`);
@@ -586,7 +606,7 @@ function videoTags(
     ...additionalTags,
     ...tournamentTags(tournament),
     ...groupTags(),
-  ].filter(NON_EMPTY);
+  ].filter(NON_EMPTY).map(REMOVE_COMMAS);
 
   return Array.from(new Set(tags));
 }
@@ -662,7 +682,7 @@ async function trimClip(
 function nearestKeyframe(timestamp: Timestamp): Timestamp {
   const duration = moment.duration(timestamp);
   let seconds = duration.asSeconds();
-  seconds = seconds - seconds % 3;
+  seconds = seconds - seconds % keyframeInterval;
   return moment.utc(seconds * 1000).format('H:mm:ss.SSS');
 }
 
