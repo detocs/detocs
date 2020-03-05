@@ -1,4 +1,5 @@
-#!/usr/bin/env node
+import log4js from 'log4js';
+const logger = log4js.getLogger('server/twitter');
 
 import childProcess from 'child_process';
 import filenamify from 'filenamify';
@@ -98,12 +99,12 @@ interface VodUploaderParams {
   style: Style;
 }
 
-const pExecFile = util.promisify(childProcess.execFile);
-const REMOVE_UNICODE = (str: string | null): string | null =>
-  str && str.replace(/[\u{0080}-\u{FFFF}]/gu, '');
-const REMOVE_COMMAS = (str: string): string => str.replace(/,/g, '');
-const NON_EMPTY = (str: string | null): str is string => !!str;
 const GAMING_CATEGORY_ID = '20';
+const pExecFile = util.promisify(childProcess.execFile);
+const removeUnicode = (str: string | null): string | null =>
+  str && str.replace(/[\u{0080}-\u{FFFF}]/gu, '');
+const removeCommas = (str: string): string => str.replace(/,/g, '');
+const nonEmpty = (str: string | null): str is string => !!str;
 let keyframeInterval = 3;
 
 const gameHashtags: Record<number, string> = {
@@ -343,7 +344,7 @@ ${m.tags.join(', ')}`);
       `${tournament.shortName}:`,
       videogame.name,
       phase.name,
-    ].filter(NON_EMPTY).join(' ');
+    ].filter(nonEmpty).join(' ');
 
     const matchDescs = sets.map(set => {
       const players = set.players;
@@ -389,9 +390,8 @@ ${m.tags.join(', ')}`);
       const smashggSet = timestampedSet.id ? (await graphqlClient.request(SET_QUERY, {
         setId: timestampedSet.id,
       }) as SetQueryResponse).set || undefined : undefined;
-      console.log(smashggSet);
       const set = getSetData(timestampedSet, smashggSet);
-      console.log(set);
+      logger.debug(set);
       const players = set.players;
 
       const title = [
@@ -402,7 +402,7 @@ ${m.tags.join(', ')}`);
         setToPhaseGroupId[set.id],
         phase.name,
         set.fullRoundText,
-      ].filter(NON_EMPTY).join(' ');
+      ].filter(nonEmpty).join(' ');
 
       const matchDesc = [
         videogame.name,
@@ -410,7 +410,7 @@ ${m.tags.join(', ')}`);
         setToPhaseGroupId[set.id],
         `${set.fullRoundText}:`,
         `${players[0].name} vs ${players[1].name}`,
-      ].filter(NON_EMPTY).join(' ');
+      ].filter(nonEmpty).join(' ');
       const description = videoDescription(tournament, videogame, phase, matchDesc);
 
       const tags = videoTags(tournament, videogame, phase, players, [phase.name]);
@@ -439,7 +439,7 @@ ${m.tags.join(', ')}`);
       await fs.access(uploadFile);
     } catch {
       // File does not exist
-      console.log(`Uploading "${m.filename}"...`);
+      logger.info(`Uploading "${m.filename}"...`);
       const data = {
         snippet: {
           title: m.title,
@@ -462,7 +462,7 @@ ${m.tags.join(', ')}`);
       console.log(Object.keys(video));
       console.log(video.snippet?.title);
       fs.writeFile(uploadFile, JSON.stringify(video, null, 2));
-      console.log(`Video "${m.filename}" uploaded with id ${video.id}`);
+      logger.info(`Video "${m.filename}" uploaded with id ${video.id}`);
     }
   }
 }
@@ -474,7 +474,7 @@ function runUpload(resumable: ResumableUpload): Promise<youtubeV3.Schema$Video> 
     resumable.on('progress', function(progress: string) {
       const current = progress.padStart(total.length, ' ');
       const percentage = (+progress / fileSize * 100).toFixed(2).padStart(5, ' ');
-      console.log(`${current}B / ${total}B (${percentage}%)`);
+      logger.info(`${current}B / ${total}B (${percentage}%)`);
     });
     resumable.on('error', function(error: unknown) {
       reject(error);
@@ -491,33 +491,33 @@ async function getEventInfo(graphqlClient: GraphQLClient, setList: Log): Promise
   videogame: Videogame;
   phase: Phase;
 }> {
-  const phase = (await graphqlClient.request(PHASE_QUERY, {
-    phaseId: setList.phaseId,
-  }) as PhaseQueryResponse).phase || { name: '' };
-  phase.name = setList.phaseName ||
-    (phase.name === 'Bracket' ? '' : phase.name);
-  console.log(phase);
-
   const smashggEvent: QueryEvent = setList.eventId &&
     (await graphqlClient.request(EVENT_QUERY, { eventId: setList.eventId })).event;
   const event: QueryEvent = merge({}, smashggEvent, setList.event);
-  console.log(event);
+  logger.debug(event);
 
   const partialTournament: Partial<Tournament> & QueryTournament = event.tournament;
   partialTournament.shortName = partialTournament.shortName || partialTournament.name;
   partialTournament.additionalTags = partialTournament.additionalTags || [];
   const tournament: Tournament = partialTournament as Tournament;
+  logger.debug('Tournament:', tournament);
 
   const partialVg: Partial<Videogame> & QueryVideogame = event.videogame;
-  console.log(partialVg);
   partialVg.name = nameOverrides[partialVg.id] || partialVg.name;
   partialVg.hashtag = getGameHashtag(partialVg.id);
-  console.log(partialVg);
   partialVg.shortName = partialVg.name.length - partialVg.hashtag.length < 3 ?
     partialVg.name :
     partialVg.hashtag;
   partialVg.additionalTags = additionalTags[partialVg.id] || [];
   const videogame: Videogame = partialVg as Videogame;
+  logger.debug('Videogame:', videogame);
+
+  const phase = (await graphqlClient.request(PHASE_QUERY, {
+    phaseId: setList.phaseId,
+  }) as PhaseQueryResponse).phase || { name: '' };
+  phase.name = setList.phaseName ||
+    (phase.name === 'Bracket' ? '' : phase.name);
+  logger.debug(phase);
 
   return { tournament, videogame, phase };
 }
@@ -579,7 +579,7 @@ Twitch ► https://twitch.tv/lunarphaselive
 Twitter ► https://twitter.com/LunarPhaseProd
 Store ► https://store.lunarphase.nyc
 
-${hashtags.filter(NON_EMPTY).map(str => "#" + str).join(' ')}`;
+${hashtags.filter(nonEmpty).map(str => "#" + str).join(' ')}`;
 }
 
 function videoTags(
@@ -606,7 +606,7 @@ function videoTags(
     ...additionalTags,
     ...tournamentTags(tournament),
     ...groupTags(),
-  ].filter(NON_EMPTY).map(REMOVE_COMMAS);
+  ].filter(nonEmpty).map(removeCommas);
 
   return Array.from(new Set(tags));
 }
@@ -663,7 +663,8 @@ async function trimClip(
   outFile: string,
 ): Promise<void> {
   const keyframe = nearestKeyframe(start);
-  console.log(start, keyframe, end);
+  logger.debug(`Choosing keyframe ${keyframe} for timestamp ${start}`);
+  logger.info(`Cutting ${keyframe} to ${end} from ${sourceFile}, saving to ${outFile}`);
   const args = [
     '--verbose',
     '--output', outFile,
@@ -672,10 +673,10 @@ async function trimClip(
   ];
   const { stdout, stderr } = await pExecFile('mkvmerge', args);
   if (stdout) {
-    console.log(stdout);
+    logger.debug(stdout);
   }
   if (stderr) {
-    console.warn(stderr);
+    logger.warn(stderr);
   }
 }
 
