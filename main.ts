@@ -114,6 +114,7 @@ async function startServer(): Promise<void> {
 }
 
 async function exportPeople(opts: yargs.Arguments<PersonExportOptions>): Promise<void> {
+  enableBasicLogging();
   await loadConfig();
 
   let format: ExportFormat = '';
@@ -139,6 +140,7 @@ async function exportPeople(opts: yargs.Arguments<PersonExportOptions>): Promise
 };
 
 async function vods(opts: yargs.Arguments<VodOptions>): Promise<void> {
+  enableBasicLogging();
   await loadConfig();
   await loadCredentials();
 

@@ -1,5 +1,5 @@
 import log4js from 'log4js';
-const logger = log4js.getLogger('server/twitter');
+const logger = log4js.getLogger('upload');
 
 import childProcess from 'child_process';
 import filenamify from 'filenamify';
@@ -494,7 +494,7 @@ async function getEventInfo(graphqlClient: GraphQLClient, setList: Log): Promise
   const smashggEvent: QueryEvent = setList.eventId &&
     (await graphqlClient.request(EVENT_QUERY, { eventId: setList.eventId })).event;
   const event: QueryEvent = merge({}, smashggEvent, setList.event);
-  logger.debug(event);
+  logger.debug('Event:', event);
 
   const partialTournament: Partial<Tournament> & QueryTournament = event.tournament;
   partialTournament.shortName = partialTournament.shortName || partialTournament.name;
@@ -517,7 +517,7 @@ async function getEventInfo(graphqlClient: GraphQLClient, setList: Log): Promise
   }) as PhaseQueryResponse).phase || { name: '' };
   phase.name = setList.phaseName ||
     (phase.name === 'Bracket' ? '' : phase.name);
-  logger.debug(phase);
+  logger.debug('Phase:', phase);
 
   return { tournament, videogame, phase };
 }
