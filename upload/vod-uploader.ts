@@ -83,8 +83,8 @@ interface Metadata {
 
 export enum Command {
   Metadata,
-  Video,
   Dump,
+  Video,
   Upload,
 }
 
@@ -199,6 +199,20 @@ export class VodUploader {
       }
     }
 
+    if (this.command == Command.Dump) {
+      for (const m of metadata) {
+        console.log(`
+Title:
+${m.title}
+
+Description:
+${m.description}
+
+Tags:
+${m.tags.join(', ')}`);
+      }
+    }
+
     if (this.command >= Command.Video) {
       for (const m of metadata) {
         // Don't bother parallelizing, since reading from the source file is the bottleneck
@@ -214,20 +228,6 @@ export class VodUploader {
             filepath,
           );
         }
-      }
-    }
-
-    if (this.command == Command.Dump) {
-      for (const m of metadata) {
-        console.log(`
-Title:
-${m.title}
-
-Description:
-${m.description}
-
-Tags:
-${m.tags.join(', ')}`);
       }
     }
 
