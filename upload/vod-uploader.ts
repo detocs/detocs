@@ -101,8 +101,6 @@ interface VodUploaderParams {
 
 const GAMING_CATEGORY_ID = '20';
 const pExecFile = util.promisify(childProcess.execFile);
-const removeUnicode = (str: string | null): string | null =>
-  str && str.replace(/[\u{0080}-\u{FFFF}]/gu, '');
 const removeCommas = (str: string): string => str.replace(/,/g, '');
 const nonEmpty = (str: string | null): str is string => !!str;
 let keyframeInterval = 3;
@@ -265,7 +263,7 @@ ${m.tags.join(', ')}`);
     );
     const file = path.join(this.dirName, 'full.yml');
     const data = yaml.safeDump(metadata);
-    fs.writeFile(file, data);
+    await fs.writeFile(file, data);
     return metadata;
   }
 
@@ -285,11 +283,11 @@ ${m.tags.join(', ')}`);
       phase,
       setToPhaseGroupId,
     );
-    metadata.forEach((m, i) => {
+    Promise.all(metadata.map((m, i) => {
       const file = path.join(this.dirName, `set-${i.toString().padStart(2, '0')}.yml`);
       const data = yaml.safeDump(m);
-      fs.writeFile(file, data);
-    });
+      return fs.writeFile(file, data);
+    }));
     return metadata;
   }
 
@@ -458,10 +456,7 @@ ${m.tags.join(', ')}`);
       resumable.monitor = true;
       resumable.retry = -1;
       const video = await runUpload(resumable);
-      console.log(typeof video);
-      console.log(Object.keys(video));
-      console.log(video.snippet?.title);
-      fs.writeFile(uploadFile, JSON.stringify(video, null, 2));
+      await fs.writeFile(uploadFile, JSON.stringify(video, null, 2));
       logger.info(`Video "${m.filename}" uploaded with id ${video.id}`);
     }
   }
@@ -606,7 +601,7 @@ function videoTags(
     ...additionalTags,
     ...tournamentTags(tournament),
     ...groupTags(),
-  ].filter(nonEmpty).map(removeCommas);
+  ].map(removeCommas).map(s => s.trim()).filter(nonEmpty);
 
   return Array.from(new Set(tags));
 }
@@ -700,7 +695,7 @@ function tournamentTags(tournament: Tournament): string[] {
     tournament.city,
     tournament.venueName,
     ...(tournament.additionalTags || []),
-  ];
+  ].filter(nonEmpty);
 
   const TOURNAMENT_SERIES_PATTERN = /^(.*)\s+#?\d+$/;
   const regExpResult = TOURNAMENT_SERIES_PATTERN.exec(tournament.name);

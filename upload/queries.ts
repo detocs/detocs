@@ -43,10 +43,10 @@ export interface SetQueryResponse {
       entrant: {
         name: string;
         participants: {
-          prefix: string;
+          prefix: string | null;
           player: {
             gamerTag: string;
-            prefix: string;
+            prefix: string | null;
           };
         }[];
       };
@@ -97,10 +97,10 @@ export interface PhaseSetQueryResponse {
           entrant: {
             name: string;
             participants: {
-              prefix: string;
+              prefix: string | null;
               player: {
                 gamerTag: string;
-                prefix: string;
+                prefix: string | null;
               };
             }[];
           };
@@ -215,10 +215,10 @@ export interface EventQueryResponse {
     };
     tournament: {
       name: string;
-      venueName: string;
-      venueAddress: string;
-      city: string;
-      hashtag: string;
+      venueName: string | null;
+      venueAddress: string | null;
+      city: string | null;
+      hashtag: string | null;
       url: string;
       startAt: number;
     };
