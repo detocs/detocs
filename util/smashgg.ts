@@ -39,25 +39,33 @@ query PhaseQuery($phaseId: ID!, $page: Int) {
       nodes {
         id
         identifier
-        phaseGroupId
         round
         fullRoundText
         state
         completedAt
+        phaseGroup {
+          id
+        }
         event {
-          videogameId
+          videogame {
+            id
+          }
         }
         slots {
           entrant {
             name
             participants {
-              playerId
+              prefix
               player {
+                id
                 gamerTag
                 prefix
-                twitterHandle
               }
-              prefix
+              user {
+                authorizations(types: [TWITTER]) {
+                  externalUsername
+                }
+              }
             }
           }
         }
@@ -81,25 +89,33 @@ interface PhaseSetQueryResponse {
       nodes: {
         id: number;
         identifier: string;
-        phaseGroupId: number;
+        phaseGroup: {
+          id: number;
+        };
         round: number;
         fullRoundText: string;
         state: number;
         completedAt: number | null;
         event: {
-          videogameId: number;
+          videogame: {
+            id: number;
+          };
         };
         slots: {
           entrant: {
             name: string;
             participants: {
-              playerId: number;
+              prefix: string | null;
               player: {
+                id: number;
                 gamerTag: string;
                 prefix: string | null;
-                twitterHandle: string | null;
               };
-              prefix: string | null;
+              user: {
+                authorizations: {
+                  externalUsername: string;
+                }[] | null;
+              };
             }[];
           } | null;
         }[];
@@ -205,7 +221,7 @@ export default class SmashggClient {
     ));
     const multiGroup = phaseGroups.size > 1;
     return sets.map(s => {
-      const phaseGroupPrefix = multiGroup ? `${phaseGroups.get(s.phaseGroupId)} ` : '';
+      const phaseGroupPrefix = multiGroup ? `${phaseGroups.get(s.phaseGroup.id)} ` : '';
       const origMatch = getMatchBySmashggId(s.fullRoundText);
       let match = origMatch;
       if (match && multiGroup) {
@@ -214,7 +230,7 @@ export default class SmashggClient {
           name: phaseGroupPrefix + match?.name,
         };
       }
-      const videogame = getGameBySmashggId(s.event.videogameId.toString());
+      const videogame = getGameBySmashggId(s.event.videogame.id.toString());
       const matchName = origMatch ? origMatch.name : s.fullRoundText;
       return {
         id: `${s.id}`,
@@ -232,10 +248,10 @@ export default class SmashggClient {
           .map((entrant, index) => ({
             name: entrant.name,
             participants: entrant.participants.map(p => ({
-              smashggId: p.playerId.toString(),
+              smashggId: p.player.id.toString(),
               handle: p.player.gamerTag,
               prefix: p.prefix || (p.player.prefix || null),
-              twitter: p.player.twitterHandle || null,
+              twitter: p.user.authorizations?.[0].externalUsername || null,
             })),
             inLosers: isTrueFinals(match) || (isGrandFinals(match) && index === 1),
           })),
