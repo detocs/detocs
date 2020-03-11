@@ -1,13 +1,13 @@
 import { ApiToken as Smashgg } from '../models/smashgg';
 import { AccessToken as Twitter } from '../models/twitter';
-import { AccessToken as Youtube } from '../models/youtube';
+import { Credentials as YoutubeCredentials } from '../models/youtube';
 
 import { loadConfigFile, saveConfigFile } from './config';
 
 interface Credentials {
   twitterAccessToken?: Twitter;
   smashggApiToken?: Smashgg;
-  youtubeAccessToken?: Youtube;
+  youtubeCredentials?: YoutubeCredentials;
 }
 
 const DEFAULTS: Credentials = {};

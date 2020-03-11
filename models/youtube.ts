@@ -1,1 +1,2 @@
-export type AccessToken = string;
+import { Credentials } from 'google-auth-library';
+export { Credentials };

@@ -114,7 +114,7 @@ async function startServer(): Promise<void> {
 }
 
 async function exportPeople(opts: yargs.Arguments<PersonExportOptions>): Promise<void> {
-  enableBasicLogging();
+  const logger = enableBasicLogging();
   await loadConfig();
 
   let format: ExportFormat = '';
@@ -135,12 +135,13 @@ async function exportPeople(opts: yargs.Arguments<PersonExportOptions>): Promise
       throw new Error('output format must be specified');
       break;
   }
-  await exportPeopleDatabase(format, opts.destination);
+  await exportPeopleDatabase(format, opts.destination)
+    .catch(logger.error);
   process.exit();
 };
 
 async function vods(opts: yargs.Arguments<VodOptions>): Promise<void> {
-  enableBasicLogging();
+  const logger = enableBasicLogging();
   await loadConfig();
   await loadCredentials();
 
@@ -161,13 +162,16 @@ async function vods(opts: yargs.Arguments<VodOptions>): Promise<void> {
     command,
     style: opts.ps ? Style.PerSet : Style.Full,
   });
-  await uploader.run();
+  await uploader.run()
+    .catch(logger.error);
   process.exit();
 };
 
-function enableBasicLogging(): void {
+function enableBasicLogging(): log4js.Logger {
   const logger = log4js.getLogger();
   logger.level = 'debug';
+  logger.error = logger.error.bind(logger);
+  return logger;
 }
 
 function configureLogger(): void {

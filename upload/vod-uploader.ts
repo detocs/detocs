@@ -1,10 +1,11 @@
 import log4js from 'log4js';
-const logger = log4js.getLogger('upload');
+export const logger = log4js.getLogger('upload');
 
 import childProcess from 'child_process';
 import filenamify from 'filenamify';
 import fsSync, { promises as fs } from 'fs';
-import { google, youtube_v3 as youtubeV3 } from 'googleapis';
+import { OAuth2Client } from 'google-auth-library';
+import { youtube_v3 as youtubeV3 } from 'googleapis';
 import { GraphQLClient } from 'graphql-request';
 import yaml from 'js-yaml';
 import merge from 'lodash.merge';
@@ -16,8 +17,8 @@ import util from 'util';
 import { SmashggId } from '../models/smashgg';
 import { Timestamp } from '../models/timestamp';
 import { Log as RecordingLog } from '../server/recording/log';
-import { getCredentials } from '../util/credentials';
 import SmashggClient from '../util/smashgg';
+import { getYoutubeAuthClient } from '../util/youtube';
 
 import {
   EVENT_QUERY,
@@ -167,6 +168,12 @@ export class VodUploader {
   }
 
   public async run(): Promise<void> {
+    let youtubeOauthClient: OAuth2Client | null = null;
+    if (this.command == Command.Upload) {
+      // Get YouTube credentials first, so that the rest can be done unattended
+      youtubeOauthClient = await getYoutubeAuthClient();
+    }
+
     await fs.mkdir(this.dirName, { recursive: true });
     const graphqlClient = new SmashggClient().getClient();
     const setList: Log = JSON.parse(await fs.readFile(this.logFile, { encoding: 'utf8' }));
@@ -199,15 +206,7 @@ export class VodUploader {
 
     if (this.command == Command.Dump) {
       for (const m of metadata) {
-        console.log(`
-Title:
-${m.title}
-
-Description:
-${m.description}
-
-Tags:
-${m.tags.join(', ')}`);
+        dumpMetadata(m);
       }
     }
 
@@ -230,17 +229,8 @@ ${m.tags.join(', ')}`);
     }
 
     if (this.command == Command.Upload) {
-      const token = getCredentials().youtubeAccessToken;
-      if (!token) {
-        throw new Error('YouTube access token not provided in detocs-credentials.json');
-      }
-      // TODO: OAuth
-      const auth = new google.auth.OAuth2();
-      auth.credentials = {
-        'access_token': token,
-      };
       for (const m of metadata) {
-        await this.upload(auth, m);
+        await this.upload(youtubeOauthClient as OAuth2Client, m);
       }
     }
   }
@@ -430,11 +420,17 @@ ${m.tags.join(', ')}`);
     return Promise.all(promises);
   }
 
-  private async upload(auth: any, m: Metadata): Promise<void> {
+  private async upload(auth: OAuth2Client, m: Metadata): Promise<void> {
+    if (!auth.credentials['access_token']) {
+      throw new Error('No credentials on OAuth client');
+    }
+    const accessToken = auth.credentials['access_token'];
+
     const videoFile = path.join(this.dirName, m.filename);
     const uploadFile = videoFile + '.upload.json';
     try {
       await fs.access(uploadFile);
+      logger.info(`Upload log already found for "${m.filename}"`);
     } catch {
       // File does not exist
       logger.info(`Uploading "${m.filename}"...`);
@@ -450,16 +446,28 @@ ${m.tags.join(', ')}`);
         },
       };
       const resumable = new ResumableUpload();
-      resumable.tokens = auth.credentials;
+      resumable.tokens = { 'access_token': accessToken };
       resumable.filepath = videoFile;
       resumable.metadata = data;
       resumable.monitor = true;
       resumable.retry = -1;
       const video = await runUpload(resumable);
-      await fs.writeFile(uploadFile, JSON.stringify(video, null, 2));
       logger.info(`Video "${m.filename}" uploaded with id ${video.id}`);
+      await fs.writeFile(uploadFile, JSON.stringify(video, null, 2));
     }
   }
+}
+
+function dumpMetadata(m: Metadata): void {
+  console.log(`
+Title:
+${m.title}
+
+Description:
+${m.description}
+
+Tags:
+${m.tags.join(', ')}`);
 }
 
 function runUpload(resumable: ResumableUpload): Promise<youtubeV3.Schema$Video> {
