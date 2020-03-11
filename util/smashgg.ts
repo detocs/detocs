@@ -115,7 +115,7 @@ interface PhaseSetQueryResponse {
                 authorizations: {
                   externalUsername: string;
                 }[] | null;
-              };
+              } | null;
             }[];
           } | null;
         }[];
@@ -251,7 +251,7 @@ export default class SmashggClient {
               smashggId: p.player.id.toString(),
               handle: p.player.gamerTag,
               prefix: p.prefix || (p.player.prefix || null),
-              twitter: p.user.authorizations?.[0].externalUsername || null,
+              twitter: p.user?.authorizations?.[0].externalUsername || null,
             })),
             inLosers: isTrueFinals(match) || (isGrandFinals(match) && index === 1),
           })),
