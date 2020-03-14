@@ -51,6 +51,7 @@ const BreakDashboard: FunctionalComponent<Props> = ({ state, updateState }): VNo
           </button>
           <button
             type="button"
+            class="warning"
             onClick={removeLastMsg}
             disabled={messages.length <= 1}
           >

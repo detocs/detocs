@@ -35,7 +35,7 @@ const CommentaryDashboard: FunctionalComponent<Props> = ({ state, updateState })
               personFields={[ "handle", "prefix", "twitter" ]}
               onUpdatePerson={updateCom1}
             />
-            <button type="button" onClick={resetCommentator.bind(null, updateCom1)}>
+            <button type="button" class="warning" onClick={resetCommentator.bind(null, updateCom1)}>
               Reset 1
             </button>
           </div>
@@ -49,7 +49,7 @@ const CommentaryDashboard: FunctionalComponent<Props> = ({ state, updateState })
               personFields={["handle", "prefix", "twitter"]}
               onUpdatePerson={updateCom2}
             />
-            <button type="button" onClick={resetCommentator.bind(null, updateCom2)}>
+            <button type="button" class="warning" onClick={resetCommentator.bind(null, updateCom2)}>
               Reset 2
             </button>
           </div>
@@ -80,7 +80,7 @@ const CommentaryDashboard: FunctionalComponent<Props> = ({ state, updateState })
         </fieldset>
       </div>
       <div class="input-row">
-        <button type="button" onClick={resetCommentators.bind(null, state, updateState)}>
+        <button type="button" class="warning" onClick={resetCommentators.bind(null, state, updateState)}>
           Reset
         </button>
         <button type="button" onClick={swapCommentators.bind(null, state, updateState)}>

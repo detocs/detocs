@@ -86,7 +86,7 @@ const PlayerDashboard: FunctionalComponent<Props> = ({
         />
       </div>
       <div class="input-row">
-        <button type="button" onClick={resetPlayers.bind({}, state, updateState)}>
+        <button type="button" class="warning" onClick={resetPlayers.bind({}, state, updateState)}>
           Reset Players
         </button>
         <button type="button" onClick={resetScores.bind({}, state, updateState)}>
