@@ -1,11 +1,11 @@
 import { h, FunctionalComponent, RenderableProps, VNode } from 'preact';
 import { useCallback } from 'preact/hooks';
 
+import { INTERACTIVE_SELECTOR } from '../../util/dom';
+
 import { register } from './key-manager';
 
 const CONTROL_SELECTOR = ':scope > .tabbable-section > .tabbable-section-control';
-const INTERACTIVE_SELECTOR =
-  'input:not([type="hidden"]), button, a, select, textarea, [tabindex]:not([tabindex="-2"])';
 const AUTOFOCUS_SELECTOR = '[autofocus]';
 
 const TabController: FunctionalComponent = ({ children }: RenderableProps<{}>): VNode => {

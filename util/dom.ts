@@ -1,5 +1,8 @@
 import { JSX } from "preact";
 
+export const INTERACTIVE_SELECTOR =
+  'input:not([type="hidden"]), button, a, select, textarea, [tabindex]:not([tabindex="-2"])';
+
 export function cloneTemplate(id: string): DocumentFragment {
   const template = document.getElementById(id) as HTMLTemplateElement;
   return template.content.cloneNode(true) as DocumentFragment;

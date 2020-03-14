@@ -1,8 +1,9 @@
 import { h, FunctionalComponent, VNode } from 'preact';
 import { StateUpdater } from 'preact/hooks';
 
-import { nullPerson } from '../../models/person';
+import { nullPerson, PersonUpdate } from '../../models/person';
 import InfoState from '../../server/info/state';
+import { INTERACTIVE_SELECTOR } from '../../util/dom';
 
 import { useCommentator1, useCommentator2 } from './hooks/info';
 
@@ -34,7 +35,7 @@ const CommentaryDashboard: FunctionalComponent<Props> = ({ state, updateState })
               personFields={[ "handle", "prefix", "twitter" ]}
               onUpdatePerson={updateCom1}
             />
-            <button type="button" onClick={updateCom1.bind(null, nullPerson)}>
+            <button type="button" onClick={resetCommentator.bind(null, updateCom1)}>
               Reset 1
             </button>
           </div>
@@ -48,7 +49,7 @@ const CommentaryDashboard: FunctionalComponent<Props> = ({ state, updateState })
               personFields={["handle", "prefix", "twitter"]}
               onUpdatePerson={updateCom2}
             />
-            <button type="button" onClick={updateCom2.bind(null, nullPerson)}>
+            <button type="button" onClick={resetCommentator.bind(null, updateCom2)}>
               Reset 2
             </button>
           </div>
@@ -91,6 +92,14 @@ const CommentaryDashboard: FunctionalComponent<Props> = ({ state, updateState })
   );
 };
 export default CommentaryDashboard;
+
+function resetCommentator(updater: StateUpdater<PersonUpdate>, event: UIEvent): void {
+  updater(nullPerson);
+  const button = event.target as HTMLButtonElement;
+  button?.closest('.input-row')
+    ?.querySelector<HTMLInputElement>(INTERACTIVE_SELECTOR)
+    ?.focus();
+}
 
 function resetCommentators(state: InfoState, updateState: StateUpdater<InfoState>): void {
   const newState = Object.assign({}, state);
