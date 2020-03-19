@@ -297,8 +297,8 @@ export class VodUploader {
     }
 
     let smashggSets: PhaseSetQueryResponse['phase']['sets']['nodes'] = [];
-    let page = 0;
-    let totalPages = 0;
+    let page = 1;
+    let totalPages = 1;
     while (page <= totalPages) {
       const phaseSets = (await graphqlClient.request(PHASE_SET_QUERY, {
         phaseId: setList.phaseId,

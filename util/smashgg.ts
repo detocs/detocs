@@ -205,8 +205,8 @@ export default class SmashggClient {
   public async upcomingSetsByPhase(phaseId: string): Promise<TournamentSet[]> {
     let sets: PhaseSetQueryResponse['phase']['sets']['nodes'] = [];
     let pg: PhaseSetQueryResponse['phase']['phaseGroups']['nodes'] = [];
-    let page = 0;
-    let totalPages = 0;
+    let page = 1;
+    let totalPages = 1;
     while (page <= totalPages) {
       const resp: PhaseSetQueryResponse = await this.client.request(
         PHASE_SET_QUERY,
@@ -231,7 +231,7 @@ export default class SmashggClient {
         };
       }
       const videogame = getGameBySmashggId(s.event.videogame.id.toString());
-      const matchName = origMatch ? origMatch.name : s.fullRoundText;
+      const matchName = origMatch ? origMatch.id : s.fullRoundText;
       return {
         id: `${s.id}`,
         phaseId,

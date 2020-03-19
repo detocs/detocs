@@ -1,7 +1,10 @@
 import { h, Component, ComponentChild, RefObject } from 'preact';
 
+import nextId from '../../util/next-id';
+
+import useId from './hooks/id';
+
 const idRegex = /\{\{(\w+)\}\}/;
-let idCounter = 0;
 
 function getPlaceholder(id: string): string {
   return `{{${id}}}`;
@@ -18,7 +21,11 @@ interface AutocompleteProps<T> {
 
 class Autocomplete<T> extends Component<AutocompleteProps<T>> {
   public static newId(): string {
-    return `autocomplete-${idCounter++}`;
+    return nextId('autocomplete-');
+  }
+
+  public static useId(): string {
+    return useId(1, 'autocomplete-')[0];
   }
 
   public static isAutocompleteValue(val: string): boolean {

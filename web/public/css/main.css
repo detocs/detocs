@@ -137,8 +137,16 @@ button:focus,
   flex: 0 0 auto;
 }
 
-.set-selector {
-  width: 12em;
+fieldset[name="match"] {
+  flex: 0.2 0 6em;
+}
+
+fieldset[name="game"] {
+  flex: 0.5 0 9em;
+}
+
+fieldset[name="smashgg"] {
+  flex: 1 0 15em;
 }
 
 #version {

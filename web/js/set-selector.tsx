@@ -1,5 +1,8 @@
-import { h, FunctionalComponent, RenderableProps, VNode } from 'preact';
+import { h, FunctionalComponent, RenderableProps, VNode, Fragment, createRef } from 'preact';
+
 import TournamentSet from '../../models/tournament-set';
+
+import Autocomplete from './autocomplete';
 
 export interface Props {
   set?: TournamentSet;
@@ -9,23 +12,32 @@ export interface Props {
 
 const SetSelector: FunctionalComponent<Props> = (props: RenderableProps<Props>): VNode => {
   const sets = props.unfinishedSets || [];
+  const inputRef = createRef<HTMLInputElement>();
+  const autocompleteId = Autocomplete.useId();
+  // TODO: Implement a way to clear this field
   return(
-    <select
-      name="set"
-      class="set-selector"
-      value={props.set?.id}
-      onChange={(e: Event) => {
-        const select = e.target as HTMLSelectElement;
-        return props.updateSet(
-          sets.find(s => s.id === select.value) || sets[0]
-        );
-      }}
-    >
-      <option>Select Set</option>
-      {sets.map(s =>
-        <option value={s.id}>{s.displayName}</option>
-      )}
-    </select>
+    <Fragment>
+      <input
+        type="hidden"
+        name="set"
+        value={props.set?.id}
+      />
+      <input
+        ref={inputRef}
+        list={autocompleteId}
+        value={props.set?.displayName}
+        class="set-selector"
+        placeholder="Select Set"
+      />
+      <Autocomplete<TournamentSet>
+        id={autocompleteId}
+        inputRef={inputRef}
+        options={sets}
+        idMapper={s => `${s.id}`}
+        nameMapper={s => s.displayName}
+        setValue={props.updateSet}
+      />
+    </Fragment>
   );
 };
 export default SetSelector;
