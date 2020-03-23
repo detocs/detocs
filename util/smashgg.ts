@@ -228,6 +228,7 @@ export default class SmashggClient {
       if (match && multiGroup) {
         match = {
           ...match,
+          id: '',
           name: phaseGroupPrefix + match?.name,
         };
       }
