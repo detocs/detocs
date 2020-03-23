@@ -22,6 +22,7 @@ interface PageInfo {
   filter: unknown;
 }
 
+// Complexity: ~17 per set
 const PHASE_SET_QUERY = `
 query PhaseQuery($phaseId: ID!, $page: Int) {
   phase(id: $phaseId) {
@@ -33,7 +34,7 @@ query PhaseQuery($phaseId: ID!, $page: Int) {
     }
     sets(
       sortType: MAGIC,
-      perPage: 64,
+      perPage: 48,
       page: $page
     ) {
       nodes {
