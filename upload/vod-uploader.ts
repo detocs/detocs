@@ -106,6 +106,7 @@ const removeCommas = (str: string): string => str.replace(/,/g, '');
 const nonEmpty = (str: string | null): str is string => !!str;
 let keyframeInterval = 3;
 
+// TODO: Integrate with game DB
 const gameHashtags: Record<number, string> = {
   7: 'SFV',
   17: 'Tekken7',
@@ -574,7 +575,7 @@ function videoDescription(
     
 ${tournament.name}
 ${date}
-${tournament.venueName} - ${tournament.venueAddress}
+${[tournament.venueName, tournament.venueAddress].filter(nonEmpty).join(' - ')}
 ${tournament.url}
 
 Follow us for more!
