@@ -16,3 +16,17 @@ export function massagedFormData(data: FormData): FormData {
   }
   return ret;
 }
+
+/**
+ * Submits the enclosing form
+ * @param event The event to submit in response to
+ */
+export function submitForm(event: Event): void {
+  // Not actually correct, but I can't be bothered to properly set up the types
+  const target = event.target as HTMLInputElement | null;
+  if (!target) {
+    return;
+  }
+  const form = target.form || target.closest('form');
+  form?.requestSubmit();
+}

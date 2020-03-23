@@ -34,6 +34,7 @@
     "express-formidable": "^1.2.0",
     "filenamify": "^4.1.0",
     "find-process": "^1.4.2",
+    "form-request-submit-polyfill": "^2.0.0",
     "front-matter": "^3.0.2",
     "googleapis": "^47.0.0",
     "graphql-request": "^1.8.2",
@@ -53,6 +54,7 @@
     "preact": "^10.0.0-rc.2",
     "rollup-plugin-commonjs": "^10.1.0",
     "twit": "^2.2.11",
+    "w3c-keys": "^1.0.1",
     "ws": "^6.2.1",
     "yargs": "^14.2.0"
   },

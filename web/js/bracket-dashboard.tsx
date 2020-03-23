@@ -1,8 +1,11 @@
 import { h, FunctionalComponent, VNode } from 'preact';
 import { StateUpdater } from 'preact/hooks';
+import { Key } from 'w3c-keys';
 
-import BracketState, { nullState } from '../../server/bracket/state';
 import { TOURNAMENT_URL_REGEX, TOURNAMENT_SLUG_REGEX } from '../../models/smashgg';
+import BracketState, { nullState } from '../../server/bracket/state';
+import { keyHandler } from '../../util/dom';
+import { submitForm } from '../../util/forms';
 
 import { bracketEndpoint } from './api';
 
@@ -12,6 +15,9 @@ interface Props {
 }
 
 const TOURNAMENT_PATTERN = TOURNAMENT_URL_REGEX.source + '|' + TOURNAMENT_SLUG_REGEX.source;
+const submitOnEnter = keyHandler({
+  [Key.Enter]: submitForm,
+});
 
 const BracketDashboard: FunctionalComponent<Props> = ({ state, updateState }): VNode => {
   const clearTournament = (): void => updateState(nullState);
@@ -49,6 +55,7 @@ const BracketDashboard: FunctionalComponent<Props> = ({ state, updateState }): V
           <select
             name="eventId"
             value={state.eventId || undefined}
+            onKeyDown={submitOnEnter}
           >
             <option>Select Event</option>
             {state.events.map(e =>
@@ -64,6 +71,7 @@ const BracketDashboard: FunctionalComponent<Props> = ({ state, updateState }): V
           <select
             name="phaseId"
             value={state.phaseId || undefined}
+            onKeyDown={submitOnEnter}
           >
             <option>Select Phase</option>
             {state.phases
