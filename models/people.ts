@@ -54,7 +54,7 @@ function parsePerson(p: Person): Person {
   };*/
 }
 
-async function saveDatabase(): Promise<void> {
+export async function saveDatabase(): Promise<void> {
   const filePath = join(getConfig().databaseDirectory, DATABASE_FILE);
   if (!backedUp && existsSync(filePath)) {
     const backupPath = filePath + '.bak';

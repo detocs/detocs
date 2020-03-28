@@ -13,6 +13,7 @@ import {
   StreamControlPeople,
   StreamControlPeopleWithTwitter,
 } from './export/formats';
+import importPeopleDatabase from './import/import-people';
 import server from './server/server';
 import { VodUploader, Style, Command } from './upload/vod-uploader';
 import { loadConfig, getConfig } from './util/config';
@@ -26,6 +27,10 @@ interface PersonExportOptions {
   sc?: boolean;
   sct?: boolean;
   destination: string;
+}
+
+interface PersonImportOptions {
+  source: string;
 }
 
 interface VodOptions {
@@ -70,6 +75,17 @@ yargs
         describe: 'use Stream Control format (include Twitter handles)',
         type: 'boolean',
         group: 'Formats',
+      }),
+  })
+  .command({
+    command: 'import-people <source>',
+    describe: 'import people into database',
+    handler: importPeople,
+    builder: (y: yargs.Argv<{}>): yargs.Argv<PersonImportOptions> => y
+      .positional('source', {
+        describe: 'input file path (CSV only)',
+        type: 'string',
+        demandOption: 'you must provide a source path',
       }),
   })
   .command({
@@ -136,6 +152,14 @@ async function exportPeople(opts: yargs.Arguments<PersonExportOptions>): Promise
       break;
   }
   await exportPeopleDatabase(format, opts.destination)
+    .catch(logger.error);
+  process.exit();
+};
+
+async function importPeople(opts: yargs.Arguments<PersonImportOptions>): Promise<void> {
+  const logger = enableBasicLogging();
+  await loadConfig();
+  await importPeopleDatabase(opts.source)
     .catch(logger.error);
   process.exit();
 };
