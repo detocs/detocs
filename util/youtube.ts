@@ -28,7 +28,10 @@ export async function getYoutubeAuthClient(): Promise<OAuth2Client> {
   } else {
     logger.info('YouTube access token found', credentials);
     // TODO: Do I need to refresh tokens manually?
-    auth = new google.auth.OAuth2();
+    auth = new google.auth.OAuth2({
+      clientId: CLIENT_ID,
+      clientSecret: CLIENT_SECRET,
+    });
     auth.setCredentials(credentials);
   }
   await printChannelInfo(auth);
