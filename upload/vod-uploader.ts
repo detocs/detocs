@@ -18,7 +18,7 @@ import { SmashggId } from '../models/smashgg';
 import { Timestamp } from '../models/timestamp';
 import { Log as RecordingLog } from '../server/recording/log';
 import SmashggClient from '../util/smashgg';
-import { getYoutubeAuthClient } from '../util/youtube';
+import { getYoutubeAuthClient, tagsSize, MAX_TAGS_SIZE, descriptionSize, MAX_DESCRIPTION_SIZE, titleSize, MAX_TITLE_SIZE } from '../util/youtube';
 
 import {
   EVENT_QUERY,
@@ -427,6 +427,8 @@ export class VodUploader {
     }
     const accessToken = auth.credentials['access_token'];
 
+    checkMetadataSize(m);
+
     const videoFile = path.join(this.dirName, m.filename);
     const uploadFile = videoFile + '.upload.json';
     try {
@@ -459,15 +461,35 @@ export class VodUploader {
   }
 }
 
+function checkMetadataSize(m: Metadata): void {
+  const title = titleSize(m.title);
+  if (title > MAX_TITLE_SIZE) {
+    throw new Error(`Title too long (${title}/${MAX_TITLE_SIZE})`);
+  }
+
+  const desc = descriptionSize(m.description);
+  if (desc > MAX_DESCRIPTION_SIZE) {
+    throw new Error(`Description too long (${desc}/${MAX_DESCRIPTION_SIZE})`);
+  }
+
+  const tags = tagsSize(m.tags);
+  if (tags > MAX_TAGS_SIZE) {
+    throw new Error(`Too many tags (${tags}/${MAX_TAGS_SIZE})`);
+  }
+}
+
 function dumpMetadata(m: Metadata): void {
+  const title = titleSize(m.title);
+  const desc = descriptionSize(m.description);
+  const tags = tagsSize(m.tags);
   console.log(`
-Title:
+Title (${title}/${MAX_TITLE_SIZE}):
 ${m.title}
 
-Description:
+Description (${desc}/${MAX_DESCRIPTION_SIZE}):
 ${m.description}
 
-Tags:
+Tags (${tags}/${MAX_TAGS_SIZE}):
 ${m.tags.join(', ')}`);
 }
 

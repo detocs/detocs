@@ -9,6 +9,9 @@ import url from 'url';
 
 import { getCredentials, saveCredentials } from './credentials';
 
+export const MAX_TITLE_SIZE = 100;
+export const MAX_DESCRIPTION_SIZE = 5000;
+export const MAX_TAGS_SIZE = 500;
 const CLIENT_ID = '170132986441-rq19gpr8vhh8j70gpllii0qeg62kcs4p.apps.googleusercontent.com';
 // Apparently you're supposed to use this even if you're using a public client? 🤷‍♂️
 const CLIENT_SECRET = 'q5rAzDNHN8zPzodjo-MwZ7Bs';
@@ -113,4 +116,20 @@ async function printChannelInfo(auth: OAuth2Client): Promise<void> {
       resolve();
     });
   });
+}
+
+export function titleSize(title: string): number {
+  return title.length;
+}
+
+export function descriptionSize(desc: string): number {
+  return Buffer.byteLength(desc);
+}
+
+export function tagsSize(tags: string[]): number {
+  const characterCount = tags
+    .map(t => t.includes(' ') || t.includes(',') ? t.length + 2 : t.length)
+    .reduce((acc, curr) => acc + curr);
+  const commas = Math.max(tags.length - 1, 0);
+  return characterCount + commas;
 }
