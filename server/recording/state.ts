@@ -1,5 +1,6 @@
+import { ImageFile } from '../../models/media';
+
 import InfoState from '../info/state';
-import { ImageFile } from '../media/server';
 
 export default interface State {
   streamRecordingFolder: string | null;

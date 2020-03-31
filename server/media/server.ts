@@ -6,32 +6,16 @@ import { promises as fs } from 'fs';
 import ObsWebSocket from 'obs-websocket-js';
 import { join } from 'path';
 
+import { Screenshot, ImageFile } from '../../models/media';
 import { Timestamp } from '../../models/timestamp';
 import * as ffmpeg from '../../util/ffmpeg';
 import { tmpDir } from '../../util/fs';
 import * as obs from '../../util/obs';
 import { sanitizeTimestamp, toMillis } from '../../util/timestamp';
+import { ScreenshotCache } from './screenshot-cache';
 
 const THUMBNAIL_SIZE = 135;
-
-export interface MediaFile {
-  url: string;
-  type: string;
-}
-
-export type ImageFile = MediaFile & {
-  type: 'image';
-  height: number;
-};
-
-export type VideoFile = MediaFile & {
-  type: 'video';
-};
-
-interface Screenshot {
-  image: ImageFile;
-  timestampMillis?: number;
-}
+const SCREENSHOT_CACHE_LENIENCY_MS = 1000;
 
 export class MediaServer {
   private readonly obsWs = new ObsWebSocket();
@@ -41,8 +25,9 @@ export class MediaServer {
   private streamWidth = 0;
   private streamHeight = 0;
   private recordingFile?: string;
-  private fullScreenshots: Screenshot[] = [];
-  private thumbnails: Screenshot[] = [];
+  // TODO: Cache per recording file
+  private fullScreenshotCache = new ScreenshotCache(SCREENSHOT_CACHE_LENIENCY_MS);
+  private thumbnailCache = new ScreenshotCache(SCREENSHOT_CACHE_LENIENCY_MS);
 
   public constructor(dirName = 'media') {
     this.dirName = dirName;
@@ -95,6 +80,8 @@ export class MediaServer {
     // TODO: FFmpeg cannot operate on certain file types while they're still being written (e.g.
     // mp4). We should handle this somehow.
     this.recordingFile = file;
+    this.fullScreenshotCache = new ScreenshotCache(SCREENSHOT_CACHE_LENIENCY_MS);
+    this.thumbnailCache = new ScreenshotCache(SCREENSHOT_CACHE_LENIENCY_MS);
   }
 
   private async getCurrentScreenshot(height: number): Promise<Screenshot> {
@@ -135,15 +122,8 @@ export class MediaServer {
   public async getCurrentFullScreenshot(): Promise<ImageFile> {
     return this.getCurrentScreenshot(this.streamHeight)
       .then(s => {
-        this.fullScreenshots.push(s);
-        return s.image;
-      });
-  }
-
-  public async getFullScreenshot(timestamp: Timestamp): Promise<ImageFile> {
-    return this.getScreenshot(timestamp, this.streamHeight)
-      .then(s => {
-        this.fullScreenshots.push(s);
+        this.fullScreenshotCache.add(s);
+        this.thumbnailCache.add(s);
         return s.image;
       });
   }
@@ -151,15 +131,34 @@ export class MediaServer {
   public async getCurrentThumbnail(): Promise<ImageFile> {
     return this.getCurrentScreenshot(THUMBNAIL_SIZE)
       .then(s => {
-        this.thumbnails.push(s);
+        this.thumbnailCache.add(s);
+        return s.image;
+      });
+  }
+
+  public async getFullScreenshot(timestamp: Timestamp): Promise<ImageFile> {
+    const millis = toMillis(timestamp);
+    const cached = this.fullScreenshotCache.get(millis);
+    if (cached) {
+      return cached.image;
+    }
+    return this.getScreenshot(timestamp, this.streamHeight)
+      .then(s => {
+        this.fullScreenshotCache.add(s);
+        this.thumbnailCache.add(s);
         return s.image;
       });
   }
 
   public async getThumbnail(timestamp: Timestamp): Promise<ImageFile> {
+    const millis = toMillis(timestamp);
+    const cached = this.thumbnailCache.get(millis) || this.fullScreenshotCache.get(millis);
+    if (cached) {
+      return cached.image;
+    }
     return this.getScreenshot(timestamp, THUMBNAIL_SIZE)
       .then(s => {
-        this.thumbnails.push(s);
+        this.thumbnailCache.add(s);
         return s.image;
       });
   }

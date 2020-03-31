@@ -1,5 +1,5 @@
-import { User } from "../../models/twitter";
-import { MediaFile } from "../media/server";
+import { MediaFile } from '../../models/media';
+import { User } from '../../models/twitter';
 
 export default interface ClientState {
   loggedIn: boolean;
