@@ -16,3 +16,9 @@ export interface Screenshot {
   image: ImageFile;
   timestampMillis?: number;
 }
+
+export interface Replay {
+  video: VideoFile;
+  startMillis?: number;
+  endMillis?: number;
+}

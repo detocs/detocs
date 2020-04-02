@@ -1,11 +1,14 @@
 import find from 'find-process';
 import { promises as fs, statSync } from 'fs';
 import ObsWebSocket from 'obs-websocket-js';
-import { dirname, extname, isAbsolute, join } from 'path';
+import { dirname, extname, isAbsolute, join, basename } from 'path';
 
 import { Timestamp } from '../models/timestamp';
 
 import { getConfig } from './config';
+
+// TODO: Get actual replay prefix from OBS
+export const OBS_REPLAY_PREFIX = 'Replay';
 
 export async function isRecording(obs: ObsWebSocket): Promise<boolean> {
   const resp = await obs.send('GetStreamingStatus');
@@ -84,7 +87,8 @@ export async function getRecordingFile(
   }
 
   let files = await fs.readdir(folder);
-  files = files.filter(f => VIDEO_FILE_EXTENSIONS.includes(extname(f)));
+  files = files.filter(f => VIDEO_FILE_EXTENSIONS.includes(extname(f)))
+    .filter(f => !basename(f).startsWith(OBS_REPLAY_PREFIX));
   const timestamps = files.reduce((map: Map<string, number>, file: string) => {
     const stat = statSync(join(folder, file));
     map.set(file, stat.birthtimeMs);

@@ -4,18 +4,22 @@ logger.error = logger.error.bind(logger);
 
 import { promises as fs } from 'fs';
 import ObsWebSocket from 'obs-websocket-js';
-import { join } from 'path';
+import path from 'path';
 
-import { Screenshot, ImageFile } from '../../models/media';
+import { Screenshot, ImageFile, Replay } from '../../models/media';
 import { Timestamp } from '../../models/timestamp';
+import { delay } from '../../util/async';
 import * as ffmpeg from '../../util/ffmpeg';
 import { tmpDir } from '../../util/fs';
 import * as obs from '../../util/obs';
 import { sanitizeTimestamp, toMillis } from '../../util/timestamp';
+
 import { ScreenshotCache } from './screenshot-cache';
+import { ReplayCache } from './replayCache';
 
 const THUMBNAIL_SIZE = 135;
 const SCREENSHOT_CACHE_LENIENCY_MS = 1000;
+const REPLAY_CACHE_LENIENCY_MS = 500;
 
 export class MediaServer {
   private readonly obsWs = new ObsWebSocket();
@@ -25,9 +29,11 @@ export class MediaServer {
   private streamWidth = 0;
   private streamHeight = 0;
   private recordingFile?: string;
+  private recordingFolder?: string;
   // TODO: Cache per recording file
   private fullScreenshotCache = new ScreenshotCache(SCREENSHOT_CACHE_LENIENCY_MS);
   private thumbnailCache = new ScreenshotCache(SCREENSHOT_CACHE_LENIENCY_MS);
+  private replayCache = new ReplayCache(REPLAY_CACHE_LENIENCY_MS);
 
   public constructor(dirName = 'media') {
     this.dirName = dirName;
@@ -76,12 +82,16 @@ export class MediaServer {
   }
 
   private async getRecordingFile(): Promise<void> {
-    const { file } = await obs.getRecordingFile(this.obsWs);
+    const { file, folder } = await obs.getRecordingFile(this.obsWs);
     // TODO: FFmpeg cannot operate on certain file types while they're still being written (e.g.
     // mp4). We should handle this somehow.
     this.recordingFile = file;
+    this.recordingFolder = folder;
+    logger.info(`Recording file: ${this.recordingFile}`);
+    logger.info(`Recording folder: ${this.recordingFolder}`);
     this.fullScreenshotCache = new ScreenshotCache(SCREENSHOT_CACHE_LENIENCY_MS);
     this.thumbnailCache = new ScreenshotCache(SCREENSHOT_CACHE_LENIENCY_MS);
+    this.replayCache = new ReplayCache(REPLAY_CACHE_LENIENCY_MS);
   }
 
   private async getCurrentScreenshot(height: number): Promise<Screenshot> {
@@ -129,6 +139,7 @@ export class MediaServer {
   }
 
   public async getCurrentThumbnail(): Promise<ImageFile> {
+    this.cacheReplay();
     return this.getCurrentScreenshot(THUMBNAIL_SIZE)
       .then(s => {
         this.thumbnailCache.add(s);
@@ -178,7 +189,7 @@ export class MediaServer {
     if (!this.dir) {
       throw new Error('Server used before starting');
     }
-    const filePath = join(this.dir, fileName);
+    const filePath = path.join(this.dir, fileName);
     return await fs.writeFile(filePath, data, { encoding: 'hex' });
   }
 
@@ -191,5 +202,53 @@ export class MediaServer {
       throw new Error('Server used before starting');
     }
     return url.replace(`/${this.dirName}`, this.dir);
+  }
+
+  private async cacheReplay(): Promise<void> {
+    // TODO: 'SaveReplayBuffer' doesn't wait until the file written to resolve, so we'll need to
+    // figure out something else here.
+    return this.obsWs.send('SaveReplayBuffer')
+      .catch(() => logger.debug('Attempted to cache replay, but replays not enabled'))
+      .then(delay(1000))
+      .then(this.getLatestReplay.bind(this))
+      .then(r => { r && this.addReplayToCache(r); });
+  }
+
+  private async getLatestReplay(): Promise<string | null> {
+    if (!this.recordingFolder) {
+      return null;
+    }
+    return fs.readdir(this.recordingFolder)
+      .then(files => files
+        .filter(f => f.startsWith(obs.OBS_REPLAY_PREFIX))
+        .map(f => path.join(this.recordingFolder || '', f))
+        .slice(-1)[0] ||
+        null);
+  }
+
+  private async addReplayToCache(filePath: string): Promise<void> {
+    if (!this.dir) {
+      throw new Error('Server used before starting');
+    }
+    const filename = path.basename(filePath);
+    const nowMs = Date.now();
+    const [ timestamp, fileStats, videoStats ] = await Promise.all([
+      obs.getRecordingTimestamp(this.obsWs),
+      fs.stat(filePath),
+      ffmpeg.getVideoStats(filePath)
+    ]);
+    if (!timestamp || !fileStats || !videoStats) {
+      return;
+    }
+    const endMillis = toMillis(timestamp) - (nowMs - Math.trunc(fileStats.birthtimeMs));
+    const startMillis = endMillis - videoStats.durationMs;
+    const replay: Replay = {
+      video: { url: this.getUrl(filename), type: 'video' },
+      startMillis,
+      endMillis,
+    };
+    // TODO: Consider copying the file first
+    fs.copyFile(filePath, path.join(this.dir, filename));
+    this.replayCache.add(replay);
   }
 }

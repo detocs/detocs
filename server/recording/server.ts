@@ -293,27 +293,11 @@ async function cutRecording(req: Request, res: Response): Promise<void> {
 };
 
 async function getRecordingFile(): Promise<void> {
-  const VIDEO_FILE_EXTENSIONS = ['.flv', '.mp4', '.mov', '.mkv', '.ts', '.m3u8'];
-  let folder = await obsUtil.getRecordingFolder(obs);
-  if (!path.isAbsolute(folder)) {
-    // Some super cool guy is using relative paths with OBS
-    const listeners = await find('port', getConfig().obsWebsocketPort);
-    if (listeners.length) {
-      folder = path.join(path.dirname((listeners[0] as ProcessInfo).bin), folder);
-    }
-  }
+  const { file, folder } = await obsUtil.getRecordingFile(obs);
+  state.streamRecordingFile = file;
   state.streamRecordingFolder = folder;
-  logger.info(`Recording folder: ${state.streamRecordingFolder}`);
-
-  let files = fs.readdirSync(folder);
-  files = files.filter(f => VIDEO_FILE_EXTENSIONS.includes(path.extname(f)));
-  const timestamps = files.reduce((map: Map<string, number>, file: string) => {
-    map.set(file, fs.statSync(path.join(folder, file)).birthtimeMs);
-    return map;
-  }, new Map());
-  files.sort((a: string, b: string) => (timestamps.get(a) || 0) - (timestamps.get(b) || 0));
-  state.streamRecordingFile = path.join(folder, files.pop() || '');
   logger.info(`Recording file: ${state.streamRecordingFile}`);
+  logger.info(`Recording folder: ${state.streamRecordingFolder}`);
 }
 
 async function saveRecording(
