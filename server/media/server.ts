@@ -6,13 +6,13 @@ import { promises as fs } from 'fs';
 import ObsWebSocket from 'obs-websocket-js';
 import path from 'path';
 
-import { Screenshot, ImageFile, Replay } from '../../models/media';
+import { Screenshot, ImageFile, Replay, MediaFile } from '../../models/media';
 import { Timestamp } from '../../models/timestamp';
 import { delay } from '../../util/async';
 import * as ffmpeg from '../../util/ffmpeg';
 import { tmpDir } from '../../util/fs';
 import * as obs from '../../util/obs';
-import { sanitizeTimestamp, toMillis } from '../../util/timestamp';
+import { sanitizeTimestamp, toMillis, fromMillis } from '../../util/timestamp';
 
 import { ScreenshotCache } from './screenshot-cache';
 import { ReplayCache } from './replayCache';
@@ -102,31 +102,50 @@ export class MediaServer {
       throw new Error('Couldn\'t get screenshot');
     }
 
-    const fileName = await this.saveImageFile(
+    const filename = await this.saveImageFile(
       timestamp,
       height,
       Buffer.from(base64Img.substring(22), 'base64'),
     );
     return {
-      image: { url: this.getUrl(fileName), type: 'image', height },
+      image: { filename, url: this.getUrl(filename), type: 'image', height },
       timestampMillis: timestamp ? toMillis(timestamp) : undefined,
     };
   }
 
-  private async getScreenshot(timestamp: Timestamp, height: number): Promise<Screenshot> {
+  private async getVideoFrameFromMainRecording(
+    timestamp: Timestamp,
+    height: number,
+  ): Promise<Buffer> {
     if (!this.recordingFile) {
       throw new Error('Recording not started');
     }
-    const img = await ffmpeg.getVideoFrame(this.recordingFile, timestamp, { height })
+    return this.getVideoFrame(this.recordingFile, timestamp, height);
+  }
+
+  private async getVideoFrameFromReplay(
+    replay: Required<Replay>,
+    millis: number,
+    height: number,
+  ): Promise<Buffer> {
+    return this.getVideoFrame(
+      this.getFullPath(replay.video),
+      fromMillis(millis - replay.startMillis),
+      height,
+    );
+  }
+
+  private async getVideoFrame(
+    videoFile: string,
+    timestamp: Timestamp,
+    height: number,
+  ): Promise<Buffer> {
+    const img = await ffmpeg.getVideoFrame(videoFile, timestamp, { height })
       .catch(logger.error);
     if (!img) {
       throw new Error('Unable to get video thumbnail');
     }
-    const fileName = await this.saveImageFile(timestamp, height, img);
-    return {
-      image: { url: this.getUrl(fileName), type: 'image', height },
-      timestampMillis: toMillis(timestamp),
-    };
+    return img;
   }
 
   public async getCurrentFullScreenshot(): Promise<ImageFile> {
@@ -148,30 +167,51 @@ export class MediaServer {
   }
 
   public async getFullScreenshot(timestamp: Timestamp): Promise<ImageFile> {
-    const millis = toMillis(timestamp);
-    const cached = this.fullScreenshotCache.get(millis);
-    if (cached) {
-      return cached.image;
-    }
-    return this.getScreenshot(timestamp, this.streamHeight)
-      .then(s => {
-        this.fullScreenshotCache.add(s);
-        this.thumbnailCache.add(s);
-        return s.image;
-      });
+    return this.getScreenshot(
+      timestamp,
+      [ this.fullScreenshotCache ],
+      [ this.fullScreenshotCache, this.thumbnailCache ],
+      this.streamHeight,
+    );
   }
 
   public async getThumbnail(timestamp: Timestamp): Promise<ImageFile> {
+    return this.getScreenshot(
+      timestamp,
+      [ this.thumbnailCache, this.fullScreenshotCache ],
+      [ this.thumbnailCache ],
+      THUMBNAIL_SIZE,
+    );
+  }
+
+  private async getScreenshot(
+    timestamp: Timestamp,
+    readCaches: ScreenshotCache[],
+    writeCaches: ScreenshotCache[],
+    height: number,
+  ): Promise<ImageFile> {
     const millis = toMillis(timestamp);
-    const cached = this.thumbnailCache.get(millis) || this.fullScreenshotCache.get(millis);
-    if (cached) {
-      return cached.image;
+    for (const cache of readCaches) {
+      const cachedScreenshot = cache.get(millis);
+      if (cachedScreenshot) {
+        return cachedScreenshot.image;
+      }
     }
-    return this.getScreenshot(timestamp, THUMBNAIL_SIZE)
-      .then(s => {
-        this.thumbnailCache.add(s);
-        return s.image;
-      });
+    let asyncImage: Promise<Buffer> | undefined;
+    const cachedReplay = this.replayCache.get(millis);
+    if (cachedReplay) {
+      asyncImage = this.getVideoFrameFromReplay(cachedReplay, millis, height);
+    } else {
+      asyncImage = this.getVideoFrameFromMainRecording(timestamp, height);
+    }
+    const img = await asyncImage;
+    const filename = await this.saveImageFile(timestamp, height, img);
+    const screenshot: Screenshot = {
+      image: { filename, url: this.getUrl(filename), type: 'image', height },
+      timestampMillis: millis,
+    };
+    writeCaches.forEach(cache => cache.add(screenshot));
+    return screenshot.image;
   }
 
   private async saveImageFile(
@@ -197,6 +237,14 @@ export class MediaServer {
     return `/${this.dirName}/${fileName}`;
   }
 
+  public getFullPath(file: MediaFile): string {
+    if (!this.dir) {
+      throw new Error('Server used before starting');
+    }
+    return path.normalize(path.join(this.dir, file.filename));
+  }
+
+  // TODO: Get rid of this
   public getPathFromUrl(url: string): string {
     if (!this.dir) {
       throw new Error('Server used before starting');
@@ -243,7 +291,7 @@ export class MediaServer {
     const endMillis = toMillis(timestamp) - (nowMs - Math.trunc(fileStats.birthtimeMs));
     const startMillis = endMillis - videoStats.durationMs;
     const replay: Replay = {
-      video: { url: this.getUrl(filename), type: 'video' },
+      video: { filename, url: this.getUrl(filename), type: 'video' },
       startMillis,
       endMillis,
     };

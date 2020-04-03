@@ -8,7 +8,7 @@ export class ScreenshotCache {
     this.leniency = leniency;
   }
 
-  public get(timestamp: number): Screenshot | null {
+  public get(timestamp: number): Required<Screenshot> | null {
     // TODO: Optimize if we actually need to deal with a large number of screenshots
     return this.screenshots.find(s => {
       const diff = Math.abs(timestamp - s.timestampMillis);

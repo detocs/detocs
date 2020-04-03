@@ -1,4 +1,5 @@
 export interface MediaFile {
+  filename: string;
   url: string;
   type: string;
 }

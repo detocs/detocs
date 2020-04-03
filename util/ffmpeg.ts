@@ -44,6 +44,7 @@ export async function getVideoFrame(
   dimensions: { width?: number; height?: number } = {},
 ): Promise<Buffer> {
   const args = [
+    '-v', 'warning',
     '-ss', timestamp,
     '-noaccurate_seek',
     '-an',

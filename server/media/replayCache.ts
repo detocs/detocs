@@ -8,7 +8,7 @@ export class ReplayCache {
     this.leniency = leniency;
   }
 
-  public get(timestamp: number): Replay | null {
+  public get(timestamp: number): Required<Replay> | null {
     // TODO: Optimize if we actually need to deal with a large number of replays
     return this.replays.find(r => {
       return r.startMillis - this.leniency <= timestamp &&
