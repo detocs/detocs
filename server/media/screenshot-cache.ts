@@ -11,7 +11,7 @@ export class ScreenshotCache {
   public get(timestamp: number): Required<Screenshot> | null {
     // TODO: Optimize if we actually need to deal with a large number of screenshots
     return this.screenshots.find(s => {
-      const diff = Math.abs(timestamp - s.timestampMillis);
+      const diff = Math.abs(timestamp - s.timestampMs);
       return diff >= 0 && diff < this.leniency;
     }) || null;
   }
@@ -24,6 +24,6 @@ export class ScreenshotCache {
   }
 }
 function hasTimestamp(s: Screenshot): s is Required<Screenshot> {
-  return s.timestampMillis != null;
+  return s.timestampMs != null;
 }
 

@@ -5,7 +5,15 @@ import startBracketServer from './bracket/server';
 import startControlServer from './control/server';
 import startInfoServer from './info/server';
 import { MediaServer } from './media/server';
-import { CONTROL_PORT, INFO_PORT, RECORDING_PORT, TWITTER_PORT, BRACKETS_PORT } from './ports';
+import startMediaDashboardServer from './media-dashboard/server';
+import {
+  CONTROL_PORT,
+  INFO_PORT,
+  RECORDING_PORT,
+  TWITTER_PORT,
+  BRACKETS_PORT,
+  MEDIA_DASHBOARD_PORT,
+} from './ports';
 import startRecordingServer from './recording/server';
 import startTwitterServer from './twitter/server';
 
@@ -17,4 +25,5 @@ export default function start(mediaServer: MediaServer): void {
   startRecordingServer(RECORDING_PORT, mediaServer);
   startTwitterServer(TWITTER_PORT, mediaServer);
   startBracketServer(BRACKETS_PORT);
+  startMediaDashboardServer(MEDIA_DASHBOARD_PORT, mediaServer);
 };

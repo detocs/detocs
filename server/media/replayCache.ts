@@ -11,8 +11,8 @@ export class ReplayCache {
   public get(timestamp: number): Required<Replay> | null {
     // TODO: Optimize if we actually need to deal with a large number of replays
     return this.replays.find(r => {
-      return r.startMillis - this.leniency <= timestamp &&
-        r.endMillis + this.leniency >= timestamp;
+      return r.startMs - this.leniency <= timestamp &&
+        r.endMs + this.leniency >= timestamp;
     }) || null;
   }
 
@@ -24,5 +24,5 @@ export class ReplayCache {
   }
 }
 function hasTimestamps(r: Replay): r is Required<Replay> {
-  return r.startMillis != null && r.endMillis != null;
+  return r.startMs != null && r.endMs != null;
 }

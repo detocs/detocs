@@ -2,6 +2,10 @@ import { h, render, FunctionalComponent, VNode, Fragment } from 'preact';
 
 import BracketState, { nullState as nullBracketState } from '../../server/bracket/state';
 import InfoState, { nullState as nullInfoState } from '../../server/info/state';
+import {
+  State as MediaState,
+  nullState as nullMediaState
+} from '../../server/media-dashboard/state';
 import RecordingState, { nullState as nullRecordingState } from '../../server/recording/state';
 import TwitterState, { nullState as nullTwitterState } from '../../server/twitter/client-state';
 import { massagedFormData } from '../../util/forms';
@@ -10,7 +14,13 @@ import { getVersion } from "../../util/meta";
 import { useServerState } from './hooks/server-state';
 import { useToggle } from './hooks/toggle';
 
-import { infoEndpoint, twitterEndpoint, recordingEndpoint, bracketEndpoint } from './api';
+import {
+  infoEndpoint,
+  twitterEndpoint,
+  recordingEndpoint,
+  bracketEndpoint,
+  mediaDashboardEndpoint
+} from './api';
 import BracketDashboard from './bracket-dashboard';
 import BreakDashboard from './break-dashboard';
 import CommentaryDashboard from './commentary-dashboard';
@@ -19,6 +29,7 @@ import RecordingDashboard from './recording-dashboard';
 import Tab from './tab';
 import TabController from './tab-controller';
 import TwitterDashboard from './twitter-dashboard';
+import ClipDashboard from './clip-dashboard';
 
 document.addEventListener('DOMContentLoaded', () => {
   render(<App />, document.body);
@@ -44,6 +55,10 @@ const App: FunctionalComponent<{}> = (): VNode => {
   const [ bracketState, updateBracketState ] = useServerState<BracketState>(
     bracketEndpoint('', 'ws:'),
     nullBracketState,
+  );
+  const [ mediaDashboardState, updateMediaDashboardState ] = useServerState<MediaState>(
+    mediaDashboardEndpoint('', 'ws:'),
+    nullMediaState,
   );
 
   return (
@@ -71,6 +86,9 @@ const App: FunctionalComponent<{}> = (): VNode => {
             thread={twitterThread}
             onThreadToggle={toggleTwitterThread}
           />
+        </Tab>
+        <Tab id="clips">
+          <ClipDashboard state={mediaDashboardState} updateState={updateMediaDashboardState}/>
         </Tab>
         <Tab id="break">
           <BreakDashboard state={infoState} updateState={updateInfoState}/>

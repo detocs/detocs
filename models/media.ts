@@ -11,15 +11,26 @@ export type ImageFile = MediaFile & {
 
 export type VideoFile = MediaFile & {
   type: 'video';
+  durationMs: number;
 };
 
 export interface Screenshot {
   image: ImageFile;
-  timestampMillis?: number;
+  timestampMs?: number;
 }
 
 export interface Replay {
   video: VideoFile;
-  startMillis?: number;
-  endMillis?: number;
+  waveform: ImageFile;
+  startMs?: number;
+  endMs?: number;
+}
+
+export interface Clip {
+  video: VideoFile;
+  waveform: ImageFile;
+  clipStartMs: number;
+  clipEndMs: number;
+  recordingTimestampMs?: number;
+  streamTimestampMs?: number;
 }

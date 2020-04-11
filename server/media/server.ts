@@ -12,6 +12,7 @@ import { delay } from '../../util/async';
 import * as ffmpeg from '../../util/ffmpeg';
 import { tmpDir } from '../../util/fs';
 import * as obs from '../../util/obs';
+import * as pathUtil from '../../util/path';
 import { sanitizeTimestamp, toMillis, fromMillis } from '../../util/timestamp';
 
 import { ScreenshotCache } from './screenshot-cache';
@@ -109,7 +110,7 @@ export class MediaServer {
     );
     return {
       image: { filename, url: this.getUrl(filename), type: 'image', height },
-      timestampMillis: timestamp ? toMillis(timestamp) : undefined,
+      timestampMs: timestamp ? toMillis(timestamp) : undefined,
     };
   }
 
@@ -130,7 +131,7 @@ export class MediaServer {
   ): Promise<Buffer> {
     return this.getVideoFrame(
       this.getFullPath(replay.video),
-      fromMillis(millis - replay.startMillis),
+      fromMillis(millis - replay.startMs),
       height,
     );
   }
@@ -158,7 +159,7 @@ export class MediaServer {
   }
 
   public async getCurrentThumbnail(): Promise<ImageFile> {
-    this.cacheReplay();
+    this.getReplay();
     return this.getCurrentScreenshot(THUMBNAIL_SIZE)
       .then(s => {
         this.thumbnailCache.add(s);
@@ -208,7 +209,7 @@ export class MediaServer {
     const filename = await this.saveImageFile(timestamp, height, img);
     const screenshot: Screenshot = {
       image: { filename, url: this.getUrl(filename), type: 'image', height },
-      timestampMillis: millis,
+      timestampMs: millis,
     };
     writeCaches.forEach(cache => cache.add(screenshot));
     return screenshot.image;
@@ -252,17 +253,17 @@ export class MediaServer {
     return url.replace(`/${this.dirName}`, this.dir);
   }
 
-  private async cacheReplay(): Promise<void> {
+  public async getReplay(): Promise<Replay | null> {
     // TODO: 'SaveReplayBuffer' doesn't wait until the file written to resolve, so we'll need to
     // figure out something else here.
     return this.obsWs.send('SaveReplayBuffer')
       .catch(() => logger.debug('Attempted to cache replay, but replays not enabled'))
       .then(delay(1000))
-      .then(this.getLatestReplay.bind(this))
-      .then(r => { r && this.addReplayToCache(r); });
+      .then(this.getLatestReplayPath.bind(this))
+      .then(r => r ? this.fetchReplayFile(r) : null);
   }
 
-  private async getLatestReplay(): Promise<string | null> {
+  private async getLatestReplayPath(): Promise<string | null> {
     if (!this.recordingFolder) {
       return null;
     }
@@ -274,29 +275,50 @@ export class MediaServer {
         null);
   }
 
-  private async addReplayToCache(filePath: string): Promise<void> {
+  private async fetchReplayFile(filePath: string): Promise<Replay> {
     if (!this.dir) {
       throw new Error('Server used before starting');
     }
-    const filename = path.basename(filePath);
     const nowMs = Date.now();
-    const [ timestamp, fileStats, videoStats ] = await Promise.all([
+    const [ timestamp, fileStats, videoStats, copiedFilePath ] = await Promise.all([
       obs.getRecordingTimestamp(this.obsWs),
       fs.stat(filePath),
-      ffmpeg.getVideoStats(filePath)
+      ffmpeg.getVideoStats(filePath),
+      ffmpeg.copyToWebCompatibleFormat(filePath, this.dir),
     ]);
-    if (!timestamp || !fileStats || !videoStats) {
-      return;
+    if (!videoStats) {
+      throw new Error(`Unable to read video stats for ${filePath}`);
     }
-    const endMillis = toMillis(timestamp) - (nowMs - Math.trunc(fileStats.birthtimeMs));
-    const startMillis = endMillis - videoStats.durationMs;
+    if (!copiedFilePath) {
+      throw new Error(`Unable to copy replay file to ${this.dir}`);
+    }
+
+    const waveformFilename = `${pathUtil.withoutExtension(filePath)}_waveform.png`;
+    const waveformPath = path.join(this.dir, waveformFilename);
+    await ffmpeg.getWaveform(filePath, waveformPath, videoStats.durationMs);
+
+    const filename = path.basename(copiedFilePath);
     const replay: Replay = {
-      video: { filename, url: this.getUrl(filename), type: 'video' },
-      startMillis,
-      endMillis,
+      video: {
+        type: 'video',
+        filename,
+        url: this.getUrl(filename),
+        durationMs: videoStats.durationMs,
+      },
+      waveform: {
+        type: 'image',
+        filename: waveformFilename,
+        url: this.getUrl(waveformFilename),
+        height: ffmpeg.WAVEFORM_HEIGHT,
+      },
     };
-    // TODO: Consider copying the file first
-    fs.copyFile(filePath, path.join(this.dir, filename));
-    this.replayCache.add(replay);
+    if (timestamp && fileStats) {
+      const endMillis = toMillis(timestamp) - (nowMs - Math.trunc(fileStats.birthtimeMs));
+      const startMillis = endMillis - videoStats.durationMs;
+      replay.endMs = endMillis;
+      replay.startMs = startMillis;
+      this.replayCache.add(replay);
+    }
+    return replay;
   }
 }
