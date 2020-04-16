@@ -6,11 +6,13 @@ import express, { Request, Response } from 'express';
 import updateImmutable from 'immutability-helper';
 import * as ws from 'ws';
 
+import { Clip } from '../../models/media';
 import { appWebsocketServer } from '../../util/http';
+import uuidv4 from '../../util/uuid';
+
 import { MediaServer } from '../media/server';
 
 import { State, nullState } from './state';
-import { Clip } from '../../models/media';
 
 type WebSocketClient = ws;
 
@@ -76,6 +78,7 @@ class MediaDashboardServer {
     console.log(replay, seconds);
     const startOffset = Math.max(0, replay.video.durationMs - seconds * 1000);
     const clip: Clip = {
+      id: uuidv4(),
       video: replay.video,
       waveform: replay.waveform,
       clipEndMs: replay.video.durationMs,

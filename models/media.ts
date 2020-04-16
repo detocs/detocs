@@ -27,8 +27,10 @@ export interface Replay {
 }
 
 export interface Clip {
+  id: string;
   video: VideoFile;
   waveform: ImageFile;
+  description?: string;
   clipStartMs: number;
   clipEndMs: number;
   recordingTimestampMs?: number;
