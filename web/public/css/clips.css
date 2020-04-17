@@ -18,7 +18,7 @@
   display: flex;
   flex: 1 0 25rem;
   /* TODO: move to video element */
-  height: max(15rem, min(56.25vw, calc(100vh - 3rem - var(--tab-height))));
+  height: max(8rem, min(56.25vw, calc(100vh - 3rem - var(--tab-height))));
 
   flex-flow: column nowrap;
   align-content: center;

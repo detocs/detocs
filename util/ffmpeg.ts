@@ -18,7 +18,7 @@ export const WAVEFORM_HEIGHT = 80;
 const WAVEFORM_PIXELS_PER_MS = 0.06; // 1 pixel per frame
 const WAVEFORM_MAX_WIDTH = 1920;
 
-export async function trimClip(
+export async function losslessCut(
   sourceFile: string,
   start: string,
   end: string,
@@ -30,6 +30,31 @@ export async function trimClip(
     '-i', sourceFile,
     '-codec', 'copy',
     '-avoid_negative_ts', '1',
+    '-y',
+    outFile,
+  ];
+  logger.debug(FFMPEG_COMMAND, args.join(' '));
+  const { stderr } = await pExecFile(FFMPEG_COMMAND, args);
+  if (stderr) {
+    logger.debug(stderr);
+  }
+}
+
+export async function lossyCut(
+  sourceFile: string,
+  start: string,
+  end: string,
+  outFile: string
+): Promise<void> {
+  const args = [
+    '-ss', start,
+    '-to', end,
+    '-i', sourceFile,
+    '-ss', '0',
+    '-codec:v', 'libx264',
+    '-codec:a', 'copy',
+    '-crf', '18',
+    '-y',
     outFile,
   ];
   logger.debug(FFMPEG_COMMAND, args.join(' '));
@@ -140,6 +165,7 @@ export async function getWaveform(
     '-i', sourceFile,
     `-filter_complex`, `showwavespic=s=${width}x${WAVEFORM_HEIGHT}:scale=sqrt:colors=#ccc|#ccc`,
     '-frames:v', '1',
+    '-y',
     outFile,
   ];
   logger.debug(FFMPEG_COMMAND, args.join(' '));

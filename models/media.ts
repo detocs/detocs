@@ -30,7 +30,7 @@ export interface Clip {
   id: string;
   video: VideoFile;
   waveform: ImageFile;
-  description?: string;
+  description: string;
   clipStartMs: number;
   clipEndMs: number;
   recordingTimestampMs?: number;

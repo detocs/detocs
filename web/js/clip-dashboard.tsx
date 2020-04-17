@@ -1,8 +1,7 @@
 import { h, FunctionalComponent, VNode, Fragment } from 'preact';
 import { StateUpdater, useRef, useState } from 'preact/hooks';
 
-import { Clip } from '../../models/media';
-import { State } from '../../server/media-dashboard/state';
+import { State, ClipView, ClipStatus } from '../../server/media-dashboard/state';
 
 import { mediaDashboardEndpoint } from './api';
 import { useLocalState } from './hooks/local-state';
@@ -13,7 +12,7 @@ interface Props {
 }
 
 interface EditorProps {
-  clip: Clip;
+  clipView: ClipView;
   autoplay: boolean;
 }
 
@@ -36,8 +35,11 @@ function clip10(): void {
   fetch(clip10Endpoint, { method: 'POST' }).catch(console.error);
 }
 
-const VideoEdtior: FunctionalComponent<EditorProps> = ({ clip, autoplay }): VNode => {
+const VideoEdtior: FunctionalComponent<EditorProps> = ({ clipView, autoplay }): VNode => {
+  const { clip, status } = clipView;
   const durationMs = clip.video.durationMs;
+  const disabled = status !== ClipStatus.Uncut;
+
   const videoRef = useRef<HTMLVideoElement>();
   const [ startMs, updateStartMs ] = useLocalState(
     clip.clipStartMs,
@@ -59,13 +61,13 @@ const VideoEdtior: FunctionalComponent<EditorProps> = ({ clip, autoplay }): VNod
       class="video-editor"
       autocomplete="off"
     >
-      <div className="video-editor__trimmer">
+      <div class="video-editor__trimmer" aria-busy={status === ClipStatus.Rendering}>
         <video
           class="video-editor__video"
           ref={videoRef}
           src={`${clip.video.url}#t=${startMs / 1000},${endMs / 1000}`}
           onTimeUpdate={e => updateCurrentTime((e.target as HTMLVideoElement).currentTime * 1000)}
-          autoPlay={autoplay}
+          autoPlay={autoplay && !disabled}
           controls
           loop={true}
           muted={true}
@@ -94,6 +96,7 @@ const VideoEdtior: FunctionalComponent<EditorProps> = ({ clip, autoplay }): VNod
             max={startMaximum}
             step={CLIP_RANGE_STEP_MS}
             value={startMs}
+            disabled={disabled}
             onInput={(e) => {
               // TODO: Debounce
               if (!videoRef.current) {
@@ -123,6 +126,7 @@ const VideoEdtior: FunctionalComponent<EditorProps> = ({ clip, autoplay }): VNod
             max={durationMs}
             step={CLIP_RANGE_STEP_MS}
             value={endMs}
+            disabled={disabled}
             onInput={(e) => {
               if (!videoRef.current) {
                 return;
@@ -154,14 +158,14 @@ const VideoEdtior: FunctionalComponent<EditorProps> = ({ clip, autoplay }): VNod
           rows={3}
         >
         </textarea>
-        <button type="submit">Update</button>
-        <button type="submit" formAction={cutEndpoint}>Cut</button>
+        <button type="submit" disabled={disabled}>Update</button>
+        <button type="submit" disabled={disabled} formAction={cutEndpoint}>Cut</button>
       </div>
     </form>
   );
 };
 
-const ClipDashboard: FunctionalComponent<Props> = ({ state, updateState }): VNode => {
+const ClipDashboard: FunctionalComponent<Props> = ({ state }): VNode => {
   return (
     <Fragment>
       <div class="input-row">
@@ -171,9 +175,9 @@ const ClipDashboard: FunctionalComponent<Props> = ({ state, updateState }): VNod
         {state.clips
           .slice()
           .reverse()
-          .map((clip, i) =>
-            <li key={clip.id} class="clips__list-item">
-              {VideoEdtior({ clip, autoplay: i === 0 })}
+          .map((clipView, i) =>
+            <li key={clipView.clip.id} class="clips__list-item">
+              {VideoEdtior({ clipView, autoplay: false })}
             </li>)}
       </ol>
     </Fragment>

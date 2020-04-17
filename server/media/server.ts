@@ -6,7 +6,7 @@ import { promises as fs } from 'fs';
 import ObsWebSocket from 'obs-websocket-js';
 import path from 'path';
 
-import { Screenshot, ImageFile, Replay, MediaFile } from '../../models/media';
+import { Screenshot, ImageFile, Replay, MediaFile, VideoFile } from '../../models/media';
 import { Timestamp } from '../../models/timestamp';
 import { delay } from '../../util/async';
 import * as ffmpeg from '../../util/ffmpeg';
@@ -221,36 +221,29 @@ export class MediaServer {
     img: Buffer,
   ): Promise<string> {
     const timestampStr = timestamp ? sanitizeTimestamp(timestamp) : Date.now();
-    const fileName = `${timestampStr}_${size}.png`;
-    await this.saveFile(fileName, img);
-    return fileName;
+    const filename = `${timestampStr}_${size}.png`;
+    await this.saveFile(filename, img);
+    return filename;
   }
 
-  private async saveFile(fileName: string, data: unknown): Promise<void> {
-    if (!this.dir) {
-      throw new Error('Server used before starting');
-    }
-    const filePath = path.join(this.dir, fileName);
-    return await fs.writeFile(filePath, data, { encoding: 'hex' });
+  private async saveFile(filename: string, data: unknown): Promise<void> {
+    return await fs.writeFile(this.getFullPath(filename), data, { encoding: 'hex' });
   }
 
-  private getUrl(fileName: string): string {
-    return `/${this.dirName}/${fileName}`;
+  private getUrl(filename: string): string {
+    return `/${this.dirName}/${filename}`;
   }
 
-  public getFullPath(file: MediaFile): string {
-    if (!this.dir) {
-      throw new Error('Server used before starting');
-    }
-    return path.normalize(path.join(this.dir, file.filename));
+  public getFullPath(fileOrName: MediaFile | string): string {
+    const filename = typeof fileOrName === 'string' ?
+      fileOrName :
+      fileOrName.filename;
+    return path.normalize(path.join(this.getDir(), filename));
   }
 
   // TODO: Get rid of this
   public getPathFromUrl(url: string): string {
-    if (!this.dir) {
-      throw new Error('Server used before starting');
-    }
-    return url.replace(`/${this.dirName}`, this.dir);
+    return url.replace(`/${this.dirName}`, this.getDir());
   }
 
   public async getReplay(): Promise<Replay | null> {
@@ -276,25 +269,23 @@ export class MediaServer {
   }
 
   private async fetchReplayFile(filePath: string): Promise<Replay> {
-    if (!this.dir) {
-      throw new Error('Server used before starting');
-    }
+    const dir = this.getDir();
     const nowMs = Date.now();
     const [ timestamp, fileStats, videoStats, copiedFilePath ] = await Promise.all([
       obs.getRecordingTimestamp(this.obsWs),
       fs.stat(filePath),
       ffmpeg.getVideoStats(filePath),
-      ffmpeg.copyToWebCompatibleFormat(filePath, this.dir),
+      ffmpeg.copyToWebCompatibleFormat(filePath, dir),
     ]);
     if (!videoStats) {
       throw new Error(`Unable to read video stats for ${filePath}`);
     }
     if (!copiedFilePath) {
-      throw new Error(`Unable to copy replay file to ${this.dir}`);
+      throw new Error(`Unable to copy replay file to ${dir}`);
     }
 
     const waveformFilename = `${pathUtil.withoutExtension(filePath)}_waveform.png`;
-    const waveformPath = path.join(this.dir, waveformFilename);
+    const waveformPath = this.getFullPath(waveformFilename);
     await ffmpeg.getWaveform(filePath, waveformPath, videoStats.durationMs);
 
     const filename = path.basename(copiedFilePath);
@@ -320,5 +311,27 @@ export class MediaServer {
       this.replayCache.add(replay);
     }
     return replay;
+  }
+
+  public async cutVideo(
+    video: VideoFile,
+    startMs: number,
+    endMs: number,
+    filename: string,
+  ): Promise<VideoFile> {
+    await ffmpeg.lossyCut(
+      this.getFullPath(video),
+      fromMillis(startMs),
+      fromMillis(endMs),
+      this.getFullPath(filename),
+    );
+    // TODO: We might need to actually read the file metadata and get the real
+    // duration
+    return {
+      type: 'video',
+      filename,
+      url: this.getUrl(filename),
+      durationMs: endMs - startMs,
+    };
   }
 }

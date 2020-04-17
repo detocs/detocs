@@ -6,7 +6,6 @@ import cors from 'cors';
 import express, { Request, Response } from 'express';
 import formidable from 'express-formidable';
 import filenamify from 'filenamify';
-import find from 'find-process';
 import fs from 'fs';
 import { createServer } from 'http';
 import ObsWebSocket from 'obs-websocket-js';
@@ -14,8 +13,8 @@ import path from 'path';
 import { promisify } from 'util';
 import * as ws from 'ws';
 
-import { getConfig } from '../../util/config';
 import * as ffmpeg from '../../util/ffmpeg';
+import * as httpUtil from '../../util/http';
 import * as obsUtil from '../../util/obs';
 import SmashggClient from '../../util/smashgg';
 import { sanitizeTimestamp, validateTimestamp } from '../../util/timestamp';
@@ -29,6 +28,8 @@ import State, { Recording } from './state';
 import RecordingLogger from './log';
 
 const asyncMkdir = promisify(fs.mkdir);
+const sendUserError = httpUtil.sendUserError.bind(null, logger);
+const sendServerError = httpUtil.sendServerError.bind(null, logger);
 
 interface ProcessInfo {
   pid: number;
@@ -316,7 +317,7 @@ async function saveRecording(
   await asyncMkdir(outputFolder, { recursive: true });
 
   const videoOutputPath = path.join(outputFolder, outputFilename + extension);
-  await ffmpeg.trimClip(sourceFile, start, end, videoOutputPath);
+  await ffmpeg.losslessCut(sourceFile, start, end, videoOutputPath);
   return videoOutputPath;
 }
 
@@ -384,14 +385,4 @@ function newRecording(streamRecordingFile: string, startTimestamp: string): Reco
 
 function getRecordingById(id: string): Recording | undefined {
   return state.recordings.find(r => r.id === id);
-}
-
-function sendUserError(res: express.Response, msg: string): void {
-  logger.warn(msg);
-  res.status(400).send(msg);
-}
-
-function sendServerError(res: express.Response, msg: string): void {
-  logger.error(msg);
-  res.status(500).send(msg);
 }
