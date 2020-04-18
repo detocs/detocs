@@ -2,11 +2,12 @@ import log4js from 'log4js';
 const logger = log4js.getLogger('server/twitter/oauth');
 logger.error = logger.error.bind(logger);
 
-import crypto from 'crypto';
+// TODO: Replace with interface
 import OAuth from 'oauth-1.0a';
 
 import { AccessToken } from "../../models/twitter";
 import { checkResponseStatus } from '../../util/http';
+import { getOauth1 } from '../../util/oauth';
 
 export default class TwitterOAuth {
   private oauth: OAuth;
@@ -21,19 +22,7 @@ export default class TwitterOAuth {
     onAuth: (accessToken: AccessToken) => void) 
   {
     this.apiKey = apiKey;
-    this.oauth = new OAuth({
-      consumer: {
-        key: apiKey,
-        secret: apiKeySecret,
-      },
-      'signature_method': 'HMAC-SHA1',
-      'hash_function'(baseString, key) {
-        return crypto
-          .createHmac('sha1', key)
-          .update(baseString)
-          .digest('base64');
-      },
-    });
+    this.oauth = getOauth1(apiKey, apiKeySecret);
     this.onAuth = onAuth;
   }
 

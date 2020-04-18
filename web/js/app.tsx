@@ -82,7 +82,8 @@ const App: FunctionalComponent<{}> = (): VNode => {
         </Tab>
         <Tab id="twitter">
           <TwitterDashboard
-            {...twitterState}
+            twitterState={twitterState}
+            mediaDashboardState={mediaDashboardState}
             thread={twitterThread}
             onThreadToggle={toggleTwitterThread}
           />
@@ -110,6 +111,9 @@ function bindSubmitHandler(): void {
       const methodAttr = triggerAttributes.getNamedItem('formmethod');
       action = (actionAttr && actionAttr.value) || action;
       method = (methodAttr && methodAttr.value) || method;
+    }
+    if (form.classList.contains('js-manual-form')) {
+      return;
     }
     const body = massagedFormData(new FormData(form));
     fetch(action, { method, body })

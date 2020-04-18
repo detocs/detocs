@@ -52,8 +52,9 @@ export async function lossyCut(
     '-i', sourceFile,
     '-ss', '0',
     '-codec:v', 'libx264',
-    '-codec:a', 'copy',
     '-crf', '18',
+    '-codec:a', 'copy',
+    '-threads', '2',
     '-y',
     outFile,
   ];

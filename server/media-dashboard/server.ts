@@ -100,10 +100,18 @@ class MediaDashboardServer {
   }
 
   private getClip = async (seconds: number, req: Request, res: Response): Promise<void> => {
-    const replay = await this.media.getReplay();
-    if (!replay) {
+    let replay;
+    try {
+      replay = await this.media.getReplay();
+    } catch(err) {
+      sendServerError(res, `Unable to get replay: ${err}`);
       return;
     }
+    if (!replay) {
+      sendServerError(res, 'Unable to get replay');
+      return;
+    }
+
     const startOffset = Math.max(0, replay.video.durationMs - seconds * 1000);
     const clip: Clip = {
       id: uuidv4(),

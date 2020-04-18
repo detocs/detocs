@@ -12,7 +12,7 @@ import * as ws from 'ws';
 
 import { AccessToken } from '../../models/twitter';
 import { getCredentials, saveCredentials } from '../../util/credentials';
-import { dataFromUri } from '../../util/image';
+import * as httpUtil from '../../util/http';
 import * as twitter from '../../util/twitter';
 import { MediaServer } from '../media/server';
 
@@ -29,6 +29,14 @@ interface InternalState {
   lastTweetId: string | null;
 }
 
+interface TweetRequest {
+  body?: string;
+  media?: string;
+  thread?: 'on' | '';
+}
+
+const sendUserError = httpUtil.sendUserError.bind(null, logger);
+const sendServerError = httpUtil.sendServerError.bind(null, logger);
 const clientState = Object.assign({}, nullState);
 const internalState: InternalState = {
   apiKey: null,
@@ -131,27 +139,32 @@ function initTwitClient(apiKey: string, apiKeySecret: string, accessToken: Acces
 }
 
 async function tweet(req: express.Request, res: express.Response): Promise<void> {
-  if (!req.fields) {
-    res.sendStatus(400);
+  if (!twit) {
+    sendServerError(res, 'Twitter client not intitalized');
     return;
   }
-  const body = req.fields['body'] as string;
-  if (!body || !twit) {
-    res.sendStatus(400);
+
+  const { body, media: mediaUrl, thread } = req.fields as TweetRequest;
+  if (body == null) {
+    sendUserError(res, 'body is required');
     return;
   }
-  const img = req.fields['image'] as string | undefined;
-  const imgPath = img && media?.getPathFromUrl(img);
-  let replyTo: string | null = null;
-  if (!!req.fields['thread'] && internalState.lastTweetId) {
-    replyTo = internalState.lastTweetId;
+  const mediaPath = mediaUrl && media?.getPathFromUrl(mediaUrl);
+  const replyTo = !!thread && internalState.lastTweetId ?
+    internalState.lastTweetId :
+    null;
+
+  try {
+    const tweetId = await twitter.tweet(twit, body, replyTo, mediaPath);
+    logger.info(`Created tweet ${tweetId}${replyTo ? ` as a reply to ${replyTo}` : ''}`);
+    internalState.lastTweetId = tweetId;
+    res.sendStatus(200);
+    clientState.screenshot = null;
+    broadcastState(clientState);
+  } catch (err) {
+    sendServerError(res, err);
+    return;
   }
-  const tweetId = await twitter.tweet(twit, body, replyTo, imgPath);
-  logger.info(`Created tweet ${tweetId}${replyTo ? ` as a reply to ${replyTo}` : ''}`);
-  internalState.lastTweetId = tweetId;
-  res.sendStatus(200);
-  clientState.screenshot = null;
-  broadcastState(clientState);
 }
 
 async function getScreenshot(_: express.Request, res: express.Response): Promise<void> {

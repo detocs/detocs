@@ -58,7 +58,13 @@ export class MediaServer {
       this.isConnected = true;
       logger.info('Connected to OBS');
       obs.isRecording(this.obsWs)
-        .then(isRecording => { if (isRecording) { this.getRecordingFile(); } });
+        .then(isRecording => {
+          if (isRecording) {
+            this.getRecordingFile();
+          } else {
+            this.getRecordingFolder();
+          }
+        });
       obs.getOutputDimensions(this.obsWs)
         .then(dims => {
           this.streamWidth = dims.width;
@@ -93,6 +99,12 @@ export class MediaServer {
     this.fullScreenshotCache = new ScreenshotCache(SCREENSHOT_CACHE_LENIENCY_MS);
     this.thumbnailCache = new ScreenshotCache(SCREENSHOT_CACHE_LENIENCY_MS);
     this.replayCache = new ReplayCache(REPLAY_CACHE_LENIENCY_MS);
+  }
+
+  private async getRecordingFolder(): Promise<void> {
+    const folder = await obs.getRecordingFolder(this.obsWs);
+    this.recordingFolder = folder;
+    logger.info(`Recording folder: ${this.recordingFolder}`);
   }
 
   private async getCurrentScreenshot(height: number): Promise<Screenshot> {
@@ -252,13 +264,13 @@ export class MediaServer {
     return this.obsWs.send('SaveReplayBuffer')
       .catch(() => logger.debug('Attempted to cache replay, but replays not enabled'))
       .then(delay(1000))
-      .then(this.getLatestReplayPath.bind(this))
+      .then(this.getLatestReplayPath)
       .then(r => r ? this.fetchReplayFile(r) : null);
   }
 
-  private async getLatestReplayPath(): Promise<string | null> {
+  private getLatestReplayPath = async (): Promise<string | null> => {
     if (!this.recordingFolder) {
-      return null;
+      throw new Error('Missing recording folder path');
     }
     return fs.readdir(this.recordingFolder)
       .then(files => files
@@ -266,7 +278,7 @@ export class MediaServer {
         .map(f => path.join(this.recordingFolder || '', f))
         .slice(-1)[0] ||
         null);
-  }
+  };
 
   private async fetchReplayFile(filePath: string): Promise<Replay> {
     const dir = this.getDir();
