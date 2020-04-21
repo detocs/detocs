@@ -12,6 +12,9 @@
   --color-selection: hsl(180, 80%, 20%);
   --color-link: hsl(180, 100%, 50%);
   --color-link-visited: orange;
+  --bg-alt: hsl(180, 13%, 8%);
+  --bg-vignette: hsla(0, 0%, 0%, 0.5);
+  --margin-small: 0.15rem;
   --tab-height: 1.5rem;
   --width-border: 2px;
   --stream-aspect-ratio: 16/9;
@@ -45,7 +48,7 @@ input[type="text"] {
 }
 
 .input-row {
-  margin-block: 0.15em;
+  margin-block: var(--margin-small);
 
   display: flex;
   flex-wrap: wrap;
@@ -55,7 +58,7 @@ input[type="text"] {
 .input-row > .fragment > *,
 .players > * {
   flex-grow: 1;
-  margin-inline: 0.15em;
+  margin-inline: var(--margin-small);
 }
 
 .input-row button {
@@ -124,8 +127,7 @@ button:focus,
   height: 100%;
   z-index: 10;
 
-  background-color: hsla(0, 0%, 0%, 0.5);
-  pointer-events: none;
+  background: var(--bg-vignette);
 }
 
 [aria-busy="true"]::after {

@@ -1,18 +1,30 @@
 import { h, FunctionalComponent, VNode, Fragment } from 'preact';
 import { StateUpdater, useRef, useState } from 'preact/hooks';
 
-import { State, ClipView, ClipStatus } from '../../server/media-dashboard/state';
+import { ImageClip, VideoClip } from '../../models/media';
+import {
+  State,
+  ClipView,
+  ClipStatus,
+  isImageClipView,
+  isVideoClipView,
+} from '../../server/media-dashboard/state';
 
 import { mediaDashboardEndpoint } from './api';
 import { useLocalState } from './hooks/local-state';
+import { Thumbnail } from './thumbnail';
 
 interface Props {
   state: State;
   updateState: StateUpdater<State>;
 }
 
-interface EditorProps {
-  clipView: ClipView;
+interface ImageViewerProps {
+  clipView: ClipView<ImageClip>;
+}
+
+interface VideoEditorProps {
+  clipView: ClipView<VideoClip>;
   autoplay: boolean;
 }
 
@@ -29,15 +41,37 @@ const CLIP_RANGE_STEP_MS = 250;
 
 const updateEndpoint = mediaDashboardEndpoint('/update').href;
 const cutEndpoint = mediaDashboardEndpoint('/cut').href;
-const clip10Endpoint = mediaDashboardEndpoint('/clip10').href;
+const screenshotEndpoint = mediaDashboardEndpoint('/screenshot').href;
+const clipEndpoints = [
+  { displayName: '5s', callback: clipEndpoint(5) },
+  { displayName: '10s', callback: clipEndpoint(10) },
+  { displayName: '15s', callback: clipEndpoint(15) },
+  { displayName: '20s', callback: clipEndpoint(20) },
+  { displayName: '30s', callback: clipEndpoint(30) },
+  { displayName: '45s', callback: clipEndpoint(45) },
+  { displayName: '60s', callback: clipEndpoint(60) },
+];
 
-function clip10(): void {
-  fetch(clip10Endpoint, { method: 'POST' }).catch(console.error);
+function clipEndpoint(seconds: number): () => Promise<Response | void> {
+  const endpoint = mediaDashboardEndpoint('/clip');
+  endpoint.searchParams.set('seconds', seconds.toString());
+  const href = endpoint.href;
+  return () => fetch(href, { method: 'POST' }).catch(console.error);
 }
 
-const VideoEdtior: FunctionalComponent<EditorProps> = ({ clipView, autoplay }): VNode => {
+function screenshot(): Promise<Response | void> {
+  return fetch(screenshotEndpoint, { method: 'POST' }).catch(console.error);
+}
+
+const ImageViewer: FunctionalComponent<ImageViewerProps> = ({ clipView }): VNode => {
+  return (
+    <Thumbnail media={clipView.clip.media} />
+  );
+};
+
+const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay }): VNode => {
   const { clip, status } = clipView;
-  const durationMs = clip.video.durationMs;
+  const durationMs = clip.media.durationMs;
   const disabled = status !== ClipStatus.Uncut;
 
   const videoRef = useRef<HTMLVideoElement>();
@@ -65,7 +99,7 @@ const VideoEdtior: FunctionalComponent<EditorProps> = ({ clipView, autoplay }): 
         <video
           class="video-editor__video"
           ref={videoRef}
-          src={`${clip.video.url}#t=${startMs / 1000},${endMs / 1000}`}
+          src={`${clip.media.url}#t=${startMs / 1000},${endMs / 1000}`}
           onTimeUpdate={e => updateCurrentTime((e.target as HTMLVideoElement).currentTime * 1000)}
           autoPlay={autoplay && !disabled}
           controls
@@ -168,16 +202,20 @@ const VideoEdtior: FunctionalComponent<EditorProps> = ({ clipView, autoplay }): 
 const ClipDashboard: FunctionalComponent<Props> = ({ state }): VNode => {
   return (
     <Fragment>
-      <div class="input-row">
-        <button type="button" onClick={clip10}>10s</button>
+      <div class="clips__actions">
+        <button type="button" onClick={screenshot}>Screenshot</button>
+        {clipEndpoints.map(ep => 
+          <button type="button" onClick={ep.callback}>{ep.displayName}</button>
+        )}
       </div>
       <ol class="clips__list">
         {state.clips
           .slice()
           .reverse()
-          .map((clipView, i) =>
+          .map(clipView =>
             <li key={clipView.clip.id} class="clips__list-item">
-              {VideoEdtior({ clipView, autoplay: false })}
+              { isImageClipView(clipView) && ImageViewer({ clipView })}
+              { isVideoClipView(clipView) && VideoEdtior({ clipView, autoplay: false })}
             </li>)}
       </ol>
     </Fragment>

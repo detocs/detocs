@@ -12,7 +12,7 @@ import * as ws from 'ws';
 
 import { AccessToken } from '../../models/twitter';
 import { getCredentials, saveCredentials } from '../../util/credentials';
-import * as httpUtil from '../../util/http';
+import * as httpUtil from '../../util/http-server';
 import * as twitter from '../../util/twitter';
 import { MediaServer } from '../media/server';
 
@@ -89,7 +89,6 @@ export default async function start(port: number, mediaServer: MediaServer): Pro
     res.send(await oauth.authorize(params));
   });
   app.post('/tweet', tweet);
-  app.post('/take_screenshot', getScreenshot);
 
   const httpServer = createServer(app);
   socketServer = new ws.Server({
@@ -165,16 +164,4 @@ async function tweet(req: express.Request, res: express.Response): Promise<void>
     sendServerError(res, err);
     return;
   }
-}
-
-async function getScreenshot(_: express.Request, res: express.Response): Promise<void> {
-  const img = await media?.getCurrentFullScreenshot()
-    .catch(logger.error);
-  if (!img) {
-    res.sendStatus(500);
-    return;
-  }
-  clientState.screenshot = img;
-  broadcastState(clientState);
-  res.sendStatus(200);
 }

@@ -1,3 +1,14 @@
+.clips__actions {
+  display: flex;
+  margin-block: var(--margin-small);
+  flex-flow: row nowrap;
+}
+
+.clips__actions > * {
+  flex-grow: 1;
+  margin-inline: var(--margin-small);
+}
+
 .clips__list {
   margin: 0;
   padding: 0;
@@ -6,6 +17,7 @@
 
 .clips__list-item {
   margin-top: 1rem;
+  text-align: center;
 }
 
 .video-editor {

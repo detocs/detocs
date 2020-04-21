@@ -7,9 +7,9 @@ import { promises as fs } from 'fs';
 import updateImmutable from 'immutability-helper';
 import * as ws from 'ws';
 
-import { Clip } from '../../models/media';
+import { VideoClip, ImageClip, isVideoClip } from '../../models/media';
 import { tmpDir } from '../../util/fs';
-import * as httpUtil from '../../util/http';
+import * as httpUtil from '../../util/http-server';
 import uuidv4 from '../../util/uuid';
 
 import { MediaServer } from '../media/server';
@@ -29,6 +29,14 @@ interface ClipUpdate {
   endMs: number;
   description: string;
 }
+
+export interface GetClipParams {
+  seconds?: string;
+}
+
+export interface GetClipResponse {
+  id: string;
+};
 
 type WebSocketClient = ws;
 
@@ -72,9 +80,10 @@ class MediaDashboardServer {
   }
 
   public registerHandlers(): void {
-    const clip10 = this.getClip.bind(this, 10);
-    this.appServer.post('/clip10', clip10);
-    this.appServer.get('/clip10', clip10);
+    this.appServer.post('/screenshot', this.getScreenshot);
+    this.appServer.get('/screenshot', this.getScreenshot);
+    this.appServer.post('/clip', this.getClip);
+    this.appServer.get('/clip', this.getClip);
     this.appServer.post('/update', this.updateClip);
     this.appServer.post('/cut', this.cutClip);
     this.appServer.get('/state', (_, res) => {
@@ -99,7 +108,46 @@ class MediaDashboardServer {
     client.send(JSON.stringify(this.state));
   }
 
-  private getClip = async (seconds: number, req: Request, res: Response): Promise<void> => {
+  private getScreenshot = async (req: Request, res: Response): Promise<void> => {
+    let screenshot;
+    try {
+      screenshot = await this.media.getCurrentFullScreenshot();
+    } catch(err) {
+      sendServerError(res, `Unable to get screenshot: ${err}`);
+      return;
+    }
+    if (!screenshot) {
+      sendServerError(res, 'Unable to get screenshot');
+      return;
+    }
+
+    const clip: ImageClip = {
+      id: uuidv4(),
+      media: screenshot.image,
+      description: '',
+      recordingTimestampMs: screenshot.timestampMs,
+    };
+    this.state = updateImmutable(this.state, { clips: { $push: [{
+      clip,
+      status: ClipStatus.Rendered,
+    }]}});
+    const respBody: GetClipResponse = { id: clip.id };
+    res.send(respBody);
+    this.broadcastState();
+  };
+
+  private getClip = async (req: Request, res: Response): Promise<void> => {
+    const { seconds: secondsStr } = req.query as GetClipParams;
+    if (typeof secondsStr !== 'string') {
+      sendUserError(res, 'Invalid duration');
+      return;
+    }
+    const seconds = +secondsStr;
+    if (isNaN(seconds) || seconds < 0) {
+      sendUserError(res, 'Invalid duration');
+      return;
+    }
+
     let replay;
     try {
       replay = await this.media.getReplay();
@@ -113,9 +161,9 @@ class MediaDashboardServer {
     }
 
     const startOffset = Math.max(0, replay.video.durationMs - seconds * 1000);
-    const clip: Clip = {
+    const clip: VideoClip = {
       id: uuidv4(),
-      video: replay.video,
+      media: replay.video,
       waveform: replay.waveform,
       clipEndMs: replay.video.durationMs,
       clipStartMs: startOffset,
@@ -126,7 +174,8 @@ class MediaDashboardServer {
       clip,
       status: ClipStatus.Uncut,
     }]}});
-    res.sendStatus(200);
+    const respBody: GetClipResponse = { id: clip.id };
+    res.send(respBody);
     this.broadcastState();
   };
 
@@ -138,12 +187,14 @@ class MediaDashboardServer {
     }
 
     const { id, startMs, endMs, description } = update;
-    const { index, clipView } = this.getClipById(id);
+    console.log(id, startMs, endMs, description);
+    const { index, clipView } = this.getVideoClipById(id);
+    console.log(index, clipView);
     if (clipView == null) {
       sendUserError(res, `No recording matches ID ${id}`);
       return;
     }
-    if (endMs > clipView.clip.video.durationMs) {
+    if (endMs > clipView.clip.media.durationMs) {
       sendUserError(res, 'Invalid bounds');
       return;
     }
@@ -156,11 +207,13 @@ class MediaDashboardServer {
       return;
     }
 
-    this.state = updateImmutable(this.state, { clips: { [index]: { clip: { $merge: {
-      clipStartMs: startMs,
-      clipEndMs: endMs,
-      description,
-    }}}}});
+    this.state = updateImmutable(
+      this.state as { clips: ClipView<VideoClip>[]},
+      { clips: { [index]: { clip: { $merge: {
+        clipStartMs: startMs,
+        clipEndMs: endMs,
+        description,
+      }}}}});
     res.sendStatus(200);
     this.broadcastState();
   };
@@ -173,63 +226,67 @@ class MediaDashboardServer {
     }
 
     const { id, startMs, endMs, description } = update;
-    const { index, clipView: orig } = this.getClipById(id);
+    const { index, clipView: orig } = this.getVideoClipById(id);
     if (orig == null) {
       sendUserError(res, `No recording matches ID ${id}`);
       return;
     }
-    if (endMs > orig.clip.video.durationMs) {
+    if (endMs > orig.clip.media.durationMs) {
       sendUserError(res, 'Invalid bounds');
       return;
     }
 
-    this.state = updateImmutable(this.state, { clips: { [index]: { 
-      $merge: {
-        status: ClipStatus.Rendering,
-      },
-      clip: { $merge: {
-        clipStartMs: startMs,
-        clipEndMs: endMs,
-        description,
-      }},
-    }}});
+    this.state = updateImmutable(
+      this.state as { clips: ClipView<VideoClip>[]},
+      { clips: { [index]: { 
+        $merge: {
+          status: ClipStatus.Rendering,
+        },
+        clip: { $merge: {
+          clipStartMs: startMs,
+          clipEndMs: endMs,
+          description,
+        }},
+      }}});
     this.broadcastState();
 
     // TODO: Limit resolution?
     // TODO: Update waveform?
     console.log(orig.clip.id);
     return this.media.cutVideo(
-      orig.clip.video,
+      orig.clip.media,
       orig.clip.clipStartMs,
       orig.clip.clipEndMs,
       orig.clip.id + '.mp4',
     )
       .then(video => {
         console.log(video);
-        const { index, clipView: cv } = this.getClipById(orig.clip.id);
+        const { index, clipView: cv } = this.getVideoClipById(orig.clip.id);
         if (cv == null) {
           sendUserError(res, `Clip ${orig.clip.id} deleted while cutting`);
           return;
         }
-        this.state = updateImmutable(this.state, { clips: { [index]: { 
-          $merge: {
-            status: ClipStatus.Rendered,
-          },
-          clip: { $merge: {
-            video,
-            clipStartMs: 0,
-            clipEndMs: video.durationMs,
-            recordingTimestampMs: cv.clip.recordingTimestampMs &&
-              cv.clip.recordingTimestampMs + orig.clip.clipStartMs,
-            streamTimestampMs: cv.clip.streamTimestampMs &&
-              cv.clip.streamTimestampMs + orig.clip.clipStartMs,
-          }},
-        }}});
+        this.state = updateImmutable(
+          this.state as { clips: ClipView<VideoClip>[]},
+          { clips: { [index]: { 
+            $merge: {
+              status: ClipStatus.Rendered,
+            },
+            clip: { $merge: {
+              media: video,
+              clipStartMs: 0,
+              clipEndMs: video.durationMs,
+              recordingTimestampMs: cv.clip.recordingTimestampMs &&
+                cv.clip.recordingTimestampMs + orig.clip.clipStartMs,
+              streamTimestampMs: cv.clip.streamTimestampMs &&
+                cv.clip.streamTimestampMs + orig.clip.clipStartMs,
+            }},
+          }}});
         res.sendStatus(200);
         this.broadcastState();
       })
       .catch(e => {
-        const { index, clipView } = this.getClipById(orig.clip.id);
+        const { index, clipView } = this.getVideoClipById(orig.clip.id);
         if (clipView) {
           this.state = updateImmutable(this.state, { clips: { [index]: { $merge: {
             status: ClipStatus.Uncut,
@@ -240,12 +297,16 @@ class MediaDashboardServer {
       });
   };
 
-  private getClipById(id: string): { index: number; clipView: ClipView | undefined } {
-    const index = this.state.clips.findIndex(c => c.clip.id === id);
-    const clip = index === -1 ?
+  private getVideoClipById(id: string): {
+    index: number;
+    clipView: ClipView<VideoClip> | undefined;
+  } {
+    const index = this.state.clips
+      .findIndex(cv => isVideoClip(cv.clip) && cv.clip.id === id);
+    const cv = index === -1 ?
       undefined :
       this.state.clips[index];
-    return { index, clipView: clip };
+    return { index, clipView: cv as ClipView<VideoClip> | undefined };
   }
 }
 

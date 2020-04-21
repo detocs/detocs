@@ -6,7 +6,7 @@ import { promises as fs } from 'fs';
 import ObsWebSocket from 'obs-websocket-js';
 import path from 'path';
 
-import { Screenshot, ImageFile, Replay, MediaFile, VideoFile } from '../../models/media';
+import { Screenshot, Replay, MediaFile, VideoFile } from '../../models/media';
 import { Timestamp } from '../../models/timestamp';
 import { delay } from '../../util/async';
 import * as ffmpeg from '../../util/ffmpeg';
@@ -161,25 +161,25 @@ export class MediaServer {
     return img;
   }
 
-  public async getCurrentFullScreenshot(): Promise<ImageFile> {
+  public async getCurrentFullScreenshot(): Promise<Screenshot> {
     return this.getCurrentScreenshot(this.streamHeight)
       .then(s => {
         this.fullScreenshotCache.add(s);
         this.thumbnailCache.add(s);
-        return s.image;
+        return s;
       });
   }
 
-  public async getCurrentThumbnail(): Promise<ImageFile> {
+  public async getCurrentThumbnail(): Promise<Screenshot> {
     this.getReplay();
     return this.getCurrentScreenshot(THUMBNAIL_SIZE)
       .then(s => {
         this.thumbnailCache.add(s);
-        return s.image;
+        return s;
       });
   }
 
-  public async getFullScreenshot(timestamp: Timestamp): Promise<ImageFile> {
+  public async getFullScreenshot(timestamp: Timestamp): Promise<Screenshot> {
     return this.getScreenshot(
       timestamp,
       [ this.fullScreenshotCache ],
@@ -188,7 +188,7 @@ export class MediaServer {
     );
   }
 
-  public async getThumbnail(timestamp: Timestamp): Promise<ImageFile> {
+  public async getThumbnail(timestamp: Timestamp): Promise<Screenshot> {
     return this.getScreenshot(
       timestamp,
       [ this.thumbnailCache, this.fullScreenshotCache ],
@@ -202,12 +202,12 @@ export class MediaServer {
     readCaches: ScreenshotCache[],
     writeCaches: ScreenshotCache[],
     height: number,
-  ): Promise<ImageFile> {
+  ): Promise<Screenshot> {
     const millis = toMillis(timestamp);
     for (const cache of readCaches) {
       const cachedScreenshot = cache.get(millis);
       if (cachedScreenshot) {
-        return cachedScreenshot.image;
+        return cachedScreenshot;
       }
     }
     let asyncImage: Promise<Buffer> | undefined;
@@ -224,7 +224,7 @@ export class MediaServer {
       timestampMs: millis,
     };
     writeCaches.forEach(cache => cache.add(screenshot));
-    return screenshot.image;
+    return screenshot;
   }
 
   private async saveImageFile(

@@ -1,11 +1,20 @@
-import { h, FunctionalComponent, VNode } from 'preact';
+import { h, FunctionalComponent, VNode, RenderableProps, Fragment } from 'preact';
+import { useState } from 'preact/hooks';
+import { JSXInternal } from 'preact/src/jsx';
 
-import { Clip } from '../../models/media';
-import { State as MediaDashbaordState, ClipStatus } from '../../server/media-dashboard/state';
+import { GetClipResponse } from '../../server/media-dashboard/server';
+import {
+  State as MediaDashbaordState,
+  ClipStatus,
+  ClipView,
+} from '../../server/media-dashboard/state';
 import ClientState from '../../server/twitter/client-state';
-import { twitterEndpoint } from './api';
-import { Thumbnail } from './thumbnail';
+import { checkResponseStatus } from "../../util/ajax";
+
+import { twitterEndpoint, mediaDashboardEndpoint } from './api';
+import { Modal } from './modal';
 import { PersistentCheckbox } from './persistent-checkbox';
+import { Thumbnail } from './thumbnail';
 
 interface Props {
   twitterState: ClientState;
@@ -15,12 +24,12 @@ interface Props {
 }
 
 const tweetEndpoint = twitterEndpoint('/tweet').href;
-const screenshotEndpoint = twitterEndpoint('/take_screenshot').href;
+const screenshotEndpoint = mediaDashboardEndpoint('/screenshot').href;
 
-function onSubmit(event: Event): void {
+async function onSubmit(event: Event): Promise<void> {
   event.preventDefault();
   const form = event.target as HTMLFormElement;
-  fetch(
+  return fetch(
     tweetEndpoint,
     {
       method: 'POST',
@@ -30,9 +39,11 @@ function onSubmit(event: Event): void {
     .then(() => { (form.querySelector('textarea') as HTMLTextAreaElement).value = ''; });
 }
 
-function takeScreenshot(): void {
-  fetch(screenshotEndpoint, { method: 'POST' })
-    .catch(console.error);
+function takeScreenshot(): Promise<string> {
+  return fetch(screenshotEndpoint, { method: 'POST' })
+    .then(checkResponseStatus)
+    .then(resp => resp.json() as Promise<GetClipResponse>)
+    .then(resp => resp.id);
 }
 
 const TwitterDashboard: FunctionalComponent<Props> = ({
@@ -41,13 +52,21 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
   thread,
   onThreadToggle,
 }): VNode => {
-  const latestClip: Clip | undefined = mediaDashboardState.clips
-    .filter(c => c.status === ClipStatus.Rendered)
-    .slice(-1)[0]
-    ?.clip;
-  const mediaUrl = latestClip?.video.url;
+  console.log(JSON.stringify(mediaDashboardState, null, 2));
+  const [ clipId, updateClipId ] = useState<string | null>(null);
+  const [ busy, updateBusy ] = useState(false);
+  const clip = mediaDashboardState.clips.find(c => c.clip.id === clipId)?.clip || null;
   return (
-    <form class="twitter__editor js-manual-form" onSubmit={onSubmit}>
+    <form
+      class="twitter__editor js-manual-form"
+      aria-busy={busy}
+      onSubmit={e => {
+        updateBusy(true);
+        onSubmit(e)
+          .then(() => updateClipId(null))
+          .finally(() => updateBusy(false));
+      }}
+    >
       <header>
         <label>
           <PersistentCheckbox name="thread" checked={thread} onChange={onThreadToggle}/>
@@ -60,16 +79,110 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
           <a href={twitterState.authorizeUrl} target="_blank" rel="noopener noreferrer">Log In</a>
         </span>
       </header>
-      <div class="input-row twitter__tweet-content">
+      <div class="twitter__tweet-content">
         <textarea name="body" required {...{ maxlength: '280' }} autofocus={true}></textarea>
-        <Thumbnail src={mediaUrl || null} />
+        <div className="twitter__tweet-media">
+          <Thumbnail media={clip?.media} />
+          <button type="button" onClick={() => takeScreenshot().then(updateClipId)}>
+            Take Screenshot
+          </button>
+          <ClipSelector
+            clips={mediaDashboardState.clips.filter(c => c.status === ClipStatus.Rendered)}
+            onSelect={updateClipId}
+          >
+            Select Media
+          </ClipSelector>
+        </div>
       </div>
-      <input type="hidden" name="media" value={mediaUrl}/>
+      <input type="hidden" name="media" value={clip?.media.url}/>
       <div class="input-row">
         <button type="submit">Tweet</button>
-        <button type="button" onClick={takeScreenshot}>Take Screenshot</button>
       </div>
     </form>
   );
 };
+
+interface ClipSelectorProps extends Omit<JSXInternal.HTMLAttributes, 'onSelect'> {
+  clips: ClipView[];
+  onSelect: (clipId: string | null) => void;
+}
+
+const ClipSelector: FunctionalComponent<RenderableProps<ClipSelectorProps>> = ({
+  children,
+  clips,
+  onSelect,
+  ...attributes
+}): VNode => {
+  const [ modalOpen, updateModalOpen ] = useState(false);
+  const openModal = (): void => {
+    updateModalOpen(true);
+  };
+  const closeModal = (): void => {
+    updateModalOpen(false);
+  };
+  return (
+    <Fragment>
+      <button type="button" onClick={openModal} {...attributes}>{children}</button>
+      <Modal isOpen={modalOpen} onClose={closeModal}>
+        <CallbackForm<{ clipId: string }>
+          class="clip-selector js-manual-form"
+          onSubmit={data => {
+            closeModal();
+            onSelect(data.clipId || null);
+          }}
+        >
+          <div class="clip-selector__list">
+            <label class="clip-selector__option">
+              <div class="clip-selector__clip-info">
+                <Thumbnail />
+                <div class="clip-selector__clip-description">None</div>
+              </div>
+              <input type="radio" name="clipId" value=""/>
+            </label>
+            {clips.map(clipView => (
+              <label class="clip-selector__option">
+                <div class="clip-selector__clip-info">
+                  <Thumbnail media={clipView.clip.media} />
+                  <div class="clip-selector__clip-description">
+                    {clipView.clip.description || ''}
+                  </div>
+                </div>
+                <input type="radio" name="clipId" value={clipView.clip.id}/>
+              </label>
+            ))}
+          </div>
+          <div class="clip-selector__controls">
+            <button type="submit">Select</button>
+          </div>
+        </CallbackForm>
+      </Modal>
+    </Fragment>
+  );
+};
+
+type CallbackFormProps<T> = Omit<JSXInternal.HTMLAttributes, 'onSubmit'> & RenderableProps<{
+  onSubmit: (formData: T) => void;
+}>;
+
+function CallbackForm<T>({
+  children,
+  onSubmit,
+  ...attributes
+}: CallbackFormProps<T>): VNode {
+  const submitHandler = (event: Event): void => {
+    event.preventDefault();
+    const form = event.target as HTMLFormElement;
+    const data = Object.fromEntries(new FormData(form).entries());
+    onSubmit(data as unknown as T);
+  };
+  return (
+    <form
+      {...attributes}
+      onSubmit={submitHandler}
+    >
+      {children}
+    </form>
+  );
+}
+
 export default TwitterDashboard;

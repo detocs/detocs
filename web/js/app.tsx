@@ -32,7 +32,7 @@ import TwitterDashboard from './twitter-dashboard';
 import ClipDashboard from './clip-dashboard';
 
 document.addEventListener('DOMContentLoaded', () => {
-  render(<App />, document.body);
+  render(<App />, document.getElementById("app") as HTMLDivElement);
   bindSubmitHandler();
 });
 

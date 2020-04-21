@@ -8,7 +8,7 @@ import * as ws from 'ws';
 
 import State, { nullState } from './state';
 import SmashggClient, { parseTournamentSlug } from '../../util/smashgg';
-import { appWebsocketServer } from '../../util/http';
+import { appWebsocketServer } from '../../util/http-server';
 import { SmashggId } from '../../models/smashgg';
 
 type WebSocketClient = ws;

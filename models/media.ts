@@ -28,11 +28,27 @@ export interface Replay {
 
 export interface Clip {
   id: string;
-  video: VideoFile;
-  waveform: ImageFile;
+  media: MediaFile;
   description: string;
-  clipStartMs: number;
-  clipEndMs: number;
   recordingTimestampMs?: number;
   streamTimestampMs?: number;
+}
+
+export interface ImageClip extends Clip {
+  media: ImageFile;
+}
+
+export function isImageClip(clip: Clip): clip is ImageClip {
+  return clip.media.type == 'image';
+}
+
+export interface VideoClip extends Clip {
+  media: VideoFile;
+  waveform: ImageFile;
+  clipStartMs: number;
+  clipEndMs: number;
+}
+
+export function isVideoClip(clip: Clip): clip is VideoClip {
+  return clip.media.type == 'video';
 }

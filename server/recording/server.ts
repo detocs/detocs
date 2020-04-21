@@ -14,7 +14,7 @@ import { promisify } from 'util';
 import * as ws from 'ws';
 
 import * as ffmpeg from '../../util/ffmpeg';
-import * as httpUtil from '../../util/http';
+import * as httpUtil from '../../util/http-server';
 import * as obsUtil from '../../util/obs';
 import SmashggClient from '../../util/smashgg';
 import { sanitizeTimestamp, validateTimestamp } from '../../util/timestamp';
@@ -207,12 +207,12 @@ function getCurrentThumbnail(
   if (!media) {
     throw new Error('No media server');
   }
-  return media.getCurrentThumbnail().then(img => {
+  return media.getCurrentThumbnail().then(screenshot => {
     const recording = getRecordingById(recordingId);
     if (!recording) {
       return;
     }
-    recording[thumbnailProp] = img;
+    recording[thumbnailProp] = screenshot.image;
     broadcastState(state);
   }).catch(logger.error);
 }
@@ -350,9 +350,9 @@ async function getThumbnailForTimestamp(
     logger.warn('Recording missing stream recording file or timestamp');
     return;
   }
-  const img = await media?.getThumbnail(timestamp)
+  const screenshot = await media?.getThumbnail(timestamp)
     .catch(logger.error);
-  if (!img) {
+  if (!screenshot) {
     return;
   }
   recording = getRecordingById(recordingId);
@@ -360,7 +360,7 @@ async function getThumbnailForTimestamp(
     logger.error(`Recording with id ${recordingId} no longer present`);
     return;
   }
-  recording[thumbnailProp] = img;
+  recording[thumbnailProp] = screenshot.image;
   broadcastState(state);
 }
 

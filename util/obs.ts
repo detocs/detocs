@@ -22,7 +22,15 @@ export async function getRecordingTimestamp(obs: ObsWebSocket): Promise<Timestam
 
 export async function getRecordingFolder(obs: ObsWebSocket): Promise<string> {
   const resp = await obs.send('GetRecordingFolder');
-  return resp['rec-folder'];
+  let folder = resp['rec-folder'];
+  if (!isAbsolute(folder)) {
+    // Some super cool guy is using relative paths with OBS
+    const listeners = await find('port', getConfig().obsWebsocketPort);
+    if (listeners.length) {
+      folder = join(dirname((listeners[0] as ProcessInfo).bin), folder);
+    }
+  }
+  return folder;
 }
 
 export async function getCurrentThumbnail(
@@ -77,15 +85,7 @@ export async function getRecordingFile(
   obsWs: ObsWebSocket,
 ): Promise<{ file: string; folder: string }> {
   const VIDEO_FILE_EXTENSIONS = ['.flv', '.mp4', '.mov', '.mkv', '.ts', '.m3u8'];
-  let folder = await getRecordingFolder(obsWs);
-  if (!isAbsolute(folder)) {
-    // Some super cool guy is using relative paths with OBS
-    const listeners = await find('port', getConfig().obsWebsocketPort);
-    if (listeners.length) {
-      folder = join(dirname((listeners[0] as ProcessInfo).bin), folder);
-    }
-  }
-
+  const folder = await getRecordingFolder(obsWs);
   let files = await fs.readdir(folder);
   files = files.filter(f => VIDEO_FILE_EXTENSIONS.includes(extname(f)))
     .filter(f => !basename(f).startsWith(OBS_REPLAY_PREFIX));

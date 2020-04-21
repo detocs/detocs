@@ -6,7 +6,7 @@ logger.error = logger.error.bind(logger);
 import OAuth from 'oauth-1.0a';
 
 import { AccessToken } from "../../models/twitter";
-import { checkResponseStatus } from '../../util/http';
+import { checkResponseStatus } from "../../util/ajax";
 import { getOauth1 } from '../../util/oauth';
 
 export default class TwitterOAuth {

@@ -1,14 +1,31 @@
 import { h, VNode, FunctionalComponent } from 'preact';
 
-export const Thumbnail: FunctionalComponent<{ src: string | null }> =
-({ src }): VNode => {
-  const data = src || '';
+import { MediaFile } from '../../models/media';
+
+interface ThumbnailProps {
+  media?: MediaFile | null;
+}
+
+export const Thumbnail: FunctionalComponent<ThumbnailProps> = ({ media }): VNode => {
+  const data = media?.url || '';
+  // TODO: Only play video when focused/hovered
   return (
-    <object
-      key={data} // Chrome doesn't update object elements when you change the data attribute
-      data={data}
-      class="thumbnail">
-      <div class="thumbnail-placeholder" />
-    </object>
+    media?.type === 'video' ?
+      <video
+        src={data}
+        class="thumbnail"
+        muted={true}
+        controls={false}
+        autoPlay={true}
+        loop={true}
+      >
+      </video> :
+      <object
+        key={data} // Chrome doesn't update object elements when you change the data attribute
+        data={data}
+        class="thumbnail"
+      >
+        <div class="thumbnail-placeholder" />
+      </object>
   );
 };

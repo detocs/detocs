@@ -1,5 +1,7 @@
 .thumbnail {
-  height: max-content;
+  inline-size: calc(8rem * (var(--stream-aspect-ratio)));
+
+  box-sizing: border-box;
 
   background: black;
   border: var(--width-border) solid currentColor;

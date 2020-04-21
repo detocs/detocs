@@ -14,10 +14,73 @@
   min-height: 8em;
 }
 
-.twitter__editor .thumbnail {
-  flex: 1 1 10rem;
+.twitter__tweet-content {
+  display: flex;
+  flex-grow: 1;
+  margin-block: var(--margin-small);
+
+  flex-flow: row nowrap;
 }
 
-.twitter__tweet-content {
-  flex-grow: 1;
+.twitter__tweet-content > * {
+  margin-inline: var(--margin-small);
+}
+
+.twitter__tweet-media {
+  display: flex;
+  flex: 1 1 10rem;
+
+  flex-flow: column nowrap;
+  justify-content: flex-start;
+}
+
+.twitter__tweet-media > .thumbnail {
+  width: 100%;
+}
+
+.clip-selector__list {
+  display: flex;
+  width: max-content;
+  max-width: 100%;
+
+  flex-flow: row wrap;
+  justify-content: space-evenly;
+  align-items: stretch;
+  padding: var(--margin-small);
+}
+
+.clip-selector__option {
+  display: flex;
+  margin: var(--margin-small);
+
+  flex-flow: column nowrap;
+  align-items: center;
+  padding: 0.5rem;
+
+  background: var(--bg-alt);
+}
+
+.clip-selector__clip-info {
+  display: flex;
+  flex: 1 1 auto;
+
+  flex-flow: column nowrap;
+  justify-content: center;
+  align-items: center;
+}
+
+.clip-selector__clip-description {
+  max-width: 15rem;
+  min-height: 1.5em;
+
+  line-height: 1.5em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.clip-selector__controls {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: flex-end;
 }
