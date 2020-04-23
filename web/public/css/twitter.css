@@ -11,7 +11,7 @@
 
 .twitter__editor textarea {
   flex: 4 1 15rem;
-  min-height: 8em;
+  min-height: 6em;
 }
 
 .twitter__tweet-content {
@@ -19,7 +19,7 @@
   flex-grow: 1;
   margin-block: var(--margin-small);
 
-  flex-flow: row nowrap;
+  flex-flow: row wrap;
 }
 
 .twitter__tweet-content > * {
@@ -30,12 +30,18 @@
   display: flex;
   flex: 1 1 10rem;
 
-  flex-flow: column nowrap;
+  flex-flow: column wrap;
   justify-content: flex-start;
 }
 
 .twitter__tweet-media > .thumbnail {
-  width: 100%;
+  width: max(12rem, min(100%, calc(var(--stream-aspect-ratio) * (100vh - 7rem))));
+  align-self: center;
+}
+
+.twitter__tweet-media-actions.twitter__tweet-media-actions > * {
+  inline-size: auto;
+  flex-basis: auto;
 }
 
 .clip-selector__list {

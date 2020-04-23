@@ -43,7 +43,7 @@ export async function tweet(
   twit: Twit,
   body: string,
   replyTo: string | null,
-  imgPath?: string,
+  mediaPath?: string,
 ): Promise<string> {
   const params: Twit.Params = {
     'status': body,
@@ -54,9 +54,9 @@ export async function tweet(
       'auto_populate_reply_metadata': true,
     });
   }
-  if (imgPath) {
+  if (mediaPath) {
     Object.assign(params, {
-      'media_ids': [await uploadMedia(twit, imgPath)],
+      'media_ids': [await uploadMedia(twit, mediaPath)],
     });
   }
   const { data } = await twit.post('statuses/update', params);

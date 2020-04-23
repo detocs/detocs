@@ -26,17 +26,14 @@ interface Props {
 const tweetEndpoint = twitterEndpoint('/tweet').href;
 const screenshotEndpoint = mediaDashboardEndpoint('/screenshot').href;
 
-async function onSubmit(event: Event): Promise<void> {
-  event.preventDefault();
-  const form = event.target as HTMLFormElement;
+async function submitForm(form: HTMLFormElement): Promise<Response> {
   return fetch(
     tweetEndpoint,
     {
       method: 'POST',
       body: new FormData(form),
     })
-    .catch(console.error)
-    .then(() => { (form.querySelector('textarea') as HTMLTextAreaElement).value = ''; });
+    .then(checkResponseStatus);
 }
 
 function takeScreenshot(): Promise<string> {
@@ -52,7 +49,6 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
   thread,
   onThreadToggle,
 }): VNode => {
-  console.log(JSON.stringify(mediaDashboardState, null, 2));
   const [ clipId, updateClipId ] = useState<string | null>(null);
   const [ busy, updateBusy ] = useState(false);
   const clip = mediaDashboardState.clips.find(c => c.clip.id === clipId)?.clip || null;
@@ -60,10 +56,16 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
     <form
       class="twitter__editor js-manual-form"
       aria-busy={busy}
-      onSubmit={e => {
+      onSubmit={event => {
+        event.preventDefault();
+        const form = event.target as HTMLFormElement;
         updateBusy(true);
-        onSubmit(e)
-          .then(() => updateClipId(null))
+        submitForm(form)
+          .then(() => {
+            updateClipId(null);
+            (form.querySelector('textarea') as HTMLTextAreaElement).value = '';
+          })
+          .catch(console.error)
           .finally(() => updateBusy(false));
       }}
     >
@@ -83,15 +85,19 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
         <textarea name="body" required {...{ maxlength: '280' }} autofocus={true}></textarea>
         <div className="twitter__tweet-media">
           <Thumbnail media={clip?.media} />
-          <button type="button" onClick={() => takeScreenshot().then(updateClipId)}>
-            Take Screenshot
-          </button>
-          <ClipSelector
-            clips={mediaDashboardState.clips.filter(c => c.status === ClipStatus.Rendered)}
-            onSelect={updateClipId}
-          >
-            Select Media
-          </ClipSelector>
+          <div className="twitter__tweet-media-actions input-row">
+            <button type="button" onClick={
+              () => takeScreenshot().then(updateClipId).catch(console.error)
+            }>
+              Take Screenshot
+            </button>
+            <ClipSelector
+              clips={mediaDashboardState.clips.filter(c => c.status === ClipStatus.Rendered)}
+              onSelect={updateClipId}
+            >
+              Select Media
+            </ClipSelector>
+          </div>
         </div>
       </div>
       <input type="hidden" name="media" value={clip?.media.url}/>
