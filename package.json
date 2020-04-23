@@ -13,7 +13,8 @@
     "bundle": "rollup -c -m",
     "build": "npm run tsc && npm run bundle",
     "prestart": "npm run build",
-    "start": "node index.js"
+    "start": "node index.js",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@types/cors": "^2.8.6",
@@ -64,6 +65,7 @@
     "@typescript-eslint/parser": "^1.13.0",
     "eslint": "^5.16.0",
     "eslint-plugin-react": "^7.14.3",
+    "patch-package": "^6.2.2",
     "rollup": "^1.21.2",
     "rollup-plugin-json": "^4.0.0",
     "rollup-plugin-node-resolve": "^5.2.0",

@@ -89,11 +89,10 @@ export async function uploadMedia(twit: Twit, mediaPath: string): Promise<string
     });
   });
   let resp = (await upload) as MediaStatusResponse;
-  console.log(resp);
+  logger.debug(resp);
   const mediaId = resp.media_id_string;
 
   // https://github.com/ttezel/twit/issues/517
-  // https://github.com/ttezel/twit/issues/259
   await pollMediaStatus(twit, resp);
 
   logger.debug(`Media uploaded with id ${mediaId}`);
@@ -102,13 +101,6 @@ export async function uploadMedia(twit: Twit, mediaPath: string): Promise<string
 
 async function pollMediaStatus(twit: Twit, resp: MediaStatusResponse): Promise<void> {
   const mediaId = resp.media_id_string;
-  const { 
-    consumer_key: key,
-    consumer_secret: secret, 
-    access_token: token,
-    access_token_secret: tokenSecret,
-  } = (twit as unknown as { config: Record<string, string> }).config;
-  const oauth = getOauth1(key, secret);
 
   while (resp.processing_info &&
     resp.processing_info.state !== 'succeeded' &&
@@ -117,27 +109,14 @@ async function pollMediaStatus(twit: Twit, resp: MediaStatusResponse): Promise<v
     logger.debug(`Media processing, waiting ${resp.processing_info.check_after_secs} seconds`);
     await sleep(1000 * resp.processing_info.check_after_secs);
 
-    const requestData = {
-      url: `https://upload.twitter.com/1.1/media/upload.json?command=STATUS&media_id=${mediaId}`,
-      method: 'GET',
-      data: {},
-    };
-    const authHeader = oauth.toHeader(oauth.authorize(requestData, {
-      key: token,
-      secret: tokenSecret,
-    }));
-    resp = await fetch(
-      requestData.url,
+    const res = await twit.get(
+      'media/upload',
       {
-        method: requestData.method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': authHeader.Authorization
-        },
-      }
-    )
-      .then(r => r.json() as Promise<MediaStatusResponse>);
-    console.log(resp);
+        'command': 'STATUS',
+        'media_id': mediaId
+      } as Twit.Params);
+    resp = res.data as MediaStatusResponse;
+    logger.debug(resp);
   }
   
   if (resp.processing_info?.state === 'failed') {
