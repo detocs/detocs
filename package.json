@@ -49,6 +49,7 @@
     "log4js": "^4.5.1",
     "micro-memoize": "^4.0.8",
     "moment": "^2.24.0",
+    "neverthrow": "^2.2.0",
     "node-youtube-resumable-upload": "^0.2.1",
     "oauth-1.0a": "^2.2.6",
     "obs-websocket-js": "^3.1.0",

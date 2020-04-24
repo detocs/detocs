@@ -30,20 +30,20 @@ export function appWebsocketServer(
   return { appServer, socketServer };
 }
 
-export function sendUserError(logger: Logger, res: express.Response, msg?: string): void {
-  if (msg) {
-    logger.warn(msg);
-    res.status(400).send(msg);
-  } else {
-    res.sendStatus(400);
-  }
+export function sendUserError(logger: Logger, res: express.Response, err?: Error | string): void {
+  send(logger, res, 400, err);
 }
 
-export function sendServerError(logger: Logger, res: express.Response, msg?: string): void {
-  if (msg) {
-    logger.error(msg);
-    res.status(500).send(msg);
+export function sendServerError(logger: Logger, res: express.Response, err?: Error | string): void {
+  send(logger, res, 500, err);
+}
+
+function send(logger: Logger, res: express.Response, status: number, err?: Error | string): void {
+  if (err) {
+    const msg = err instanceof Error ? err.message : err;
+    logger.warn(msg);
+    res.status(status).send(msg);
   } else {
-    res.sendStatus(500);
+    res.sendStatus(status);
   }
 }

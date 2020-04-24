@@ -5,9 +5,10 @@ logger.error = logger.error.bind(logger);
 import express, { Request, Response } from 'express';
 import { promises as fs } from 'fs';
 import updateImmutable from 'immutability-helper';
+import { Result, ok, err } from 'neverthrow';
 import * as ws from 'ws';
 
-import { VideoClip, ImageClip, isVideoClip } from '../../models/media';
+import { VideoClip, ImageClip, isVideoClip, VideoFile } from '../../models/media';
 import { tmpDir } from '../../util/fs';
 import * as httpUtil from '../../util/http-server';
 import uuidv4 from '../../util/uuid';
@@ -180,122 +181,118 @@ class MediaDashboardServer {
   };
 
   private updateClip = async (req: Request, res: Response): Promise<void> => {
-    const { update, error } = validateUpdateRequest(req.fields as UpdateRequest);
-    if (error != null || !update) {
-      sendUserError(res, error);
-      return;
-    }
-
-    const { id, startMs, endMs, description } = update;
-    console.log(id, startMs, endMs, description);
-    const { index, clipView } = this.getVideoClipById(id);
-    console.log(index, clipView);
-    if (clipView == null) {
-      sendUserError(res, `No recording matches ID ${id}`);
-      return;
-    }
-    if (endMs > clipView.clip.media.durationMs) {
-      sendUserError(res, 'Invalid bounds');
-      return;
-    }
-
-    if (startMs === clipView.clip.clipStartMs &&
-      endMs === clipView.clip.clipEndMs &&
-      description === clipView.clip.description
-    ) {
-      res.sendStatus(200);
-      return;
-    }
-
-    this.state = updateImmutable(
-      this.state as { clips: ClipView<VideoClip>[]},
-      { clips: { [index]: { clip: { $merge: {
-        clipStartMs: startMs,
-        clipEndMs: endMs,
-        description,
-      }}}}});
-    res.sendStatus(200);
-    this.broadcastState();
+    return this.updateVideoClip(req.fields as UpdateRequest, ClipStatus.Uncut)
+      .match(
+        () => {
+          res.sendStatus(200);
+          this.broadcastState();
+        },
+        err => sendUserError(res, err),
+      );
   };
 
   private cutClip = async (req: Request, res: Response): Promise<void> => {
-    const { update, error } = validateUpdateRequest(req.fields as UpdateRequest);
-    if (error != null || !update) {
-      sendUserError(res, error);
-      return;
-    }
+    return this.updateVideoClip(req.fields as UpdateRequest, ClipStatus.Rendering)
+      .match(
+        async clipView => {
+          const clipId = clipView.clip.id;
+          await this.media.cutVideo(
+            clipView.clip.media,
+            clipView.clip.clipStartMs,
+            clipView.clip.clipEndMs,
+            clipView.clip.id + '.mp4',
+          )
+            .then(video => {
+              const err = this.setClipAsRendered(clipId, video);
+              if (err) {
+                sendServerError(res, `Clip ${clipId} deleted while cutting`);
+              } else {
+                res.sendStatus(200);
+                this.broadcastState();
+              }
+            })
+            .catch(e => {
+              // Reset status
+              this.resetClipStatus(clipId);
+              sendServerError(res, e);
+              this.broadcastState();
+            });
+        },
+        err => Promise.resolve(sendUserError(res, err)),
+      );
+  };
 
-    const { id, startMs, endMs, description } = update;
-    const { index, clipView: orig } = this.getVideoClipById(id);
-    if (orig == null) {
-      sendUserError(res, `No recording matches ID ${id}`);
-      return;
-    }
-    if (endMs > orig.clip.media.durationMs) {
-      sendUserError(res, 'Invalid bounds');
-      return;
-    }
+  private updateVideoClip(
+    data: UpdateRequest,
+    status: ClipStatus,
+  ): Result<ClipView<VideoClip>, Error> {
+    return validateUpdateRequest(data).andThen(update => {
+      const { id, startMs, endMs, description } = update;
+      const { index, clipView } = this.getVideoClipById(id);
+      if (clipView == null) {
+        return err(new Error(`No recording matches ID ${id}`));
+      }
+      if (endMs > clipView.clip.media.durationMs) {
+        return err(new Error('Invalid bounds'));
+      }
 
+      if (startMs === clipView.clip.clipStartMs &&
+        endMs === clipView.clip.clipEndMs &&
+        description === clipView.clip.description
+      ) {
+        return ok(clipView);
+      }
+
+      this.state = updateImmutable(
+        this.state as { clips: ClipView<VideoClip>[]},
+        { clips: { [index]: { 
+          $merge: {
+            status,
+          },
+          clip: { $merge: {
+            clipStartMs: startMs,
+            clipEndMs: endMs,
+            description,
+          }},
+        }}});
+      return ok(this.state.clips[index] as ClipView<VideoClip>);
+    });
+  }
+
+  private setClipAsRendered(id: string, video: VideoFile): Error | void {
+    const { index, clipView: cv } = this.getVideoClipById(id);
+    if (cv == null) {
+      return new Error(`Clip ${id} deleted while cutting`);
+    }
     this.state = updateImmutable(
       this.state as { clips: ClipView<VideoClip>[]},
       { clips: { [index]: { 
         $merge: {
-          status: ClipStatus.Rendering,
+          status: ClipStatus.Rendered,
         },
         clip: { $merge: {
-          clipStartMs: startMs,
-          clipEndMs: endMs,
-          description,
+          media: video,
+          clipStartMs: 0,
+          clipEndMs: video.durationMs,
+          recordingTimestampMs: cv.clip.recordingTimestampMs &&
+            cv.clip.recordingTimestampMs + cv.clip.clipStartMs,
+          streamTimestampMs: cv.clip.streamTimestampMs &&
+            cv.clip.streamTimestampMs + cv.clip.clipStartMs,
         }},
       }}});
     this.broadcastState();
+  }
 
-    // TODO: Limit resolution?
-    // TODO: Update waveform?
-    console.log(orig.clip.id);
-    return this.media.cutVideo(
-      orig.clip.media,
-      orig.clip.clipStartMs,
-      orig.clip.clipEndMs,
-      orig.clip.id + '.mp4',
-    )
-      .then(video => {
-        console.log(video);
-        const { index, clipView: cv } = this.getVideoClipById(orig.clip.id);
-        if (cv == null) {
-          sendUserError(res, `Clip ${orig.clip.id} deleted while cutting`);
-          return;
-        }
-        this.state = updateImmutable(
-          this.state as { clips: ClipView<VideoClip>[]},
-          { clips: { [index]: { 
-            $merge: {
-              status: ClipStatus.Rendered,
-            },
-            clip: { $merge: {
-              media: video,
-              clipStartMs: 0,
-              clipEndMs: video.durationMs,
-              recordingTimestampMs: cv.clip.recordingTimestampMs &&
-                cv.clip.recordingTimestampMs + orig.clip.clipStartMs,
-              streamTimestampMs: cv.clip.streamTimestampMs &&
-                cv.clip.streamTimestampMs + orig.clip.clipStartMs,
-            }},
-          }}});
-        res.sendStatus(200);
-        this.broadcastState();
-      })
-      .catch(e => {
-        const { index, clipView } = this.getVideoClipById(orig.clip.id);
-        if (clipView) {
-          this.state = updateImmutable(this.state, { clips: { [index]: { $merge: {
-            status: ClipStatus.Uncut,
-          }}}});
-          this.broadcastState();
-        }
-        sendServerError(res, e);
-      });
-  };
+  private resetClipStatus(id: string): void {
+    const { index, clipView } = this.getVideoClipById(id);
+    if (!clipView) {
+      return;
+    }
+    this.state = updateImmutable(this.state, { clips: { [index]: { $merge: {
+      status: ClipStatus.Uncut,
+    }}}});
+    this.broadcastState();
+  }
 
   private getVideoClipById(id: string): {
     index: number;
@@ -310,17 +307,15 @@ class MediaDashboardServer {
   }
 }
 
-function validateUpdateRequest(req: UpdateRequest): { update?: ClipUpdate; error?: string } {
+function validateUpdateRequest(req: UpdateRequest): Result<ClipUpdate, Error> {
   const { id, startMs: startStr, endMs: endStr, description } = req as UpdateRequest;
   const startMs = startStr != null ? parseInt(startStr) : NaN;
   const endMs = endStr != null ? parseInt(endStr) : NaN;
-  if (!id || isNaN(startMs) || isNaN(endMs)) {
-    return { error: '' };
+  if (!id) {
+    return err(new Error('id is required'));
   }
-  if (startMs < 0 || startMs >= endMs) {
-    return { error: 'Invalid bounds' };
+  if (isNaN(startMs) || isNaN(endMs) || startMs < 0 || startMs >= endMs) {
+    return err(new Error('Invalid bounds'));
   }
-  return {
-    update: { id, startMs, endMs, description: description || '' }
-  };
+  return ok({ id, startMs, endMs, description: description || '' });
 }

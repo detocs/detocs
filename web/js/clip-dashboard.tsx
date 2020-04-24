@@ -190,6 +190,7 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
           value={clip.description}
           className="video-editor__description"
           rows={3}
+          disabled={disabled}
         >
         </textarea>
         <button type="submit" disabled={disabled}>Update</button>
