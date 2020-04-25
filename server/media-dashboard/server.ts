@@ -8,7 +8,7 @@ import updateImmutable from 'immutability-helper';
 import { Result, ok, err } from 'neverthrow';
 import * as ws from 'ws';
 
-import { VideoClip, ImageClip, isVideoClip, VideoFile } from '../../models/media';
+import { VideoClip, ImageClip, isVideoClip, VideoFile, ImageFile } from '../../models/media';
 import { tmpDir } from '../../util/fs';
 import * as httpUtil from '../../util/http-server';
 import uuidv4 from '../../util/uuid';
@@ -97,13 +97,13 @@ class MediaDashboardServer {
     });
   }
 
-  private broadcastState(): void {
+  private broadcastState = (): void => {
     this.socketServer.clients.forEach(client => {
       if (client.readyState === ws.OPEN) {
         this.sendState(client as WebSocketClient);
       }
     });
-  }
+  };
 
   private sendState(client: WebSocketClient): void {
     client.send(JSON.stringify(this.state));
@@ -153,7 +153,7 @@ class MediaDashboardServer {
     try {
       replay = await this.media.getReplay();
     } catch(err) {
-      sendServerError(res, `Unable to get replay: ${err}`);
+      sendServerError(res, `Unable to get replay: ${err.toString()}`);
       return;
     }
     if (!replay) {
@@ -202,14 +202,18 @@ class MediaDashboardServer {
             clipView.clip.clipEndMs,
             clipView.clip.id + '.mp4',
           )
-            .then(video => {
+            .then(async video => {
               const err = this.setClipAsRendered(clipId, video);
               if (err) {
                 sendServerError(res, `Clip ${clipId} deleted while cutting`);
-              } else {
-                res.sendStatus(200);
-                this.broadcastState();
+                return;
               }
+              this.media.getVideoWaveform(video)
+                .then(waveform => this.setClipWaveform(clipId, waveform))
+                .then(err => err && logger.error(err))
+                .catch(logger.error);
+              res.sendStatus(200);
+              this.broadcastState();
             })
             .catch(e => {
               // Reset status
@@ -280,6 +284,19 @@ class MediaDashboardServer {
             cv.clip.streamTimestampMs + cv.clip.clipStartMs,
         }},
       }}});
+    this.broadcastState();
+  }
+
+  private setClipWaveform(id: string, waveform: ImageFile): Error | void {
+    const { index, clipView: cv } = this.getVideoClipById(id);
+    if (cv == null) {
+      return new Error(`Clip ${id} deleted while generating waveform`);
+    }
+    this.state = updateImmutable(
+      this.state as { clips: ClipView<VideoClip>[]},
+      { clips: { [index]: { clip: { $merge: {
+        waveform
+      }}}}});
     this.broadcastState();
   }
 

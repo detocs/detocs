@@ -102,7 +102,7 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
           src={`${clip.media.url}#t=${startMs / 1000},${endMs / 1000}`}
           onTimeUpdate={e => updateCurrentTime((e.target as HTMLVideoElement).currentTime * 1000)}
           autoPlay={autoplay && !disabled}
-          controls
+          controls={true}
           loop={true}
           muted={true}
         >
@@ -121,7 +121,7 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
             `right: ${(durationMs - endMs)/durationMs*100}%;`}
           >
           </div>
-          <input
+          {!disabled && <input
             type="range"
             name="startMs"
             className="video-editor__range-bound video-editor__range-start"
@@ -150,8 +150,8 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
               updateStartMs(newStartMs);
               videoRef.current.pause();
             }}
-          />
-          <input
+          />}
+          {!disabled && <input
             type="range"
             name="endMs"
             className="video-editor__range-bound video-editor__range-end"
@@ -180,7 +180,7 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
               updateEndMs(newEndMs);
               videoRef.current.pause();
             }}
-          />
+          />}
         </div>
       </div>
       <div className="video-editor__buttons">

@@ -3,10 +3,10 @@ const logger = getLogger('server/media');
 logger.error = logger.error.bind(logger);
 
 import { promises as fs } from 'fs';
-import ObsWebSocket from 'obs-websocket-js';
+import ObsWebSocket, { ObsError } from 'obs-websocket-js';
 import path from 'path';
 
-import { Screenshot, Replay, MediaFile, VideoFile } from '../../models/media';
+import { Screenshot, Replay, MediaFile, VideoFile, ImageFile } from '../../models/media';
 import { Timestamp } from '../../models/timestamp';
 import { delay } from '../../util/async';
 import * as ffmpeg from '../../util/ffmpeg';
@@ -262,10 +262,10 @@ export class MediaServer {
     // TODO: 'SaveReplayBuffer' doesn't wait until the file written to resolve, so we'll need to
     // figure out something else here.
     return this.obsWs.send('SaveReplayBuffer')
-      .catch(() => logger.debug('Attempted to cache replay, but replays not enabled'))
       .then(delay(1000))
       .then(this.getLatestReplayPath)
-      .then(r => r ? this.fetchReplayFile(r) : null);
+      .then(r => r ? this.fetchReplayFile(r) : null)
+      .catch((err: ObsError) => { throw new Error(err.error); });
   }
 
   private getLatestReplayPath = async (): Promise<string | null> => {
@@ -296,25 +296,17 @@ export class MediaServer {
       throw new Error(`Unable to copy replay file to ${dir}`);
     }
 
-    const waveformFilename = `${pathUtil.withoutExtension(filePath)}_waveform.png`;
-    const waveformPath = this.getFullPath(waveformFilename);
-    await ffmpeg.getWaveform(filePath, waveformPath, videoStats.durationMs);
-
     const filename = path.basename(copiedFilePath);
-    const replay: Replay = {
-      video: {
-        type: 'video',
-        filename,
-        url: this.getUrl(filename),
-        durationMs: videoStats.durationMs,
-      },
-      waveform: {
-        type: 'image',
-        filename: waveformFilename,
-        url: this.getUrl(waveformFilename),
-        height: ffmpeg.WAVEFORM_HEIGHT,
-      },
+    const video: VideoFile = {
+      type: 'video',
+      filename,
+      url: this.getUrl(filename),
+      durationMs: videoStats.durationMs,
     };
+
+    const waveform = await this.getVideoWaveform(video);
+
+    const replay: Replay = { video, waveform };
     if (timestamp && fileStats) {
       const endMillis = toMillis(timestamp) - (nowMs - Math.trunc(fileStats.birthtimeMs));
       const startMillis = endMillis - videoStats.durationMs;
@@ -323,6 +315,19 @@ export class MediaServer {
       this.replayCache.add(replay);
     }
     return replay;
+  }
+
+  public async getVideoWaveform(video: VideoFile): Promise<ImageFile> {
+    const filePath = this.getFullPath(video);
+    const waveformFilename = `${pathUtil.withoutExtension(video.filename)}_waveform.png`;
+    const waveformPath = this.getFullPath(waveformFilename);
+    await ffmpeg.getWaveform(filePath, waveformPath, video.durationMs);
+    return {
+      type: 'image',
+      filename: waveformFilename,
+      url: this.getUrl(waveformFilename),
+      height: ffmpeg.WAVEFORM_HEIGHT,
+    };
   }
 
   public async cutVideo(

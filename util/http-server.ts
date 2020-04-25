@@ -4,11 +4,15 @@ import formidable from 'express-formidable';
 import { createServer } from 'http';
 import * as ws from 'ws';
 
+interface LoggerMethod {
+  (msg: unknown, ...args: unknown[]): void;
+}
+
 interface Logger {
-  debug(msg: string): void;
-  info(msg: string): void;
-  warn(msg: string): void;
-  error(msg: string): void;
+  debug: LoggerMethod;
+  info: LoggerMethod;
+  warn: LoggerMethod;
+  error: LoggerMethod;
 }
 
 export function appWebsocketServer(
@@ -31,17 +35,22 @@ export function appWebsocketServer(
 }
 
 export function sendUserError(logger: Logger, res: express.Response, err?: Error | string): void {
-  send(logger, res, 400, err);
+  send(logger.warn, res, 400, err);
 }
 
 export function sendServerError(logger: Logger, res: express.Response, err?: Error | string): void {
-  send(logger, res, 500, err);
+  send(logger.error, res, 500, err);
 }
 
-function send(logger: Logger, res: express.Response, status: number, err?: Error | string): void {
+function send(
+  loggerFn: LoggerMethod,
+  res: express.Response,
+  status: number,
+  err?: Error | string,
+): void {
   if (err) {
     const msg = err instanceof Error ? err.message : err;
-    logger.warn(msg);
+    loggerFn(err);
     res.status(status).send(msg);
   } else {
     res.sendStatus(status);
