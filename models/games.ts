@@ -5,23 +5,6 @@ import { SmashggId } from './smashgg';
 const games: Game[] = [
   {
     id: 'uni',
-    name: 'Under Night In-Birth Exe:Late[st]',
-    shortNames: [
-      'Under Night In-Birth',
-      'Under Night',
-      'UNIst',
-    ],
-    hashtags: [
-      'UNIst',
-      'inbirth',
-    ],
-    serviceInfo: {
-      twitch: { id: 'Under Night In-Birth Exe:Late[st]' },
-      smashgg: { id: '451' },
-    },
-  },
-  {
-    id: 'uni',
     name: 'Under Night In-Birth Exe:Late[cl-r]',
     shortNames: [
       'Under Night In-Birth',
