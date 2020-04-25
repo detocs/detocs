@@ -296,6 +296,7 @@ export class MediaServer {
       throw new Error(`Unable to copy replay file to ${dir}`);
     }
 
+    fs.unlink(filePath);
     const filename = path.basename(copiedFilePath);
     const video: VideoFile = {
       type: 'video',
