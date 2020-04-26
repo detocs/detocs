@@ -49,10 +49,18 @@ export async function tweet(
     'status': body,
   };
   if (replyTo) {
-    Object.assign(params, {
-      'in_reply_to_status_id': replyTo,
-      'auto_populate_reply_metadata': true,
-    });
+    try {
+      const status = await getTweet(twit, replyTo);
+      const excludedUsers = status.entities['user_mentions']
+        .map(mention => mention.id_str);
+      Object.assign(params, {
+        'in_reply_to_status_id': replyTo,
+        'auto_populate_reply_metadata': true,
+        'exclude_reply_user_ids': excludedUsers,
+      });
+    } catch (err) {
+      logger.warn(`Unable to find tweet ${replyTo}`);
+    }
   }
   if (mediaPath) {
     Object.assign(params, {
@@ -63,6 +71,11 @@ export async function tweet(
   const status = data as Twitter.Status;
   logger.debug(`Tweet created with id ${status.id_str}`);
   return status.id_str;
+}
+
+export async function getTweet(twit: Twit, id: string): Promise<Twitter.Status> {
+  const { data } = await twit.get('statuses/show', { id, 'include_entities': true });
+  return data as Twitter.Status;
 }
 
 export async function uploadImageData(twit: Twit, imgData: string): Promise<string> {
