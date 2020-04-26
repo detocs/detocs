@@ -9,6 +9,7 @@ import {
   isImageClipView,
   isVideoClipView,
 } from '../../server/media-dashboard/state';
+import { inputHandler } from '../../util/dom';
 
 import { mediaDashboardEndpoint } from './api';
 import { useLocalState } from './hooks/local-state';
@@ -83,6 +84,7 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
     clip.clipEndMs,
     t => quantizedCeilFromEnd(t, durationMs, CLIP_RANGE_STEP_MS),
   );
+  const [ description, updateDescription ] = useLocalState(clip.description);
   const [ currentTime, updateCurrentTime ] = useState(0);
   const startMaximum = endMs;
   const startRangePercentage = `${startMaximum / durationMs * 100}%`;
@@ -187,7 +189,8 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
         <input type="hidden" name="id" value={clip.id} />
         <textarea
           name="description"
-          value={clip.description}
+          value={description}
+          onInput={inputHandler(updateDescription)}
           className="video-editor__description"
           rows={3}
           disabled={disabled}
