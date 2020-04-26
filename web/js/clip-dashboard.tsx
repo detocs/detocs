@@ -238,6 +238,8 @@ function quantizedCeilFromBeginning(time: number, step: number): number {
   return time + ((-time % step + step) % step);
 }
 
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function quantizedFloorFromEnd(time: number, totalDuration: number, step: number): number {
   const timeToEnd = totalDuration - time;
   return totalDuration - quantizedCeilFromBeginning(timeToEnd, step);

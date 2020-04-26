@@ -3,19 +3,21 @@ const logger = log4js.getLogger('server/media-dashboard');
 logger.error = logger.error.bind(logger);
 
 import express, { Request, Response } from 'express';
+import filenamify from 'filenamify';
 import { promises as fs } from 'fs';
 import updateImmutable from 'immutability-helper';
 import { Result, ok, err } from 'neverthrow';
+import path from 'path';
 import * as ws from 'ws';
 
-import { VideoClip, ImageClip, isVideoClip, VideoFile, ImageFile } from '../../models/media';
-import { tmpDir } from '../../util/fs';
+import { VideoClip, ImageClip, isVideoClip, VideoFile, ImageFile, Clip } from '../../models/media';
 import * as httpUtil from '../../util/http-server';
 import uuidv4 from '../../util/uuid';
 
 import { MediaServer } from '../media/server';
 
 import { State, nullState, ClipView, ClipStatus } from './state';
+import { getConfig } from '../../util/config';
 
 interface UpdateRequest {
   id?: string;
@@ -41,7 +43,6 @@ export interface GetClipResponse {
 
 type WebSocketClient = ws;
 
-const TEMP_DIR_NAME = 'clips';
 const sendUserError = httpUtil.sendUserError.bind(null, logger);
 const sendServerError = httpUtil.sendServerError.bind(null, logger);
 
@@ -53,8 +54,7 @@ export default async function start(port: number, mediaServer: MediaServer): Pro
     () => logger.info(`Listening on port ${port}`),
   );
 
-  // TODO: override with config
-  const dir = tmpDir(TEMP_DIR_NAME);
+  const dir = getConfig().clipDirectory;
   await fs.mkdir(dir, { recursive: true });
 
   new MediaDashboardServer(appServer, socketServer, mediaServer, dir);
@@ -212,6 +212,9 @@ class MediaDashboardServer {
                 .then(waveform => this.setClipWaveform(clipId, waveform))
                 .then(err => err && logger.error(err))
                 .catch(logger.error);
+              this.copyClipToStorage(clipId)
+                .then(err => err && logger.error(err))
+                .catch(logger.error);
               res.sendStatus(200);
               this.broadcastState();
             })
@@ -225,6 +228,17 @@ class MediaDashboardServer {
         err => Promise.resolve(sendUserError(res, err)),
       );
   };
+
+  private async copyClipToStorage(id: string): Promise<Error | null> {
+    const { clipView: cv } = this.getClipById(id);
+    if (cv == null) {
+      return new Error(`Clip ${id} deleted?`);
+    }
+    fs.copyFile(
+      this.media.getFullPath(cv.clip.media.filename),
+      path.join(this.storageDir, clipStorageFilename(cv.clip)));
+    return null;
+  }
 
   private updateVideoClip(
     data: UpdateRequest,
@@ -311,6 +325,18 @@ class MediaDashboardServer {
     this.broadcastState();
   }
 
+  private getClipById(id: string): {
+    index: number;
+    clipView: ClipView | undefined;
+  } {
+    const index = this.state.clips
+      .findIndex(cv => cv.clip.id === id);
+    const cv = index === -1 ?
+      undefined :
+      this.state.clips[index];
+    return { index, clipView: cv };
+  }
+
   private getVideoClipById(id: string): {
     index: number;
     clipView: ClipView<VideoClip> | undefined;
@@ -322,6 +348,10 @@ class MediaDashboardServer {
       this.state.clips[index];
     return { index, clipView: cv as ClipView<VideoClip> | undefined };
   }
+}
+
+function clipStorageFilename(clip: Clip): string {
+  return `${clip.description ? filenamify(clip.description) + '_' : ''}${clip.media.filename}`;
 }
 
 function validateUpdateRequest(req: UpdateRequest): Result<ClipUpdate, Error> {

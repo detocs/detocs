@@ -3,10 +3,12 @@ const logger = log4js.getLogger('config');
 
 import { dirname, join, resolve } from "path";
 import { readFileSync, writeFileSync } from "fs";
+import { tmpDir } from './fs';
 
 interface Config {
   databaseDirectory: string;
   logDirectory: string | null;
+  clipDirectory: string;
   obsWebsocketPort: number;
   outputs: (WebSocketOutputConfig | FileOutputConfig)[];
 }
@@ -28,6 +30,7 @@ export type FileOutputConfig = OutputConfig & {
 const DEFAULTS: Config = {
   databaseDirectory: resolve('./databases'),
   logDirectory: null,
+  clipDirectory: tmpDir('clips'),
   obsWebsocketPort: 4444,
   outputs: [],
 };
