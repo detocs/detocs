@@ -76,8 +76,15 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
         </label>
         <span>
           {twitterState.user &&
-            <span>Tweeting as {twitterState.user.name} ({twitterState.user.handle})</span>
+            <Fragment>
+              Tweeting as {twitterState.user.name}
+              {' '}
+              (<a href={twitterState.user.url} target="_blank" rel="noopener noreferrer">
+                @{twitterState.user.handle}
+              </a>)
+            </Fragment>
           }
+          {' '}
           <a href={twitterState.authorizeUrl} target="_blank" rel="noopener noreferrer">Log In</a>
         </span>
       </header>

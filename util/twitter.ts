@@ -6,7 +6,6 @@ import Twit, { Twitter } from 'twit';
 import { User } from '../models/twitter';
 
 import { sleep } from './async';
-import { getOauth1 } from './oauth';
 
 interface MediaStatusResponse {
   media_id_string: string;
@@ -35,6 +34,7 @@ export async function getUser(twit: Twit): Promise<User> {
     id: user['id_str'],
     name: user['name'],
     handle: user['screen_name'],
+    url: `https://twitter.com/${user['screen_name']}`,
     avatar: user['profile_image_url_https'],
   };
 }
