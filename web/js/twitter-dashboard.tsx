@@ -1,4 +1,4 @@
-import { h, FunctionalComponent, VNode, RenderableProps, Fragment } from 'preact';
+import { h, FunctionalComponent, VNode, RenderableProps, Fragment, createRef, Ref } from 'preact';
 import { useState } from 'preact/hooks';
 import { JSXInternal } from 'preact/src/jsx';
 
@@ -133,12 +133,19 @@ const ClipSelector: FunctionalComponent<RenderableProps<ClipSelectorProps>> = ({
   const closeModal = (): void => {
     updateModalOpen(false);
   };
+  const formRef = createRef<HTMLFormElement>();
   return (
     <Fragment>
       <button type="button" onClick={openModal} {...attributes}>{children}</button>
       <Modal isOpen={modalOpen} onClose={closeModal}>
         <CallbackForm<{ clipId: string }>
           class="clip-selector js-manual-form"
+          formRef={formRef}
+          onClick={(evt: Event) => {
+            if (evt.target instanceof HTMLInputElement) {
+              formRef.current?.requestSubmit();
+            }
+          }}
           onSubmit={data => {
             closeModal();
             onSelect(data.clipId || null);
@@ -152,7 +159,7 @@ const ClipSelector: FunctionalComponent<RenderableProps<ClipSelectorProps>> = ({
               </div>
               <input type="radio" name="clipId" value=""/>
             </label>
-            {clips.map(clipView => (
+            {clips.slice().reverse().map(clipView => (
               <label class="clip-selector__option">
                 <div class="clip-selector__clip-info">
                   <Thumbnail media={clipView.clip.media} />
@@ -164,9 +171,6 @@ const ClipSelector: FunctionalComponent<RenderableProps<ClipSelectorProps>> = ({
               </label>
             ))}
           </div>
-          <div class="clip-selector__controls">
-            <button type="submit">Select</button>
-          </div>
         </CallbackForm>
       </Modal>
     </Fragment>
@@ -175,11 +179,13 @@ const ClipSelector: FunctionalComponent<RenderableProps<ClipSelectorProps>> = ({
 
 type CallbackFormProps<T> = Omit<JSXInternal.HTMLAttributes, 'onSubmit'> & RenderableProps<{
   onSubmit: (formData: T) => void;
+  formRef: Ref<HTMLFormElement>;
 }>;
 
 function CallbackForm<T>({
   children,
   onSubmit,
+  formRef,
   ...attributes
 }: CallbackFormProps<T>): VNode {
   const submitHandler = (event: Event): void => {
@@ -192,6 +198,7 @@ function CallbackForm<T>({
     <form
       {...attributes}
       onSubmit={submitHandler}
+      ref={formRef}
     >
       {children}
     </form>

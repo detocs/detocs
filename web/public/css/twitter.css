@@ -84,9 +84,3 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
-.clip-selector__controls {
-  display: flex;
-  flex-flow: row wrap;
-  justify-content: flex-end;
-}
