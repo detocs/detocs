@@ -69,6 +69,7 @@ type Log = RecordingLog & {
     videogame: Partial<Videogame>;
   }>;
   keyframeInterval?: number;
+  excludedTags?: string[];
 };
 type SetPhaseGroupMapping = Record<SmashggId, string>;
 
@@ -84,7 +85,6 @@ interface Metadata {
 
 export enum Command {
   Metadata,
-  Dump,
   Video,
   Upload,
 }
@@ -205,10 +205,8 @@ export class VodUploader {
       }
     }
 
-    if (this.command == Command.Dump) {
-      for (const m of metadata) {
-        dumpMetadata(m);
-      }
+    for (const m of metadata) {
+      dumpMetadata(m);
     }
 
     if (this.command >= Command.Video) {
@@ -346,7 +344,7 @@ export class VodUploader {
 
     const players = sets.map(s => s.players)
       .reduce((acc, val) => acc.concat(val), []);
-    const tags = videoTags(tournament, videogame, phase, players, [phase.name]);
+    const tags = videoTags(tournament, videogame, phase, players, setList.excludedTags || [], [phase.name]);
 
     const filename = filenamify(`${setList.start} `, { replacement: '-' }) +
         filenamify(title, { replacement: ' ' }) +
@@ -402,7 +400,7 @@ export class VodUploader {
       ].filter(nonEmpty).join(' ');
       const description = videoDescription(tournament, videogame, phase, matchDesc);
 
-      const tags = videoTags(tournament, videogame, phase, players, [phase.name]);
+      const tags = videoTags(tournament, videogame, phase, players, setList.excludedTags || [], [phase.name]);
 
       const filename = filenamify(`${timestampedSet.start} `, { replacement: '-' }) +
           filenamify(title, { replacement: ' ' }) +
@@ -613,6 +611,7 @@ function videoTags(
   videogame: Videogame,
   phase: Phase,
   players: Set['players'],
+  excludedTags: string[],
   additionalTags: string[],
 ): string[] {
   // TODO: Properly count and limit tags
@@ -634,7 +633,9 @@ function videoTags(
     ...groupTags(),
   ].map(removeCommas).map(s => s.trim()).filter(nonEmpty);
 
-  return Array.from(new Set(tags));
+  let tagsSet = new Set(tags);
+  excludedTags.forEach(tagsSet.delete.bind(tagsSet));
+  return Array.from(tagsSet);
 }
 
 function getSetData(logSet: Partial<Log['sets'][0]> = {}, smashggSet: Partial<QuerySet> = {}): Set {
