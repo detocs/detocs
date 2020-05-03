@@ -185,7 +185,6 @@ class ClipServer {
       .match(
         () => {
           res.sendStatus(200);
-          this.broadcastState();
         },
         err => sendUserError(res, err),
       );
@@ -273,6 +272,7 @@ class ClipServer {
             description,
           }},
         }}});
+      this.broadcastState();
       return ok(this.state.clips[index] as ClipView<VideoClip>);
     });
   }

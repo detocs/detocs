@@ -30,8 +30,8 @@ interface VideoEditorProps {
 }
 
 /**
- * When changing the end timestamp of a clip, this determines how much early in
- * the video we start playback for previewing
+ * When changing the end timestamp of a clip, this determines how much earlier
+ * in the video we start playback for previewing
  */
 const CLIP_END_PLAYBACK_OFFSET_MS = 2000;
 
