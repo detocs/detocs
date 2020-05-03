@@ -15,10 +15,10 @@ import * as ws from 'ws';
 
 import * as ffmpeg from '../../util/ffmpeg';
 import * as httpUtil from '../../util/http-server';
+import { getId } from '../../util/id';
 import * as obsUtil from '../../util/obs';
 import SmashggClient from '../../util/smashgg';
 import { sanitizeTimestamp, validateTimestamp } from '../../util/timestamp';
-import uuidv4 from '../../util/uuid';
 
 import InfoState from '../info/state';
 import { MediaServer } from '../media/server';
@@ -371,7 +371,7 @@ function getInfo(): Promise<InfoState> {
 
 function newRecording(streamRecordingFile: string, startTimestamp: string): Recording {
   return {
-    id: uuidv4(),
+    id: getId(),
     streamRecordingFile: streamRecordingFile,
     recordingFile: null,
     startTimestamp: startTimestamp,

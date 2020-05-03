@@ -11,13 +11,13 @@ import path from 'path';
 import * as ws from 'ws';
 
 import { VideoClip, ImageClip, isVideoClip, VideoFile, ImageFile, Clip } from '../../models/media';
+import { getConfig } from '../../util/config';
 import * as httpUtil from '../../util/http-server';
-import uuidv4 from '../../util/uuid';
+import { getId } from '../../util/id';
 
 import { MediaServer } from '../media/server';
 
 import { State, nullState, ClipView, ClipStatus } from './state';
-import { getConfig } from '../../util/config';
 
 interface UpdateRequest {
   id?: string;
@@ -123,7 +123,7 @@ class MediaDashboardServer {
     }
 
     const clip: ImageClip = {
-      id: uuidv4(),
+      id: getId(),
       media: screenshot.image,
       description: '',
       recordingTimestampMs: screenshot.timestampMs,
@@ -163,7 +163,7 @@ class MediaDashboardServer {
 
     const startOffset = Math.max(0, replay.video.durationMs - seconds * 1000);
     const clip: VideoClip = {
-      id: uuidv4(),
+      id: getId(),
       media: replay.video,
       waveform: replay.waveform,
       clipEndMs: replay.video.durationMs,
@@ -351,7 +351,7 @@ class MediaDashboardServer {
 }
 
 function clipStorageFilename(clip: Clip): string {
-  return `${clip.description ? filenamify(clip.description) + '_' : ''}${clip.media.filename}`;
+  return `${clip.media.filename}${clip.description ? '_' + filenamify(clip.description) : ''}`;
 }
 
 function validateUpdateRequest(req: UpdateRequest): Result<ClipUpdate, Error> {

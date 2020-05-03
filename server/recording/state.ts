@@ -1,4 +1,5 @@
 import { ImageFile } from '../../models/media';
+import { Id } from '../../util/id';
 
 import InfoState from '../info/state';
 
@@ -15,7 +16,7 @@ export const nullState: State = Object.freeze({
 });
 
 export interface Recording {
-  id: string;
+  id: Id;
   streamRecordingFile: string;
   recordingFile: string | null;
   startTimestamp: string;

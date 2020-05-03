@@ -1,3 +1,5 @@
+import { Id } from '../util/id';
+
 export interface MediaFile {
   filename: string;
   url: string;
@@ -27,7 +29,7 @@ export interface Replay {
 }
 
 export interface Clip {
-  id: string;
+  id: Id;
   media: MediaFile;
   description: string;
   recordingTimestampMs?: number;
