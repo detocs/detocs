@@ -14,6 +14,11 @@ import { inputHandler } from '../../util/dom';
 import { clipEndpoint } from './api';
 import { useLocalState } from './hooks/local-state';
 import { Thumbnail } from './thumbnail';
+import { Id } from '../../util/id';
+import { ClipSelector } from './clip-selector';
+import { ReplayCache } from '../../server/media/replayCache';
+import { checkResponseStatus } from '../../util/ajax';
+import { GetClipResponse } from '../../server/clip/server';
 
 interface Props {
   state: State;
@@ -44,6 +49,7 @@ const updateEndpoint = clipEndpoint('/update').href;
 const cutEndpoint = clipEndpoint('/cut').href;
 const screenshotEndpoint = clipEndpoint('/screenshot').href;
 const clipEndpoints = [
+  { displayName: 'Screenshot', callback: screenshot },
   { displayName: '5s', callback: clipEndpointForDuration(5) },
   { displayName: '10s', callback: clipEndpointForDuration(10) },
   { displayName: '15s', callback: clipEndpointForDuration(15) },
@@ -53,20 +59,26 @@ const clipEndpoints = [
   { displayName: '60s', callback: clipEndpointForDuration(60) },
 ];
 
-function clipEndpointForDuration(seconds: number): () => Promise<Response | void> {
+function clipEndpointForDuration(seconds: number): () => Promise<Id> {
   const endpoint = clipEndpoint('/clip');
   endpoint.searchParams.set('seconds', seconds.toString());
   const href = endpoint.href;
-  return () => fetch(href, { method: 'POST' }).catch(console.error);
+  return () => fetch(href, { method: 'POST' })
+    .then(checkResponseStatus)
+    .then(resp => resp.json() as Promise<GetClipResponse>)
+    .then(resp => resp.id);
 }
 
-function screenshot(): Promise<Response | void> {
-  return fetch(screenshotEndpoint, { method: 'POST' }).catch(console.error);
+function screenshot(): Promise<string> {
+  return fetch(screenshotEndpoint, { method: 'POST' })
+    .then(checkResponseStatus)
+    .then(resp => resp.json() as Promise<GetClipResponse>)
+    .then(resp => resp.id);
 }
 
 const ImageViewer: FunctionalComponent<ImageViewerProps> = ({ clipView }): VNode => {
   return (
-    <Thumbnail media={clipView.clip.media} />
+    <img class="image-viewer" src={clipView.clip.media.url} />
   );
 };
 
@@ -204,24 +216,31 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
 };
 
 const ClipDashboard: FunctionalComponent<Props> = ({ state }): VNode => {
+  const [ currentClipId, updateCurrentId ] = useState<Id | null>(null);
+  const clipView = !currentClipId ? state.clips[state.clips.length - 1] :
+    state.clips.find(cv => cv.clip.id === currentClipId);
   return (
     <Fragment>
       <div class="clips__actions">
-        <button type="button" onClick={screenshot}>Screenshot</button>
         {clipEndpoints.map(ep => 
-          <button type="button" onClick={ep.callback}>{ep.displayName}</button>
+          <button
+            type="button"
+            onClick={() => ep.callback().then(updateCurrentId).catch(console.error)}
+          >
+            {ep.displayName}
+          </button>
         )}
       </div>
-      <ol class="clips__list">
-        {state.clips
-          .slice()
-          .reverse()
-          .map(clipView =>
-            <li key={clipView.clip.id} class="clips__list-item">
-              { isImageClipView(clipView) && ImageViewer({ clipView })}
-              { isVideoClipView(clipView) && VideoEdtior({ clipView, autoplay: false })}
-            </li>)}
-      </ol>
+      { clipView && isImageClipView(clipView) && ImageViewer({ clipView })}
+      { clipView && isVideoClipView(clipView) && VideoEdtior({ clipView, autoplay: false })}
+      <div class="clips__clip-selector">
+        <ClipSelector
+          clips={state.clips}
+          onSelect={updateCurrentId}
+          currentClipId={currentClipId}
+          includeNone={false}
+        />
+      </div>
     </Fragment>
   );
 };

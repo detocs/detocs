@@ -15,6 +15,7 @@
   --bg-alt: hsl(180, 13%, 8%);
   --bg-vignette: hsla(0, 0%, 0%, 0.5);
   --margin-small: 0.15rem;
+  --margin-medium: 0.5rem;
   --tab-height: 1.5rem;
   --width-border: 2px;
   --stream-aspect-ratio: 16/9;

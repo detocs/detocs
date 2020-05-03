@@ -9,15 +9,25 @@
   margin-inline: var(--margin-small);
 }
 
-.clips__list {
-  margin: 0;
-  padding: 0;
-  list-style-type: none;
+.clips__clip-selector .clip-selector__list {
+  /* TODO: Make vertical on tall viewports */
+  width: auto;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  overflow-x: auto;
 }
 
-.clips__list-item {
-  margin-top: 1rem;
-  text-align: center;
+.clips__clip-selector .thumbnail {
+  width: 7rem;
+}
+
+.image-viewer, .video-editor__trimmer {
+  height: max(8rem, min(56.25vw, calc(100vh - 10rem - var(--tab-height))));
+}
+
+.image-viewer {
+  display: block;
+  margin: 0 auto;
 }
 
 .video-editor {
@@ -29,8 +39,6 @@
 .video-editor__trimmer {
   display: flex;
   flex: 1 0 25rem;
-  /* TODO: move to video element */
-  height: max(8rem, min(56.25vw, calc(100vh - 3rem - var(--tab-height))));
 
   flex-flow: column nowrap;
   align-content: center;

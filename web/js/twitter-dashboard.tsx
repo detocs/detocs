@@ -1,18 +1,16 @@
-import { h, FunctionalComponent, VNode, RenderableProps, Fragment, createRef, Ref } from 'preact';
+import { h, FunctionalComponent, VNode, Fragment } from 'preact';
 import { useState } from 'preact/hooks';
-import { JSXInternal } from 'preact/src/jsx';
 
 import { GetClipResponse } from '../../server/clip/server';
 import {
   State as ClipState,
   ClipStatus,
-  ClipView,
 } from '../../server/clip/state';
 import ClientState from '../../server/twitter/client-state';
 import { checkResponseStatus } from "../../util/ajax";
 
 import { twitterEndpoint, clipEndpoint } from './api';
-import { Modal } from './modal';
+import { ClipSelectorModal } from './clip-selector';
 import { PersistentCheckbox } from './persistent-checkbox';
 import { Thumbnail } from './thumbnail';
 
@@ -98,12 +96,15 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
             }>
               Take Screenshot
             </button>
-            <ClipSelector
-              clips={clipState.clips.filter(c => c.status === ClipStatus.Rendered)}
+            <ClipSelectorModal
+              clips={clipState.clips.filter(c =>
+                c.status === ClipStatus.Rendered ||
+                c.status === ClipStatus.Rendering)}
               onSelect={updateClipId}
+              currentClipId={clipId}
             >
               Select Media
-            </ClipSelector>
+            </ClipSelectorModal>
           </div>
         </div>
       </div>
@@ -114,95 +115,5 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
     </form>
   );
 };
-
-interface ClipSelectorProps extends Omit<JSXInternal.HTMLAttributes, 'onSelect'> {
-  clips: ClipView[];
-  onSelect: (clipId: string | null) => void;
-}
-
-const ClipSelector: FunctionalComponent<RenderableProps<ClipSelectorProps>> = ({
-  children,
-  clips,
-  onSelect,
-  ...attributes
-}): VNode => {
-  const [ modalOpen, updateModalOpen ] = useState(false);
-  const openModal = (): void => {
-    updateModalOpen(true);
-  };
-  const closeModal = (): void => {
-    updateModalOpen(false);
-  };
-  const formRef = createRef<HTMLFormElement>();
-  return (
-    <Fragment>
-      <button type="button" onClick={openModal} {...attributes}>{children}</button>
-      <Modal isOpen={modalOpen} onClose={closeModal}>
-        <CallbackForm<{ clipId: string }>
-          class="clip-selector js-manual-form"
-          formRef={formRef}
-          onClick={(evt: Event) => {
-            if (evt.target instanceof HTMLInputElement) {
-              formRef.current?.requestSubmit();
-            }
-          }}
-          onSubmit={data => {
-            closeModal();
-            onSelect(data.clipId || null);
-          }}
-        >
-          <div class="clip-selector__list">
-            <label class="clip-selector__option">
-              <div class="clip-selector__clip-info">
-                <Thumbnail />
-                <div class="clip-selector__clip-description">None</div>
-              </div>
-              <input type="radio" name="clipId" value=""/>
-            </label>
-            {clips.slice().reverse().map(clipView => (
-              <label class="clip-selector__option">
-                <div class="clip-selector__clip-info">
-                  <Thumbnail media={clipView.clip.media} />
-                  <div class="clip-selector__clip-description">
-                    {clipView.clip.description || ''}
-                  </div>
-                </div>
-                <input type="radio" name="clipId" value={clipView.clip.id}/>
-              </label>
-            ))}
-          </div>
-        </CallbackForm>
-      </Modal>
-    </Fragment>
-  );
-};
-
-type CallbackFormProps<T> = Omit<JSXInternal.HTMLAttributes, 'onSubmit'> & RenderableProps<{
-  onSubmit: (formData: T) => void;
-  formRef: Ref<HTMLFormElement>;
-}>;
-
-function CallbackForm<T>({
-  children,
-  onSubmit,
-  formRef,
-  ...attributes
-}: CallbackFormProps<T>): VNode {
-  const submitHandler = (event: Event): void => {
-    event.preventDefault();
-    const form = event.target as HTMLFormElement;
-    const data = Object.fromEntries(new FormData(form).entries());
-    onSubmit(data as unknown as T);
-  };
-  return (
-    <form
-      {...attributes}
-      onSubmit={submitHandler}
-      ref={formRef}
-    >
-      {children}
-    </form>
-  );
-}
 
 export default TwitterDashboard;
