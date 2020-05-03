@@ -57,10 +57,10 @@ export default async function start(port: number, mediaServer: MediaServer): Pro
   const dir = getConfig().clipDirectory;
   await fs.mkdir(dir, { recursive: true });
 
-  new MediaDashboardServer(appServer, socketServer, mediaServer, dir);
+  new ClipServer(appServer, socketServer, mediaServer, dir);
 };
 
-class MediaDashboardServer {
+class ClipServer {
   private readonly appServer: express.Express;
   private readonly socketServer: ws.Server;
   private readonly media: MediaServer;

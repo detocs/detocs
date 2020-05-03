@@ -32,6 +32,6 @@ export function bracketEndpoint(path: string, protocol?: string): URL {
   return endpoint(BRACKETS_PORT.toString(), path, protocol);
 }
 
-export function mediaDashboardEndpoint(path: string, protocol?: string): URL {
+export function clipEndpoint(path: string, protocol?: string): URL {
   return endpoint(MEDIA_DASHBOARD_PORT.toString(), path, protocol);
 }

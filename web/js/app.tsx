@@ -1,11 +1,11 @@
 import { h, render, FunctionalComponent, VNode, Fragment } from 'preact';
 
 import BracketState, { nullState as nullBracketState } from '../../server/bracket/state';
-import InfoState, { nullState as nullInfoState } from '../../server/info/state';
 import {
-  State as MediaState,
-  nullState as nullMediaState
-} from '../../server/media-dashboard/state';
+  State as ClipState,
+  nullState as nullClipState
+} from '../../server/clip/state';
+import InfoState, { nullState as nullInfoState } from '../../server/info/state';
 import RecordingState, { nullState as nullRecordingState } from '../../server/recording/state';
 import TwitterState, { nullState as nullTwitterState } from '../../server/twitter/client-state';
 import { massagedFormData } from '../../util/forms';
@@ -19,7 +19,7 @@ import {
   twitterEndpoint,
   recordingEndpoint,
   bracketEndpoint,
-  mediaDashboardEndpoint
+  clipEndpoint
 } from './api';
 import BracketDashboard from './bracket-dashboard';
 import BreakDashboard from './break-dashboard';
@@ -56,9 +56,9 @@ const App: FunctionalComponent<{}> = (): VNode => {
     bracketEndpoint('', 'ws:'),
     nullBracketState,
   );
-  const [ mediaDashboardState, updateMediaDashboardState ] = useServerState<MediaState>(
-    mediaDashboardEndpoint('', 'ws:'),
-    nullMediaState,
+  const [ clipState, updateClipState ] = useServerState<ClipState>(
+    clipEndpoint('', 'ws:'),
+    nullClipState,
   );
 
   return (
@@ -83,13 +83,13 @@ const App: FunctionalComponent<{}> = (): VNode => {
         <Tab id="twitter">
           <TwitterDashboard
             twitterState={twitterState}
-            mediaDashboardState={mediaDashboardState}
+            clipState={clipState}
             thread={twitterThread}
             onThreadToggle={toggleTwitterThread}
           />
         </Tab>
         <Tab id="clips">
-          <ClipDashboard state={mediaDashboardState} updateState={updateMediaDashboardState}/>
+          <ClipDashboard state={clipState} updateState={updateClipState}/>
         </Tab>
         <Tab id="break">
           <BreakDashboard state={infoState} updateState={updateInfoState}/>

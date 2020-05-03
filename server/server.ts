@@ -2,10 +2,10 @@ import { getLogger } from 'log4js';
 const logger = getLogger('server');
 
 import startBracketServer from './bracket/server';
+import startClipServer from './clip/server';
 import startControlServer from './control/server';
 import startInfoServer from './info/server';
 import { MediaServer } from './media/server';
-import startMediaDashboardServer from './media-dashboard/server';
 import {
   CONTROL_PORT,
   INFO_PORT,
@@ -25,5 +25,5 @@ export default function start(mediaServer: MediaServer): void {
   startRecordingServer(RECORDING_PORT, mediaServer);
   startTwitterServer(TWITTER_PORT, mediaServer);
   startBracketServer(BRACKETS_PORT);
-  startMediaDashboardServer(MEDIA_DASHBOARD_PORT, mediaServer);
+  startClipServer(MEDIA_DASHBOARD_PORT, mediaServer);
 };

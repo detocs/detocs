@@ -8,10 +8,10 @@ import {
   ClipStatus,
   isImageClipView,
   isVideoClipView,
-} from '../../server/media-dashboard/state';
+} from '../../server/clip/state';
 import { inputHandler } from '../../util/dom';
 
-import { mediaDashboardEndpoint } from './api';
+import { clipEndpoint } from './api';
 import { useLocalState } from './hooks/local-state';
 import { Thumbnail } from './thumbnail';
 
@@ -40,21 +40,21 @@ const CLIP_END_PLAYBACK_OFFSET_MS = 2000;
  */
 const CLIP_RANGE_STEP_MS = 250;
 
-const updateEndpoint = mediaDashboardEndpoint('/update').href;
-const cutEndpoint = mediaDashboardEndpoint('/cut').href;
-const screenshotEndpoint = mediaDashboardEndpoint('/screenshot').href;
+const updateEndpoint = clipEndpoint('/update').href;
+const cutEndpoint = clipEndpoint('/cut').href;
+const screenshotEndpoint = clipEndpoint('/screenshot').href;
 const clipEndpoints = [
-  { displayName: '5s', callback: clipEndpoint(5) },
-  { displayName: '10s', callback: clipEndpoint(10) },
-  { displayName: '15s', callback: clipEndpoint(15) },
-  { displayName: '20s', callback: clipEndpoint(20) },
-  { displayName: '30s', callback: clipEndpoint(30) },
-  { displayName: '45s', callback: clipEndpoint(45) },
-  { displayName: '60s', callback: clipEndpoint(60) },
+  { displayName: '5s', callback: clipEndpointForDuration(5) },
+  { displayName: '10s', callback: clipEndpointForDuration(10) },
+  { displayName: '15s', callback: clipEndpointForDuration(15) },
+  { displayName: '20s', callback: clipEndpointForDuration(20) },
+  { displayName: '30s', callback: clipEndpointForDuration(30) },
+  { displayName: '45s', callback: clipEndpointForDuration(45) },
+  { displayName: '60s', callback: clipEndpointForDuration(60) },
 ];
 
-function clipEndpoint(seconds: number): () => Promise<Response | void> {
-  const endpoint = mediaDashboardEndpoint('/clip');
+function clipEndpointForDuration(seconds: number): () => Promise<Response | void> {
+  const endpoint = clipEndpoint('/clip');
   endpoint.searchParams.set('seconds', seconds.toString());
   const href = endpoint.href;
   return () => fetch(href, { method: 'POST' }).catch(console.error);

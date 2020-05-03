@@ -2,29 +2,29 @@ import { h, FunctionalComponent, VNode, RenderableProps, Fragment, createRef, Re
 import { useState } from 'preact/hooks';
 import { JSXInternal } from 'preact/src/jsx';
 
-import { GetClipResponse } from '../../server/media-dashboard/server';
+import { GetClipResponse } from '../../server/clip/server';
 import {
-  State as MediaDashbaordState,
+  State as ClipState,
   ClipStatus,
   ClipView,
-} from '../../server/media-dashboard/state';
+} from '../../server/clip/state';
 import ClientState from '../../server/twitter/client-state';
 import { checkResponseStatus } from "../../util/ajax";
 
-import { twitterEndpoint, mediaDashboardEndpoint } from './api';
+import { twitterEndpoint, clipEndpoint } from './api';
 import { Modal } from './modal';
 import { PersistentCheckbox } from './persistent-checkbox';
 import { Thumbnail } from './thumbnail';
 
 interface Props {
   twitterState: ClientState;
-  mediaDashboardState: MediaDashbaordState;
+  clipState: ClipState;
   thread: boolean;
   onThreadToggle: VoidFunction;
 }
 
 const tweetEndpoint = twitterEndpoint('/tweet').href;
-const screenshotEndpoint = mediaDashboardEndpoint('/screenshot').href;
+const screenshotEndpoint = clipEndpoint('/screenshot').href;
 
 async function submitForm(form: HTMLFormElement): Promise<Response> {
   return fetch(
@@ -45,13 +45,13 @@ function takeScreenshot(): Promise<string> {
 
 const TwitterDashboard: FunctionalComponent<Props> = ({
   twitterState,
-  mediaDashboardState,
+  clipState,
   thread,
   onThreadToggle,
 }): VNode => {
   const [ clipId, updateClipId ] = useState<string | null>(null);
   const [ busy, updateBusy ] = useState(false);
-  const clip = mediaDashboardState.clips.find(c => c.clip.id === clipId)?.clip || null;
+  const clip = clipState.clips.find(c => c.clip.id === clipId)?.clip || null;
   return (
     <form
       class="twitter__editor js-manual-form"
@@ -99,7 +99,7 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
               Take Screenshot
             </button>
             <ClipSelector
-              clips={mediaDashboardState.clips.filter(c => c.status === ClipStatus.Rendered)}
+              clips={clipState.clips.filter(c => c.status === ClipStatus.Rendered)}
               onSelect={updateClipId}
             >
               Select Media
