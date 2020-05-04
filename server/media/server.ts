@@ -262,10 +262,10 @@ export class MediaServer {
     // TODO: 'SaveReplayBuffer' doesn't wait until the file written to resolve, so we'll need to
     // figure out something else here.
     return this.obsWs.send('SaveReplayBuffer')
+      .catch((err: ObsError) => { throw new Error(err.error); })
       .then(delay(1000))
       .then(this.getLatestReplayPath)
-      .then(r => r ? this.fetchReplayFile(r) : null)
-      .catch((err: ObsError) => { throw new Error(err.error); });
+      .then(r => r ? this.fetchReplayFile(r) : null);
   }
 
   private getLatestReplayPath = async (): Promise<string | null> => {
