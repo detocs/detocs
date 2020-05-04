@@ -164,7 +164,7 @@ export async function getWaveform(
   const args = [
     '-v', 'warning',
     '-i', sourceFile,
-    `-filter_complex`, `showwavespic=s=${width}x${WAVEFORM_HEIGHT}:scale=sqrt:colors=#ccc|#ccc`,
+    `-filter_complex`, `showwavespic=s=${width}x${WAVEFORM_HEIGHT}:scale=sqrt:colors=#ffffff|#ffffff`,
     '-frames:v', '1',
     '-y',
     outFile,

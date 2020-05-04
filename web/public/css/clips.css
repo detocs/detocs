@@ -86,12 +86,12 @@
 
 .video-editor__progress::-webkit-progress-value {
   background-color: var(--color-selection);
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 .video-editor__progress::-moz-progress-bar {
   background-color: var(--color-selection);
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 .video-editor__progress::-webkit-progress-bar {
