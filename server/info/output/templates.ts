@@ -8,8 +8,9 @@ import Handlebars from 'handlebars';
 import { basename } from 'path';
 
 import { escapeJson, escapeCsv, escapeString } from '../../../util/escaping';
+import { watchFile, Watcher } from '../../../util/fs';
+
 import State, { sampleState } from '../state';
-import { watchFile } from '../../../util/fs';
 
 export interface OutputTemplate {
   name: string;
@@ -41,7 +42,7 @@ class OutputTemplateImpl implements OutputTemplate {
   public userData: unknown;
   public  readonly name: string;
   private readonly path: string;
-  private watcher: { close(): void } = { close: () => {} };
+  private watcher: Watcher = { close: () => {} };
 
   public constructor(path: string) {
     this.path = path;

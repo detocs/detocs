@@ -7,8 +7,8 @@ import { promisify } from 'util';
 
 import * as pathUtil from './path';
 
-interface VideoStats {
-  durationMs: number; // ms
+export interface VideoStats {
+  durationMs?: number;
 }
 
 const pExecFile = promisify(execFile);
@@ -108,16 +108,19 @@ export async function getVideoStats(file: string): Promise<VideoStats> {
   logger.debug(FFPROBE_COMMAND, args.join(' '));
   const { stdout, stderr } = await pExecFile(FFPROBE_COMMAND, args, { encoding: 'utf8' });
   if (stderr.length) {
-    logger.warn(stderr.toString());
+    throw new Error(stderr);
   }
   const durationStr = stdout.trim();
   const seconds = +durationStr;
   if (isNaN(seconds)) {
-    throw new Error(`Unable to parse duration ${durationStr}`);
+    return {
+      durationMs: undefined,
+    };
+  } else {
+    return {
+      durationMs: Math.trunc(seconds * 1000),
+    };
   }
-  return {
-    durationMs: Math.trunc(seconds * 1000),
-  };
 }
 
 /**
@@ -164,7 +167,8 @@ export async function getWaveform(
   const args = [
     '-v', 'warning',
     '-i', sourceFile,
-    `-filter_complex`, `showwavespic=s=${width}x${WAVEFORM_HEIGHT}:scale=sqrt:colors=#ffffff|#ffffff`,
+    `-filter_complex`,
+    `showwavespic=s=${width}x${WAVEFORM_HEIGHT}:scale=sqrt:colors=#ffffff|#ffffff`,
     '-frames:v', '1',
     '-y',
     outFile,

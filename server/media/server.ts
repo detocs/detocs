@@ -8,19 +8,21 @@ import path from 'path';
 
 import { Screenshot, Replay, MediaFile, VideoFile, ImageFile } from '../../models/media';
 import { Timestamp } from '../../models/timestamp';
-import { delay } from '../../util/async';
+import { sleep } from '../../util/async';
 import * as ffmpeg from '../../util/ffmpeg';
-import { tmpDir } from '../../util/fs';
+import { tmpDir, waitForFile, Watcher } from '../../util/fs';
 import * as obs from '../../util/obs';
 import * as pathUtil from '../../util/path';
 import { sanitizeTimestamp, toMillis, fromMillis } from '../../util/timestamp';
 
-import { ScreenshotCache } from './screenshot-cache';
 import { ReplayCache } from './replayCache';
+import { ScreenshotCache } from './screenshot-cache';
 
 const THUMBNAIL_SIZE = 135;
 const SCREENSHOT_CACHE_LENIENCY_MS = 1000;
 const REPLAY_CACHE_LENIENCY_MS = 500;
+const REPLAY_COMPLETION_POLL_ATTEMPTS = 10;
+const REPLAY_COMPLETION_POLL_INTERVAL_MS = 250;
 
 export class MediaServer {
   private readonly obsWs = new ObsWebSocket();
@@ -263,35 +265,37 @@ export class MediaServer {
     // figure out something else here.
     return this.obsWs.send('SaveReplayBuffer')
       .catch((err: ObsError) => { throw new Error(err.error); })
-      .then(delay(1000))
-      .then(this.getLatestReplayPath)
+      .then(this.waitForReplayFile)
       .then(r => r ? this.fetchReplayFile(r) : null);
   }
 
-  private getLatestReplayPath = async (): Promise<string | null> => {
+  private waitForReplayFile = async (): Promise<string | null> => {
     if (!this.recordingFolder) {
       throw new Error('Missing recording folder path');
     }
-    return fs.readdir(this.recordingFolder)
-      .then(files => files
-        .filter(f => f.startsWith(obs.OBS_REPLAY_PREFIX))
-        .map(f => path.join(this.recordingFolder || '', f))
-        .slice(-1)[0] ||
-        null);
+    const glob = path.join(this.recordingFolder, obs.OBS_REPLAY_PREFIX) + '*';
+    let watcher: Watcher | undefined;
+    return new Promise<string | null>((resolve) => {
+      watcher = waitForFile(glob, resolve);
+      setTimeout(() => resolve(null), 3000);
+    })
+      .finally(() => watcher && watcher.close());
   };
 
   private async fetchReplayFile(filePath: string): Promise<Replay> {
+    logger.info('Fetching replay file:', filePath);
+    const videoStats = await this.waitForVideoFileCompletion(filePath);
+    if (!videoStats) {
+      throw new Error(`File ${filePath} never completed`);
+    }
+
     const dir = this.getDir();
     const nowMs = Date.now();
-    const [ timestamp, fileStats, videoStats, copiedFilePath ] = await Promise.all([
+    const [ timestamp, fileStats, copiedFilePath ] = await Promise.all([
       obs.getRecordingTimestamp(this.obsWs),
       fs.stat(filePath),
-      ffmpeg.getVideoStats(filePath),
       ffmpeg.copyToWebCompatibleFormat(filePath, dir),
     ]);
-    if (!videoStats) {
-      throw new Error(`Unable to read video stats for ${filePath}`);
-    }
     if (!copiedFilePath) {
       throw new Error(`Unable to copy replay file to ${dir}`);
     }
@@ -316,6 +320,21 @@ export class MediaServer {
       this.replayCache.add(replay);
     }
     return replay;
+  }
+
+  private async waitForVideoFileCompletion(
+    filePath: string,
+  ): Promise<Required<ffmpeg.VideoStats> | null> {
+    for (let i = 0; i < REPLAY_COMPLETION_POLL_ATTEMPTS; i++) {
+      const stats = await ffmpeg.getVideoStats(filePath);
+      if (stats.durationMs == null) {
+        logger.debug('Video file not finished writing:', filePath);
+        await sleep(REPLAY_COMPLETION_POLL_INTERVAL_MS);
+        continue;
+      }
+      return stats as Required<ffmpeg.VideoStats>;
+    }
+    return null;
   }
 
   public async getVideoWaveform(video: VideoFile): Promise<ImageFile> {
