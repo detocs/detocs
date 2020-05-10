@@ -351,7 +351,10 @@ class ClipServer {
 }
 
 function clipStorageFilename(clip: Clip): string {
-  return `${clip.media.filename}${clip.description ? '_' + filenamify(clip.description) : ''}`;
+  const id = clip.id;
+  const desc = clip.description ? '_' + filenamify(clip.description).replace(/ /g, '-') : '';
+  const ext = path.extname(clip.media.filename);
+  return `${id}${desc}${ext}`;
 }
 
 function validateUpdateRequest(req: UpdateRequest): Result<ClipUpdate, Error> {
