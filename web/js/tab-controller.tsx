@@ -7,13 +7,12 @@ import { register } from './key-manager';
 
 type Shortcut = [string, string, (i: number) => number];
 
-const CONTROL_SELECTOR = ':scope > .tabbable-section > .tabbable-section-control';
+const CONTROL_SELECTOR = ':scope > .tabbable-section > .tabbable-section__control';
 const AUTOFOCUS_SELECTOR = '[autofocus]';
 
 const UNIVERSAL_SHORTCUTS: Shortcut[] = [
   [ 'PageUp', 'Previous', i => i - 1 ],
   [ 'PageDown', 'Next', i => i + 1 ],
-  [ '^0', 'Last', () => -1 ],
 ];
 
 const TAB_SHORTCUTS: Shortcut[] = [
@@ -39,7 +38,7 @@ const TabController: FunctionalComponent = ({ children }: RenderableProps<{}>): 
   }, []);
 
   return (
-    <main class="tab-controller" ref={ref}>
+    <main class="tab-controller" role="tablist" ref={ref}>
       {children}
     </main>
   );
@@ -84,16 +83,22 @@ function getIndex(root: Element): number {
 function move(root: Element, index: number): void {
   const tabs = getControls(root);
   const len = tabs.length;
-  const targetTab = tabs[(index + len) % len];
-  targetTab.checked = true;
-  const section = targetTab.closest('.tabbable-section') as HTMLElement;
-  const content = section.querySelector('.tabbable-section-content') as HTMLElement;
-  let input = content.querySelector<HTMLElement>(AUTOFOCUS_SELECTOR) ||
-    content.querySelector<HTMLElement>(INTERACTIVE_SELECTOR);
-  if (!input) {
-    return;
-  }
-  input.focus();
+  const targetIndex = (index + len) % len;
+  tabs.forEach((tab, i) => {
+    if (i === targetIndex) {
+      tab.checked = true;
+      tab.setAttribute('aria-selected', 'true');
+      const section = tab.closest('.tabbable-section') as HTMLElement;
+      const content = section.querySelector('.tabbable-section__content') as HTMLElement;
+      let input = content.querySelector<HTMLElement>(AUTOFOCUS_SELECTOR) ||
+        content.querySelector<HTMLElement>(INTERACTIVE_SELECTOR);
+      if (input) {
+        input.focus();
+      }
+    } else {
+      tab.setAttribute('aria-selected', 'false');
+    }
+  });
 }
 
 function getControls(root: Element): HTMLInputElement[] {

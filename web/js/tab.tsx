@@ -12,22 +12,29 @@ const Tab: FunctionalComponent<Props> = ({
   name = capitalize(id),
 }: RenderableProps<Props>): VNode => {
   const inputId = `tab-${id}`;
+  const contentId = `${id}`;
   return(
-    <section class="tabbable-section">
+    <div class="tabbable-section">
       <input
         type="radio"
-        class="tabbable-section-control"
-        id={inputId}
         name="main-tabs"
-        hidden
+        id={inputId}
+        class="tabbable-section__control sr-only"
+        role="tab"
+        aria-controls={contentId}
+        aria-label={name}
       />
       <h2 class="tabbable-section__tab">
         <label for={inputId} role="presentation">{name}</label>
       </h2>
-      <div class="tabbable-section-content">
+      <div
+        id={contentId}
+        class="tabbable-section__content"
+        role="tabpanel"
+      >
         {children}
       </div>
-    </section>
+    </div>
   );
 };
 export default Tab;

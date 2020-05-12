@@ -195,6 +195,12 @@ fieldset[name="smashgg"] {
   flex: 1 0 15em;
 }
 
+.sr-only {
+  position: absolute;
+  top: auto;
+  left: -10000px;
+}
+
 #version {
   position: fixed;
   bottom: 0;
