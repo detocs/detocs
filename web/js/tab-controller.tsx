@@ -5,13 +5,37 @@ import { INTERACTIVE_SELECTOR } from '../../util/dom';
 
 import { register } from './key-manager';
 
+type Shortcut = [string, string, (i: number) => number];
+
 const CONTROL_SELECTOR = ':scope > .tabbable-section > .tabbable-section-control';
 const AUTOFOCUS_SELECTOR = '[autofocus]';
 
+const UNIVERSAL_SHORTCUTS: Shortcut[] = [
+  [ 'PageUp', 'Previous', i => i - 1 ],
+  [ 'PageDown', 'Next', i => i + 1 ],
+  [ '^0', 'Last', () => -1 ],
+];
+
+const TAB_SHORTCUTS: Shortcut[] = [
+  [ '^1', 'First', () => 0 ],
+  [ '^2', 'Second', () => 1 ],
+  [ '^3', 'Third', () => 2 ],
+  [ '^4', 'Fourth', () => 3 ],
+  [ '^5', 'Fifth', () => 4 ],
+  [ '^6', 'Sixth', () => 5 ],
+  [ '^7', 'Seventh', () => 6 ],
+  [ '^8', 'Eigth', () => 7 ],
+  [ '^9', 'Ninth', () => 8 ],
+];
+
 const TabController: FunctionalComponent = ({ children }: RenderableProps<{}>): VNode => {
+  // TODO: Support changing number of children
+  const numChildren = Array.isArray(children) ?
+    children.length : 
+    children != null ? 1 : 0;
   const ref = useCallback((node: Element | null) => {
     selectFirstTab(node);
-    registerKeyboardShortcuts(node);
+    registerKeyboardShortcuts(node, numChildren);
   }, []);
 
   return (
@@ -29,20 +53,12 @@ function selectFirstTab(node: Element | null): void {
   }
 };
 
-function registerKeyboardShortcuts(node: Element | null): VoidFunction[] {
+function registerKeyboardShortcuts(node: Element | null, numTabs: number): VoidFunction[] {
   if (!node) {
     return [];
   }
-  return [
-    shortcut(node, 'PageUp', 'Previous', i => i - 1),
-    shortcut(node, 'PageDown', 'Next', i => i + 1),
-    shortcut(node, '^1', 'First', () => 0),
-    shortcut(node, '^2', 'Second', () => 1),
-    shortcut(node, '^3', 'Third', () => 2),
-    shortcut(node, '^4', 'Fourth', () => 3),
-    shortcut(node, '^5', 'Fifth', () => 4),
-    // TODO: Vary shortcuts with number of tabs
-  ];
+  const shortcuts = UNIVERSAL_SHORTCUTS.concat(TAB_SHORTCUTS.slice(0, numTabs));
+  return shortcuts.map(s => shortcut(node, s[0], s[1], s[2]));
 }
 
 function shortcut(
