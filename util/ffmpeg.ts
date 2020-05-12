@@ -145,6 +145,7 @@ export async function copyToWebCompatibleFormat(
     '-v', 'warning',
     '-i', sourceFile,
     '-codec', 'copy',
+    '-y',
     outFile,
   ];
   logger.debug(FFMPEG_COMMAND, args.join(' '));
