@@ -7,7 +7,7 @@ import { register } from './key-manager';
 
 type Shortcut = [string, string, (i: number) => number];
 
-const CONTROL_SELECTOR = ':scope > .tabbable-section > .tabbable-section__control';
+const CONTROL_SELECTOR = ':scope > .js-tabbable-section > .js-tabbable-section-control';
 const AUTOFOCUS_SELECTOR = '[autofocus]';
 
 const UNIVERSAL_SHORTCUTS: Shortcut[] = [
@@ -34,6 +34,7 @@ const TabController: FunctionalComponent = ({ children }: RenderableProps<{}>): 
     children != null ? 1 : 0;
   const ref = useCallback((node: Element | null) => {
     selectFirstTab(node);
+    window.addEventListener('hashchange', selectTabForHash.bind(null, node));
     registerKeyboardShortcuts(node, numChildren);
   }, []);
 
@@ -46,11 +47,30 @@ const TabController: FunctionalComponent = ({ children }: RenderableProps<{}>): 
 export default TabController;
 
 function selectFirstTab(node: Element | null): void {
-  // TODO: Select tab based on url hash
-  if (node) {
-    move(node, 0);
+  if (!selectTabForHash(node)) {
+    if (node) {
+      move(node, 0);
+    }
   }
 };
+
+function selectTabForHash(root: Element | null): boolean {
+  if (!root) {
+    return false;
+  }
+  const hash = window.location.hash;
+  if (!hash) {
+    return false;
+  }
+  const elem = document.getElementById(hash.substring(1));
+  const index = getControls(root)
+    .findIndex(tabControl => tabControl.closest('.js-tabbable-section')?.contains(elem));
+  if (index < 0) {
+    return false;
+  }
+  move(root, index);
+  return true;
+}
 
 function registerKeyboardShortcuts(node: Element | null, numTabs: number): VoidFunction[] {
   if (!node) {
@@ -88,8 +108,8 @@ function move(root: Element, index: number): void {
     if (i === targetIndex) {
       tab.checked = true;
       tab.setAttribute('aria-selected', 'true');
-      const section = tab.closest('.tabbable-section') as HTMLElement;
-      const content = section.querySelector('.tabbable-section__content') as HTMLElement;
+      const section = tab.closest('.js-tabbable-section') as HTMLElement;
+      const content = section.querySelector('.js-tabbable-section-content') as HTMLElement;
       let input = content.querySelector<HTMLElement>(AUTOFOCUS_SELECTOR) ||
         content.querySelector<HTMLElement>(INTERACTIVE_SELECTOR);
       if (input) {

@@ -14,12 +14,12 @@ const Tab: FunctionalComponent<Props> = ({
   const inputId = `tab-${id}`;
   const contentId = `${id}`;
   return(
-    <div class="tabbable-section">
+    <div class="tabbable-section js-tabbable-section">
       <input
         type="radio"
         name="main-tabs"
         id={inputId}
-        class="tabbable-section__control sr-only"
+        class="tabbable-section__control js-tabbable-section-control sr-only"
         role="tab"
         aria-controls={contentId}
         aria-label={name}
@@ -29,7 +29,7 @@ const Tab: FunctionalComponent<Props> = ({
       </h2>
       <div
         id={contentId}
-        class="tabbable-section__content"
+        class="tabbable-section__content js-tabbable-section-content"
         role="tabpanel"
       >
         {children}
