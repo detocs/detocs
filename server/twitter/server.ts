@@ -14,7 +14,9 @@ import { AccessToken } from '../../models/twitter';
 import { getCredentials, saveCredentials } from '../../util/credentials';
 import * as httpUtil from '../../util/http-server';
 import * as twitter from '../../util/twitter';
+
 import { MediaServer } from '../media/server';
+import { TWITTER_PORT } from '../ports';
 
 import ClientState, { nullState } from './client-state';
 import TwitterOAuth from './oauth';
@@ -77,7 +79,8 @@ export default async function start(port: number, mediaServer: MediaServer): Pro
     await logIn(accessToken);
   }
   // TODO: Use redirect instead of sending url to client
-  clientState.authorizeUrl =  await oauth.getAuthorizeUrl('http://localhost:58588/authorize');
+  clientState.authorizeUrl =  await oauth.getAuthorizeUrl(
+    `http://localhost:${TWITTER_PORT}/authorize`);
   broadcastState(clientState);
 
   const app = express();
