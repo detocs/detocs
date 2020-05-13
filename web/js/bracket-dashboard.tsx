@@ -1,4 +1,4 @@
-import { h, FunctionalComponent, VNode } from 'preact';
+import { h, FunctionalComponent, VNode, Fragment } from 'preact';
 import { StateUpdater } from 'preact/hooks';
 import { Key } from 'w3c-keys';
 
@@ -23,7 +23,10 @@ const BracketDashboard: FunctionalComponent<Props> = ({ state, updateState }): V
   const clearTournament = (): void => updateState(nullState);
   const tournament = state.tournament;
   const event = state.eventId ? state.events.find(e => e.id === state.eventId) : null;
-  const phase = state.phaseId ? state.phases.find(e => e.id === state.phaseId) : null;
+  const phase = state.phaseId ? state.phases.find(p => p.id === state.phaseId) : null;
+  const phaseGroups = state.phaseId ?
+    state.phaseGroups.filter(pg => pg.phaseId === state.phaseId) :
+    [];
   return(
     <form
       action={bracketEndpoint('/update').href}
@@ -66,7 +69,9 @@ const BracketDashboard: FunctionalComponent<Props> = ({ state, updateState }): V
       }
       {state.eventId &&
         <label>
-          Phase: {phase && <a href={phase.url}>{phase.name}</a>}
+          Phase: {phase &&
+            <a href={phaseGroups.length == 1 ? phaseGroups[0].url : phase.url}>{phase.name}</a>
+          }
           {' '}
           <select
             name="phaseId"
@@ -80,6 +85,12 @@ const BracketDashboard: FunctionalComponent<Props> = ({ state, updateState }): V
             }
           </select>
         </label>
+      }
+      {phaseGroups.length > 1 &&
+        <div>
+          Pools:
+          {phaseGroups.map(pg => <Fragment>{' '}<a href={pg.url}>{pg.name}</a></Fragment>)}
+        </div>
       }
       {state.unfinishedSets.length > 0 && <div class="bracket__sets">
         Sets:

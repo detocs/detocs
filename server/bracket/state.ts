@@ -3,6 +3,7 @@ import Tournament from '../../models/tournament';
 import TournamentEvent from '../../models/tournament-event';
 import TournamentPhase from '../../models/tournament-phase';
 import TournamentSet from '../../models/tournament-set';
+import TournamentPhaseGroup from '../../models/tournament-phase-group';
 
 export default interface State {
   tournament: Tournament | null;
@@ -11,6 +12,7 @@ export default interface State {
   eventId: SmashggId | null;
   phases: TournamentPhase[];
   phaseId: SmashggId | null;
+  phaseGroups: TournamentPhaseGroup[];
   unfinishedSets: TournamentSet[];
 }
 
@@ -21,5 +23,6 @@ export const nullState: State = Object.freeze({
   eventId: null,
   phases: [],
   phaseId: null,
+  phaseGroups: [],
   unfinishedSets: [],
 });

@@ -10,6 +10,7 @@ import { SmashggSlug, TOURNAMENT_URL_REGEX, SMASHGG_BASE_URL } from '../models/s
 import Tournament from '../models/tournament';
 import TournamentEvent from '../models/tournament-event';
 import TournamentPhase from '../models/tournament-phase';
+import TournamentPhaseGroup from '../models/tournament-phase-group';
 
 const ENDPOINT = 'https://api.smash.gg/gql/alpha';
 
@@ -164,26 +165,43 @@ query TournamentPhasesQuery($slug: String) {
       phases {
         id
         name
+        phaseGroups {
+          nodes {
+            id
+            displayIdentifier
+            wave {
+              id
+            }
+          }
+        }
       }
     }
   }
 }
 `;
 interface TournamentPhasesQueryResponse {
-  tournament: {
+  tournament: TournamentPhases | null;
+}
+
+interface TournamentPhases {
+  id: number;
+  name: string;
+  url: string;
+  events: {
     id: number;
     name: string;
-    url: string;
-    events: {
+    slug: SmashggSlug;
+    phases: {
       id: number;
       name: string;
-      slug: SmashggSlug;
-      phases: {
-        id: number;
-        name: string;
-      }[];
+      phaseGroups: {
+        nodes: {
+          id: number;
+          displayIdentifier: string;
+        }[];
+      };
     }[];
-  } | null;
+  }[];
 };
 
 export default class SmashggClient {
@@ -268,7 +286,12 @@ export default class SmashggClient {
 
   public async phasesForTournament(
     slug: SmashggSlug,
-  ): Promise<{ tournament: Tournament; events: TournamentEvent[]; phases: TournamentPhase[] }> {
+  ): Promise<{
+      tournament: Tournament;
+      events: TournamentEvent[];
+      phases: TournamentPhase[];
+      phaseGroups: TournamentPhaseGroup[];
+    }> {
     const resp: TournamentPhasesQueryResponse = await this.client.request(
       TOURNAMENT_PHASES_QUERY,
       { slug },
@@ -288,19 +311,46 @@ export default class SmashggClient {
         name: e.name,
         url: fullSmashggUrl(e.slug),
       })),
-      phases: t.events.reduce<TournamentPhase[]>(
-        (acc, e) => acc.concat(
-          e.phases.map(p => ({
+      phases: t.events.flatMap<TournamentPhase>(
+        e => e.phases.map(
+          p => ({
             id: p.id.toString(),
             name: p.name,
             eventId: e.id.toString(),
-            url: fullSmashggUrl(e.slug.replace('event', 'events') + `/brackets/${p.id}`),
-          }))
-        ),
-        [],
+            url: getPhaseUrl(e, p),
+          })
+        )
+      ),
+      phaseGroups: t.events.flatMap<TournamentPhaseGroup>(
+        e => e.phases.flatMap(
+          p => p.phaseGroups.nodes.flatMap(
+            pg => ({
+              id: pg.id.toString(),
+              phaseId: p.id.toString(),
+              eventId: e.id.toString(),
+              name: pg.displayIdentifier,
+              url: getPhaseGroupUrl(e, p, pg),
+            })
+          )
+        )
       ),
     };
   }
+}
+
+function getPhaseUrl(
+  e: TournamentPhases['events'][0],
+  p: TournamentPhases['events'][0]['phases'][0],
+): string {
+  return fullSmashggUrl(e.slug + `/brackets/${p.id}`);
+}
+
+function getPhaseGroupUrl(
+  e: TournamentPhases['events'][0],
+  p: TournamentPhases['events'][0]['phases'][0],
+  pg: TournamentPhases['events'][0]['phases'][0]['phaseGroups']['nodes'][0],
+): string {
+  return getPhaseUrl(e, p) + `/${pg.id}`;
 }
 
 export function parseTournamentSlug(url: string): SmashggSlug | null {
