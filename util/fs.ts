@@ -14,7 +14,7 @@ export function watchFile(path: string, onChange: () => void): Watcher {
 }
 
 export function waitForFile(path: string, onAdd: (path: string) => void): Watcher {
-  return chokidar.watch(path, { persistent: false })
+  return chokidar.watch(path, { persistent: false, ignoreInitial: true })
     .on('add', onAdd);
 }
 
