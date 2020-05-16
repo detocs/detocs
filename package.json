@@ -55,6 +55,7 @@
     "obs-websocket-js": "^3.1.0",
     "open": "^7.0.3",
     "preact": "^10.0.0-rc.2",
+    "reconnecting-websocket": "^4.4.0",
     "rollup-plugin-commonjs": "^10.1.0",
     "twit": "^2.2.11",
     "w3c-keys": "^1.0.1",
