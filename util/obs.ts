@@ -1,3 +1,6 @@
+import log4js from 'log4js';
+const logger = log4js.getLogger('util/obs');
+
 import find from 'find-process';
 import { promises as fs, statSync } from 'fs';
 import ObsWebSocket from 'obs-websocket-js';
@@ -5,7 +8,13 @@ import { dirname, extname, isAbsolute, join, basename } from 'path';
 
 import { Timestamp } from '../models/timestamp';
 
+import { sleep } from './async';
 import { getConfig } from './config';
+
+const MIN_RECONNECTION_DELAY = 3 * 1000;
+const MAX_RECONNECTION_DELAY = 5 * 60 * 1000;
+const RECONNECTION_DELAY_GROWTH = 2;
+const MAX_RECONNECTION_ATTEMPTS = 25;
 
 // TODO: Get actual replay prefix from OBS
 export const OBS_REPLAY_PREFIX = 'Replay';
@@ -59,16 +68,24 @@ export async function getOutputDimensions(
   return { width: resp.outputWidth, height: resp.outputHeight };
 }
 
-// TODO: make async?
-export function connect(obs: ObsWebSocket, callback: () => void): void {
-  obs.connect({ address: `localhost:${getConfig().obsWebsocketPort}` })
-    .then(callback)
-    .catch(() => {
-      //logger.warn('Unable to connect to OBS:', error);
-      setTimeout(() => {
-        connect(obs, callback);
-      }, 10000);
-    });
+export async function connect(obs: ObsWebSocket): Promise<void> {
+  let delay = MIN_RECONNECTION_DELAY;
+  for (let i = 0; i < MAX_RECONNECTION_ATTEMPTS; i++) {
+    try {
+      await obs.connect({ address: `localhost:${getConfig().obsWebsocketPort}` })
+      obs.once('ConnectionClosed', () => {
+        logger.warn('Disconnected from OBS');
+        connect(obs);
+      });
+      logger.debug('Connected to OBS');
+      return;
+    } catch(error) {
+      // logger.warn(`Unable to connect to OBS: ${error.description}`);
+      await sleep(delay);
+      delay = Math.min(MAX_RECONNECTION_DELAY, delay * RECONNECTION_DELAY_GROWTH);
+    }
+  }
+  logger.error('Hit maximum number of OBS connection attempts');
 }
 
 interface ProcessInfo {

@@ -56,23 +56,24 @@ export class MediaServer {
     });
     // The recording file doesn't appear immediately
     this.obsWs.on('RecordingStarted', () => setTimeout(this.getRecordingFile.bind(this), 2000));
-    obs.connect(this.obsWs, async () => {
-      this.isConnected = true;
-      logger.info('Connected to OBS');
-      obs.isRecording(this.obsWs)
-        .then(isRecording => {
-          if (isRecording) {
-            this.getRecordingFile();
-          } else {
-            this.getRecordingFolder();
-          }
-        });
-      obs.getOutputDimensions(this.obsWs)
-        .then(dims => {
-          this.streamWidth = dims.width;
-          this.streamHeight = dims.height;
-        });
-    });
+    obs.connect(this.obsWs)
+      .then(async () => {
+        this.isConnected = true;
+        logger.info('Connected to OBS');
+        obs.isRecording(this.obsWs)
+          .then(isRecording => {
+            if (isRecording) {
+              this.getRecordingFile();
+            } else {
+              this.getRecordingFolder();
+            }
+          });
+        obs.getOutputDimensions(this.obsWs)
+          .then(dims => {
+            this.streamWidth = dims.width;
+            this.streamHeight = dims.height;
+          });
+      });
   }
 
   public connected(): boolean {

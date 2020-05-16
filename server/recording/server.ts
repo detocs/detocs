@@ -67,12 +67,13 @@ export default function start(port: number, mediaServer: MediaServer): void {
   // The recording file doesn't appear immediately
   obs.on('RecordingStarted', () => setTimeout(getRecordingFile, 2000));
   obs.on('RecordingStopping', stopInProgressRecording);
-  obsUtil.connect(obs, async () => {
-    logger.info('Connected to OBS');
-    if (await obsUtil.isRecording(obs)) {
-      getRecordingFile();
-    }
-  });
+  obsUtil.connect(obs)
+    .then(async () => {
+      logger.info('Connected to OBS');
+      if (await obsUtil.isRecording(obs)) {
+        getRecordingFile();
+      }
+    });
 
   recordingLogger = new RecordingLogger(new SmashggClient());
 
