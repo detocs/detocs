@@ -72,7 +72,7 @@ export async function connect(obs: ObsWebSocket): Promise<void> {
   let delay = MIN_RECONNECTION_DELAY;
   for (let i = 0; i < MAX_RECONNECTION_ATTEMPTS; i++) {
     try {
-      await obs.connect({ address: `localhost:${getConfig().obsWebsocketPort}` })
+      await obs.connect({ address: `localhost:${getConfig().obsWebsocketPort}` });
       obs.once('ConnectionClosed', () => {
         logger.warn('Disconnected from OBS');
         connect(obs);
