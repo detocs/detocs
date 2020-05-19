@@ -344,7 +344,13 @@ export class VodUploader {
 
     const players = sets.map(s => s.players)
       .reduce((acc, val) => acc.concat(val), []);
-    const tags = videoTags(tournament, videogame, phase, players, setList.excludedTags || [], [phase.name]);
+    const tags = videoTags(
+      tournament,
+      videogame,
+      phase,
+      players,
+      setList.excludedTags || [],
+      [phase.name]);
 
     const filename = filenamify(`${setList.start} `, { replacement: '-' }) +
         filenamify(title, { replacement: ' ' }) +
@@ -400,7 +406,13 @@ export class VodUploader {
       ].filter(nonEmpty).join(' ');
       const description = videoDescription(tournament, videogame, phase, matchDesc);
 
-      const tags = videoTags(tournament, videogame, phase, players, setList.excludedTags || [], [phase.name]);
+      const tags = videoTags(
+        tournament,
+        videogame,
+        phase,
+        players,
+        setList.excludedTags || [],
+        [phase.name]);
 
       const filename = filenamify(`${timestampedSet.start} `, { replacement: '-' }) +
           filenamify(title, { replacement: ' ' }) +
@@ -499,6 +511,7 @@ function runUpload(resumable: ResumableUpload): Promise<youtubeV3.Schema$Video> 
       const current = progress.padStart(total.length, ' ');
       const percentage = (+progress / fileSize * 100).toFixed(2).padStart(5, ' ');
       logger.info(`${current}B / ${total}B (${percentage}%)`);
+      process.title = `Uploading: ${percentage}%`;
     });
     resumable.on('error', function(error: unknown) {
       reject(error);

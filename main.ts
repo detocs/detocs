@@ -40,6 +40,9 @@ interface VodOptions {
   ps: boolean;
 }
 
+const VERSION = getVersion();
+process.title = `DETOCS ${VERSION}`;
+
 yargs
   .command({
     command: 'server',
