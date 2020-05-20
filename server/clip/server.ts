@@ -153,7 +153,7 @@ class ClipServer {
     try {
       replay = await this.media.getReplay();
     } catch(err) {
-      sendServerError(res, `Unable to get replay: ${err.toString()}`);
+      sendServerError(res, `Unable to get replay: ${err.message || err.toString()}`);
       return;
     }
     if (!replay) {

@@ -276,9 +276,9 @@ export class MediaServer {
     }
     const glob = path.join(this.recordingFolder, obs.OBS_REPLAY_PREFIX) + '*';
     let watcher: Watcher | undefined;
-    return new Promise<string | null>((resolve) => {
+    return new Promise<string | null>((resolve, reject) => {
       watcher = waitForFile(glob, resolve);
-      setTimeout(() => resolve(null), 10 * 1000);
+      setTimeout(() => reject(new Error('Timed out while waiting for replay file')), 10 * 1000);
     })
       .finally(() => watcher && watcher.close());
   };
