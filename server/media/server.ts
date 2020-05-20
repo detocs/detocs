@@ -278,7 +278,7 @@ export class MediaServer {
     let watcher: Watcher | undefined;
     return new Promise<string | null>((resolve) => {
       watcher = waitForFile(glob, resolve);
-      setTimeout(() => resolve(null), 3000);
+      setTimeout(() => resolve(null), 10 * 1000);
     })
       .finally(() => watcher && watcher.close());
   };
