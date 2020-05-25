@@ -23,22 +23,21 @@ export const ClipSelector: FunctionalComponent<ClipSelectorModalProps> = ({
   includeNone = true,
 }): VNode => {
   const formRef = createRef<HTMLFormElement>();
+  const submitForm = (): void => {
+    setTimeout(() => formRef.current?.requestSubmit());
+  };
   return (
     <CallbackForm<{ clipId: string }>
       class="clip-selector js-manual-form"
       formRef={formRef}
-      onClick={(evt: Event) => {
-        if (evt.target instanceof HTMLInputElement) {
-          formRef.current?.requestSubmit();
-        }
-      }}
       onSubmit={data => {
         onSelect(data.clipId || null);
       }}
     >
+      <input type="submit" hidden />
       <div class="clip-selector__list">
         { includeNone && <label class="clip-selector__option">
-          <div class="clip-selector__clip-info">
+          <div class="clip-selector__clip-info" onClick={submitForm}>
             <Thumbnail />
             <div class="clip-selector__clip-description">None</div>
           </div>
@@ -46,7 +45,7 @@ export const ClipSelector: FunctionalComponent<ClipSelectorModalProps> = ({
         </label> }
         {clips.slice().reverse().map(clipView => (
           <label class="clip-selector__option" aria-busy={clipView.status === ClipStatus.Rendering}>
-            <div class="clip-selector__clip-info">
+            <div class="clip-selector__clip-info" onClick={submitForm}>
               <Thumbnail media={clipView.clip.media} />
               <div class="clip-selector__clip-description">
                 {clipView.clip.description || ''}
