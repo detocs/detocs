@@ -1,5 +1,5 @@
 import log4js from 'log4js';
-const logger = log4js.getLogger('server/media-dashboard');
+const logger = log4js.getLogger('server/clip');
 logger.error = logger.error.bind(logger);
 
 import express, { Request, Response } from 'express';
@@ -114,7 +114,7 @@ class ClipServer {
     try {
       screenshot = await this.media.getCurrentFullScreenshot();
     } catch(err) {
-      sendServerError(res, `Unable to get screenshot: ${err}`);
+      sendServerError(res, 'Unable to get screenshot:', err);
       return;
     }
     if (!screenshot) {
@@ -153,7 +153,7 @@ class ClipServer {
     try {
       replay = await this.media.getReplay();
     } catch(err) {
-      sendServerError(res, `Unable to get replay: ${err.message || err.toString()}`);
+      sendServerError(res, 'Unable to get replay:', err);
       return;
     }
     if (!replay) {
@@ -262,7 +262,7 @@ class ClipServer {
 
       this.state = updateImmutable(
         this.state as { clips: ClipView<VideoClip>[]},
-        { clips: { [index]: { 
+        { clips: { [index]: {
           $merge: {
             status,
           },
@@ -284,7 +284,7 @@ class ClipServer {
     }
     this.state = updateImmutable(
       this.state as { clips: ClipView<VideoClip>[]},
-      { clips: { [index]: { 
+      { clips: { [index]: {
         $merge: {
           status: ClipStatus.Rendered,
         },

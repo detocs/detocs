@@ -34,23 +34,37 @@ export function appWebsocketServer(
   return { appServer, socketServer };
 }
 
-export function sendUserError(logger: Logger, res: express.Response, err?: Error | string): void {
-  send(logger.warn, res, 400, err);
+export function sendUserError(
+  logger: Logger,
+  res: express.Response,
+  errOrStr?: Error | string,
+  cause?: Error,
+): void {
+  send(logger.warn, res, 400, errOrStr, cause);
 }
 
-export function sendServerError(logger: Logger, res: express.Response, err?: Error | string): void {
-  send(logger.error, res, 500, err);
+export function sendServerError(
+  logger: Logger,
+  res: express.Response,
+  errOrStr?: Error | string,
+  cause?: Error,
+): void {
+  send(logger.error, res, 500, errOrStr, cause);
 }
 
 function send(
   loggerFn: LoggerMethod,
   res: express.Response,
   status: number,
-  err?: Error | string,
+  errOrStr?: Error | string,
+  cause?: Error,
 ): void {
-  if (err) {
-    const msg = err instanceof Error ? err.message : err;
-    loggerFn(err);
+  if (cause) {
+    loggerFn(cause);
+    res.status(status).send(`${errOrStr} ${cause.message || cause.toString()}`);
+  } else if (errOrStr) {
+    const msg = errOrStr instanceof Error ? errOrStr.message : errOrStr;
+    loggerFn(errOrStr);
     res.status(status).send(msg);
   } else {
     res.sendStatus(status);
