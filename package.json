@@ -11,7 +11,9 @@
   "license": "AGPL-3.0",
   "scripts": {
     "tsc": "tsc",
-    "bundle": "rollup -c -m",
+    "webjs": "rollup -c -m",
+    "webcss": "sass --load-path=node_modules/normalize.css web/css/:web/public/",
+    "bundle": "npm run webjs && npm run webcss",
     "build": "npm run tsc && npm run bundle",
     "prestart": "npm run build",
     "start": "node index.js",
@@ -52,6 +54,7 @@
     "moment": "^2.24.0",
     "neverthrow": "^2.2.0",
     "node-youtube-resumable-upload": "git+https://github.com/data-enabler/node-youtube-resumable-upload.git",
+    "normalize.css": "^8.0.1",
     "oauth-1.0a": "^2.2.6",
     "obs-websocket-js": "^3.1.0",
     "open": "^7.0.3",
@@ -72,6 +75,7 @@
     "rollup": "^1.21.2",
     "rollup-plugin-json": "^4.0.0",
     "rollup-plugin-node-resolve": "^5.2.0",
+    "sass": "^1.26.5",
     "typescript": "^3.7.2"
   }
 }

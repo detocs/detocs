@@ -1,5 +1,7 @@
 databases/
 node_modules/
+*.css
+*.css.map
 *.js
 *.js.map
 *.tsbuildinfo
