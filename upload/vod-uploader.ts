@@ -605,14 +605,14 @@ function videoDescription(
   ];
 
   return `${matchDesc}
-    
+
 ${tournament.name}
 ${date}
 ${[tournament.venueName, tournament.venueAddress].filter(nonEmpty).join(' - ')}
 ${tournament.url}
 
 Follow us for more!
-Twitch ► https://twitch.tv/lunarphaselive 
+Twitch ► https://twitch.tv/lunarphaselive
 Twitter ► https://twitter.com/LunarPhaseProd
 Store ► https://store.lunarphase.nyc
 
