@@ -2,7 +2,7 @@ import log4js from 'log4js';
 const logger = log4js.getLogger('people');
 
 import { readFileSync, renameSync, writeFileSync, mkdirSync, existsSync } from 'fs';
-import { dirname, join } from 'path';
+import { dirname } from 'path';
 
 import { getConfig } from '../util/config';
 import { getVersion } from '../util/meta';
@@ -16,7 +16,6 @@ interface Database {
 }
 
 const DEFAULTS = nullPerson;
-const DATABASE_FILE = 'people.json';
 
 // TODO: Make PersonDatabase class
 const database: Database = {
@@ -27,7 +26,7 @@ let nextId = getNextId(database.people);
 let backedUp = false;
 
 export function loadDatabase(): void {
-  const filePath = join(getConfig().databaseDirectory, DATABASE_FILE);
+  const filePath = getConfig().peopleDatabaseFile;
   let db: Database;
   try {
     db = JSON.parse(readFileSync(filePath).toString());
@@ -55,7 +54,7 @@ function parsePerson(p: Person): Person {
 }
 
 export async function saveDatabase(): Promise<void> {
-  const filePath = join(getConfig().databaseDirectory, DATABASE_FILE);
+  const filePath = getConfig().peopleDatabaseFile;
   if (!backedUp && existsSync(filePath)) {
     const backupPath = filePath + '.bak';
     logger.info(`Backing-up previous person database to ${backupPath}`);

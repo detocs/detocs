@@ -7,6 +7,7 @@ import { tmpDir } from './fs';
 
 interface Config {
   databaseDirectory: string;
+  peopleDatabaseFile: string;
   logDirectory: string | null;
   clipDirectory: string;
   obsWebsocketPort: number;
@@ -28,7 +29,8 @@ export type FileOutputConfig = OutputConfig & {
 };
 
 const DEFAULTS: Config = {
-  databaseDirectory: resolve('./databases'),
+  databaseDirectory: './databases',
+  peopleDatabaseFile: 'people.json',
   logDirectory: null,
   clipDirectory: tmpDir('clips'),
   obsWebsocketPort: 4444,
@@ -47,16 +49,19 @@ export async function loadConfig(): Promise<void> {
 }
 
 function resolveConfigDirectories(config: Config, fileDir: string): void {
-  const rslve = (path: string): string => resolve(fileDir, path);
-  config.databaseDirectory = rslve(config.databaseDirectory);
+  const configRelative = (path: string): string => resolve(fileDir, path);
+  config.databaseDirectory = configRelative(config.databaseDirectory);
+  if (config.peopleDatabaseFile) {
+    config.peopleDatabaseFile = resolve(config.databaseDirectory, config.peopleDatabaseFile);
+  }
   if (config.logDirectory) {
-    config.logDirectory = rslve(config.logDirectory);
+    config.logDirectory = configRelative(config.logDirectory);
   }
   for (const output of config.outputs) {
     if (output.type == 'file') {
-      output.path = rslve(output.path);
+      output.path = configRelative(output.path);
     }
-    output.templates = output.templates.map(rslve);
+    output.templates = output.templates.map(configRelative);
   }
 }
 
@@ -80,7 +85,7 @@ export async function loadConfigFile<T>(
   } while (dir = getParentDir(dir));
   logger.info(`Unable to load ${fileName}, using defaults`);
   return {
-    config: defaults,
+    config: Object.assign({}, defaults),
     filePath: resolve(fileName),
     fileDir: process.cwd(),
   };
@@ -91,7 +96,7 @@ export async function saveConfigFile<T>(filePath: string, config: T): Promise<vo
 }
 
 function parseConfig<T>(data: Buffer, defaults: T): T {
-  let parsed: unknown = JSON.parse(data.toString());
+  let parsed: Partial<T> = JSON.parse(data.toString());
   const config = Object.assign({}, defaults, parsed);
   return config;
 }
