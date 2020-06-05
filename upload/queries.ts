@@ -202,6 +202,8 @@ query EventQuery($eventId: ID!) {
       hashtag
       url(relative: false)
       startAt
+      endAt
+      timezone
     }
   }
 }
@@ -221,6 +223,8 @@ export interface EventQueryResponse {
       hashtag: string | null;
       url: string;
       startAt: number;
+      endAt: number | null;
+      timezone: string | null;
     };
   };
 }

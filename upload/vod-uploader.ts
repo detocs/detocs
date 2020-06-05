@@ -9,7 +9,7 @@ import { youtube_v3 as youtubeV3 } from 'googleapis';
 import { GraphQLClient } from 'graphql-request';
 import yaml from 'js-yaml';
 import merge from 'lodash.merge';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import ResumableUpload from 'node-youtube-resumable-upload';
 import path from 'path';
 import util from 'util';
@@ -18,7 +18,15 @@ import { SmashggId } from '../models/smashgg';
 import { Timestamp } from '../models/timestamp';
 import { Log as RecordingLog } from '../server/recording/log';
 import SmashggClient from '../util/smashgg';
-import { getYoutubeAuthClient, tagsSize, MAX_TAGS_SIZE, descriptionSize, MAX_DESCRIPTION_SIZE, titleSize, MAX_TITLE_SIZE } from '../util/youtube';
+import {
+  getYoutubeAuthClient,
+  tagsSize,
+  MAX_TAGS_SIZE,
+  descriptionSize,
+  MAX_DESCRIPTION_SIZE,
+  titleSize,
+  MAX_TITLE_SIZE
+} from '../util/youtube';
 
 import {
   EVENT_QUERY,
@@ -55,6 +63,7 @@ interface Set {
   id: string | number;
   players: {
     name: string;
+    prefix: string | null;
     handle: string;
   }[];
   fullRoundText: string;
@@ -63,12 +72,14 @@ interface Set {
 }
 
 type Log = RecordingLog & {
+  title?: string;
   phaseName?: string;
   event?: Partial<{
     tournament: Partial<Tournament>;
     videogame: Partial<Videogame>;
   }>;
   keyframeInterval?: number;
+  additionalTags: string[];
   excludedTags?: string[];
 };
 type SetPhaseGroupMapping = Record<SmashggId, string>;
@@ -102,7 +113,6 @@ interface VodUploaderParams {
 
 const GAMING_CATEGORY_ID = '20';
 const pExecFile = util.promisify(childProcess.execFile);
-const removeCommas = (str: string): string => str.replace(/,/g, '');
 const nonEmpty = (str: string | null): str is string => !!str;
 let keyframeInterval = 3;
 
@@ -327,7 +337,7 @@ export class VodUploader {
     };
     sets.forEach(set => set.start = set.start ? offsetTimestamp(set.start) : '0:00:00');
 
-    const title = [
+    const title = setList.title || [
       `${tournament.shortName}:`,
       videogame.name,
       phase.name,
@@ -350,7 +360,8 @@ export class VodUploader {
       phase,
       players,
       setList.excludedTags || [],
-      [phase.name]);
+      (setList.additionalTags || []).concat(phase.name),
+    );
 
     const filename = filenamify(`${setList.start} `, { replacement: '-' }) +
         filenamify(title, { replacement: ' ' }) +
@@ -596,8 +607,11 @@ function videoDescription(
   phase: Phase,
   matchDesc: string,
 ): string {
-  const timestamp = phase.waves ? phase.waves[0].startAt : tournament.startAt;
-  const date = moment.unix(timestamp).format('LL');
+  const date = formatDate(
+    phase.waves ? phase.waves[0].startAt : tournament.startAt,
+    phase.waves ? null : tournament.endAt,
+    tournament.timezone,
+  );
 
   const hashtags = [
     tournament.hashtag,
@@ -619,6 +633,22 @@ Store ► https://store.lunarphase.nyc
 ${hashtags.filter(nonEmpty).map(str => "#" + str).join(' ')}`;
 }
 
+function formatDate(start: number | null, end: number | null, timezone: string | null): string {
+  const format = (n: number): string => timezone ?
+    moment.unix(n).tz(timezone).format('LL') :
+    moment.unix(n).format('LL');
+
+  if (start == null) {
+    return '';
+  }
+
+  if (end == null) {
+    return format(start);
+  }
+
+  return `${format(start)} – ${format(end)}`;
+}
+
 function videoTags(
   tournament: Tournament,
   videogame: Videogame,
@@ -627,9 +657,10 @@ function videoTags(
   excludedTags: string[],
   additionalTags: string[],
 ): string[] {
-  // TODO: Properly count and limit tags
-  const playerTags = players.map(p => [p.name, p.handle])
-    .reduce((acc, val) => acc.concat(val), []);
+  const playerTags = players.flatMap(p => [
+    p.prefix && `${p.prefix} ${p.handle}`,
+    p.handle,
+  ]);
 
   const tags = [
     videogame.name,
@@ -644,7 +675,7 @@ function videoTags(
     ...additionalTags,
     ...tournamentTags(tournament),
     ...groupTags(),
-  ].map(removeCommas).map(s => s.trim()).filter(nonEmpty);
+  ].filter(nonEmpty).map(sanitizeTag).filter(nonEmpty);
 
   let tagsSet = new Set(tags);
   excludedTags.forEach(tagsSet.delete.bind(tagsSet));
@@ -662,21 +693,23 @@ function getSetData(logSet: Partial<Log['sets'][0]> = {}, smashggSet: Partial<Qu
     set.players = logSet.state.players.map(p => p.person).map(p => ({
       name: p.prefix ? `${p.prefix} | ${p.handle}` : p.handle,
       handle: p.handle,
+      prefix: p.prefix,
     }));
   } else if (smashggSet.slots) {
     set.players = smashggSet.slots.map(slot => {
       let name;
       let handle;
+      let prefix = null;
       if (slot.entrant.participants.length === 1) {
         const part = slot.entrant.participants[0];
-        const prefix = part.prefix || part.player.prefix;
+        prefix = part.prefix || part.player.prefix;
         handle = part.player.gamerTag;
         name = prefix ? `${prefix} | ${handle}` : handle;
       } else {
         handle = slot.entrant.name;
         name = slot.entrant.name;
       }
-      return { name, handle };
+      return { name, handle, prefix };
     });
   }
 
@@ -765,4 +798,10 @@ function groupTags(): string[] {
     'Lunar Phase',
     'LunarPhaseLive',
   ];
+}
+
+function sanitizeTag(str: string): string {
+  // TODO: Actually make this an exhaustive list?
+  return str.replace(/[,.?!|/\\(){}\[\]]/g, '')
+    .trim();
 }
