@@ -6,7 +6,7 @@ import { ClipView, ClipStatus } from '../../server/clip/state';
 import { Id } from '../../util/id';
 
 import { CallbackForm } from './forms';
-import { Modal } from './modal';
+import { Modal, useModalState } from './modal';
 import { Thumbnail } from './thumbnail';
 
 export interface ClipSelectorProps {
@@ -75,16 +75,17 @@ export const ClipSelectorModal: FunctionalComponent<RenderableProps<ClipSelector
   currentClipId,
   ...attributes
 }): VNode => {
-  const [ modalOpen, updateModalOpen ] = useState(false);
-  const openModal = (): void => {
-    updateModalOpen(true);
-  };
-  const closeModal = (): void => {
-    updateModalOpen(false);
-  };
+  const [ modalOpen, openModal, closeModal, triggerRef ] = useModalState(false);
   return (
     <Fragment>
-      <button type="button" onClick={openModal} {...attributes}>{children}</button>
+      <button
+        type="button"
+        ref={triggerRef}
+        onClick={openModal}
+        {...attributes}
+      >
+        {children}
+      </button>
       <Modal isOpen={modalOpen} onClose={closeModal}>
         <ClipSelector
           clips={clips}

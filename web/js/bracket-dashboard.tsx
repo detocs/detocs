@@ -1,10 +1,9 @@
 import { h, FunctionalComponent, VNode, Fragment } from 'preact';
 import { StateUpdater } from 'preact/hooks';
-import { Key } from 'w3c-keys';
 
 import { TOURNAMENT_URL_REGEX, TOURNAMENT_SLUG_REGEX } from '../../models/smashgg';
 import BracketState, { nullState } from '../../server/bracket/state';
-import { keyHandler } from '../../util/dom';
+import { keyHandler, Key } from '../../util/dom';
 import { submitForm } from '../../util/forms';
 
 import { bracketEndpoint } from './api';
