@@ -4,16 +4,7 @@ import formidable from 'express-formidable';
 import { createServer } from 'http';
 import * as ws from 'ws';
 
-interface LoggerMethod {
-  (msg: unknown, ...args: unknown[]): void;
-}
-
-interface Logger {
-  debug: LoggerMethod;
-  info: LoggerMethod;
-  warn: LoggerMethod;
-  error: LoggerMethod;
-}
+import { Logger, LoggerFunction } from './logger';
 
 export function appWebsocketServer(
   port: number,
@@ -53,7 +44,7 @@ export function sendServerError(
 }
 
 function send(
-  loggerFn: LoggerMethod,
+  loggerFn: LoggerFunction,
   res: express.Response,
   status: number,
   errOrStr?: Error | string,
