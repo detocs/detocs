@@ -1,14 +1,14 @@
 import log4js from 'log4js';
 const logger = log4js.getLogger('export-people');
 
-import { writeFile } from "fs";
+import { writeFile } from 'fs';
 import Handlebars from 'handlebars';
-import { promisify } from "util";
+import { promisify } from 'util';
 
-import { all, loadDatabase } from "../models/people";
-import { escapeCsv, escapeDoublePipe } from "../util/escaping";
+import { all, loadDatabase } from '@models/people';
+import { escapeCsv, escapeDoublePipe } from '@util/escaping';
 
-import ExportFormat from "./export-format";
+import ExportFormat from './export-format';
 
 const asyncWriteFile = promisify(writeFile);
 

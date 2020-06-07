@@ -1,12 +1,12 @@
 import { h, FunctionalComponent, VNode } from 'preact';
 import { StateUpdater } from 'preact/hooks';
 
-import InfoState from '../../server/info/state';
+import InfoState from '@server/info/state';
 
 import { useBreakMessages } from './hooks/info';
 
 import { infoEndpoint } from './api';
-import { inputHandler } from '../../util/dom';
+import { inputHandler } from '@util/dom';
 
 interface Props {
   state: InfoState;

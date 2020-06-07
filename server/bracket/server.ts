@@ -6,10 +6,11 @@ import express, { Request, Response } from 'express';
 import updateImmutable from 'immutability-helper';
 import * as ws from 'ws';
 
+import { SmashggId } from '@models/smashgg';
+import { appWebsocketServer } from '@util/http-server';
+import SmashggClient, { parseTournamentSlug } from '@util/smashgg';
+
 import State, { nullState } from './state';
-import SmashggClient, { parseTournamentSlug } from '../../util/smashgg';
-import { appWebsocketServer } from '../../util/http-server';
-import { SmashggId } from '../../models/smashgg';
 
 type WebSocketClient = ws;
 

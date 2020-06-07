@@ -1,4 +1,4 @@
-import { Screenshot } from '../../models/media';
+import { Screenshot } from '@models/media';
 
 export class ScreenshotCache {
   private readonly leniency: number;

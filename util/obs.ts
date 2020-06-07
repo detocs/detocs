@@ -6,7 +6,7 @@ import { promises as fs, statSync } from 'fs';
 import ObsWebSocket from 'obs-websocket-js';
 import { dirname, extname, isAbsolute, join, basename } from 'path';
 
-import { Timestamp } from '../models/timestamp';
+import { Timestamp } from '@models/timestamp';
 
 import { sleep } from './async';
 import { getConfig } from './config';

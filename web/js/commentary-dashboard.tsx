@@ -1,9 +1,9 @@
 import { h, FunctionalComponent, VNode } from 'preact';
 import { StateUpdater } from 'preact/hooks';
 
-import { nullPerson, PersonUpdate } from '../../models/person';
-import InfoState from '../../server/info/state';
-import { INTERACTIVE_SELECTOR } from '../../util/dom';
+import { nullPerson, PersonUpdate } from '@models/person';
+import InfoState from '@server/info/state';
+import { INTERACTIVE_SELECTOR } from '@util/dom';
 
 import { useCommentator1, useCommentator2 } from './hooks/info';
 

@@ -4,8 +4,8 @@ const logger = log4js.getLogger('people');
 import { readFileSync, renameSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { dirname } from 'path';
 
-import { getConfig } from '../util/config';
-import { getVersion } from '../util/meta';
+import { getConfig } from '@util/config';
+import { getVersion } from '@util/meta';
 
 import Person, { isEqual, PersonUpdate, nullPerson, getName } from './person';
 

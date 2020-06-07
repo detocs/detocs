@@ -6,14 +6,14 @@ import { promises as fs } from 'fs';
 import ObsWebSocket, { ObsError } from 'obs-websocket-js';
 import path from 'path';
 
-import { Screenshot, Replay, MediaFile, VideoFile, ImageFile } from '../../models/media';
-import { Timestamp } from '../../models/timestamp';
-import { sleep } from '../../util/async';
-import * as ffmpeg from '../../util/ffmpeg';
-import { tmpDir, waitForFile, Watcher } from '../../util/fs';
-import * as obs from '../../util/obs';
-import * as pathUtil from '../../util/path';
-import { sanitizeTimestamp, toMillis, fromMillis } from '../../util/timestamp';
+import { Screenshot, Replay, MediaFile, VideoFile, ImageFile } from '@models/media';
+import { Timestamp } from '@models/timestamp';
+import { sleep } from '@util/async';
+import * as ffmpeg from '@util/ffmpeg';
+import { tmpDir, waitForFile, Watcher } from '@util/fs';
+import * as obs from '@util/obs';
+import * as pathUtil from '@util/path';
+import { sanitizeTimestamp, toMillis, fromMillis } from '@util/timestamp';
 
 import { ReplayCache } from './replayCache';
 import { ScreenshotCache } from './screenshot-cache';

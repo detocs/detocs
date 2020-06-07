@@ -1,6 +1,6 @@
 import { h, FunctionalComponent, RenderableProps, VNode, Fragment, createRef } from 'preact';
 
-import TournamentSet from '../../models/tournament-set';
+import TournamentSet from '@models/tournament-set';
 
 import Autocomplete from './autocomplete';
 

@@ -2,8 +2,8 @@ import { h, FunctionalComponent, RenderableProps, VNode, createRef, Fragment } f
 import { useState } from 'preact/hooks';
 import { JSXInternal } from 'preact/src/jsx';
 
-import { ClipView, ClipStatus } from '../../server/clip/state';
-import { Id } from '../../util/id';
+import { ClipView, ClipStatus } from '@server/clip/state';
+import { Id } from '@util/id';
 
 import { CallbackForm } from './forms';
 import { Modal, useModalState } from './modal';

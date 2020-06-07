@@ -6,6 +6,17 @@
     "strict": true,
     "incremental": true,
     "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@export/*": [ "export/*" ],
+      "@import/*": [ "import/*" ],
+      "@models/*": [ "models/*" ],
+      "@server/*": [ "server/*" ],
+      "@upload/*": [ "upload/*" ],
+      "@util/*": [ "util/*" ],
+      "@web/*": [ "web/*" ],
+      "package.json": [ "package.json" ]
+    },
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,

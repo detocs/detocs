@@ -1,7 +1,7 @@
 import { h, VNode, FunctionalComponent } from 'preact';
 import { useRef } from 'preact/hooks';
 
-import { MediaFile } from '../../models/media';
+import { MediaFile } from '@models/media';
 
 interface ThumbnailProps {
   media?: MediaFile | null;

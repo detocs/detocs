@@ -7,10 +7,10 @@ import { promises as fs } from 'fs';
 import Handlebars from 'handlebars';
 import { basename } from 'path';
 
-import { escapeJson, escapeCsv, escapeString } from '../../../util/escaping';
-import { watchFile, Watcher } from '../../../util/fs';
+import { escapeJson, escapeCsv, escapeString } from '@util/escaping';
+import { watchFile, Watcher } from '@util/fs';
 
-import State, { sampleState } from '../state';
+import State, { sampleState } from '@server/info/state';
 
 export interface OutputTemplate {
   name: string;

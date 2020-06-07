@@ -14,10 +14,10 @@ import ResumableUpload from 'node-youtube-resumable-upload';
 import path from 'path';
 import util from 'util';
 
-import { SmashggId } from '../models/smashgg';
-import { Timestamp } from '../models/timestamp';
-import { Log as RecordingLog } from '../server/recording/log';
-import SmashggClient from '../util/smashgg';
+import { SmashggId } from '@models/smashgg';
+import { Timestamp } from '@models/timestamp';
+import { Log as RecordingLog } from '@server/recording/log';
+import SmashggClient from '@util/smashgg';
 import {
   getYoutubeAuthClient,
   tagsSize,
@@ -26,7 +26,7 @@ import {
   MAX_DESCRIPTION_SIZE,
   titleSize,
   MAX_TITLE_SIZE
-} from '../util/youtube';
+} from '@util/youtube';
 
 import {
   EVENT_QUERY,

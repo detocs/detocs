@@ -1,4 +1,4 @@
-import Match, { nullMatch } from '../../models/match';
+import Match, { nullMatch } from '@models/match';
 
 import { infoEndpoint } from './api';
 import AutocompleteFields from './autocomplete-fields';

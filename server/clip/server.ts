@@ -10,12 +10,12 @@ import { Result, ok, err } from 'neverthrow';
 import path from 'path';
 import * as ws from 'ws';
 
-import { VideoClip, ImageClip, isVideoClip, VideoFile, ImageFile, Clip } from '../../models/media';
-import { getConfig } from '../../util/config';
-import * as httpUtil from '../../util/http-server';
-import { getId } from '../../util/id';
+import { VideoClip, ImageClip, isVideoClip, VideoFile, ImageFile, Clip } from '@models/media';
+import { getConfig } from '@util/config';
+import * as httpUtil from '@util/http-server';
+import { getId } from '@util/id';
 
-import { MediaServer } from '../media/server';
+import { MediaServer } from '@server/media/server';
 
 import { State, nullState, ClipView, ClipStatus } from './state';
 

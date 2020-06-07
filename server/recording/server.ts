@@ -13,15 +13,15 @@ import path from 'path';
 import { promisify } from 'util';
 import * as ws from 'ws';
 
-import * as ffmpeg from '../../util/ffmpeg';
-import * as httpUtil from '../../util/http-server';
-import { getId } from '../../util/id';
-import * as obsUtil from '../../util/obs';
-import SmashggClient from '../../util/smashgg';
-import { sanitizeTimestamp, validateTimestamp } from '../../util/timestamp';
+import * as ffmpeg from '@util/ffmpeg';
+import * as httpUtil from '@util/http-server';
+import { getId } from '@util/id';
+import * as obsUtil from '@util/obs';
+import SmashggClient from '@util/smashgg';
+import { sanitizeTimestamp, validateTimestamp } from '@util/timestamp';
 
-import InfoState from '../info/state';
-import { MediaServer } from '../media/server';
+import InfoState from '@server/info/state';
+import { MediaServer } from '@server/media/server';
 import { INFO_PORT } from "../ports";
 
 import State, { Recording } from './state';

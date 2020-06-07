@@ -1,4 +1,4 @@
-import { Id } from '../util/id';
+import { Id } from '@util/id';
 
 export interface MediaFile {
   filename: string;

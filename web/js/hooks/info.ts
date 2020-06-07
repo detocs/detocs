@@ -1,7 +1,7 @@
-import Game from '../../../models/game';
-import Match from '../../../models/match';
-import Person, { PersonUpdate } from '../../../models/person';
-import InfoState from '../../../server/info/state';
+import Game from '@models/game';
+import Match from '@models/match';
+import Person, { PersonUpdate } from '@models/person';
+import InfoState from '@server/info/state';
 
 import { useSubstate } from './substate';
 

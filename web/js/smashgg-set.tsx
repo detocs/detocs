@@ -1,6 +1,6 @@
 import { h, FunctionalComponent, VNode } from 'preact';
 
-import TournamentSet from '../../models/tournament-set';
+import TournamentSet from '@models/tournament-set';
 
 import { useLocalState } from './hooks/local-state';
 import SetSelector from './set-selector';

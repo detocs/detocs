@@ -1,7 +1,7 @@
 import { h, FunctionalComponent, VNode, Fragment } from 'preact';
 import { useEffect, useRef, StateUpdater } from 'preact/hooks';
 
-import ServerState, { Recording } from '../../server/recording/state';
+import ServerState, { Recording } from '@server/recording/state';
 
 import { recordingEndpoint } from './api';
 import { useStartTimestamp, useStopTimestamp, useRecording } from './hooks/recording';

@@ -1,7 +1,7 @@
 import { h, createRef, Component, ComponentChild, Fragment } from 'preact';
 
-import Person, { PersonUpdate, getName } from '../../models/person';
-import { capitalize } from '../../util/string';
+import Person, { PersonUpdate, getName } from '@models/person';
+import { capitalize } from '@util/string';
 
 import { infoEndpoint } from './api';
 import Autocomplete from './autocomplete';

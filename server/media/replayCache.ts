@@ -1,4 +1,4 @@
-import { Replay } from '../../models/media';
+import { Replay } from '@models/media';
 
 export class ReplayCache {
   private readonly leniency: number;

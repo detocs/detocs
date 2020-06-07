@@ -1,4 +1,4 @@
-import { Clip, ImageClip, isImageClip, VideoClip, isVideoClip } from '../../models/media';
+import { Clip, ImageClip, isImageClip, VideoClip, isVideoClip } from '@models/media';
 
 export interface State {
   readonly clips: ClipView[];

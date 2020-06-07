@@ -1,10 +1,10 @@
 import { h, FunctionalComponent, VNode } from 'preact';
 import { StateUpdater } from 'preact/hooks';
 
-import { nullMatch } from '../../models/match';
-import { nullPerson } from '../../models/person';
-import BracketState from '../../server/bracket/state';
-import InfoState from '../../server/info/state';
+import { nullMatch } from '@models/match';
+import { nullPerson } from '@models/person';
+import BracketState from '@server/bracket/state';
+import InfoState from '@server/info/state';
 
 import {
   usePlayer1, usePlayer2,

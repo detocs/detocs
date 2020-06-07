@@ -1,7 +1,7 @@
 // TODO: Remove momentjs dependency
 import moment from 'moment';
 
-import { Timestamp } from '../models/timestamp';
+import { Timestamp } from '@models/timestamp';
 
 const TIMESTAMP_FORMAT = 'HH:mm:ss.SSS';
 

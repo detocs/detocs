@@ -3,11 +3,11 @@ const logger = getLogger('output/scorebaord-assistant');
 
 import * as WebSocket from 'ws';
 
-import LowerThird from '../../../models/lower-third';
-import Scoreboard from '../../../models/scoreboard';
-import { sendData, broadcastData } from '../../../util/websocket';
+import LowerThird from '@models/lower-third';
+import Scoreboard from '@models/scoreboard';
+import { sendData, broadcastData } from '@util/websocket';
 
-import State from '../state';
+import State from '@server/info/state';
 
 import Output from './output';
 

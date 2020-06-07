@@ -1,4 +1,4 @@
-import Game, { nullGame } from '../../models/game';
+import Game, { nullGame } from '@models/game';
 
 import { infoEndpoint } from './api';
 import AutocompleteFields from './autocomplete-fields';

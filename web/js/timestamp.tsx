@@ -1,8 +1,8 @@
 import { h, FunctionalComponent, VNode, JSX } from 'preact';
 import { StateUpdater } from 'preact/hooks';
 
-import { inputHandler } from '../../util/dom';
-import { truncateTimestamp, offsetTimestamp, validateTimestamp } from '../../util/timestamp';
+import { inputHandler } from '@util/dom';
+import { truncateTimestamp, offsetTimestamp, validateTimestamp } from '@util/timestamp';
 
 export const TimestampInput: FunctionalComponent<{
   name: string;

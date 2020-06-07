@@ -1,24 +1,24 @@
 import { h, FunctionalComponent, VNode, Fragment } from 'preact';
 import { StateUpdater, useRef, useState } from 'preact/hooks';
 
-import { ImageClip, VideoClip } from '../../models/media';
+import { ImageClip, VideoClip } from '@models/media';
 import {
   State,
   ClipView,
   ClipStatus,
   isImageClipView,
   isVideoClipView,
-} from '../../server/clip/state';
-import { inputHandler } from '../../util/dom';
+} from '@server/clip/state';
+import { inputHandler } from '@util/dom';
 
 import { clipEndpoint } from './api';
 import { useLocalState } from './hooks/local-state';
 import { Thumbnail } from './thumbnail';
-import { Id } from '../../util/id';
+import { Id } from '@util/id';
 import { ClipSelector } from './clip-selector';
-import { ReplayCache } from '../../server/media/replayCache';
-import { checkResponseStatus } from '../../util/ajax';
-import { GetClipResponse } from '../../server/clip/server';
+import { ReplayCache } from '@server/media/replayCache';
+import { checkResponseStatus } from '@util/ajax';
+import { GetClipResponse } from '@server/clip/server';
 
 interface Props {
   state: State;

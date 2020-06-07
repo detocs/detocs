@@ -1,7 +1,7 @@
 import { h, FunctionalComponent, RenderableProps, VNode } from 'preact';
 import { useCallback } from 'preact/hooks';
 
-import { INTERACTIVE_SELECTOR } from '../../util/dom';
+import { INTERACTIVE_SELECTOR } from '@util/dom';
 
 import { register } from './key-manager';
 

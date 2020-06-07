@@ -4,10 +4,10 @@ const logger = getLogger('output/websocket');
 import { promises as fs } from 'fs';
 import { join } from 'path';
 
-import { FileOutputConfig } from '../../../../util/config';
-import State, { nullState } from '../../state';
-import Output from '../output';
-import { OutputTemplate, parseTemplateFile } from '../templates';
+import { FileOutputConfig } from '@util/config';
+import State, { nullState } from '@server/info/state';
+import Output from '@server/info/output/output';
+import { OutputTemplate, parseTemplateFile } from '@server/info/output/templates';
 
 
 export default class FileOutput implements Output {

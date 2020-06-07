@@ -10,13 +10,13 @@ import { createServer } from 'http';
 import Twit from 'twit';
 import * as ws from 'ws';
 
-import { AccessToken } from '../../models/twitter';
-import { getCredentials, saveCredentials } from '../../util/credentials';
-import * as httpUtil from '../../util/http-server';
-import * as twitter from '../../util/twitter';
+import { AccessToken } from '@models/twitter';
+import { getCredentials, saveCredentials } from '@util/credentials';
+import * as httpUtil from '@util/http-server';
+import * as twitter from '@util/twitter';
 
-import { MediaServer } from '../media/server';
-import { TWITTER_PORT } from '../ports';
+import { MediaServer } from '@server/media/server';
+import { TWITTER_PORT } from '@server/ports';
 
 import ClientState, { nullState } from './client-state';
 import TwitterOAuth from './oauth';

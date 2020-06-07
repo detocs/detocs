@@ -3,7 +3,7 @@ const logger = log4js.getLogger('util/twitter');
 
 import Twit, { Twitter } from 'twit';
 
-import { User } from '../models/twitter';
+import { User } from '@models/twitter';
 
 import { sleep } from './async';
 

@@ -4,8 +4,8 @@ const logger = log4js.getLogger('export-people');
 import parse from 'csv-parse/lib/sync';
 import { promises as fs } from 'fs';
 
-import { loadDatabase, save, saveDatabase } from '../models/people';
-import { PersonUpdate } from '../models/person';
+import { loadDatabase, save, saveDatabase } from '@models/people';
+import { PersonUpdate } from '@models/person';
 
 export default async function importPeopleDatabase(path: string): Promise<void> {
   loadDatabase();

@@ -4,7 +4,7 @@ import formidable from 'express-formidable';
 import { createServer } from 'http';
 import * as ws from 'ws';
 
-import { Logger, LoggerFunction } from './logger';
+import { Logger, LoggerFunction } from '@util/logger';
 
 export function appWebsocketServer(
   port: number,

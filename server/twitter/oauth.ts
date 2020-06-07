@@ -7,7 +7,7 @@ import OAuth from 'oauth-1.0a';
 
 import { AccessToken } from "../../models/twitter";
 import { checkResponseStatus } from "../../util/ajax";
-import { getOauth1 } from '../../util/oauth';
+import { getOauth1 } from '@util/oauth';
 
 export default class TwitterOAuth {
   private oauth: OAuth;

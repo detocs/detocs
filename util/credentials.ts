@@ -1,6 +1,6 @@
-import { ApiToken as Smashgg } from '../models/smashgg';
-import { AccessToken as Twitter } from '../models/twitter';
-import { Credentials as YoutubeCredentials } from '../models/youtube';
+import { ApiToken as Smashgg } from '@models/smashgg';
+import { AccessToken as Twitter } from '@models/twitter';
+import { Credentials as YoutubeCredentials } from '@models/youtube';
 
 import { loadConfigFile, saveConfigFile } from './config';
 

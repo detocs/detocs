@@ -10,7 +10,7 @@
   "module": "main.ts",
   "license": "AGPL-3.0",
   "scripts": {
-    "tsc": "tsc",
+    "tsc": "tsc && tsc-alias",
     "webjs": "rollup -c -m",
     "webcss": "sass --load-path=node_modules/normalize.css web/css/:web/public/",
     "bundle": "npm run webjs && npm run webcss",
@@ -77,6 +77,7 @@
     "rollup-plugin-json": "^4.0.0",
     "rollup-plugin-node-resolve": "^5.2.0",
     "sass": "^1.26.5",
+    "tsc-alias": "^1.1.1",
     "typescript": "^3.7.2"
   }
 }

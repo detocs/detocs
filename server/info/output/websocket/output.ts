@@ -3,11 +3,11 @@ const logger = getLogger('output/websocket');
 
 import * as WebSocket from 'ws';
 
-import { WebSocketOutputConfig } from '../../../../util/config';
-import { broadcastAllData, sendAllData } from '../../../../util/websocket';
-import State from '../../state';
-import Output from '../output';
-import { OutputTemplate, parseTemplateFile } from '../templates';
+import { WebSocketOutputConfig } from '@util/config';
+import { broadcastAllData, sendAllData } from '@util/websocket';
+import State from '@server/info/state';
+import Output from '@server/info/output/output';
+import { OutputTemplate, parseTemplateFile } from '@server/info/output/templates';
 
 
 export default class WebSocketOutput implements Output {

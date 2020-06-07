@@ -25,7 +25,7 @@ SOFTWARE.
 */
 import { useRef, useEffect } from 'preact/hooks';
 
-import nextId from '../../../util/next-id';
+import nextId from '@util/next-id';
 
 const getIds = (count: number, prefix?: string): string[] => {
   const ids = [];

@@ -4,7 +4,7 @@ const logger = getLogger('web');
 import path from 'path';
 import express from 'express';
 
-import { MediaServer } from '../server/media/server';
+import { MediaServer } from '@server/media/server';
 
 declare global {
   const APP_ROOT: string;

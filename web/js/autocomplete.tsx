@@ -1,6 +1,6 @@
 import { h, Component, ComponentChild, RefObject } from 'preact';
 
-import nextId from '../../util/next-id';
+import nextId from '@util/next-id';
 
 import useId from './hooks/id';
 

@@ -1,7 +1,7 @@
-import { ImageFile } from '../../models/media';
-import { Id } from '../../util/id';
+import { ImageFile } from '@models/media';
+import { Id } from '@util/id';
 
-import InfoState from '../info/state';
+import InfoState from '@server/info/state';
 
 export default interface State {
   streamRecordingFolder: string | null;

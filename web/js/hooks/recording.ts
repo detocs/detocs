@@ -1,6 +1,6 @@
 import { StateUpdater } from 'preact/hooks/src';
 
-import RecordingState, { Recording } from '../../../server/recording/state';
+import RecordingState, { Recording } from '@server/recording/state';
 
 import { useSubstate } from './substate';
 

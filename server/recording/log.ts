@@ -3,9 +3,9 @@ import memoize from "micro-memoize";
 import path from 'path';
 import { promisify } from 'util';
 
-import { SmashggId } from '../../models/smashgg';
-import SmashggClient from '../../util/smashgg';
-import InfoState from '../info/state';
+import { SmashggId } from '@models/smashgg';
+import SmashggClient from '@util/smashgg';
+import InfoState from '@server/info/state';
 
 import State, { Recording } from "./state";
 

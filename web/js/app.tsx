@@ -1,14 +1,14 @@
 import { h, render, FunctionalComponent, VNode, Fragment } from 'preact';
 
-import BracketState, { nullState as nullBracketState } from '../../server/bracket/state';
+import BracketState, { nullState as nullBracketState } from '@server/bracket/state';
 import {
   State as ClipState,
   nullState as nullClipState
-} from '../../server/clip/state';
-import InfoState, { nullState as nullInfoState } from '../../server/info/state';
-import RecordingState, { nullState as nullRecordingState } from '../../server/recording/state';
-import TwitterState, { nullState as nullTwitterState } from '../../server/twitter/client-state';
-import { massagedFormData } from '../../util/forms';
+} from '@server/clip/state';
+import InfoState, { nullState as nullInfoState } from '@server/info/state';
+import RecordingState, { nullState as nullRecordingState } from '@server/recording/state';
+import TwitterState, { nullState as nullTwitterState } from '@server/twitter/client-state';
+import { massagedFormData } from '@util/forms';
 import { getVersion } from "../../util/meta";
 
 import { useServerState } from './hooks/server-state';

@@ -1,12 +1,12 @@
 import { h, FunctionalComponent, VNode, Fragment } from 'preact';
 import { useState } from 'preact/hooks';
 
-import { GetClipResponse } from '../../server/clip/server';
+import { GetClipResponse } from '@server/clip/server';
 import {
   State as ClipState,
   ClipStatus,
-} from '../../server/clip/state';
-import ClientState from '../../server/twitter/client-state';
+} from '@server/clip/state';
+import ClientState from '@server/twitter/client-state';
 import { checkResponseStatus } from "../../util/ajax";
 
 import { twitterEndpoint, clipEndpoint } from './api';
