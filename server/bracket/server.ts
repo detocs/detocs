@@ -1,6 +1,4 @@
-import log4js from 'log4js';
-const logger = log4js.getLogger('server/bracket');
-logger.error = logger.error.bind(logger);
+import { getLogger } from '@util/logger';
 
 import express, { Request, Response } from 'express';
 import updateImmutable from 'immutability-helper';
@@ -21,6 +19,7 @@ interface UpdateRequest {
   phaseId?: string;
 }
 
+const logger = getLogger('server/bracket');
 
 export default function start(port: number): void {
   logger.info('Initializing bracket server');

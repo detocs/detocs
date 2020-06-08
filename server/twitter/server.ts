@@ -1,6 +1,4 @@
-import log4js from 'log4js';
-const logger = log4js.getLogger('server/twitter');
-logger.error = logger.error.bind(logger);
+import { getLogger } from '@util/logger';
 
 import cors from 'cors';
 import express from 'express';
@@ -20,6 +18,8 @@ import { TWITTER_PORT } from '@server/ports';
 
 import ClientState, { nullState } from './client-state';
 import TwitterOAuth from './oauth';
+
+const logger = getLogger('server/twitter');
 
 interface InternalState {
   apiKey: string | null;

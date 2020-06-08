@@ -1,5 +1,4 @@
-import { getLogger } from 'log4js';
-const logger = getLogger('server');
+import { getLogger } from '@util/logger';
 
 import startBracketServer from './bracket/server';
 import startClipServer from './clip/server';
@@ -17,6 +16,7 @@ import {
 import startRecordingServer from './recording/server';
 import startTwitterServer from './twitter/server';
 
+const logger = getLogger('server');
 
 export default function start(mediaServer: MediaServer): void {
   logger.info('DETOCS server initializing...');

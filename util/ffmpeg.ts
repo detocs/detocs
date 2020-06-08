@@ -1,5 +1,4 @@
-import log4js from 'log4js';
-const logger = log4js.getLogger('util/ffmpeg');
+import { getLogger } from '@util/logger';
 
 import { execFile } from 'child_process';
 import path from 'path';
@@ -11,6 +10,7 @@ export interface VideoStats {
   durationMs?: number;
 }
 
+const logger = getLogger('util/ffmpeg');
 const pExecFile = promisify(execFile);
 const FFMPEG_COMMAND = 'ffmpeg';
 const FFPROBE_COMMAND = 'ffprobe';

@@ -1,5 +1,4 @@
-import { getLogger } from 'log4js';
-const logger = getLogger('output/scorebaord-assistant');
+import { getLogger } from '@util/logger';
 
 import * as WebSocket from 'ws';
 
@@ -11,7 +10,7 @@ import State from '@server/info/state';
 
 import Output from './output';
 
-
+const logger = getLogger('output/scorebaord-assistant');
 const PORT = 58341;
 
 interface ScoreboardAssistantScoreboard {

@@ -1,5 +1,4 @@
-import { getLogger } from 'log4js';
-const logger = getLogger('web');
+import { getLogger } from '@util/logger';
 
 import path from 'path';
 import express from 'express';
@@ -9,6 +8,8 @@ import { MediaServer } from '@server/media/server';
 declare global {
   const APP_ROOT: string;
 }
+
+const logger = getLogger('web');
 
 export default function(mediaServer: MediaServer): void {
   const WEB_PORT = 8080;

@@ -1,6 +1,4 @@
-import { getLogger } from 'log4js';
-const logger = getLogger('server/media');
-logger.error = logger.error.bind(logger);
+import { getLogger } from '@util/logger';
 
 import { promises as fs } from 'fs';
 import ObsWebSocket, { ObsError } from 'obs-websocket-js';
@@ -18,6 +16,7 @@ import { sanitizeTimestamp, toMillis, fromMillis } from '@util/timestamp';
 import { ReplayCache } from './replayCache';
 import { ScreenshotCache } from './screenshot-cache';
 
+const logger = getLogger('server/media');
 const THUMBNAIL_SIZE = 135;
 const SCREENSHOT_CACHE_LENIENCY_MS = 1000;
 const REPLAY_CACHE_LENIENCY_MS = 500;

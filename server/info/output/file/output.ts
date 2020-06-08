@@ -1,5 +1,4 @@
-import { getLogger } from 'log4js';
-const logger = getLogger('output/websocket');
+import { getLogger } from '@util/logger';
 
 import { promises as fs } from 'fs';
 import { join } from 'path';
@@ -9,6 +8,7 @@ import State, { nullState } from '@server/info/state';
 import Output from '@server/info/output/output';
 import { OutputTemplate, parseTemplateFile } from '@server/info/output/templates';
 
+const logger = getLogger('output/websocket');
 
 export default class FileOutput implements Output {
   private readonly path: string;

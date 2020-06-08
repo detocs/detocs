@@ -1,5 +1,4 @@
-import log4js from 'log4js';
-const logger = log4js.getLogger('util/twitter');
+import { getLogger } from '@util/logger';
 
 import Twit, { Twitter } from 'twit';
 
@@ -20,6 +19,8 @@ interface MediaStatusResponse {
     };
   };
 }
+
+const logger = getLogger('util/twitter');
 
 export async function getUser(twit: Twit): Promise<User> {
   const { data } = await twit.get(

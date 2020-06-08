@@ -1,6 +1,4 @@
-import log4js from 'log4js';
-const logger = log4js.getLogger('server/recording');
-logger.error = logger.error.bind(logger);
+import { getLogger } from '@util/logger';
 
 import cors from 'cors';
 import express, { Request, Response } from 'express';
@@ -27,6 +25,7 @@ import { INFO_PORT } from "../ports";
 import State, { Recording } from './state';
 import RecordingLogger from './log';
 
+const logger = getLogger('server/recording');
 const asyncMkdir = promisify(fs.mkdir);
 const sendUserError = httpUtil.sendUserError.bind(null, logger);
 const sendServerError = httpUtil.sendServerError.bind(null, logger);

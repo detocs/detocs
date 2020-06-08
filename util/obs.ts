@@ -1,5 +1,4 @@
-import log4js from 'log4js';
-const logger = log4js.getLogger('util/obs');
+import { getLogger } from '@util/logger';
 
 import find from 'find-process';
 import { promises as fs, statSync } from 'fs';
@@ -11,6 +10,7 @@ import { Timestamp } from '@models/timestamp';
 import { sleep } from './async';
 import { getConfig } from './config';
 
+const logger = getLogger('util/obs');
 const MIN_RECONNECTION_DELAY = 3 * 1000;
 const MAX_RECONNECTION_DELAY = 5 * 60 * 1000;
 const RECONNECTION_DELAY_GROWTH = 2;

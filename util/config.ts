@@ -1,9 +1,10 @@
-import log4js from 'log4js';
-const logger = log4js.getLogger('config');
+import { getLogger } from '@util/logger';
 
 import { dirname, join, resolve } from "path";
 import { readFileSync, writeFileSync } from "fs";
 import { tmpDir } from './fs';
+
+const logger = getLogger('config');
 
 interface Config {
   databaseDirectory: string;

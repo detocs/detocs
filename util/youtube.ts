@@ -1,5 +1,4 @@
-import log4js from 'log4js';
-export const logger = log4js.getLogger('youtube');
+import { getLogger } from '@util/logger';
 
 import { CodeChallengeMethod, OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
@@ -9,6 +8,7 @@ import url from 'url';
 
 import { getCredentials, saveCredentials } from './credentials';
 
+const logger = getLogger('youtube');
 export const MAX_TITLE_SIZE = 100;
 export const MAX_DESCRIPTION_SIZE = 5000;
 export const MAX_TAGS_SIZE = 500;

@@ -1,6 +1,7 @@
 import * as ws from 'ws';
 
-import { getLogger } from 'log4js';
+import { getLogger } from '@util/logger';
+
 const logger = getLogger('server/control');
 
 export default function start(port: number) {

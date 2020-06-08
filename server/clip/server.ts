@@ -1,6 +1,4 @@
-import log4js from 'log4js';
-const logger = log4js.getLogger('server/clip');
-logger.error = logger.error.bind(logger);
+import { getLogger } from '@util/logger';
 
 import express, { Request, Response } from 'express';
 import filenamify from 'filenamify';
@@ -43,6 +41,7 @@ export interface GetClipResponse {
 
 type WebSocketClient = ws;
 
+const logger = getLogger('server/clip');
 const sendUserError = httpUtil.sendUserError.bind(null, logger);
 const sendServerError = httpUtil.sendServerError.bind(null, logger);
 

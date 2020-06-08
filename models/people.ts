@@ -1,5 +1,4 @@
-import log4js from 'log4js';
-const logger = log4js.getLogger('people');
+import { getLogger } from '@util/logger';
 
 import { readFileSync, renameSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { dirname } from 'path';
@@ -8,6 +7,8 @@ import { getConfig } from '@util/config';
 import { getVersion } from '@util/meta';
 
 import Person, { isEqual, PersonUpdate, nullPerson, getName } from './person';
+
+const logger = getLogger('people');
 
 // TODO: Proper serialization
 interface Database {

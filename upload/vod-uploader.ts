@@ -1,5 +1,4 @@
-import log4js from 'log4js';
-export const logger = log4js.getLogger('upload');
+import { getLogger } from '@util/logger';
 
 import childProcess from 'child_process';
 import filenamify from 'filenamify';
@@ -111,6 +110,7 @@ interface VodUploaderParams {
   style: Style;
 }
 
+const logger = getLogger('upload');
 const GAMING_CATEGORY_ID = '20';
 const pExecFile = util.promisify(childProcess.execFile);
 const nonEmpty = (str: string | null): str is string => !!str;

@@ -1,5 +1,4 @@
-import log4js from 'log4js';
-const logger = log4js.getLogger('server/info');
+import { getLogger } from '@util/logger';
 
 import ws from 'ws';
 import express from 'express';
@@ -28,6 +27,7 @@ import ScoreboardAssistant from './output/scoreboard-assistant';
 import WebSocketOutput from './output/websocket/output';
 import State, { nullState } from './state';
 
+const logger = getLogger('server/info');
 const state: State = Object.assign({}, nullState);
 let socketServer: ws.Server | null = null;
 

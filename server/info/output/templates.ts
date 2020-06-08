@@ -1,5 +1,4 @@
-import { getLogger } from 'log4js';
-const logger = getLogger('output/templates');
+import { getLogger } from '@util/logger';
 
 import { Error as ChainableError } from 'chainable-error';
 import frontMatter from 'front-matter';
@@ -24,6 +23,7 @@ interface OutputTemplateData {
   userData: unknown;
 }
 
+const logger = getLogger('output/templates');
 const hb = Handlebars.create();
 hb.registerHelper({
   'escapeCsv': escapeCsv,

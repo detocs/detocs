@@ -1,6 +1,4 @@
-import log4js from 'log4js';
-const logger = log4js.getLogger('server/twitter/oauth');
-logger.error = logger.error.bind(logger);
+import { getLogger } from '@util/logger';
 
 // TODO: Replace with interface
 import OAuth from 'oauth-1.0a';
@@ -8,6 +6,8 @@ import OAuth from 'oauth-1.0a';
 import { AccessToken } from "../../models/twitter";
 import { checkResponseStatus } from "../../util/ajax";
 import { getOauth1 } from '@util/oauth';
+
+const logger = getLogger('server/twitter/oauth');
 
 export default class TwitterOAuth {
   private oauth: OAuth;

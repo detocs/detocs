@@ -1,5 +1,4 @@
-import log4js from 'log4js';
-const logger = log4js.getLogger('export-people');
+import { getLogger } from '@util/logger';
 
 import { writeFile } from 'fs';
 import Handlebars from 'handlebars';
@@ -10,6 +9,7 @@ import { escapeCsv, escapeDoublePipe } from '@util/escaping';
 
 import ExportFormat from './export-format';
 
+const logger = getLogger('export-people');
 const asyncWriteFile = promisify(writeFile);
 
 export default async function exportPeopleDatabase(

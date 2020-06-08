@@ -1,5 +1,4 @@
-import { getLogger } from 'log4js';
-const logger = getLogger('output/websocket');
+import { getLogger } from '@util/logger';
 
 import * as WebSocket from 'ws';
 
@@ -9,6 +8,7 @@ import State from '@server/info/state';
 import Output from '@server/info/output/output';
 import { OutputTemplate, parseTemplateFile } from '@server/info/output/templates';
 
+const logger = getLogger('output/websocket');
 
 export default class WebSocketOutput implements Output {
   private readonly port: number;
