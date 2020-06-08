@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "outDir": "build",
     "target": "ES2019",
     "module": "ES2015",
     "strict": true,
@@ -12,6 +13,6 @@
     "jsx": "react",
     "jsxFactory": "h"
   },
-  "include": [ "export", "import", "models", "server", "types", "upload", "util", "web/js" ],
+  "include": [ "main.ts", "export", "import", "models", "server", "types", "upload", "util", "web/js" ],
   "exclude": [ "**/node_modules" ]
 }

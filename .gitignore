@@ -1,9 +1,10 @@
+build/
 databases/
 node_modules/
-*.css
-*.css.map
-*.js
-*.js.map
+web/public/*.css
+web/public/*.css.map
+web/public/*.js
+web/public/*.js.map
 *.tsbuildinfo
 detocs-config.json
 detocs-credentials.json

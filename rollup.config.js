@@ -12,7 +12,7 @@ const plugins = [
 ];
 export default [
   {
-    input: 'web/js/app.js',
+    input: 'build/web/js/app.js',
     output: {
       file: 'web/public/detocs.js',
       format: 'iife',
@@ -20,7 +20,7 @@ export default [
     plugins,
   },
   {
-    input: 'web/js/polyfill.js',
+    input: 'build/web/js/polyfill.js',
     output: {
       file: 'web/public/polyfill.js',
       format: 'iife',
