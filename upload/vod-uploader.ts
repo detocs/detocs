@@ -1,5 +1,3 @@
-import { getLogger } from '@util/logger';
-
 import childProcess from 'child_process';
 import filenamify from 'filenamify';
 import fsSync, { promises as fs } from 'fs';
@@ -16,7 +14,7 @@ import util from 'util';
 import { SmashggId } from '@models/smashgg';
 import { Timestamp } from '@models/timestamp';
 import { Log as RecordingLog } from '@server/recording/log';
-import SmashggClient from '@util/smashgg';
+import SmashggClient from '@services/smashgg';
 import {
   getYoutubeAuthClient,
   tagsSize,
@@ -25,7 +23,8 @@ import {
   MAX_DESCRIPTION_SIZE,
   titleSize,
   MAX_TITLE_SIZE
-} from '@util/youtube';
+} from '@services/youtube';
+import { getLogger } from '@util/logger';
 
 import {
   EVENT_QUERY,
@@ -39,6 +38,8 @@ import {
   SetQueryResponse,
   PhaseSetQueryResponse
 } from './queries';
+
+const logger = getLogger('upload');
 
 type QueryEvent = EventQueryResponse['event'];
 type QueryTournament = QueryEvent['tournament'];
@@ -110,7 +111,6 @@ interface VodUploaderParams {
   style: Style;
 }
 
-const logger = getLogger('upload');
 const GAMING_CATEGORY_ID = '20';
 const pExecFile = util.promisify(childProcess.execFile);
 const nonEmpty = (str: string | null): str is string => !!str;

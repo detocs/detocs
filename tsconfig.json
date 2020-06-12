@@ -12,6 +12,7 @@
       "@import/*": [ "import/*" ],
       "@models/*": [ "models/*" ],
       "@server/*": [ "server/*" ],
+      "@services/*": [ "services/*" ],
       "@upload/*": [ "upload/*" ],
       "@util/*": [ "util/*" ],
       "@web/*": [ "web/*" ],
@@ -24,6 +25,6 @@
     "jsx": "react",
     "jsxFactory": "h"
   },
-  "include": [ "main.ts", "export", "import", "models", "server", "types", "upload", "util", "web/js" ],
+  "include": [ "main.ts", "export", "import", "models", "server", "services", "types", "upload", "util", "web/js" ],
   "exclude": [ "**/node_modules" ]
 }

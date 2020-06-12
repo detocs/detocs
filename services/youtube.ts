@@ -1,14 +1,13 @@
-import { getLogger } from '@util/logger';
-
 import { CodeChallengeMethod, OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
 import http from 'http';
 import open from 'open';
 import url from 'url';
 
-import { getCredentials, saveCredentials } from './credentials';
+import { getCredentials, saveCredentials } from '@util/credentials';
+import { getLogger } from '@util/logger';
 
-const logger = getLogger('youtube');
+const logger = getLogger('services/youtube');
 export const MAX_TITLE_SIZE = 100;
 export const MAX_DESCRIPTION_SIZE = 5000;
 export const MAX_TAGS_SIZE = 500;

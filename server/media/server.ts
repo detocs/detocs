@@ -1,15 +1,14 @@
-import { getLogger } from '@util/logger';
-
 import { promises as fs } from 'fs';
 import ObsWebSocket, { ObsError } from 'obs-websocket-js';
 import path from 'path';
 
 import { Screenshot, Replay, MediaFile, VideoFile, ImageFile } from '@models/media';
 import { Timestamp } from '@models/timestamp';
+import * as obs from '@services/obs';
 import { sleep } from '@util/async';
+import { getLogger } from '@util/logger';
 import * as ffmpeg from '@util/ffmpeg';
 import { tmpDir, waitForFile, Watcher } from '@util/fs';
-import * as obs from '@util/obs';
 import * as pathUtil from '@util/path';
 import { sanitizeTimestamp, toMillis, fromMillis } from '@util/timestamp';
 

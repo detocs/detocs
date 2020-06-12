@@ -2,15 +2,14 @@ import { GraphQLClient } from 'graphql-request';
 
 import { getGameBySmashggId } from '@models/games';
 import { getMatchBySmashggId, isGrandFinals, isTrueFinals } from '@models/matches';
-import TournamentSet from "../models/tournament-set";
-
-import { getCredentials } from './credentials';
-import { nonNull } from './predicates';
 import { SmashggSlug, TOURNAMENT_URL_REGEX, SMASHGG_BASE_URL } from '@models/smashgg';
 import Tournament from '@models/tournament';
 import TournamentEvent from '@models/tournament-event';
 import TournamentPhase from '@models/tournament-phase';
 import TournamentPhaseGroup from '@models/tournament-phase-group';
+import TournamentSet from '@models/tournament-set';
+import { getCredentials } from '@util/credentials';
+import { nonNull } from '@util/predicates';
 
 const ENDPOINT = 'https://api.smash.gg/gql/alpha';
 

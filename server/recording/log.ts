@@ -4,8 +4,8 @@ import path from 'path';
 import { promisify } from 'util';
 
 import { SmashggId } from '@models/smashgg';
-import SmashggClient from '@util/smashgg';
 import InfoState from '@server/info/state';
+import SmashggClient from '@services/smashgg';
 
 import State, { Recording } from "./state";
 

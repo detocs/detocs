@@ -5,8 +5,8 @@ import updateImmutable from 'immutability-helper';
 import * as ws from 'ws';
 
 import { SmashggId } from '@models/smashgg';
+import SmashggClient, { parseTournamentSlug } from '@services/smashgg';
 import { appWebsocketServer } from '@util/http-server';
-import SmashggClient, { parseTournamentSlug } from '@util/smashgg';
 
 import State, { nullState } from './state';
 

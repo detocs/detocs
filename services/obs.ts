@@ -1,16 +1,14 @@
-import { getLogger } from '@util/logger';
-
 import find from 'find-process';
 import { promises as fs, statSync } from 'fs';
 import ObsWebSocket from 'obs-websocket-js';
 import { dirname, extname, isAbsolute, join, basename } from 'path';
 
 import { Timestamp } from '@models/timestamp';
+import { sleep } from '@util/async';
+import { getConfig } from '@util/config';
+import { getLogger } from '@util/logger';
 
-import { sleep } from './async';
-import { getConfig } from './config';
-
-const logger = getLogger('util/obs');
+const logger = getLogger('services/obs');
 const MIN_RECONNECTION_DELAY = 3 * 1000;
 const MAX_RECONNECTION_DELAY = 5 * 60 * 1000;
 const RECONNECTION_DELAY_GROWTH = 2;

@@ -1,10 +1,10 @@
-import { getLogger } from '@util/logger';
-
 import Twit, { Twitter } from 'twit';
 
 import { User } from '@models/twitter';
+import { sleep } from '@util/async';
+import { getLogger } from '@util/logger';
 
-import { sleep } from './async';
+const logger = getLogger('services/twitter');
 
 interface MediaStatusResponse {
   media_id_string: string;
@@ -20,12 +20,10 @@ interface MediaStatusResponse {
   };
 }
 
-const logger = getLogger('util/twitter');
-
 export async function getUser(twit: Twit): Promise<User> {
   const { data } = await twit.get(
     'account/verify_credentials',
-    { 
+    {
       'include_entities': false,
       'skip_status': true,
       'include_email': false,
@@ -132,7 +130,7 @@ async function pollMediaStatus(twit: Twit, resp: MediaStatusResponse): Promise<v
     resp = res.data as MediaStatusResponse;
     logger.debug(resp);
   }
-  
+
   if (resp.processing_info?.state === 'failed') {
     throw new Error(resp.processing_info?.error?.message);
   }
