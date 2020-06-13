@@ -1,5 +1,4 @@
 import Game from './game';
-import { SmashggId } from './smashgg';
 
 // TODO: Use separate IDs for separate releases?
 const games: Game[] = [
@@ -18,6 +17,7 @@ const games: Game[] = [
     serviceInfo: {
       twitch: { id: 'Under Night In-Birth Exe:Late[cl-r]' },
       smashgg: { id: '33870' },
+      challonge: { id: '186168' },
     },
   },
   {
@@ -34,6 +34,7 @@ const games: Game[] = [
     serviceInfo: {
       twitch: { id: 'Melty Blood: Actress Again: Current Code' },
       smashgg: { id: '22407' },
+      challonge: { id: '306' },
     },
   },
   {
@@ -146,6 +147,7 @@ const games: Game[] = [
     serviceInfo: {
       twitch: { id: 'Skullgirls' },
       smashgg: { id: '32' },
+      challonge: { id: '367' },
     },
   },
   {
@@ -261,6 +263,10 @@ const games: Game[] = [
 ];
 export default games;
 
-export function getGameBySmashggId(id: SmashggId): Game | null {
-  return games.find(g => g.serviceInfo.smashgg && g.serviceInfo.smashgg.id === id) || null;
+export function getGameBySmashggId(id: string): Game | null {
+  return games.find(g => g.serviceInfo.smashgg?.id === id) || null;
+}
+
+export function getGameByChallongeId(id: string): Game | null {
+  return games.find(g => g.serviceInfo.challonge?.id === id) || null;
 }

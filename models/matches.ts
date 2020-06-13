@@ -82,7 +82,7 @@ for(const i of [3, 5, 7, 10, 15, 20]) {
 export default matches;
 
 export function getMatchById(id: string): Match | null {
-  return matches.find(m => m.smashggId === id) || null;
+  return matches.find(m => m.id === id) || null;
 }
 
 export function getMatchBySmashggId(id: string): Match | null {

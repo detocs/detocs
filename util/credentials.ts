@@ -1,4 +1,5 @@
-import { ApiToken as Smashgg } from '@models/smashgg';
+import { ApiKey as ChallongeApiKey } from '@models/challonge';
+import { ApiToken as SmashggApiToken } from '@models/smashgg';
 import { AccessToken as Twitter } from '@models/twitter';
 import { Credentials as YoutubeCredentials } from '@models/youtube';
 
@@ -6,8 +7,9 @@ import { loadConfigFile, saveConfigFile } from './config';
 
 interface Credentials {
   twitterAccessToken?: Twitter;
-  smashggApiToken?: Smashgg;
+  smashggApiToken?: SmashggApiToken;
   youtubeCredentials?: YoutubeCredentials;
+  challongeApiKey?: ChallongeApiKey;
 }
 
 const DEFAULTS: Credentials = {};

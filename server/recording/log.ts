@@ -5,7 +5,8 @@ import { promisify } from 'util';
 
 import { SmashggId } from '@models/smashgg';
 import InfoState from '@server/info/state';
-import SmashggClient from '@services/smashgg';
+import BracketServiceProvider from '@services/bracket-service-provider';
+import { SERVICE_NAME as SMASHGG_SERVICE_NAME } from '@services/smashgg';
 
 import State, { Recording } from "./state";
 
@@ -33,8 +34,17 @@ export default class RecordingLogger {
   private readonly eventIdForPhase: (phaseId: SmashggId) => Promise<SmashggId>;
   private lastSaved: Record<FilePath, string> = {};
 
-  public constructor(smashgg: SmashggClient) {
-    this.eventIdForPhase = memoize(smashgg.eventIdForPhase.bind(smashgg));
+  public constructor(bracketProvider: BracketServiceProvider) {
+    this.eventIdForPhase = memoize(
+      async (phaseId: string): Promise<string> => {
+        if (+phaseId > 8_000_000) {
+          // TODO: This is just an ugly hack to avoid adding Challonge support
+          return '';
+        }
+        return await bracketProvider.get(SMASHGG_SERVICE_NAME).eventIdForPhase(phaseId);
+      },
+      { maxSize: 2, isPromise: true },
+    );
   }
 
   public async saveLogs(state: State): Promise<void> {

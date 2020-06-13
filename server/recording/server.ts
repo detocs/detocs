@@ -12,16 +12,16 @@ import * as ws from 'ws';
 import InfoState from '@server/info/state';
 import { MediaServer } from '@server/media/server';
 import { INFO_PORT } from '@server/ports';
+import BracketServiceProvider from '@services/bracket-service-provider';
 import * as obsUtil from '@services/obs';
-import SmashggClient from '@services/smashgg';
 import * as ffmpeg from '@util/ffmpeg';
 import * as httpUtil from '@util/http-server';
 import { getId } from '@util/id';
 import { getLogger } from '@util/logger';
 import { sanitizeTimestamp, validateTimestamp } from '@util/timestamp';
 
-import State, { Recording } from './state';
 import RecordingLogger from './log';
+import State, { Recording } from './state';
 
 const logger = getLogger('server/recording');
 const asyncMkdir = promisify(fs.mkdir);
@@ -55,7 +55,11 @@ const state: State = {
 };
 
 
-export default function start(port: number, mediaServer: MediaServer): void {
+export default function start({ port, mediaServer, bracketProvider }: {
+  port: number;
+  mediaServer: MediaServer;
+  bracketProvider: BracketServiceProvider;
+}): void {
   logger.info('Initializing match recording server');
 
   media = mediaServer;
@@ -72,7 +76,7 @@ export default function start(port: number, mediaServer: MediaServer): void {
       }
     });
 
-  recordingLogger = new RecordingLogger(new SmashggClient());
+  recordingLogger = new RecordingLogger(bracketProvider);
 
   const app = express();
   // TODO: Security?

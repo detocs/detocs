@@ -11,6 +11,9 @@ import TournamentSet from '@models/tournament-set';
 import { getCredentials } from '@util/credentials';
 import { nonNull } from '@util/predicates';
 
+import BracketService from './bracket-service';
+
+export const SERVICE_NAME = 'smashgg';
 const ENDPOINT = 'https://api.smash.gg/gql/alpha';
 
 interface PageInfo {
@@ -203,7 +206,7 @@ interface TournamentPhases {
   }[];
 };
 
-export default class SmashggClient {
+export default class SmashggClient implements BracketService {
   private client: GraphQLClient;
 
   public constructor() {

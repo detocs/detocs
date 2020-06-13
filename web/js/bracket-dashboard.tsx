@@ -1,7 +1,6 @@
 import { h, FunctionalComponent, VNode, Fragment } from 'preact';
 import { StateUpdater } from 'preact/hooks';
 
-import { TOURNAMENT_URL_REGEX, TOURNAMENT_SLUG_REGEX } from '@models/smashgg';
 import BracketState, { nullState } from '@server/bracket/state';
 import { keyHandler, Key } from '@util/dom';
 import { submitForm } from '@util/forms';
@@ -13,7 +12,6 @@ interface Props {
   updateState: StateUpdater<BracketState>;
 }
 
-const TOURNAMENT_PATTERN = TOURNAMENT_URL_REGEX.source + '|' + TOURNAMENT_SLUG_REGEX.source;
 const submitOnEnter = keyHandler({
   [Key.Enter]: submitForm,
 });
@@ -46,7 +44,6 @@ const BracketDashboard: FunctionalComponent<Props> = ({ state, updateState }): V
           Tournament URL or slug: <input
             type="text"
             name="tournamentUrl"
-            pattern={TOURNAMENT_PATTERN}
           />
         </label>
       }

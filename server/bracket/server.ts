@@ -1,14 +1,22 @@
 import { getLogger } from '@util/logger';
 
+import { Error as ChainableError } from 'chainable-error';
 import express, { Request, Response } from 'express';
 import updateImmutable from 'immutability-helper';
 import * as ws from 'ws';
 
 import { SmashggId } from '@models/smashgg';
-import SmashggClient, { parseTournamentSlug } from '@services/smashgg';
+import BracketService from '@services/bracket-service';
+import { parseTournamentId as parseChallongeId } from '@services/challonge/challonge';
+import { SERVICE_NAME as CHALLONGE_SERVICE_NAME } from '@services/challonge/constants';
+import {
+  parseTournamentSlug as parseSmashggSlug,
+  SERVICE_NAME as SMASHGG_SERVICE_NAME,
+} from '@services/smashgg';
 import { appWebsocketServer } from '@util/http-server';
 
 import State, { nullState } from './state';
+import BracketServiceProvider from '@services/bracket-service-provider';
 
 type WebSocketClient = ws;
 
@@ -21,34 +29,39 @@ interface UpdateRequest {
 
 const logger = getLogger('server/bracket');
 
-export default function start(port: number): void {
+export default function start({ port, bracketProvider }: {
+  port: number;
+  bracketProvider: BracketServiceProvider;
+}): void {
   logger.info('Initializing bracket server');
 
-  const smashgg = new SmashggClient();
   const { appServer, socketServer } = appWebsocketServer(
     port,
     () => logger.info(`Listening on port ${port}`),
   );
 
-  const server = new BracketServer(appServer, socketServer, smashgg);
+  const server = new BracketServer(appServer, socketServer, bracketProvider);
   server.registerHandlers();
 };
 
 class BracketServer {
   private readonly appServer: express.Express;
   private readonly socketServer: ws.Server;
-  private readonly smashgg: SmashggClient;
+  private readonly bracketProvider: BracketServiceProvider;
+  private bracketService: BracketService;
   private state: State = nullState;
   private refreshTimer: NodeJS.Timeout | null = null;
 
   public constructor(
     appServer: express.Express,
     socketServer: ws.Server,
-    smasggClient: SmashggClient,
+    bracketProvider: BracketServiceProvider,
   ) {
     this.appServer = appServer;
     this.socketServer = socketServer;
-    this.smashgg = smasggClient;
+    this.bracketProvider = bracketProvider;
+    // TODO: Make smash.gg optional
+    this.bracketService = bracketProvider.get(SMASHGG_SERVICE_NAME);
   }
 
   public registerHandlers(): void {
@@ -83,10 +96,10 @@ class BracketServer {
     const fields = req.fields as UpdateRequest;
     const tourneyUrlOrSlug = fields.tournamentUrl || null;
     const tourneyId = fields.tournamentId || null;
+    const [ parsedTournamentId, bracketService ] = this.parseUrlOrSlug(tourneyUrlOrSlug);
+    this.bracketService = bracketService;
     const update: Partial<State> = {
-      tournamentId: tourneyUrlOrSlug && parseTournamentSlug(tourneyUrlOrSlug)||
-        tourneyUrlOrSlug ||
-        tourneyId,
+      tournamentId: parsedTournamentId || tourneyId,
       eventId: emptyToNull(fields.eventId),
       phaseId: emptyToNull(fields.phaseId),
     };
@@ -137,15 +150,15 @@ class BracketServer {
 
     // Asynchronous operations
     if (update.tournamentId && tournamentChanged) {
-      this.smashgg.phasesForTournament(update.tournamentId)
+      this.bracketService.phasesForTournament(update.tournamentId)
         .then(updates => {
           this.selectSingletonEvent(updates);
           this.selectSingletonPhase(updates);
           this.state = updateImmutable(this.state, { $merge: updates });
           this.broadcastState();
         })
-        .catch(() => {
-          logger.error(`Unable to find tournament ${update.tournamentId}`);
+        .catch(e => {
+          logger.error(new ChainableError(`Unable to find tournament ${update.tournamentId}`, e));
           this.state = nullState;
           this.broadcastState();
         });
@@ -161,6 +174,21 @@ class BracketServer {
     res.sendStatus(200);
     this.broadcastState();
   };
+
+  private parseUrlOrSlug(tourneyUrlOrSlug: string | null): [ string | null, BracketService ] {
+    if (!tourneyUrlOrSlug) {
+      return [ null, this.bracketService ];
+    }
+    const smashgg = parseSmashggSlug(tourneyUrlOrSlug);
+    if (smashgg) {
+      return [ smashgg, this.bracketProvider.get(SMASHGG_SERVICE_NAME)];
+    }
+    const challonge = parseChallongeId(tourneyUrlOrSlug);
+    if (challonge) {
+      return [ challonge, this.bracketProvider.get(CHALLONGE_SERVICE_NAME)];
+    }
+    return [ tourneyUrlOrSlug, this.bracketProvider.get(SMASHGG_SERVICE_NAME)];
+  }
 
   private selectSingletonPhase(update: Partial<State>): void {
     if (update.eventId && update.phaseId === undefined) {
@@ -181,7 +209,7 @@ class BracketServer {
 
   private fetchSets(phaseId: SmashggId): Promise<void> {
     logger.debug(`Fetching sets for phase ${phaseId}`);
-    return this.smashgg.upcomingSetsByPhase(phaseId)
+    return this.bracketService.upcomingSetsByPhase(phaseId)
       .then(unfinishedSets => {
         this.state = updateImmutable(this.state, { $merge: { unfinishedSets } });
         this.broadcastState();
