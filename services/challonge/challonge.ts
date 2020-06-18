@@ -1,7 +1,7 @@
 import memoize from 'micro-memoize';
+import moment from 'moment';
 
-import { ApiKey } from '@models/challonge';
-import Game from '@models/game';
+import Game, { nullGame } from '@models/game';
 import { getGameByChallongeId } from '@models/games';
 import Match from '@models/match';
 import { getMatchById, isGrandFinals, isTrueFinals } from '@models/matches';
@@ -11,12 +11,13 @@ import TournamentPhase from '@models/tournament-phase';
 import TournamentPhaseGroup from '@models/tournament-phase-group';
 import TournamentSet from '@models/tournament-set';
 import BracketService from '@services/bracket-service';
+import { ApiKey, Timestamp, ApiTournament, ApiMatch } from '@services/challonge/types';
 import { checkResponseStatus, checkServerError } from '@util/ajax';
 import { getCredentials } from '@util/credentials';
 import { nonNull } from '@util/predicates';
 
-import { BASE_URL, TOURNAMENT_URL_REGEX } from './constants';
-import { ApiTournament, ApiMatch, ApiParticipant } from './types';
+import { BASE_URL, TOURNAMENT_URL_REGEX, CHALLONGE_SERVICE_NAME } from './constants';
+import { TournamentResponse, MatchResponse, ParticipantResponse } from './types';
 
 export default class ChallongeClient implements BracketService {
   private readonly apiKey: ApiKey;
@@ -42,11 +43,15 @@ export default class ChallongeClient implements BracketService {
     );
   }
 
+  public name(): string {
+    return CHALLONGE_SERVICE_NAME;
+  }
+
   public async upcomingSetsByPhase(tournamentId: string): Promise<TournamentSet[]> {
     const url = `${BASE_URL}/tournaments/${tournamentId}/matches.json?api_key=${this.apiKey}`;
     const resp = await fetch(url)
       .then(checkResponseStatus)
-      .then(resp => resp.json() as Promise<ApiMatch[]>);
+      .then(resp => resp.json() as Promise<MatchResponse[]>);
     const getEntrant = async (
       playerId: number | null,
       inLosers: boolean,
@@ -84,8 +89,11 @@ export default class ChallongeClient implements BracketService {
           await getEntrant(m.player2_id, isTrueFinals(match) || isGrandFinals(match)),
         ];
         return ({
-          id: m.id.toString(),
-          phaseId: m.tournament_id.toString(),
+          serviceInfo: {
+            serviceName: this.name(),
+            id: m.id.toString(),
+            phaseId: m.tournament_id.toString(),
+          },
           match: match || null,
           videogame,
           shortIdentifier,
@@ -94,6 +102,7 @@ export default class ChallongeClient implements BracketService {
               .map(e => e ? e.name : '???')
               .join(' vs ')
           }`,
+          completedAt: parseTimestamp(m.completed_at),
           entrants: entrants.filter(nonNull),
         });
       })
@@ -116,28 +125,44 @@ export default class ChallongeClient implements BracketService {
     const url = `${BASE_URL}/tournaments/${tournamentId}.json?api_key=${this.apiKey}`;
     const resp = await fetch(url)
       .then(checkResponseStatus)
-      .then(resp => resp.json() as Promise<ApiTournament>);
+      .then(resp => resp.json() as Promise<TournamentResponse>);
     const t = resp.tournament;
-    const tournament = {
-      id: t.id.toString(),
-      name: t.name,
-      url: t.full_challonge_url,
-    };
+    const tournament = convertTournament(t);
     return {
       tournament,
       events: [ tournament ],
       phases: [{
         ...tournament,
-        name: "Bracket",
+        name: 'Bracket',
         eventId: tournament.id,
       }],
       phaseGroups: [{
         ...tournament,
-        name: "Bracket",
+        name: 'Bracket',
         eventId: tournament.id,
         phaseId: tournament.id,
       }],
     };
+  }
+
+  public async eventInfo(eventId: string): Promise<{ tournament: Tournament; videogame: Game }> {
+    const t = await this.getTournament(eventId);
+    const videogame = parseGame(t);
+    const tournament = convertTournament(t);
+    return { tournament, videogame };
+  }
+
+  public async phase(phaseId: string): Promise<TournamentPhase> {
+    const tournament = convertTournament(await this.getTournament(phaseId));
+    return {
+      ...tournament,
+      name: 'Bracket',
+      eventId: tournament.id,
+    };
+  }
+
+  public async setIdToPhaseGroup(): Promise<Record<string, TournamentPhaseGroup>> {
+    return {};
   }
 
   // NOTE: Apparently Challonge has no problem with giving us participant IDs
@@ -150,7 +175,7 @@ export default class ChallongeClient implements BracketService {
       `/participants/${participantId}.json?api_key=${this.apiKey}`;
     const resp = await fetch(url)
       .then(checkServerError)
-      .then(resp => resp.ok ? resp.json() as Promise<ApiParticipant> : null);
+      .then(resp => resp.ok ? resp.json() as Promise<ParticipantResponse> : null);
     if (!resp) {
       return null;
     }
@@ -158,17 +183,39 @@ export default class ChallongeClient implements BracketService {
     return { id: p.id.toString(), name: p.display_name };
   }
 
-  private async getGame(tournamentId: string): Promise<Game | null> {
+  private async getGame(tournamentId: string): Promise<Game> {
+    const t = await this.getTournament(tournamentId);
+    return parseGame(t);
+  }
+
+  private async getTournament(tournamentId: string): Promise<ApiTournament> {
     const url = `${BASE_URL}/tournaments/${tournamentId}.json?api_key=${this.apiKey}`;
     const resp = await fetch(url)
       .then(checkResponseStatus)
-      .then(resp => resp.json() as Promise<ApiTournament>);
-    const t = resp.tournament;
-    return getGameByChallongeId(t.game_id.toString());
+      .then(resp => resp.json() as Promise<TournamentResponse>);
+    return resp.tournament;
   }
 }
 
-function getDomainMatches(resp: ApiMatch[]): Map<number, Match | null> {
+function parseGame(t: ApiTournament): Game {
+  return getGameByChallongeId(t.game_id.toString()) ||
+    Object.assign({}, nullGame, { name: t.game_name });
+}
+
+function convertTournament(t: ApiTournament): Tournament {
+  return {
+    id: t.id.toString(),
+    name: t.name,
+    url: t.full_challonge_url,
+    startAt: parseTimestamp(t.started_at || t.start_at),
+  };
+}
+
+function parseTimestamp(timestamp: Timestamp | null): number | null {
+  return timestamp != null ? moment(timestamp).unix() : null;
+}
+
+function getDomainMatches(resp: MatchResponse[]): Map<number, Match | null> {
   const matches = resp.map(m => m.match);
   const byId = new Map(matches.map(m => [m.id, m]));
   const getById = byId.get.bind(byId);
@@ -214,7 +261,7 @@ function getDomainMatches(resp: ApiMatch[]): Map<number, Match | null> {
   return matchIdToMatch;
 }
 
-function isApiGrandFinals(byId: Map<number, ApiMatch['match']>, match: ApiMatch['match']): boolean {
+function isApiGrandFinals(byId: Map<number, ApiMatch>, match: ApiMatch): boolean {
   const prereq1 = match.player1_prereq_match_id;
   const prereq2 = match.player2_prereq_match_id;
   if (prereq1 == null || prereq2 == null) {
@@ -230,7 +277,7 @@ function isApiGrandFinals(byId: Map<number, ApiMatch['match']>, match: ApiMatch[
     match.player2_is_prereq_match_loser === false;
 }
 
-function isApiTrueFinals(match: ApiMatch['match']): boolean {
+function isApiTrueFinals(match: ApiMatch): boolean {
   const prereq1 = match.player1_prereq_match_id;
   const prereq2 = match.player2_prereq_match_id;
   if (prereq1 == null || prereq2 == null) {

@@ -3,10 +3,9 @@ import memoize from "micro-memoize";
 import path from 'path';
 import { promisify } from 'util';
 
-import { SmashggId } from '@models/smashgg';
 import InfoState from '@server/info/state';
 import BracketServiceProvider from '@services/bracket-service-provider';
-import { SERVICE_NAME as SMASHGG_SERVICE_NAME } from '@services/smashgg';
+import { getVersion } from '@util/meta';
 
 import State, { Recording } from "./state";
 
@@ -16,13 +15,15 @@ const asyncMkdir = promisify(mkdir);
 const asyncWriteFile = promisify(writeFile);
 
 export interface Log {
+  version: string;
   file: string;
-  eventId?: SmashggId;
-  phaseId?: SmashggId;
+  bracketService?: string;
+  eventId?: string;
+  phaseId?: string;
   start: string | null;
   end: string | null;
   sets: {
-    id: SmashggId | null;
+    id: string | null;
     displayName: string | null;
     start: string;
     end: string | null;
@@ -31,17 +32,21 @@ export interface Log {
 }
 
 export default class RecordingLogger {
-  private readonly eventIdForPhase: (phaseId: SmashggId) => Promise<SmashggId>;
+  private readonly eventIdForPhase: (
+    bracketServiceName: string | undefined,
+    phaseId: string,
+  ) => Promise<string | undefined>;
   private lastSaved: Record<FilePath, string> = {};
 
   public constructor(bracketProvider: BracketServiceProvider) {
     this.eventIdForPhase = memoize(
-      async (phaseId: string): Promise<string> => {
-        if (+phaseId > 8_000_000) {
-          // TODO: This is just an ugly hack to avoid adding Challonge support
-          return '';
-        }
-        return await bracketProvider.get(SMASHGG_SERVICE_NAME).eventIdForPhase(phaseId);
+      async (
+        bracketServiceName: string | undefined,
+        phaseId: string,
+      ): Promise<string | undefined> => {
+        return bracketServiceName ?
+          await bracketProvider.get(bracketServiceName).eventIdForPhase(phaseId) :
+          undefined;
       },
       { maxSize: 2, isPromise: true },
     );
@@ -70,39 +75,49 @@ export default class RecordingLogger {
     // switches to another game in the middle, in which case we would want to
     // have two different log files rather than one so that two different
     // recording files can be cut.
-    const byPhase: Record<SmashggId, {
+    const byPhase: Record<string, {
       gameId: string;
       recordingFile: FilePath;
       sets: Log['sets'];
     }> = {};
     for (const r of state.recordings.filter(hasMetadata).reverse()) {
-      const phaseId = r.metadata.set?.phaseId || 'unknown';
-      const data = byPhase[phaseId] || {
+      const phaseIdentifier = r.metadata.set ?
+        `${r.metadata.set.serviceInfo.serviceName}_${r.metadata.set.serviceInfo.phaseId}` :
+        'unknown';
+      const data = byPhase[phaseIdentifier] || {
         gameId: r.metadata.game.id || 'recordings',
         recordingFile: r.streamRecordingFile,
         sets: [],
       };
       data.sets.push({
-        id: (r.metadata.set && r.metadata.set.id) || null,
+        id: r.metadata.set?.serviceInfo.id || null,
         displayName: r.displayName,
         start: r.startTimestamp,
         end: r.stopTimestamp,
         state: r.metadata,
       });
-      byPhase[phaseId] = data;
+      byPhase[phaseIdentifier] = data;
     }
     const byPath: Record<FilePath, Log> = {};
-    for (const [phaseId, data] of Object.entries(byPhase)) {
+    for (const [phaseIdentifier, data] of Object.entries(byPhase)) {
+      const { serviceName, phaseId } = data.sets[0].state.set?.serviceInfo || {
+        serviceName: undefined,
+        phaseId: phaseIdentifier,
+      };
       const phaseStart = data.sets[0].start;
       const phaseEnd = data.sets[data.sets.length - 1].end;
-      const logFilename = `${data.gameId}-${phaseId}-${process.pid}`;
+      const logFilename = `${data.gameId}-${phaseIdentifier}-${process.pid}`;
       const logSubfolder = path.basename(data.recordingFile, path.extname(data.recordingFile));
       const logFolder = path.join(state.streamRecordingFolder, logSubfolder);
       const logOutputPath = path.join(logFolder, logFilename + '.json');
       byPath[logOutputPath] = {
+        version: getVersion(),
         file: data.recordingFile,
+        bracketService: serviceName,
         phaseId: phaseId,
-        eventId: phaseId === 'unknown' ? undefined :  await this.eventIdForPhase(phaseId),
+        eventId: phaseId === 'unknown' ?
+          undefined :
+          await this.eventIdForPhase(serviceName, phaseId),
         start: phaseStart,
         end: phaseEnd,
         sets: data.sets,

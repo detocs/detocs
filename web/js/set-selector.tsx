@@ -19,8 +19,18 @@ const SetSelector: FunctionalComponent<Props> = (props: RenderableProps<Props>):
     <Fragment>
       <input
         type="hidden"
-        name="set"
-        value={props.set?.id}
+        name="set[serviceName]"
+        value={props.set?.serviceInfo.serviceName}
+      />
+      <input
+        type="hidden"
+        name="set[id]"
+        value={props.set?.serviceInfo.id}
+      />
+      <input
+        type="hidden"
+        name="set[phaseId]"
+        value={props.set?.serviceInfo.phaseId}
       />
       <input
         ref={inputRef}
@@ -33,7 +43,7 @@ const SetSelector: FunctionalComponent<Props> = (props: RenderableProps<Props>):
         id={autocompleteId}
         inputRef={inputRef}
         options={sets}
-        idMapper={s => `${s.id}`}
+        idMapper={s => `${s.serviceInfo.serviceName}_${s.serviceInfo.id}`}
         nameMapper={s => s.displayName}
         setValue={props.updateSet}
       />

@@ -5,18 +5,15 @@ import express, { Request, Response } from 'express';
 import updateImmutable from 'immutability-helper';
 import * as ws from 'ws';
 
-import { SmashggId } from '@models/smashgg';
 import BracketService from '@services/bracket-service';
+import BracketServiceProvider from '@services/bracket-service-provider';
 import { parseTournamentId as parseChallongeId } from '@services/challonge/challonge';
-import { SERVICE_NAME as CHALLONGE_SERVICE_NAME } from '@services/challonge/constants';
-import {
-  parseTournamentSlug as parseSmashggSlug,
-  SERVICE_NAME as SMASHGG_SERVICE_NAME,
-} from '@services/smashgg';
+import { CHALLONGE_SERVICE_NAME } from '@services/challonge/constants';
+import { SMASHGG_SERVICE_NAME } from '@services/smashgg/constants';
+import { parseTournamentSlug as parseSmashggSlug } from '@services/smashgg/smashgg';
 import { appWebsocketServer } from '@util/http-server';
 
 import State, { nullState } from './state';
-import BracketServiceProvider from '@services/bracket-service-provider';
 
 type WebSocketClient = ws;
 
@@ -207,7 +204,7 @@ class BracketServer {
     }
   }
 
-  private fetchSets(phaseId: SmashggId): Promise<void> {
+  private fetchSets(phaseId: string): Promise<void> {
     logger.debug(`Fetching sets for phase ${phaseId}`);
     return this.bracketService.upcomingSetsByPhase(phaseId)
       .then(unfinishedSets => {

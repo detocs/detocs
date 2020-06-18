@@ -1,7 +1,5 @@
-import { SmashggId } from "./smashgg";
-
 export default interface TournamentEvent {
-  id: SmashggId;
+  id: string;
   name: string;
   url: string;
 }

@@ -1,10 +1,11 @@
 import { getLogger } from '@util/logger';
 
-import ws from 'ws';
+import cors from 'cors';
 import express from 'express';
 import formidable from 'express-formidable';
 import { createServer } from 'http';
-import cors from 'cors';
+import isEqual from 'lodash.isequal';
+import ws from 'ws';
 
 import Break from '@models/break';
 import Game, { nullGame } from '@models/game';
@@ -201,7 +202,7 @@ function parseScoreboard(
 }
 
 function isSetChanged(set: TournamentSet | undefined): set is TournamentSet {
-  return !!set && (!state.set || state.set.id != set.id);
+  return !!set && (!state.set || !isEqual(state.set.serviceInfo, set.serviceInfo));
 }
 
 function playersFromSet(set: TournamentSet): Player[] {
@@ -349,11 +350,18 @@ function parseSet(
   fields: Record<string, unknown>,
   unfinishedSets: TournamentSet[],
 ): TournamentSet | undefined {
-  const setId = fields['set'];
-  if (!setId) {
+  const serviceName = fields['set[serviceName]'];
+  const id = fields['set[id]'];
+  const phaseId = fields['set[phaseId]'];
+  if (!serviceName || !id || !phaseId) {
     return;
   }
-  return unfinishedSets.find(s => s.id === setId);
+  const serviceInfo = {
+    serviceName,
+    id,
+    phaseId,
+  };
+  return unfinishedSets.find(s => isEqual(s.serviceInfo, serviceInfo));
 }
 
 function parseId(idStr: unknown): number | undefined {

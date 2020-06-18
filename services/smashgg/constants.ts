@@ -1,7 +1,5 @@
-export type ApiToken = string;
-export type SmashggId = string;
-export type SmashggSlug = string;
-
+export const SMASHGG_SERVICE_NAME = 'smashgg';
+export const ENDPOINT = 'https://api.smash.gg/gql/alpha';
 export const TOURNAMENT_SLUG_REGEX = /[\w-]+/;
 export const TOURNAMENT_URL_REGEX =
   /(?:https?:\/\/)?(?:www\.)?smash.gg(?:\/admin)?\/tournament\/([\w-]+)(?:\/.*)?/;

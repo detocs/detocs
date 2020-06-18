@@ -1,7 +1,4 @@
 import BracketServiceProvider from '@services/bracket-service-provider';
-import ChallongeClient from '@services/challonge/challonge';
-import { SERVICE_NAME as CHALLONGE_SERVICE_NAME } from '@services/challonge/constants';
-import SmashggClient, { SERVICE_NAME as SMASHGG_SERVICE_NAME } from '@services/smashgg';
 import { getLogger } from '@util/logger';
 
 import startBracketServer from './bracket/server';
@@ -22,11 +19,13 @@ import startTwitterServer from './twitter/server';
 
 const logger = getLogger('server');
 
-export default function start(mediaServer: MediaServer): void {
+interface ServerParams {
+  bracketProvider: BracketServiceProvider;
+  mediaServer: MediaServer;
+}
+
+export default function start({ bracketProvider, mediaServer }: ServerParams): void {
   logger.info('DETOCS server initializing...');
-  const bracketProvider = new BracketServiceProvider();
-  bracketProvider.register(SMASHGG_SERVICE_NAME, () => new SmashggClient());
-  bracketProvider.register(CHALLONGE_SERVICE_NAME, () => new ChallongeClient());
   startControlServer(CONTROL_PORT);
   startInfoServer(INFO_PORT);
   startRecordingServer({ port: RECORDING_PORT, mediaServer, bracketProvider });

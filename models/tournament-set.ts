@@ -1,18 +1,23 @@
+import { SmashggId } from "@services/smashgg/types";
+
 import Match from "./match";
 import Game from "./game";
-import { SmashggId } from "./smashgg";
 
 export default interface TournamentSet {
-  id: SmashggId;
-  phaseId: SmashggId;
+  serviceInfo: {
+    serviceName: string;
+    id: string;
+    phaseId: string;
+  };
   match: Match | null;
   videogame: Game | null;
   shortIdentifier: string;
   displayName: string;
+  completedAt: number | null;
   entrants: {
     name: string;
     participants: {
-      smashggId: SmashggId;
+      smashggId: SmashggId; // TODO: per-service
       handle: string;
       prefix: string | null;
       twitter: string | null;

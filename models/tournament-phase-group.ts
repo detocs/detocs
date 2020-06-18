@@ -1,9 +1,7 @@
-import { SmashggId } from "./smashgg";
-
 export default interface TournamentPhaseGroup {
-  id: SmashggId;
-  phaseId: SmashggId;
-  eventId: SmashggId;
+  id: string;
+  phaseId: string;
+  eventId: string;
   name: string;
   url: string;
 }

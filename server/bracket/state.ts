@@ -1,4 +1,3 @@
-import { SmashggId, SmashggSlug } from '@models/smashgg';
 import Tournament from '@models/tournament';
 import TournamentEvent from '@models/tournament-event';
 import TournamentPhase from '@models/tournament-phase';
@@ -7,11 +6,11 @@ import TournamentPhaseGroup from '@models/tournament-phase-group';
 
 export default interface State {
   tournament: Tournament | null;
-  tournamentId: SmashggSlug | null;
+  tournamentId: string | null;
   events: TournamentEvent[];
-  eventId: SmashggId | null;
+  eventId: string | null;
   phases: TournamentPhase[];
-  phaseId: SmashggId | null;
+  phaseId: string | null;
   phaseGroups: TournamentPhaseGroup[];
   unfinishedSets: TournamentSet[];
 }

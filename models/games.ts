@@ -54,15 +54,14 @@ const games: Game[] = [
   },
   {
     id: 'ss7',
-    name: 'Samurai Shodown (2019)',
+    name: 'Samurai Shodown',
     shortNames: [
-      'Samurai Shodown',
       'SamSho 7',
       'SS7',
     ],
     hashtags: [
-      'EmbraceDeath',
       'SamSho',
+      'EmbraceDeath',
     ],
     serviceInfo: {
       twitch: { id: 'Samurai Shodown' },
@@ -248,7 +247,6 @@ const games: Game[] = [
     id: 'gbvs',
     name: 'Granblue Fantasy: Versus',
     shortNames: [
-      'Granblue Fantasy Versus',
       'Granblue Versus',
       'Granblue',
     ],
@@ -263,10 +261,21 @@ const games: Game[] = [
 ];
 export default games;
 
+export function getGameById(id: string): Game | null {
+  return games.find(g => g.id === id) || null;
+}
+
+export function getGameByServiceId(
+  serviceName: string,
+  id: string,
+): Game | null {
+  return games.find(g => g.serviceInfo[serviceName]?.id === id) || null;
+}
+
 export function getGameBySmashggId(id: string): Game | null {
-  return games.find(g => g.serviceInfo.smashgg?.id === id) || null;
+  return getGameByServiceId('smashgg', id);
 }
 
 export function getGameByChallongeId(id: string): Game | null {
-  return games.find(g => g.serviceInfo.challonge?.id === id) || null;
+  return getGameByServiceId('challonge', id);
 }

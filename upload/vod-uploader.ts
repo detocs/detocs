@@ -3,7 +3,6 @@ import filenamify from 'filenamify';
 import fsSync, { promises as fs } from 'fs';
 import { OAuth2Client } from 'google-auth-library';
 import { youtube_v3 as youtubeV3 } from 'googleapis';
-import { GraphQLClient } from 'graphql-request';
 import yaml from 'js-yaml';
 import merge from 'lodash.merge';
 import moment from 'moment-timezone';
@@ -11,10 +10,15 @@ import ResumableUpload from 'node-youtube-resumable-upload';
 import path from 'path';
 import util from 'util';
 
-import { SmashggId } from '@models/smashgg';
+import Game from '@models/game';
+import { getGameById, getGameByServiceId } from '@models/games';
 import { Timestamp } from '@models/timestamp';
-import { Log as RecordingLog } from '@server/recording/log';
-import SmashggClient from '@services/smashgg';
+import Tournament from '@models/tournament';
+import TournamentPhase from '@models/tournament-phase';
+import TournamentPhaseGroup from '@models/tournament-phase-group';
+import TournamentSet from '@models/tournament-set';
+import BracketService from '@services/bracket-service';
+import BracketServiceProvider from '@services/bracket-service-provider';
 import {
   getYoutubeAuthClient,
   tagsSize,
@@ -26,38 +30,12 @@ import {
 } from '@services/youtube';
 import { getLogger } from '@util/logger';
 
-import {
-  EVENT_QUERY,
-  PHASE_QUERY,
-  PHASE_SET_QUERY,
-  PHASE_GROUP_SET_QUERY,
-  SET_QUERY,
-  EventQueryResponse,
-  PhaseGroupSetQueryResponse,
-  PhaseQueryResponse,
-  SetQueryResponse,
-  PhaseSetQueryResponse
-} from './queries';
+import { loadLog } from './loader';
+import { Log, VodTournament, VodVideogame } from './types';
 
 const logger = getLogger('upload');
 
-type QueryEvent = EventQueryResponse['event'];
-type QueryTournament = QueryEvent['tournament'];
-type QueryVideogame = QueryEvent['videogame'];
-type QuerySet = SetQueryResponse['set'];
-
-type Tournament = QueryTournament & {
-  shortName: string;
-  additionalTags: string[];
-};
-
-type Videogame = QueryVideogame & {
-  hashtag: string;
-  shortName: string;
-  additionalTags: string[];
-};
-
-type Phase = PhaseQueryResponse['phase'];
+type VodPhase = Pick<TournamentPhase, 'name' | 'startAt'>;
 
 interface Set {
   id: string | number;
@@ -71,18 +49,7 @@ interface Set {
   end: Timestamp;
 }
 
-type Log = RecordingLog & {
-  title?: string;
-  phaseName?: string;
-  event?: Partial<{
-    tournament: Partial<Tournament>;
-    videogame: Partial<Videogame>;
-  }>;
-  keyframeInterval?: number;
-  additionalTags: string[];
-  excludedTags?: string[];
-};
-type SetPhaseGroupMapping = Record<SmashggId, string>;
+type SetPhaseGroupMapping = Record<string, TournamentPhaseGroup>;
 
 interface Metadata {
   sourcePath: string;
@@ -106,6 +73,7 @@ export enum Style {
 }
 
 interface VodUploaderParams {
+  bracketProvider: BracketServiceProvider;
   logFile: string;
   command: Command;
   style: Style;
@@ -113,44 +81,8 @@ interface VodUploaderParams {
 
 const GAMING_CATEGORY_ID = '20';
 const pExecFile = util.promisify(childProcess.execFile);
-const nonEmpty = (str: string | null): str is string => !!str;
+const nonEmpty = (str?: string | null): str is string => !!str;
 let keyframeInterval = 3;
-
-// TODO: Integrate with game DB
-const gameHashtags: Record<number, string> = {
-  7: 'SFV',
-  17: 'Tekken7',
-  18: 'UMvC3',
-  32: 'Skullgirls',
-  37: 'BBCF',
-  38: 'KOFXIV',
-  287: 'DBFZ',
-  451: 'UNIst',
-  904: 'SCVI',
-  1144: 'BBTag',
-  2366: 'FEXL',
-  3200: 'MK11',
-  3568: 'SamSho',
-  3958: 'MBAACC',
-  3960: 'GGXXACPR',
-  3961: 'DFCI',
-  3969: 'SSVSP',
-  4267: 'DFCI',
-  4315: 'Yatagarasu',
-  9690: 'KOFXIII',
-  16391: 'SSVSP',
-  17413: 'KOF98UMFE',
-  22107: 'GBVS',
-  22407: 'MBAACC',
-  33870: 'UNIclr',
-};
-
-const nameOverrides: Record<number, string> = {
-  451: 'Under Night In-Birth Exe:Late[st]',
-  3969: 'Samurai Shodown V Special',
-  16391: 'Samurai Shodown V Special',
-  17413: 'The King of Fighters \'98: Ultimate Match Final Edition',
-};
 
 const additionalTags: Record<number, string[]> = {
   38: ['King of Fighters XIV', 'King of Fighters 14', 'King of Fighters', 'KOF14'],
@@ -163,12 +95,14 @@ const additionalTags: Record<number, string[]> = {
 };
 
 export class VodUploader {
-  private logFile: string;
-  private dirName: string;
-  private command: Command;
-  private style: Style;
+  private readonly bracketProvider: BracketServiceProvider;
+  private readonly logFile: string;
+  private readonly dirName: string;
+  private readonly command: Command;
+  private readonly style: Style;
 
-  public constructor({ logFile, command, style }: VodUploaderParams) {
+  public constructor({ bracketProvider, logFile, command, style }: VodUploaderParams) {
+    this.bracketProvider = bracketProvider;
     this.logFile = logFile;
     this.dirName = path.join(
       path.dirname(logFile),
@@ -186,17 +120,25 @@ export class VodUploader {
     }
 
     await fs.mkdir(this.dirName, { recursive: true });
-    const graphqlClient = new SmashggClient().getClient();
-    const setList: Log = JSON.parse(await fs.readFile(this.logFile, { encoding: 'utf8' }));
-    const { tournament, videogame, phase } = await getEventInfo(graphqlClient, setList);
-    const setToPhaseGroupId = await getPhaseGroupMapping(graphqlClient, setList.phaseId);
+    const setList: Log = await loadLog(this.logFile);
+    const bracketService = setList.bracketService != null ?
+      this.bracketProvider.get(setList.bracketService) :
+      null;
+    const { tournament, videogame, phase } = await getEventInfo(
+      bracketService,
+      setList,
+    );
+    const setToPhaseGroupId = await getPhaseGroupMapping(
+      bracketService,
+      setList.phaseId,
+    );
     keyframeInterval = setList.keyframeInterval || keyframeInterval;
 
     let metadata: Metadata[] = [];
     if (this.command >= Command.Metadata) {
       if (this.style === Style.PerSet) {
         metadata = await this.writePerSetMetadata(
-          graphqlClient,
+          bracketService,
           setList,
           tournament,
           videogame,
@@ -205,7 +147,7 @@ export class VodUploader {
         );
       } else {
         metadata = [await this.writeSingleVideoMetadata(
-          graphqlClient,
+          bracketService,
           setList,
           tournament,
           videogame,
@@ -245,15 +187,15 @@ export class VodUploader {
   }
 
   private async writeSingleVideoMetadata(
-    graphqlClient: GraphQLClient,
+    bracketService: BracketService | null,
     setList: Log,
-    tournament: Tournament,
-    videogame: Videogame,
-    phase: Phase,
+    tournament: VodTournament,
+    videogame: VodVideogame,
+    phase: VodPhase,
     setToPhaseGroupId: SetPhaseGroupMapping,
   ): Promise<Metadata> {
     const metadata = await this.singleVideoMetadata(
-      graphqlClient,
+      bracketService,
       setList,
       tournament,
       videogame,
@@ -267,15 +209,15 @@ export class VodUploader {
   }
 
   private async writePerSetMetadata(
-    graphqlClient: GraphQLClient,
+    bracketService: BracketService | null,
     setList: Log,
-    tournament: Tournament,
-    videogame: Videogame,
-    phase: Phase,
+    tournament: VodTournament,
+    videogame: VodVideogame,
+    phase: VodPhase,
     setToPhaseGroupId: SetPhaseGroupMapping,
   ): Promise<Metadata[]> {
     const metadata = await this.perSetMetadata(
-      graphqlClient,
+      bracketService,
       setList,
       tournament,
       videogame,
@@ -291,11 +233,11 @@ export class VodUploader {
   }
 
   private async singleVideoMetadata(
-    graphqlClient: GraphQLClient,
+    bracketService: BracketService | null,
     setList: Log,
-    tournament: Tournament,
-    videogame: Videogame,
-    phase: Phase,
+    tournament: VodTournament,
+    videogame: VodVideogame,
+    phase: VodPhase,
     setToPhaseGroupId: SetPhaseGroupMapping,
   ): Promise<Metadata> {
     if (!setList.start) {
@@ -305,29 +247,20 @@ export class VodUploader {
       throw new Error('No end timestamp on log');
     }
 
-    let smashggSets: PhaseSetQueryResponse['phase']['sets']['nodes'] = [];
-    let page = 1;
-    let totalPages = 1;
-    while (page <= totalPages) {
-      const phaseSets = (await graphqlClient.request(PHASE_SET_QUERY, {
-        phaseId: setList.phaseId,
-        page: page++,
-      }) as PhaseSetQueryResponse).phase;
-      if (phaseSets) {
-        smashggSets = smashggSets.concat(phaseSets.sets.nodes);
-        totalPages = phaseSets.sets.pageInfo.totalPages;
-      }
-    }
+    const backetsSets = isValidPhase(setList.phaseId) &&
+      await bracketService?.upcomingSetsByPhase(setList.phaseId) ||
+      [];
 
     let sets;
     if (setList.sets) {
       sets = setList.sets.map(logSet => {
-        const smashggSet = smashggSets.find(s => s.id.toString() == logSet.id);
-        return getSetData(logSet, smashggSet);
+        const bracketSet = backetsSets.find(s => s.serviceInfo.id == logSet.id);
+        return getSetData(logSet, bracketSet);
       });
     } else {
-      smashggSets.sort((a, b) => a.completedAt - b.completedAt);
-      sets = smashggSets.map(s => getSetData(undefined, s));
+      backetsSets.sort((a, b) =>
+        (a.completedAt || Number.MAX_SAFE_INTEGER) - (b.completedAt || Number.MAX_SAFE_INTEGER));
+      sets = backetsSets.map(s => getSetData(undefined, s));
     }
 
     // Make timestamps relative to the start of the video
@@ -379,22 +312,23 @@ export class VodUploader {
   }
 
   private async perSetMetadata(
-    graphqlClient: GraphQLClient,
+    bracketService: BracketService | null,
     setList: Log,
-    tournament: Tournament,
-    videogame: Videogame,
-    phase: Phase,
+    tournament: VodTournament,
+    videogame: VodVideogame,
+    phase: VodPhase,
     setToPhaseGroupId: SetPhaseGroupMapping,
   ): Promise<Metadata[]> {
+    const bracketSets = isValidPhase(setList.phaseId) &&
+      await bracketService?.upcomingSetsByPhase(setList.phaseId) ||
+      [];
     const promises = setList.sets.map(async (timestampedSet, index) => {
       if (!timestampedSet.start || !timestampedSet.end) {
         throw new Error(`set ${index} is missing timestamps`);
       }
 
-      const smashggSet = timestampedSet.id ? (await graphqlClient.request(SET_QUERY, {
-        setId: timestampedSet.id,
-      }) as SetQueryResponse).set || undefined : undefined;
-      const set = getSetData(timestampedSet, smashggSet);
+      const bracketSet = bracketSets.find(s => s.serviceInfo.id === timestampedSet.id);
+      const set = getSetData(timestampedSet, bracketSet);
       logger.debug(set);
       const players = set.players;
 
@@ -403,7 +337,7 @@ export class VodUploader {
         `${players[0].name} vs ${players[1].name}`,
         '-',
         videogame.shortName,
-        setToPhaseGroupId[set.id],
+        setToPhaseGroupId[set.id]?.name,
         phase.name,
         set.fullRoundText,
       ].filter(nonEmpty).join(' ');
@@ -411,7 +345,7 @@ export class VodUploader {
       const matchDesc = [
         videogame.name,
         phase.name,
-        setToPhaseGroupId[set.id],
+        setToPhaseGroupId[set.id]?.name,
         `${set.fullRoundText}:`,
         `${players[0].name} vs ${players[1].name}`,
       ].filter(nonEmpty).join(' ');
@@ -534,82 +468,76 @@ function runUpload(resumable: ResumableUpload): Promise<youtubeV3.Schema$Video> 
   });
 }
 
-async function getEventInfo(graphqlClient: GraphQLClient, setList: Log): Promise<{
-  tournament: Tournament;
-  videogame: Videogame;
-  phase: Phase;
-}> {
-  const smashggEvent: QueryEvent = setList.eventId &&
-    (await graphqlClient.request(EVENT_QUERY, { eventId: setList.eventId })).event;
-  const event: QueryEvent = merge({}, smashggEvent, setList.event);
-  logger.debug('Event:', event);
+async function getEventInfo(
+  bracketService: BracketService | null,
+  setList: Log,
+): Promise<{
+    tournament: VodTournament;
+    videogame: VodVideogame;
+    phase: VodPhase;
+  }> {
+  const { tournament: apiTournament, videogame: apiVideogame } = bracketService && setList.eventId ?
+    await bracketService.eventInfo(setList.eventId) :
+    { tournament: {}, videogame: null };
 
-  const partialTournament: Partial<Tournament> & QueryTournament = event.tournament;
-  partialTournament.shortName = partialTournament.shortName || partialTournament.name;
-  partialTournament.additionalTags = partialTournament.additionalTags || [];
-  const tournament: Tournament = partialTournament as Tournament;
+  const tournament: Partial<VodTournament> & Tournament = merge(
+    apiTournament,
+    setList.event?.tournament,
+  ) as VodTournament;
+  tournament.shortName = tournament.shortName || tournament.name;
+  tournament.additionalTags = tournament.additionalTags || [];
   logger.debug('Tournament:', tournament);
 
-  const partialVg: Partial<Videogame> & QueryVideogame = event.videogame;
-  partialVg.name = nameOverrides[partialVg.id] || partialVg.name;
-  partialVg.hashtag = getGameHashtag(partialVg.id);
-  partialVg.shortName = partialVg.name.length - partialVg.hashtag.length < 3 ?
-    partialVg.name :
-    partialVg.hashtag;
-  partialVg.additionalTags = additionalTags[partialVg.id] || [];
-  const videogame: Videogame = partialVg as Videogame;
+  let videogame: (Partial<VodVideogame> & Game) | null = apiVideogame;
+  if (setList.event?.videogame?.id) {
+    const gameId = setList.event?.videogame?.id;
+    if (bracketService?.name()) {
+      videogame = getGameByServiceId(bracketService.name(), gameId.toString());
+    } else {
+      videogame = getGameById(gameId.toString());
+    }
+  }
+  if (!videogame) {
+    throw new Error('Cannot find videogame');
+  }
+  videogame.shortName = videogame.shortNames[0] || videogame.name;
+  videogame.hashtag = videogame.hashtags[0] || undefined;
+  // TODO: Add additionalTags to Game
+  videogame.additionalTags = additionalTags[+videogame.serviceInfo['smashgg'].id] || [];
   logger.debug('Videogame:', videogame);
 
-  const phase = (await graphqlClient.request(PHASE_QUERY, {
-    phaseId: setList.phaseId,
-  }) as PhaseQueryResponse).phase || { name: '' };
-  phase.name = setList.phaseName ||
-    (phase.name === 'Bracket' ? '' : phase.name);
+  const phaseId = setList.phaseId;
+  const phase = Object.assign(
+    { name: '', startAt: null },
+    isValidPhase(phaseId) && await bracketService?.phase(phaseId),
+    setList.phaseName && { name: setList.phaseName },
+  );
+  phase.name = phase.name === 'Bracket' ? '' : phase.name;
   logger.debug('Phase:', phase);
 
-  return { tournament, videogame, phase };
-}
-
-function getGameHashtag(id: number): string {
-  const hashtag = gameHashtags[id];
-  if (hashtag == null) {
-    throw new Error(`no hashtag for game ${id}`);
-  }
-  return hashtag;
+  return {
+    tournament: tournament as VodTournament,
+    videogame: videogame as VodVideogame,
+    phase,
+  };
 }
 
 async function getPhaseGroupMapping(
-  graphqlClient: GraphQLClient,
+  bracketService: BracketService | null,
   phaseId: string | undefined,
 ): Promise<SetPhaseGroupMapping> {
-  if (!phaseId) {
-    return {};
-  }
-  const phase = (await graphqlClient.request(PHASE_GROUP_SET_QUERY, {
-    phaseId,
-  }) as PhaseGroupSetQueryResponse).phase;
-  const phaseGroups = phase ? phase.phaseGroups.nodes : [];
-  if (phaseGroups.length < 2) {
-    return {};
-  }
-  const mapping: SetPhaseGroupMapping = {};
-  for (const group of phaseGroups) {
-    for (const set of group.sets.nodes) {
-      mapping[set.id] = group.displayIdentifier;
-    }
-  }
-  return mapping;
+  return isValidPhase(phaseId) && bracketService?.setIdToPhaseGroup(phaseId) || {};
 }
 
 function videoDescription(
-  tournament: Tournament,
-  videogame: Videogame,
-  phase: Phase,
+  tournament: VodTournament,
+  videogame: VodVideogame,
+  phase: VodPhase,
   matchDesc: string,
 ): string {
   const date = formatDate(
-    phase.waves ? phase.waves[0].startAt : tournament.startAt,
-    phase.waves ? null : tournament.endAt,
+    phase.startAt != null ? phase.startAt : tournament.startAt,
+    phase.startAt != null ? null : tournament.endAt,
     tournament.timezone,
   );
 
@@ -633,7 +561,7 @@ Store ► https://store.lunarphase.nyc
 ${hashtags.filter(nonEmpty).map(str => "#" + str).join(' ')}`;
 }
 
-function formatDate(start: number | null, end: number | null, timezone: string | null): string {
+function formatDate(start?: number | null, end?: number | null, timezone?: string | null): string {
   const format = (n: number): string => timezone ?
     moment.unix(n).tz(timezone).format('LL') :
     moment.unix(n).format('LL');
@@ -650,9 +578,9 @@ function formatDate(start: number | null, end: number | null, timezone: string |
 }
 
 function videoTags(
-  tournament: Tournament,
-  videogame: Videogame,
-  phase: Phase,
+  tournament: VodTournament,
+  videogame: VodVideogame,
+  phase: VodPhase,
   players: Set['players'],
   excludedTags: string[],
   additionalTags: string[],
@@ -682,11 +610,14 @@ function videoTags(
   return Array.from(tagsSet);
 }
 
-function getSetData(logSet: Partial<Log['sets'][0]> = {}, smashggSet: Partial<QuerySet> = {}): Set {
+function getSetData(
+  logSet: Partial<Log['sets'][0]> = {},
+  bracketSet: Partial<TournamentSet> = {},
+): Set {
   const set: Partial<Set> = {};
 
   // ID
-  set.id = logSet.id || smashggSet.id;
+  set.id = logSet.id || bracketSet.serviceInfo?.id;
 
   // Players
   if (logSet.state && logSet.state.players) {
@@ -695,30 +626,30 @@ function getSetData(logSet: Partial<Log['sets'][0]> = {}, smashggSet: Partial<Qu
       handle: p.handle,
       prefix: p.prefix,
     }));
-  } else if (smashggSet.slots) {
-    set.players = smashggSet.slots.map(slot => {
+  } else if (bracketSet.entrants) {
+    set.players = bracketSet.entrants.map(entrant => {
       let name;
       let handle;
       let prefix = null;
-      if (slot.entrant.participants.length === 1) {
-        const part = slot.entrant.participants[0];
-        prefix = part.prefix || part.player.prefix;
-        handle = part.player.gamerTag;
+      if (entrant.participants.length === 1) {
+        const part = entrant.participants[0];
+        prefix = part.prefix;
+        handle = part.handle;
         name = prefix ? `${prefix} | ${handle}` : handle;
       } else {
-        handle = slot.entrant.name;
-        name = slot.entrant.name;
+        handle = entrant.name;
+        name = entrant.name;
       }
       return { name, handle, prefix };
     });
   }
 
   // Match
-  if (smashggSet.fullRoundText) {
-    set.fullRoundText = smashggSet.fullRoundText;
-  } else if (logSet.state && logSet.state.match) {
-    set.fullRoundText = logSet.state.match.name;
-  }
+  // TODO: Only using smashgg IDs match names because they're singular
+  set.fullRoundText = bracketSet.match?.smashggId ||
+    logSet.state?.match.name ||
+    undefined;
+  // TODO: Is this even necessary?
   if (set.fullRoundText == 'Grand Final Reset' || set.fullRoundText == 'True Finals') {
     set.fullRoundText = 'Grand Final';
   }
@@ -766,7 +697,7 @@ function subtractTimestamp(a: Timestamp, b: Timestamp): Timestamp {
   return moment.utc(seconds * 1000).format('H:mm:ss');
 }
 
-function tournamentTags(tournament: Tournament): string[] {
+function tournamentTags(tournament: VodTournament): string[] {
   const ret = [
     tournament.name,
     tournament.hashtag,
@@ -804,4 +735,8 @@ function sanitizeTag(str: string): string {
   // TODO: Actually make this an exhaustive list?
   return str.replace(/[,.?!|/\\(){}\[\]]/g, '')
     .trim();
+}
+
+function isValidPhase(phaseId: string | null | undefined): phaseId is string {
+  return !!phaseId && phaseId !== 'unknown';
 }

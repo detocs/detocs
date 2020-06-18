@@ -16,6 +16,11 @@ import {
 import importPeopleDatabase from './import/import-people';
 import { MediaServer } from './server/media/server';
 import server from './server/server';
+import BracketServiceProvider from './services/bracket-service-provider';
+import ChallongeClient from './services/challonge/challonge';
+import { CHALLONGE_SERVICE_NAME } from './services/challonge/constants';
+import { SMASHGG_SERVICE_NAME } from './services/smashgg/constants';
+import SmashggClient from './services/smashgg/smashgg';
 import { VodUploader, Style, Command } from './upload/vod-uploader';
 import { loadConfig, getConfig } from './util/config';
 import { loadCredentials } from './util/credentials';
@@ -132,7 +137,9 @@ async function startServer(): Promise<void> {
   const mediaServer = new MediaServer();
   mediaServer.start();
 
-  server(mediaServer);
+  const bracketProvider = getBracketProvider();
+
+  server({ bracketProvider, mediaServer });
   web(mediaServer);
 }
 
@@ -186,6 +193,7 @@ async function vods(opts: yargs.Arguments<VodOptions>): Promise<void> {
       break;
   }
   const uploader = new VodUploader({
+    bracketProvider: getBracketProvider(),
     logFile: opts.logFile,
     command,
     style: opts.ps ? Style.PerSet : Style.Full,
@@ -228,4 +236,11 @@ function configureLogger(): void {
 function logConfig(): void {
   const logger = log4js.getLogger('main');
   logger.info('Loaded config:', JSON.stringify(getConfig(), null, 2));
+}
+
+function getBracketProvider(): BracketServiceProvider {
+  const bracketProvider = new BracketServiceProvider();
+  bracketProvider.register(SMASHGG_SERVICE_NAME, () => new SmashggClient());
+  bracketProvider.register(CHALLONGE_SERVICE_NAME, () => new ChallongeClient());
+  return bracketProvider;
 }

@@ -1,5 +1,5 @@
-import { ApiKey as ChallongeApiKey } from '@models/challonge';
-import { ApiToken as SmashggApiToken } from '@models/smashgg';
+import { ApiKey as ChallongeApiKey } from '@services/challonge/types';
+import { ApiToken as SmashggApiToken } from '@services/smashgg/types';
 import { AccessToken as Twitter } from '@models/twitter';
 import { Credentials as YoutubeCredentials } from '@models/youtube';
 

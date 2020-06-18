@@ -4,13 +4,7 @@ export default interface Game {
   shortNames: string[];
   hashtags: string[];
   serviceInfo: {
-    twitch?: {
-      id: string;
-    };
-    smashgg?: {
-      id: string;
-    };
-    challonge?: {
+    [serviceName: string]: {
       id: string;
     };
   };

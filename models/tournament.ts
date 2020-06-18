@@ -1,7 +1,12 @@
-import { SmashggId } from "./smashgg";
-
 export default interface Tournament {
-  id: SmashggId;
+  id: string;
   name: string;
   url: string;
+  venueName?: string | null;
+  venueAddress?: string | null;
+  city?: string | null;
+  hashtag?: string | null;
+  startAt?: number | null;
+  endAt?: number | null;
+  timezone?: string | null;
 }
