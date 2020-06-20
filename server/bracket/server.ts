@@ -45,7 +45,7 @@ class BracketServer {
   private readonly appServer: express.Express;
   private readonly socketServer: ws.Server;
   private readonly bracketProvider: BracketServiceProvider;
-  private bracketService: BracketService;
+  private bracketService: BracketService | null;
   private state: State = nullState;
   private refreshTimer: NodeJS.Timeout | null = null;
 
@@ -57,8 +57,7 @@ class BracketServer {
     this.appServer = appServer;
     this.socketServer = socketServer;
     this.bracketProvider = bracketProvider;
-    // TODO: Make smash.gg optional
-    this.bracketService = bracketProvider.get(SMASHGG_SERVICE_NAME);
+    this.bracketService = null;
   }
 
   public registerHandlers(): void {
@@ -147,7 +146,7 @@ class BracketServer {
 
     // Asynchronous operations
     if (update.tournamentId && tournamentChanged) {
-      this.bracketService.phasesForTournament(update.tournamentId)
+      this.bracketService?.phasesForTournament(update.tournamentId)
         .then(updates => {
           this.selectSingletonEvent(updates);
           this.selectSingletonPhase(updates);
@@ -172,7 +171,9 @@ class BracketServer {
     this.broadcastState();
   };
 
-  private parseUrlOrSlug(tourneyUrlOrSlug: string | null): [ string | null, BracketService ] {
+  private parseUrlOrSlug(
+    tourneyUrlOrSlug: string | null
+  ): [ string | null, BracketService | null ] {
     if (!tourneyUrlOrSlug) {
       return [ null, this.bracketService ];
     }
@@ -204,7 +205,10 @@ class BracketServer {
     }
   }
 
-  private fetchSets(phaseId: string): Promise<void> {
+  private async fetchSets(phaseId: string): Promise<void> {
+    if (!this.bracketService) {
+      return;
+    }
     logger.debug(`Fetching sets for phase ${phaseId}`);
     return this.bracketService.upcomingSetsByPhase(phaseId)
       .then(unfinishedSets => {
