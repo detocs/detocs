@@ -2,6 +2,7 @@ import { h, FunctionalComponent, VNode, Fragment } from 'preact';
 import { StateUpdater, useRef, useState } from 'preact/hooks';
 
 import { ImageClip, VideoClip } from '@models/media';
+import { GetClipResponse } from '@server/clip/server';
 import {
   State,
   ClipView,
@@ -9,16 +10,14 @@ import {
   isImageClipView,
   isVideoClipView,
 } from '@server/clip/state';
+import { checkResponseStatus } from '@util/ajax';
 import { inputHandler } from '@util/dom';
+import { Id } from '@util/id';
 
 import { clipEndpoint } from './api';
-import { useLocalState } from './hooks/local-state';
-import { Thumbnail } from './thumbnail';
-import { Id } from '@util/id';
 import { ClipSelector } from './clip-selector';
-import { ReplayCache } from '@server/media/replayCache';
-import { checkResponseStatus } from '@util/ajax';
-import { GetClipResponse } from '@server/clip/server';
+import { useLocalState } from './hooks/local-state';
+import { logError } from './log';
 
 interface Props {
   state: State;
@@ -222,10 +221,10 @@ const ClipDashboard: FunctionalComponent<Props> = ({ state }): VNode => {
   return (
     <Fragment>
       <div class="clips__actions">
-        {clipEndpoints.map(ep => 
+        {clipEndpoints.map(ep =>
           <button
             type="button"
-            onClick={() => ep.callback().then(updateCurrentId).catch(console.error)}
+            onClick={() => ep.callback().then(updateCurrentId).catch(logError)}
           >
             {ep.displayName}
           </button>

@@ -5,6 +5,7 @@ import ServerState, { Recording } from '@server/recording/state';
 
 import { recordingEndpoint } from './api';
 import { useStartTimestamp, useStopTimestamp, useRecording } from './hooks/recording';
+import { logError } from './log';
 import { Thumbnail } from './thumbnail';
 import { TimestampInput } from './timestamp';
 
@@ -19,11 +20,11 @@ const updateEndpoint = recordingEndpoint('/update').href;
 const cutEndpoint = recordingEndpoint('/cut').href;
 
 function start(): void {
-  fetch(startEndpoint, { method: 'POST' }).catch(console.error);
+  fetch(startEndpoint, { method: 'POST' }).catch(logError);
 }
 
 function stop(): void {
-  fetch(stopEndpoint, { method: 'POST' }).catch(console.error);
+  fetch(stopEndpoint, { method: 'POST' }).catch(logError);
 }
 
 const RecordingDashboard: FunctionalComponent<Props> = ({ state, updateState }): VNode => {

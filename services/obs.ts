@@ -1,6 +1,6 @@
 import find from 'find-process';
 import { promises as fs, statSync } from 'fs';
-import ObsWebSocket from 'obs-websocket-js';
+import ObsWebSocket, { ObsError } from 'obs-websocket-js';
 import { dirname, extname, isAbsolute, join, basename } from 'path';
 
 import { Timestamp } from '@models/timestamp';
@@ -18,17 +18,20 @@ const MAX_RECONNECTION_ATTEMPTS = 25;
 export const OBS_REPLAY_PREFIX = 'Replay';
 
 export async function isRecording(obs: ObsWebSocket): Promise<boolean> {
-  const resp = await obs.send('GetStreamingStatus');
+  const resp = await obs.send('GetStreamingStatus')
+    .catch(convertError);
   return resp['recording'] || false;
 }
 
 export async function getRecordingTimestamp(obs: ObsWebSocket): Promise<Timestamp | null> {
-  const resp = await obs.send('GetStreamingStatus');
+  const resp = await obs.send('GetStreamingStatus')
+    .catch(convertError);
   return resp['rec-timecode'] || null;
 }
 
 export async function getRecordingFolder(obs: ObsWebSocket): Promise<string> {
-  const resp = await obs.send('GetRecordingFolder');
+  const resp = await obs.send('GetRecordingFolder')
+    .catch(convertError);
   let folder = resp['rec-folder'];
   if (!isAbsolute(folder)) {
     // Some super cool guy is using relative paths with OBS
@@ -44,7 +47,8 @@ export async function getCurrentThumbnail(
   obs: ObsWebSocket,
   dimensions: { height?: number; width?: number },
 ): Promise<string> {
-  const sceneResp = await obs.send('GetCurrentScene');
+  const sceneResp = await obs.send('GetCurrentScene')
+    .catch(convertError);
   if (!sceneResp) {
     throw new Error('GetCurrentScene failed');
   }
@@ -52,7 +56,8 @@ export async function getCurrentThumbnail(
     sourceName: sceneResp['name'],
     embedPictureFormat: 'png',
     ...dimensions,
-  });
+  })
+    .catch(convertError);
   if (!resp) {
     throw new Error('TakeSourceScreenshot failed');
   }
@@ -62,7 +67,8 @@ export async function getCurrentThumbnail(
 export async function getOutputDimensions(
   obs: ObsWebSocket,
 ): Promise<{ width: number; height: number }> {
-  const resp = await obs.send('GetVideoInfo');
+  const resp = await obs.send('GetVideoInfo')
+    .catch(convertError);
   return { width: resp.outputWidth, height: resp.outputHeight };
 }
 
@@ -113,4 +119,8 @@ export async function getRecordingFile(
   const file = join(folder, files.pop() || '');
 
   return { file, folder };
+}
+
+function convertError(obsError: ObsError): never {
+  throw new Error(obsError.error);
 }

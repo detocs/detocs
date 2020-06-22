@@ -11,6 +11,7 @@ import { checkResponseStatus } from "../../util/ajax";
 
 import { twitterEndpoint, clipEndpoint } from './api';
 import { ClipSelectorModal } from './clip-selector';
+import { logError } from './log';
 import { PersistentCheckbox } from './persistent-checkbox';
 import { Thumbnail } from './thumbnail';
 
@@ -63,7 +64,7 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
             updateClipId(null);
             (form.querySelector('textarea') as HTMLTextAreaElement).value = '';
           })
-          .catch(console.error)
+          .catch(logError)
           .finally(() => updateBusy(false));
       }}
     >
@@ -92,7 +93,7 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
           <Thumbnail media={clip?.media} />
           <div className="twitter__tweet-media-actions input-row">
             <button type="button" onClick={
-              () => takeScreenshot().then(updateClipId).catch(console.error)
+              () => takeScreenshot().then(updateClipId).catch(logError)
             }>
               Take Screenshot
             </button>

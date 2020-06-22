@@ -2,6 +2,7 @@ import Match, { nullMatch } from '@models/match';
 
 import { infoEndpoint } from './api';
 import AutocompleteFields from './autocomplete-fields';
+import { logError } from './log';
 
 export default class MatchFields extends AutocompleteFields<Match> {
   public constructor() {
@@ -12,6 +13,6 @@ export default class MatchFields extends AutocompleteFields<Match> {
 
 function loadMatchList(): Promise<Match[]> {
   return fetch(infoEndpoint('/matches').href)
-    .catch(console.error)
+    .catch(logError)
     .then(resp => resp ? resp.json() as Promise<Match[]> : Promise.reject());
 }

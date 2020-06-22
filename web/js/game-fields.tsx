@@ -2,6 +2,7 @@ import Game, { nullGame } from '@models/game';
 
 import { infoEndpoint } from './api';
 import AutocompleteFields from './autocomplete-fields';
+import { logError } from './log';
 
 export default class GameFields extends AutocompleteFields<Game> {
   public constructor() {
@@ -12,6 +13,6 @@ export default class GameFields extends AutocompleteFields<Game> {
 
 function loadGameList(): Promise<Game[]> {
   return fetch(infoEndpoint('/games').href)
-    .catch(console.error)
+    .catch(logError)
     .then(resp => resp ? resp.json() as Promise<Game[]> : Promise.reject());
 }

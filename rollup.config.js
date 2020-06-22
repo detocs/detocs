@@ -1,14 +1,25 @@
-import json from 'rollup-plugin-json';
-import commonjs from 'rollup-plugin-commonjs';
-import resolve from 'rollup-plugin-node-resolve';
+import alias from '@rollup/plugin-alias';
+import commonjs from '@rollup/plugin-commonjs';
+import json from '@rollup/plugin-json';
+import resolve from '@rollup/plugin-node-resolve';
+import replace from '@rollup/plugin-replace';
 
 const plugins = [
   json({
     indent: '    ',
     preferConst: true,
   }),
+  replace({
+    'process.env.NODE_ENV': "'production'",
+  }),
   commonjs(),
   resolve(),
+  alias({
+    entries: {
+      'react': 'preact/compat',
+      'react-dom': 'preact/compat',
+    },
+  }),
 ];
 export default [
   {

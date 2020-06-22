@@ -1,4 +1,5 @@
 import { h, render, FunctionalComponent, VNode, Fragment } from 'preact';
+import { ToastContainer as ReactToastContainer } from 'react-toastify';
 
 import BracketState, { nullState as nullBracketState } from '@server/bracket/state';
 import {
@@ -9,10 +10,7 @@ import InfoState, { nullState as nullInfoState } from '@server/info/state';
 import RecordingState, { nullState as nullRecordingState } from '@server/recording/state';
 import TwitterState, { nullState as nullTwitterState } from '@server/twitter/client-state';
 import { massagedFormData } from '@util/forms';
-import { getVersion } from "../../util/meta";
-
-import { useServerState } from './hooks/server-state';
-import { useToggle } from './hooks/toggle';
+import { getVersion } from '@util/meta';
 
 import {
   infoEndpoint,
@@ -23,17 +21,21 @@ import {
 } from './api';
 import BracketDashboard from './bracket-dashboard';
 import BreakDashboard from './break-dashboard';
+import ClipDashboard from './clip-dashboard';
 import CommentaryDashboard from './commentary-dashboard';
+import { useServerState } from './hooks/server-state';
+import { useToggle } from './hooks/toggle';
+import { logError } from './log';
 import PlayerDashboard from './player-dashboard';
 import RecordingDashboard from './recording-dashboard';
 import Tab from './tab';
 import TabController from './tab-controller';
 import TwitterDashboard from './twitter-dashboard';
-import ClipDashboard from './clip-dashboard';
 
 document.addEventListener('DOMContentLoaded', () => {
-  render(<App />, document.getElementById("app") as HTMLDivElement);
   bindSubmitHandler();
+  bindErrorHandler();
+  render(<App />, document.getElementById("app") as HTMLDivElement);
 });
 
 const version = getVersion();
@@ -60,7 +62,7 @@ const App: FunctionalComponent<{}> = (): VNode => {
     clipEndpoint('', 'ws:'),
     nullClipState,
   );
-
+  const ToastContainer = ReactToastContainer as FunctionalComponent;
   return (
     <Fragment>
       <TabController>
@@ -96,6 +98,7 @@ const App: FunctionalComponent<{}> = (): VNode => {
         </Tab>
       </TabController>
       <footer id="version">DETOCS {version}</footer>
+      <ToastContainer />
     </Fragment>
   );
 };
@@ -117,8 +120,12 @@ function bindSubmitHandler(): void {
     }
     const body = massagedFormData(new FormData(form));
     fetch(action, { method, body })
-      .catch(console.error);
+      .catch(logError);
 
     event.preventDefault();
   });
+}
+
+function bindErrorHandler(): void {
+  window.addEventListener('error', logError);
 }

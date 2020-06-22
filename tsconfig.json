@@ -24,7 +24,5 @@
     "resolveJsonModule": true,
     "jsx": "react",
     "jsxFactory": "h"
-  },
-  "include": [ "main.ts", "export", "import", "models", "server", "services", "types", "upload", "util", "web/js" ],
-  "exclude": [ "**/node_modules" ]
+  }
 }

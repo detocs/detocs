@@ -5,6 +5,7 @@ import { capitalize } from '@util/string';
 
 import { infoEndpoint } from './api';
 import Autocomplete from './autocomplete';
+import { logError } from './log';
 
 type PersonUpdater = (p: PersonUpdate, val: string) => PersonUpdate;
 interface FieldMapping {
@@ -65,7 +66,7 @@ export default class PersonFields extends Component<Props, State> {
   // information between fetching the autocomplete options and selecting one
   public fetchAndUpdatePerson = (person: Person): void => {
     fetch(infoEndpoint(`/people/${person.id}`).href)
-      .catch(console.error)
+      .catch(logError)
       .then(resp => resp && resp.json())
       .then(this.updatePerson);
   };
@@ -89,7 +90,7 @@ export default class PersonFields extends Component<Props, State> {
       const url = infoEndpoint('/people');
       url.search = `q=${encodeURIComponent(val)}`;
       fetch(url.href)
-        .catch(console.error)
+        .catch(logError)
         .then(resp => resp && resp.json())
         .then(this.updateAutocomplete);
     }
