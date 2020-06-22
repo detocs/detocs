@@ -283,7 +283,7 @@ export class VodUploader {
       const p2 = players[1].name;
       return `${set.start} - ${p1} vs ${p2} (${groupId}${set.fullRoundText})`;
     }).join('\n');
-    const description = videoDescription(tournament, videogame, phase, matchDescs);
+    const description = videoDescription(tournament, videogame, phase, setList.matchDescription || matchDescs);
 
     const players = sets.map(s => s.players)
       .reduce((acc, val) => acc.concat(val), []);

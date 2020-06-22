@@ -23,6 +23,7 @@ export type Log = RecordingLog & {
     };
   }>;
   keyframeInterval?: number;
+  matchDescription?: string;
   additionalTags?: string[];
   excludedTags?: string[];
 };
