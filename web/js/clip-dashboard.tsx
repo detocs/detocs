@@ -1,7 +1,7 @@
 import { h, FunctionalComponent, VNode, Fragment } from 'preact';
 import { StateUpdater, useRef, useState } from 'preact/hooks';
 
-import { ImageClip, VideoClip } from '@models/media';
+import { ImageClip, VideoClip, isVideoClip } from '@models/media';
 import { GetClipResponse } from '@server/clip/server';
 import {
   State,
@@ -18,6 +18,7 @@ import { clipEndpoint } from './api';
 import { ClipSelector } from './clip-selector';
 import { useLocalState } from './hooks/local-state';
 import { logError } from './log';
+import { fromMillis } from '@util/timestamp';
 
 interface Props {
   state: State;
@@ -77,7 +78,10 @@ function screenshot(): Promise<string> {
 
 const ImageViewer: FunctionalComponent<ImageViewerProps> = ({ clipView }): VNode => {
   return (
-    <img class="image-viewer" src={clipView.clip.media.url} />
+    <div class="image-viewer">
+      <img class="image-viewer__image" src={clipView.clip.media.url} />
+      <ClipMetadata {...clipView}/>
+    </div>
   );
 };
 
@@ -123,13 +127,13 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
         <div class="video-editor__range">
           <img class="video-editor__waveform" src={clip.waveform.url} />
           <progress
-            className="video-editor__progress"
+            class="video-editor__progress"
             max={durationMs}
             value={Math.trunc(currentTime)}
           >
           </progress>
           <div
-            className="video-editor__range-outline"
+            class="video-editor__range-outline"
             style={`left: ${startMs/durationMs*100}%;` +
             `right: ${(durationMs - endMs)/durationMs*100}%;`}
           >
@@ -137,7 +141,7 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
           {!disabled && <input
             type="range"
             name="startMs"
-            className="video-editor__range-bound video-editor__range-start"
+            class="video-editor__range-bound video-editor__range-start"
             style={`--range-width: ${startRangePercentage}`}
             min={0}
             max={startMaximum}
@@ -167,7 +171,7 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
           {!disabled && <input
             type="range"
             name="endMs"
-            className="video-editor__range-bound video-editor__range-end"
+            class="video-editor__range-bound video-editor__range-end"
             style={`--range-width: ${endRangePercentage}`}
             min={endMinimum}
             max={durationMs}
@@ -196,21 +200,53 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
           />}
         </div>
       </div>
-      <div className="video-editor__buttons">
+      <div class="video-editor__buttons">
         <input type="hidden" name="id" value={clip.id} />
-        <textarea
-          name="description"
-          value={description}
-          onInput={inputHandler(updateDescription)}
-          className="video-editor__description"
-          rows={3}
-          disabled={disabled}
-        >
-        </textarea>
-        <button type="submit" disabled={disabled}>Update</button>
-        <button type="submit" disabled={disabled} formAction={cutEndpoint}>Cut</button>
+        <ClipMetadata {...clipView}/>
+        <label class="video-editor__description">
+          Description:
+          <textarea
+            name="description"
+            value={description}
+            onInput={inputHandler(updateDescription)}
+            class="video-editor__description-editor"
+            rows={1}
+            disabled={disabled}
+          >
+          </textarea>
+        </label>
+        <div class="input-row">
+          <button type="submit" disabled={disabled}>Update</button>
+          <button type="submit" disabled={disabled} formAction={cutEndpoint}>Cut</button>
+        </div>
       </div>
     </form>
+  );
+};
+
+const ClipMetadata: FunctionalComponent<ClipView> = ({ clip }): VNode => {
+  let recTs;
+  if (clip.recordingTimestampMs != null) {
+    const startMillis = clip.recordingTimestampMs;
+    const startTs = startMillis >= 0 ? fromMillis(startMillis) : 'N/A';
+    recTs = isVideoClip(clip) ?
+      `${startTs}–${fromMillis(startMillis + clip.media.durationMs)}` :
+      startTs;
+  }
+  let streamTs;
+  if (clip.streamTimestampMs != null) {
+    const startMillis = clip.streamTimestampMs;
+    const startTs = startMillis >= 0 ? fromMillis(startMillis) : 'N/A';
+    streamTs = isVideoClip(clip) ?
+      `${startTs}–${fromMillis(startMillis + clip.media.durationMs)}` :
+      startTs;
+  }
+  return (
+    <p class="clips__metadata">
+      ID: {clip.id}
+      {recTs && <Fragment><br />Recording: {recTs}</Fragment>}
+      {streamTs && <Fragment><br />Stream: {streamTs}</Fragment>}
+    </p>
   );
 };
 
@@ -219,7 +255,7 @@ const ClipDashboard: FunctionalComponent<Props> = ({ state }): VNode => {
   const clipView = !currentClipId ? state.clips[state.clips.length - 1] :
     state.clips.find(cv => cv.clip.id === currentClipId);
   return (
-    <Fragment>
+    <div class="clips">
       <div class="clips__actions">
         {clipEndpoints.map(ep =>
           <button
@@ -240,7 +276,7 @@ const ClipDashboard: FunctionalComponent<Props> = ({ state }): VNode => {
           includeNone={false}
         />
       </div>
-    </Fragment>
+    </div>
   );
 };
 export default ClipDashboard;

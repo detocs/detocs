@@ -109,21 +109,26 @@ export class MediaServer {
   }
 
   private async getCurrentScreenshot(height: number): Promise<Screenshot> {
-    const timestampPromise = obs.getRecordingTimestamp(this.obsWs);
+    const timestampPromise = obs.getTimestamps(this.obsWs);
     const imgPromise = obs.getCurrentThumbnail(this.obsWs, { height });
-    const [ timestamp, base64Img ] = await Promise.all([timestampPromise, imgPromise]);
+    const [ timestamps, base64Img ] = await Promise.all([timestampPromise, imgPromise]);
     if (!base64Img) {
       throw new Error('Couldn\'t get screenshot');
     }
 
     const filename = await this.saveImageFile(
-      timestamp,
+      timestamps.recordingTimestamp,
       height,
       Buffer.from(base64Img.substring(22), 'base64'),
     );
     return {
       image: { filename, url: this.getUrl(filename), type: 'image', height },
-      timestampMs: timestamp ? toMillis(timestamp) : undefined,
+      recordingTimestampMs: timestamps.recordingTimestamp ?
+        toMillis(timestamps.recordingTimestamp) :
+        undefined,
+      streamTimestampMs: timestamps.streamTimestamp ?
+        toMillis(timestamps.streamTimestamp) :
+        undefined,
     };
   }
 
@@ -138,13 +143,13 @@ export class MediaServer {
   }
 
   private async getVideoFrameFromReplay(
-    replay: Required<Replay>,
+    replay: Replay & { recordingTimestampMs: number },
     millis: number,
     height: number,
   ): Promise<Buffer> {
     return this.getVideoFrame(
       this.getFullPath(replay.video),
-      fromMillis(millis - replay.startMs),
+      fromMillis(millis - replay.recordingTimestampMs),
       height,
     );
   }
@@ -222,7 +227,8 @@ export class MediaServer {
     const filename = await this.saveImageFile(timestamp, height, img);
     const screenshot: Screenshot = {
       image: { filename, url: this.getUrl(filename), type: 'image', height },
-      timestampMs: millis,
+      recordingTimestampMs: millis,
+      // TODO: streamTimestampMs?
     };
     writeCaches.forEach(cache => cache.add(screenshot));
     return screenshot;
@@ -290,8 +296,8 @@ export class MediaServer {
 
     const dir = this.getDir();
     const nowMs = Date.now();
-    const [ timestamp, fileStats, copiedFilePath ] = await Promise.all([
-      obs.getRecordingTimestamp(this.obsWs),
+    const [ timestamps, fileStats, copiedFilePath ] = await Promise.all([
+      obs.getTimestamps(this.obsWs),
       fs.stat(filePath),
       ffmpeg.copyToWebCompatibleFormat(filePath, dir),
     ]);
@@ -311,12 +317,17 @@ export class MediaServer {
     const waveform = await this.getVideoWaveform(video);
 
     const replay: Replay = { video, waveform };
-    if (timestamp && fileStats) {
-      const endMillis = toMillis(timestamp) - (nowMs - Math.trunc(fileStats.birthtimeMs));
-      const startMillis = endMillis - videoStats.durationMs;
-      replay.endMs = endMillis;
-      replay.startMs = startMillis;
-      this.replayCache.add(replay);
+    if (timestamps && fileStats) {
+      const msSinceFileCreation = nowMs - Math.trunc(fileStats.birthtimeMs);
+      if (timestamps.streamTimestamp) {
+        const endMillis = toMillis(timestamps.streamTimestamp) - msSinceFileCreation;
+        replay.streamTimestampMs = endMillis - videoStats.durationMs;
+      }
+      if (timestamps.recordingTimestamp) {
+        const endMillis = toMillis(timestamps.recordingTimestamp) - msSinceFileCreation;
+        replay.recordingTimestampMs = endMillis - videoStats.durationMs;
+        this.replayCache.add(replay);
+      }
     }
     return replay;
   }

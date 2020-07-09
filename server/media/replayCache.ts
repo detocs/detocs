@@ -1,18 +1,24 @@
 import { Replay } from '@models/media';
 
+type TimestampedReplay = Replay & {
+  recordingTimestampMs: number;
+};
+
 export class ReplayCache {
   private readonly leniency: number;
-  private readonly replays: Required<Replay>[] = [];
+  private readonly replays: TimestampedReplay[] = [];
 
   public constructor(leniency: number) {
     this.leniency = leniency;
   }
 
-  public get(timestamp: number): Required<Replay> | null {
+  public get(timestamp: number): TimestampedReplay | null {
     // TODO: Optimize if we actually need to deal with a large number of replays
     return this.replays.find(r => {
-      return r.startMs - this.leniency <= timestamp &&
-        r.endMs + this.leniency >= timestamp;
+      const startMs = r.recordingTimestampMs;
+      const endMs = r.recordingTimestampMs + r.video.durationMs;
+      return startMs - this.leniency <= timestamp &&
+        endMs + this.leniency >= timestamp;
     }) || null;
   }
 
@@ -23,6 +29,6 @@ export class ReplayCache {
     this.replays.push(r);
   }
 }
-function hasTimestamps(r: Replay): r is Required<Replay> {
-  return r.startMs != null && r.endMs != null;
+function hasTimestamps(r: Replay): r is TimestampedReplay {
+  return r.recordingTimestampMs != null;
 }

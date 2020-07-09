@@ -125,12 +125,13 @@ async function startRecording(_req: Request, res: Response): Promise<void> {
     sendUserError(res, 'Attempted to start recording before starting stream recording');
     return;
   }
-  const timestamp = await obsUtil.getRecordingTimestamp(obs).catch(logger.error);
-  if (!timestamp) {
+  const timestamps = await obsUtil.getTimestamps(obs).catch(logger.error);
+  if (!timestamps || !timestamps.recordingTimestamp) {
     logger.warn('Unable to get start timestamp');
     res.sendStatus(500);
     return;
   }
+  const timestamp = timestamps.recordingTimestamp;
 
   let recording = state.recordings[0];
   if (!recording || recording.stopTimestamp) {
@@ -169,14 +170,14 @@ async function stopInProgressRecording(): Promise<void> {
 }
 
 async function stopRecording(callback?: Function): Promise<void> {
-  const timestamp = await obsUtil.getRecordingTimestamp(obs).catch(logger.error);
-  if (!timestamp) {
+  const timestamps = await obsUtil.getTimestamps(obs).catch(logger.error);
+  if (!timestamps || !timestamps.recordingTimestamp) {
     throw new Error('Unable to get stop timestamp');
   }
 
   const recordingId = state.recordings[0].id;
-  state.recordings[0].stopTimestamp = timestamp;
-  logger.debug(`Stopping clip at ${timestamp}`);
+  state.recordings[0].stopTimestamp = timestamps.recordingTimestamp;
+  logger.debug(`Stopping clip at ${timestamps.recordingTimestamp}`);
   callback && callback();
   broadcastState(state);
   saveLogs(state);

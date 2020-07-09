@@ -125,7 +125,8 @@ class ClipServer {
       id: getId(),
       media: screenshot.image,
       description: '',
-      recordingTimestampMs: screenshot.timestampMs,
+      recordingTimestampMs: screenshot.recordingTimestampMs,
+      streamTimestampMs: screenshot.streamTimestampMs,
     };
     this.state = updateImmutable(this.state, { clips: { $push: [{
       clip,
@@ -168,7 +169,8 @@ class ClipServer {
       clipEndMs: replay.video.durationMs,
       clipStartMs: startOffset,
       description: '',
-      recordingTimestampMs: replay.startMs != null ? replay.startMs + startOffset : undefined,
+      recordingTimestampMs: replay.recordingTimestampMs,
+      streamTimestampMs: replay.streamTimestampMs,
     };
     this.state = updateImmutable(this.state, { clips: { $push: [{
       clip,

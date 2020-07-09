@@ -23,10 +23,16 @@ export async function isRecording(obs: ObsWebSocket): Promise<boolean> {
   return resp['recording'] || false;
 }
 
-export async function getRecordingTimestamp(obs: ObsWebSocket): Promise<Timestamp | null> {
+export async function getTimestamps(obs: ObsWebSocket): Promise<{
+  recordingTimestamp: Timestamp | null;
+  streamTimestamp: Timestamp | null;
+}> {
   const resp = await obs.send('GetStreamingStatus')
     .catch(convertError);
-  return resp['rec-timecode'] || null;
+  return {
+    recordingTimestamp: resp['stream-timecode'] || null,
+    streamTimestamp: resp['rec-timecode'] || null,
+  };
 }
 
 export async function getRecordingFolder(obs: ObsWebSocket): Promise<string> {
