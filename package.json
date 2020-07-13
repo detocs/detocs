@@ -31,6 +31,7 @@
     "@types/react": "^16.9.38",
     "@types/react-toast-notifications": "^2.4.0",
     "@types/twit": "^2.2.22",
+    "@types/twitter-text": "^2.0.0",
     "@types/ws": "^6.0.3",
     "@types/yargs": "^13.0.3",
     "chainable-error": "^1.0.1",
@@ -67,6 +68,7 @@
     "react-toastify": "^6.0.6",
     "reconnecting-websocket": "^4.4.0",
     "twit": "^2.2.11",
+    "twitter-text": "^3.1.0",
     "w3c-keys": "^1.0.1",
     "ws": "^6.2.1",
     "yargs": "^14.2.0"

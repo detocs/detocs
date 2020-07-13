@@ -9,11 +9,6 @@
   justify-content: space-between;
 }
 
-.twitter__editor textarea {
-  flex: 4 1 15rem;
-  min-height: 6em;
-}
-
 .twitter__tweet-content {
   display: flex;
   flex-grow: 1;
@@ -24,6 +19,35 @@
 
 .twitter__tweet-content > * {
   margin-inline: var(--margin-small);
+}
+
+.twitter__tweet-body {
+  display: flex;
+  flex: 4 1 15rem;
+  flex-flow: column nowrap;
+}
+
+.twitter__tweet-text {
+  flex: 1 1 auto;
+  min-height: 6em;
+}
+
+.twitter__tweet-controls {
+  margin-block: var(--margin-small);
+  display: flex;
+  flex-flow: row wrap;
+
+  > * {
+    margin-inline: var(--margin-small);
+  }
+
+  > meter {
+    flex: 1 1 auto;
+  }
+
+  > button {
+    flex: 0.2 0 auto;
+  }
 }
 
 .twitter__tweet-media {
@@ -42,45 +66,4 @@
 .twitter__tweet-media-actions.twitter__tweet-media-actions > * {
   inline-size: auto;
   flex-basis: auto;
-}
-
-.clip-selector__list {
-  display: flex;
-  width: max-content;
-  max-width: 100%;
-
-  flex-flow: row wrap;
-  justify-content: space-evenly;
-  align-items: stretch;
-  padding: var(--margin-small);
-}
-
-.clip-selector__option {
-  display: flex;
-  margin: var(--margin-small);
-
-  flex-flow: column nowrap;
-  align-items: center;
-  padding: 0.5rem;
-
-  background: var(--bg-alt);
-}
-
-.clip-selector__clip-info {
-  display: flex;
-  flex: 1 1 auto;
-
-  flex-flow: column nowrap;
-  justify-content: center;
-  align-items: center;
-}
-
-.clip-selector__clip-description {
-  max-width: 15rem;
-  min-height: 1.5em;
-
-  line-height: 1.5em;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }

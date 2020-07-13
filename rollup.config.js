@@ -13,7 +13,9 @@ const plugins = [
     'process.env.NODE_ENV': "'production'",
   }),
   commonjs(),
-  resolve(),
+  resolve({
+    preferBuiltins: false,
+  }),
   alias({
     entries: {
       'react': 'preact/compat',

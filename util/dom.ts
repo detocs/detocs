@@ -14,7 +14,7 @@ export function cloneTemplate(id: string): DocumentFragment {
 }
 
 export function inputHandler(fn: (value: string) => void): JSX.EventHandler<Event> {
-  return (e: Event) => fn((e.target as HTMLInputElement).value);
+  return (e: Event) => fn((e.target as HTMLInputElement | HTMLTextAreaElement).value);
 }
 
 export function keyHandler(

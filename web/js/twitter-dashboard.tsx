@@ -1,5 +1,6 @@
 import { h, FunctionalComponent, VNode, Fragment } from 'preact';
-import { useState } from 'preact/hooks';
+import { useState, useEffect, useRef } from 'preact/hooks';
+import twitterText, { ParseTweetOptions } from 'twitter-text';
 
 import { GetClipResponse } from '@server/clip/server';
 import {
@@ -7,13 +8,25 @@ import {
   ClipStatus,
 } from '@server/clip/state';
 import ClientState from '@server/twitter/client-state';
-import { checkResponseStatus } from "../../util/ajax";
+import { checkResponseStatus } from '@util/ajax';
+import { inputHandler } from '@util/dom';
 
 import { twitterEndpoint, clipEndpoint } from './api';
 import { ClipSelectorModal } from './clip-selector';
 import { logError } from './log';
 import { PersistentCheckbox } from './persistent-checkbox';
 import { Thumbnail } from './thumbnail';
+
+declare module 'twitter-text' {
+  export const configs: {
+    version1: Required<ParseTweetOptions>;
+    version2: Required<ParseTweetOptions>;
+    version3: Required<ParseTweetOptions>;
+    defaults: Required<ParseTweetOptions>;
+  };
+}
+
+const maxTweetLength = twitterText.configs.defaults.maxWeightedTweetLength;
 
 interface Props {
   twitterState: ClientState;
@@ -48,9 +61,18 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
   thread,
   onThreadToggle,
 }): VNode => {
+  const bodyRef = useRef<HTMLTextAreaElement>();
+  const [ charCount, setCharCount ] = useState(0);
+  const [ error, setError ] = useState('');
   const [ clipId, updateClipId ] = useState<string | null>(null);
   const [ busy, updateBusy ] = useState(false);
+  useEffect(() => {
+    bodyRef.current?.setCustomValidity(error);
+  }, [ error ]);
   const clip = clipState.clips.find(c => c.clip.id === clipId)?.clip || null;
+  const textHandler = inputHandler(text => {
+    validateTweetBody(setCharCount, setError, text);
+  });
   return (
     <form
       class="twitter__editor js-manual-form"
@@ -63,6 +85,7 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
           .then(() => {
             updateClipId(null);
             (form.querySelector('textarea') as HTMLTextAreaElement).value = '';
+            validateTweetBody(setCharCount, setError, '');
           })
           .catch(logError)
           .finally(() => updateBusy(false));
@@ -88,8 +111,32 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
         </span>
       </header>
       <div class="twitter__tweet-content">
-        <textarea name="body" required {...{ maxlength: '280' }} autofocus={true}></textarea>
+        <div className="twitter__tweet-body">
+          <textarea
+            class="twitter__tweet-text"
+            name="body"
+            autofocus={true}
+            ref={bodyRef}
+            onInput={textHandler}
+            onChange={textHandler}
+          />
+          <div className="twitter__tweet-controls">
+            <meter
+              aria-label="Tweet length"
+              max={maxTweetLength + 1}
+              high={maxTweetLength}
+              low={maxTweetLength * 0.8}
+              value={charCount}
+            >
+              {charCount}/{maxTweetLength}
+            </meter>
+
+            {maxTweetLength - charCount} remaining
+            <button type="submit">Tweet</button>
+          </div>
+        </div>
         <div className="twitter__tweet-media">
+          <input type="hidden" name="media" value={clip?.media.url}/>
           <Thumbnail media={clip?.media} />
           <div className="twitter__tweet-media-actions input-row">
             <button type="button" onClick={
@@ -109,12 +156,22 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
           </div>
         </div>
       </div>
-      <input type="hidden" name="media" value={clip?.media.url}/>
-      <div class="input-row">
-        <button type="submit">Tweet</button>
-      </div>
     </form>
   );
 };
+
+function validateTweetBody(
+  setCharCount: (count: number) => void,
+  setError: (error: string) => void,
+  text: string,
+): void {
+  const parsed = twitterText.parseTweet(text);
+  setCharCount(parsed.weightedLength);
+  if (!parsed.valid) {
+    setError('Invalid tweet');
+  } else {
+    setError('');
+  }
+}
 
 export default TwitterDashboard;
