@@ -20,3 +20,14 @@ export function getLogger(name: string): Logger {
     error: logger.error.bind(logger),
   };
 }
+
+export function getBasicLogger(): Logger {
+  const logger = log4js.getLogger();
+  logger.level = 'debug';
+  return {
+    debug: logger.debug.bind(logger),
+    info: logger.info.bind(logger),
+    warn: logger.warn.bind(logger),
+    error: logger.error.bind(logger),
+  };
+}

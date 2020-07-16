@@ -3,7 +3,7 @@ import { getLogger } from '@util/logger';
 import { promises as fs } from 'fs';
 import { join } from 'path';
 
-import { FileOutputConfig } from '@util/config';
+import { FileOutputConfig } from '@util/configuration/config';
 import State, { nullState } from '@server/info/state';
 import Output from '@server/info/output/output';
 import { OutputTemplate, parseTemplateFile } from '@server/info/output/templates';

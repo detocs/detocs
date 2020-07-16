@@ -8,7 +8,7 @@ import TournamentPhase from '@models/tournament-phase';
 import TournamentPhaseGroup from '@models/tournament-phase-group';
 import TournamentSet from '@models/tournament-set';
 import BracketService from '@services/bracket-service';
-import { getCredentials } from '@util/credentials';
+import { getCredentials } from '@util/configuration/credentials';
 import { nonNull } from '@util/predicates';
 
 import {

@@ -13,7 +13,7 @@ import TournamentSet from '@models/tournament-set';
 import BracketService from '@services/bracket-service';
 import { ApiKey, Timestamp, ApiTournament, ApiMatch } from '@services/challonge/types';
 import { checkResponseStatus, checkServerError } from '@util/ajax';
-import { getCredentials } from '@util/credentials';
+import { getCredentials } from '@util/configuration/credentials';
 import { nonNull } from '@util/predicates';
 
 import { BASE_URL, TOURNAMENT_URL_REGEX, CHALLONGE_SERVICE_NAME } from './constants';

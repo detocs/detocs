@@ -2,7 +2,7 @@ import { getLogger } from '@util/logger';
 
 import * as WebSocket from 'ws';
 
-import { WebSocketOutputConfig } from '@util/config';
+import { WebSocketOutputConfig } from '@util/configuration/config';
 import { broadcastAllData, sendAllData } from '@util/websocket';
 import State from '@server/info/state';
 import Output from '@server/info/output/output';

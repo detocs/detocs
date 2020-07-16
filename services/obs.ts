@@ -5,7 +5,7 @@ import { dirname, extname, isAbsolute, join, basename } from 'path';
 
 import { Timestamp } from '@models/timestamp';
 import { sleep } from '@util/async';
-import { getConfig } from '@util/config';
+import { getConfig } from '@util/configuration/config';
 import { getLogger } from '@util/logger';
 
 const logger = getLogger('services/obs');

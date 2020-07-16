@@ -18,7 +18,7 @@ import Person, { PersonUpdate, getName } from '@models/person';
 import Player from '@models/player';
 import Scoreboard from '@models/scoreboard';
 import TournamentSet from '@models/tournament-set';
-import { getConfig } from '@util/config';
+import { getConfig } from '@util/configuration/config';
 import BracketState from '@server/bracket/state';
 import { BRACKETS_PORT } from '@server/ports';
 

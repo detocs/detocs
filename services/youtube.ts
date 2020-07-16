@@ -4,7 +4,7 @@ import http from 'http';
 import open from 'open';
 import url from 'url';
 
-import { getCredentials, saveCredentials } from '@util/credentials';
+import { getCredentials, saveCredentials } from '@util/configuration/credentials';
 import { getLogger } from '@util/logger';
 
 const logger = getLogger('services/youtube');

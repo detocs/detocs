@@ -2,10 +2,19 @@ import { ApiKey as ChallongeApiKey } from '@services/challonge/types';
 import { ApiToken as SmashggApiToken } from '@services/smashgg/types';
 import { AccessToken as Twitter } from '@models/twitter';
 import { Credentials as YoutubeCredentials } from '@models/youtube';
+import { getLogger } from '@util/logger';
 
-import { loadConfigFile, saveConfigFile } from './config';
+import {
+  saveConfigFile,
+  loadConfigData,
+  findConfigData,
+  emptyConfigData,
+  parseConfig
+} from "./common";
 
-interface Credentials {
+const logger = getLogger('config');
+
+export interface Credentials {
   twitterAccessToken?: Twitter;
   smashggApiToken?: SmashggApiToken;
   youtubeCredentials?: YoutubeCredentials;
@@ -20,10 +29,16 @@ export function getCredentials(): Credentials {
   return currentCreds;
 }
 
-export async function loadCredentials(): Promise<void> {
-  const { config, filePath } = await loadConfigFile('detocs-credentials.json', DEFAULTS);
-  currentCreds = config;
-  credsFile = filePath;
+export async function loadCredentials(credentialsPath?: string): Promise<void> {
+  const { data, configPath: loadedCredentialsPath } =
+    (credentialsPath && await loadConfigData(credentialsPath)) ||
+    await findConfigData('detocs-credentials.json') ||
+    emptyConfigData();
+  if (loadedCredentialsPath) {
+    logger.info(`Loading credentials from ${loadedCredentialsPath}`);
+    credsFile = loadedCredentialsPath;
+  }
+  currentCreds = parseConfig(data, DEFAULTS);
 }
 
 export async function saveCredentials(): Promise<void> {

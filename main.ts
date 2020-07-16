@@ -5,27 +5,34 @@ import moment from 'moment';
 import { join } from 'path';
 import yargs from 'yargs';
 
-import ExportFormat from './export/export-format';
-import exportPeopleDatabase from './export/export-people';
+import ExportFormat from '@export/export-format';
+import exportPeopleDatabase from '@export/export-people';
 import {
   ScoreboardAssistantPeople,
   ScoreboardAssistantPeopleWithTwitter,
   StreamControlPeople,
   StreamControlPeopleWithTwitter,
-} from './export/formats';
-import importPeopleDatabase from './import/import-people';
-import { MediaServer } from './server/media/server';
-import server from './server/server';
-import BracketServiceProvider from './services/bracket-service-provider';
-import ChallongeClient from './services/challonge/challonge';
-import { CHALLONGE_SERVICE_NAME } from './services/challonge/constants';
-import { SMASHGG_SERVICE_NAME } from './services/smashgg/constants';
-import SmashggClient from './services/smashgg/smashgg';
-import { VodUploader, Style, Command } from './upload/vod-uploader';
-import { loadConfig, getConfig } from './util/config';
-import { loadCredentials } from './util/credentials';
-import { getVersion } from './util/meta';
-import web from './web/server';
+} from '@export/formats';
+import importPeopleDatabase from '@import/import-people';
+import { MediaServer } from '@server/media/server';
+import server from '@server/server';
+import BracketServiceProvider from '@services/bracket-service-provider';
+import ChallongeClient from '@services/challonge/challonge';
+import { CHALLONGE_SERVICE_NAME } from '@services/challonge/constants';
+import { SMASHGG_SERVICE_NAME } from '@services/smashgg/constants';
+import SmashggClient from '@services/smashgg/smashgg';
+import { VodUploader, Style, Command } from '@upload/vod-uploader';
+import { loadConfig, getConfig } from '@util/configuration/config';
+import { loadCredentials, getCredentials } from '@util/configuration/credentials';
+import { getBasicLogger } from '@util/logger';
+import { getVersion } from '@util/meta';
+import web from '@web/server';
+import { sortedKeys } from '@util/json';
+
+interface ConfigOptions {
+  config?: string;
+  credentials?: string;
+}
 
 interface PersonExportOptions {
   sa?: boolean;
@@ -45,10 +52,25 @@ interface VodOptions {
   ps: boolean;
 }
 
+const logger = getBasicLogger();
 const VERSION = getVersion();
 process.title = `DETOCS ${VERSION}`;
 
 yargs
+  .option('config', {
+    alias: 'c',
+    type: 'string',
+    global: true,
+  })
+  .option('credentials', {
+    alias: 'k',
+    type: 'string',
+    global: true,
+  })
+  .middleware([
+    middlewareLoadConfig,
+    middlewareLoadCredentials,
+  ])
   .command({
     command: 'server',
     aliases: '$0',
@@ -66,21 +88,25 @@ yargs
         demandOption: 'you must provide a destination path',
       })
       .option('sa', {
+        alias: 'scoreboard-assistant',
         describe: 'use Scoreboard Assistant format',
         type: 'boolean',
         group: 'Formats',
       })
       .option('sat', {
+        alias: 'scoreboard-assistant-twitter',
         describe: 'use Scoreboard Assistant format (include Twitter handles)',
         type: 'boolean',
         group: 'Formats',
       })
       .option('sc', {
+        alias: 'stream-control',
         describe: 'use Stream Control format',
         type: 'boolean',
         group: 'Formats',
       })
       .option('sct', {
+        alias: 'stream-control-twitter',
         describe: 'use Stream Control format (include Twitter handles)',
         type: 'boolean',
         group: 'Formats',
@@ -127,12 +153,17 @@ yargs
   .strict()
   .parse();
 
+async function middlewareLoadConfig(args: yargs.Arguments<ConfigOptions>): Promise<void> {
+  await loadConfig(args.config);
+}
+
+async function middlewareLoadCredentials(args: yargs.Arguments<ConfigOptions>): Promise<void> {
+  await loadCredentials(args.credentials || getConfig().credentialsFile);
+}
+
 async function startServer(): Promise<void> {
-  enableBasicLogging();
-  await loadConfig();
   configureLogger();
   logConfig();
-  await loadCredentials();
 
   const mediaServer = new MediaServer();
   mediaServer.start();
@@ -144,9 +175,6 @@ async function startServer(): Promise<void> {
 }
 
 async function exportPeople(opts: yargs.Arguments<PersonExportOptions>): Promise<void> {
-  const logger = enableBasicLogging();
-  await loadConfig();
-
   let format: ExportFormat = '';
   switch (true) {
     case opts.sa:
@@ -171,18 +199,12 @@ async function exportPeople(opts: yargs.Arguments<PersonExportOptions>): Promise
 };
 
 async function importPeople(opts: yargs.Arguments<PersonImportOptions>): Promise<void> {
-  const logger = enableBasicLogging();
-  await loadConfig();
   await importPeopleDatabase(opts.source)
     .catch(logger.error);
   process.exit();
 };
 
 async function vods(opts: yargs.Arguments<VodOptions>): Promise<void> {
-  const logger = enableBasicLogging();
-  await loadConfig();
-  await loadCredentials();
-
   let command = Command.Metadata;
   switch (opts.command) {
     case 'upload':
@@ -202,13 +224,6 @@ async function vods(opts: yargs.Arguments<VodOptions>): Promise<void> {
     .catch(logger.error);
   process.exit();
 };
-
-function enableBasicLogging(): log4js.Logger {
-  const logger = log4js.getLogger();
-  logger.level = 'debug';
-  logger.error = logger.error.bind(logger);
-  return logger;
-}
 
 function configureLogger(): void {
   const appenders: Configuration['appenders'] = {
@@ -234,8 +249,7 @@ function configureLogger(): void {
 }
 
 function logConfig(): void {
-  const logger = log4js.getLogger('main');
-  logger.info('Loaded config:', JSON.stringify(getConfig(), null, 2));
+  logger.info('Loaded config:', JSON.stringify(getConfig(), sortedKeys(getConfig()), 2));
 }
 
 function getBracketProvider(): BracketServiceProvider {

@@ -9,7 +9,7 @@ import path from 'path';
 import * as ws from 'ws';
 
 import { VideoClip, ImageClip, isVideoClip, VideoFile, ImageFile, Clip } from '@models/media';
-import { getConfig } from '@util/config';
+import { getConfig } from '@util/configuration/config';
 import * as httpUtil from '@util/http-server';
 import { getId } from '@util/id';
 

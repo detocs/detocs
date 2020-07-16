@@ -12,7 +12,7 @@ import { AccessToken } from '@models/twitter';
 import { MediaServer } from '@server/media/server';
 import { TWITTER_PORT } from '@server/ports';
 import * as twitter from '@services/twitter';
-import { getCredentials, saveCredentials } from '@util/credentials';
+import { getCredentials, saveCredentials } from '@util/configuration/credentials';
 import * as httpUtil from '@util/http-server';
 
 import ClientState, { nullState } from './client-state';

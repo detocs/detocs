@@ -3,7 +3,7 @@ import { getLogger } from '@util/logger';
 import { readFileSync, renameSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { dirname } from 'path';
 
-import { getConfig } from '@util/config';
+import { getConfig } from '@util/configuration/config';
 import { getVersion } from '@util/meta';
 
 import Person, { isEqual, PersonUpdate, nullPerson, getName } from './person';
