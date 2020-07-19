@@ -1,4 +1,5 @@
 .thumbnail {
+  position: relative;
   inline-size: calc(8rem * (var(--stream-aspect-ratio)));
 
   box-sizing: border-box;
@@ -7,7 +8,12 @@
   border: var(--width-border) solid currentColor;
 }
 
-.thumbnail-placeholder {
+.thumbnail__media {
+  display: block;
+  inline-size: 100%;
+}
+
+.thumbnail__placeholder {
   inline-size: 100%;
 
   padding-block-end: calc(100% / (var(--stream-aspect-ratio)));
@@ -15,4 +21,15 @@
   background-image: url(/images/thumbnail-placeholder.svg);
   background-position: center;
   background-size: cover;
+}
+
+.thumbnail__metadata {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+
+  padding: 0.2em;
+
+  background-color: rgba(black, 0.6);
+  font-size: 50%;
 }
