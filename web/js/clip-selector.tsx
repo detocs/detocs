@@ -1,5 +1,6 @@
 import clsx from 'clsx';
-import { h, FunctionalComponent, RenderableProps, VNode, createRef, Fragment } from 'preact';
+import { h, FunctionalComponent, VNode, createRef, Fragment, Ref } from 'preact';
+import { forwardRef } from 'preact/compat/src';
 import { JSXInternal } from 'preact/src/jsx';
 
 import { ClipView, ClipStatus } from '@server/clip/state';
@@ -61,7 +62,6 @@ export const ClipSelector: FunctionalComponent<ClipSelectorModalProps> = ({
               name="clipId"
               value={clipView.clip.id}
               checked={currentClipId === clipView.clip.id}
-              disabled={clipView.status === ClipStatus.Rendering}
             />
             <div class="clip-selector__clip-info" onClick={submitForm}>
               <Thumbnail media={clipView.clip.media} />
@@ -79,19 +79,19 @@ export const ClipSelector: FunctionalComponent<ClipSelectorModalProps> = ({
 export type ClipSelectorModalProps = ClipSelectorProps &
 Omit<JSXInternal.HTMLAttributes, 'onSelect'>;
 
-export const ClipSelectorModal: FunctionalComponent<RenderableProps<ClipSelectorModalProps>> = ({
+export const ClipSelectorModal = forwardRef<HTMLButtonElement, ClipSelectorModalProps>(({
   children,
   clips,
   onSelect,
   currentClipId,
   ...attributes
-}): VNode => {
+}, forwardedRef): VNode => {
   const [ modalOpen, openModal, closeModal, triggerRef ] = useModalState(false);
   return (
     <Fragment>
       <button
         type="button"
-        ref={triggerRef}
+        ref={mergeRefs<HTMLButtonElement>(triggerRef as Ref<HTMLButtonElement>, forwardedRef)}
         onClick={openModal}
         {...attributes}
       >
@@ -109,4 +109,15 @@ export const ClipSelectorModal: FunctionalComponent<RenderableProps<ClipSelector
       </Modal>
     </Fragment>
   );
-};
+});
+
+function mergeRefs<T>(...refs: (Ref<T> | null | undefined)[]): Ref<T> {
+  return (element) => refs.forEach(ref => {
+    if (typeof ref === 'function') {
+      ref(element);
+    } else if (ref) {
+      ref.current = element;
+    }
+  });
+}
+

@@ -29,6 +29,10 @@
   &:focus-within {
     @include focus.focus-outline;
   }
+
+  &[aria-busy="true"]::before, &[aria-busy="true"]::after {
+    pointer-events: none;
+  }
 }
 
 .clip-selector__option--selected .clip-selector__clip-info .thumbnail {

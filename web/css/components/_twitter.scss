@@ -58,7 +58,11 @@
   justify-content: flex-start;
 }
 
-.twitter__tweet-media > .thumbnail {
+.twitter__tweet-media-preview {
+  display: contents;
+}
+
+.twitter__tweet-media .thumbnail {
   width: max(12rem, min(100%, calc(var(--stream-aspect-ratio) * (100vh - 7rem))));
   align-self: center;
 }

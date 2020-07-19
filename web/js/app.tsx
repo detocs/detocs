@@ -24,7 +24,6 @@ import BreakDashboard from './break-dashboard';
 import ClipDashboard from './clip-dashboard';
 import CommentaryDashboard from './commentary-dashboard';
 import { useServerState } from './hooks/server-state';
-import { useToggle } from './hooks/toggle';
 import { logError } from './log';
 import PlayerDashboard from './player-dashboard';
 import RecordingDashboard from './recording-dashboard';
@@ -53,7 +52,6 @@ const App: FunctionalComponent<{}> = (): VNode => {
     twitterEndpoint('', 'ws:'),
     nullTwitterState,
   );
-  const [ twitterThread, toggleTwitterThread ] = useToggle(false);
   const [ bracketState, updateBracketState ] = useServerState<BracketState>(
     bracketEndpoint('', 'ws:'),
     nullBracketState,
@@ -86,8 +84,6 @@ const App: FunctionalComponent<{}> = (): VNode => {
           <TwitterDashboard
             twitterState={twitterState}
             clipState={clipState}
-            thread={twitterThread}
-            onThreadToggle={toggleTwitterThread}
           />
         </Tab>
         <Tab id="clips">

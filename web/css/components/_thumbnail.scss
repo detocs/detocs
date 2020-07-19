@@ -1,6 +1,7 @@
 .thumbnail {
   position: relative;
   inline-size: calc(8rem * (var(--stream-aspect-ratio)));
+  block-size: min-content;
 
   box-sizing: border-box;
 
@@ -31,5 +32,6 @@
   padding: 0.2em;
 
   background-color: rgba(black, 0.6);
-  font-size: 50%;
+  color: white;
+  font-size: 0.75rem;
 }

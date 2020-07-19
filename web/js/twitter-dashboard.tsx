@@ -1,5 +1,5 @@
 import { h, FunctionalComponent, VNode, Fragment } from 'preact';
-import { useState, useEffect, useRef } from 'preact/hooks';
+import { useState, useEffect, useRef, useMemo } from 'preact/hooks';
 import twitterText, { ParseTweetOptions } from 'twitter-text';
 
 import { GetClipResponse } from '@server/clip/server';
@@ -13,6 +13,8 @@ import { inputHandler } from '@util/dom';
 
 import { twitterEndpoint, clipEndpoint } from './api';
 import { ClipSelectorModal } from './clip-selector';
+import useId from './hooks/id';
+import { useToggle } from './hooks/toggle';
 import { logError } from './log';
 import { PersistentCheckbox } from './persistent-checkbox';
 import { Thumbnail } from './thumbnail';
@@ -31,8 +33,6 @@ const maxTweetLength = twitterText.configs.defaults.maxWeightedTweetLength;
 interface Props {
   twitterState: ClientState;
   clipState: ClipState;
-  thread: boolean;
-  onThreadToggle: VoidFunction;
 }
 
 const tweetEndpoint = twitterEndpoint('/tweet').href;
@@ -58,21 +58,31 @@ function takeScreenshot(): Promise<string> {
 const TwitterDashboard: FunctionalComponent<Props> = ({
   twitterState,
   clipState,
-  thread,
-  onThreadToggle,
 }): VNode => {
   const bodyRef = useRef<HTMLTextAreaElement>();
-  const [ charCount, setCharCount ] = useState(0);
-  const [ error, setError ] = useState('');
-  const [ clipId, updateClipId ] = useState<string | null>(null);
-  const [ busy, updateBusy ] = useState(false);
+  const previewRef = useRef<HTMLOutputElement>();
+  const selectMediaRef = useRef<HTMLButtonElement>();
+  const [ mediaInputId ] = useId(1, 'twitter-media-');
+  const [ body, setBody ] = useState('');
+  const [ clipId, setClipId ] = useState<string | null>(null);
+  const clipView = clipState.clips.find(c => c.clip.id === clipId) || null;
+  const [ thread, toggleThread ] = useToggle(false);
+  const [ busy, setBusy ] = useState(false);
+  const { charCount, error: charCountError } = useMemo(() => validateTweetBody(body), [ body ]);
+  const renderingError = clipView?.status === ClipStatus.Rendering ?
+    'Clip is still rendering' :
+    '';
+  const emptyError = !body?.trim() && !clipId ? 'Media or tweet body must be provided' : '';
+  const bodyError = emptyError || charCountError;
+  const mediaError = emptyError || renderingError;
   useEffect(() => {
-    bodyRef.current?.setCustomValidity(error);
-  }, [ error ]);
-  const clip = clipState.clips.find(c => c.clip.id === clipId)?.clip || null;
-  const textHandler = inputHandler(text => {
-    validateTweetBody(setCharCount, setError, text);
-  });
+    bodyRef.current?.setCustomValidity(bodyError);
+  }, [ bodyError ]);
+  useEffect(() => {
+    previewRef.current?.setCustomValidity(mediaError);
+    selectMediaRef.current?.setCustomValidity(mediaError);
+  }, [ mediaError ]);
+  const textHandler = inputHandler(setBody);
   return (
     <form
       class="twitter__editor js-manual-form"
@@ -80,20 +90,19 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
       onSubmit={event => {
         event.preventDefault();
         const form = event.target as HTMLFormElement;
-        updateBusy(true);
+        setBusy(true);
         submitForm(form)
           .then(() => {
-            updateClipId(null);
-            (form.querySelector('textarea') as HTMLTextAreaElement).value = '';
-            validateTweetBody(setCharCount, setError, '');
+            setBody('');
+            setClipId(null);
           })
           .catch(logError)
-          .finally(() => updateBusy(false));
+          .finally(() => setBusy(false));
       }}
     >
       <header>
         <label>
-          <PersistentCheckbox name="thread" checked={thread} onChange={onThreadToggle}/>
+          <PersistentCheckbox name="thread" checked={thread} onChange={toggleThread}/>
           Thread under previous tweet
         </label>
         <span>
@@ -115,6 +124,7 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
           <textarea
             class="twitter__tweet-text"
             name="body"
+            value={body}
             autofocus={true}
             ref={bodyRef}
             onInput={textHandler}
@@ -132,15 +142,29 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
             </meter>
 
             {maxTweetLength - charCount} remaining
-            <button type="submit">Tweet</button>
+            <button type="submit" ref={selectMediaRef}>Tweet</button>
           </div>
         </div>
         <div className="twitter__tweet-media">
-          <input type="hidden" name="media" value={clip?.media.url}/>
-          <Thumbnail media={clip?.media} />
+          <input
+            id={mediaInputId}
+            type="hidden"
+            name="media"
+            value={clipView?.clip.media.url || ''}
+          />
+          <output
+            className="twitter__tweet-media-preview"
+            ref={previewRef}
+            for={mediaInputId}
+          >
+            <Thumbnail
+              media={clipView?.clip.media}
+              aria-busy={clipView?.status === ClipStatus.Rendering}
+            />
+          </output>
           <div className="twitter__tweet-media-actions input-row">
             <button type="button" onClick={
-              () => takeScreenshot().then(updateClipId).catch(logError)
+              () => takeScreenshot().then(setClipId).catch(logError)
             }>
               Take Screenshot
             </button>
@@ -148,7 +172,7 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
               clips={clipState.clips.filter(c =>
                 c.status === ClipStatus.Rendered ||
                 c.status === ClipStatus.Rendering)}
-              onSelect={updateClipId}
+              onSelect={setClipId}
               currentClipId={clipId}
             >
               Select Media
@@ -160,18 +184,12 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
   );
 };
 
-function validateTweetBody(
-  setCharCount: (count: number) => void,
-  setError: (error: string) => void,
-  text: string,
-): void {
+function validateTweetBody(text: string): { charCount: number; error: string } {
   const parsed = twitterText.parseTweet(text);
-  setCharCount(parsed.weightedLength);
-  if (!parsed.valid) {
-    setError('Invalid tweet');
-  } else {
-    setError('');
-  }
+  return {
+    charCount: parsed.weightedLength,
+    error: parsed.valid || !text.trim() ? '' : 'Invalid tweet',
+  };
 }
 
 export default TwitterDashboard;

@@ -1,10 +1,11 @@
-import { h, VNode, FunctionalComponent } from 'preact';
+import { h, VNode, FunctionalComponent as FC } from 'preact';
 import { useRef } from 'preact/hooks';
+import { JSXInternal } from 'preact/src/jsx';
 
 import { MediaFile, VideoFile, ImageFile } from '@models/media';
 import { fromMillis } from '@util/timestamp';
 
-interface ThumbnailProps {
+interface ThumbnailProps extends Omit<JSXInternal.HTMLAttributes, 'media'> {
   media?: MediaFile | null;
 }
 
@@ -16,7 +17,7 @@ interface ImageThumbnailProps extends ThumbnailProps {
   media?: ImageFile | null;
 }
 
-export const Thumbnail: FunctionalComponent<ThumbnailProps> = (props): VNode => {
+export const Thumbnail: FC<ThumbnailProps> = (props): VNode => {
   switch (props.media?.type) {
     case 'video':
       return <VideoThumbnail {...props as VideoThumbnailProps} />;
@@ -27,13 +28,13 @@ export const Thumbnail: FunctionalComponent<ThumbnailProps> = (props): VNode => 
   }
 };
 
-const VideoThumbnail: FunctionalComponent<VideoThumbnailProps> = ({ media }): VNode => {
+const VideoThumbnail: FC<VideoThumbnailProps> = ({ media, ...additionalProps }): VNode => {
   const videoRef = useRef<HTMLVideoElement>();
   const playVideo = (): void => { videoRef.current?.play(); };
   const pauseVideo = (): void => { videoRef.current?.pause(); };
   // TODO: Show current playback progress?
   return (
-    <div className="thumbnail">
+    <div className="thumbnail" {...additionalProps}>
       <video
         ref={videoRef}
         src={media.url}
@@ -56,10 +57,10 @@ const VideoThumbnail: FunctionalComponent<VideoThumbnailProps> = ({ media }): VN
   );
 };
 
-const ImageThumbnail: FunctionalComponent<ImageThumbnailProps> = ({ media }): VNode => {
+const ImageThumbnail: FC<ImageThumbnailProps> = ({ media, ...additionalProps }): VNode => {
   const data = media?.url || '';
   return (
-    <div className="thumbnail">
+    <div className="thumbnail" {...additionalProps}>
       <object
         key={data} // Chrome doesn't update object elements when you change the data attribute
         data={data}
