@@ -20,6 +20,7 @@ import { useLocalState } from './hooks/local-state';
 import { logError } from './log';
 import { fromMillis } from '@util/timestamp';
 import { Timestamp } from '@models/timestamp';
+import { useEffect } from 'react';
 
 interface Props {
   state: State;
@@ -108,6 +109,12 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
   const startRangePercentage = `${startMaximum / durationMs * 100}%`;
   const endMinimum = quantizedCeilFromEnd(startMs, durationMs, CLIP_RANGE_STEP_MS);
   const endRangePercentage = `${(durationMs - endMinimum) / durationMs * 100}%`;
+  useEffect(() => {
+    if (status === ClipStatus.Rendering && videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.muted = true;
+    }
+  }, [ status ]);
   return (
     <form
       method="post"
