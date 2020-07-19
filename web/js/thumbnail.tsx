@@ -21,6 +21,7 @@ export const Thumbnail: FunctionalComponent<ThumbnailProps> = ({ media }): VNode
         class="thumbnail"
         muted={true}
         controls={false}
+        {...{'disablePictureInPicture': true}}
         autoPlay={false}
         loop={true}
         onMouseEnter={playVideo}
