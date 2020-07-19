@@ -1,3 +1,5 @@
+@use 'tools/focus';
+
 // TODO: Assign custom properties to SASS variables, move to settings folder
 :root {
   --color-bg: hsl(180, 13%, 16%);
@@ -106,7 +108,7 @@ button:focus,
 [type="reset"]:focus,
 [type="submit"]:focus {
   /* Overrides normalize.css Firefox styles */
-  outline: 0.2rem solid var(--color-focus);
+  @include focus.focus-outline;
 }
 
 ::selection {

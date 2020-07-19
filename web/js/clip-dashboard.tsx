@@ -1,7 +1,7 @@
 import { h, FunctionalComponent, VNode, Fragment } from 'preact';
 import { StateUpdater, useRef, useState } from 'preact/hooks';
 
-import { ImageClip, VideoClip, isVideoClip } from '@models/media';
+import { ImageClip, VideoClip, isVideoClip, Clip } from '@models/media';
 import { GetClipResponse } from '@server/clip/server';
 import {
   State,
@@ -19,6 +19,7 @@ import { ClipSelector } from './clip-selector';
 import { useLocalState } from './hooks/local-state';
 import { logError } from './log';
 import { fromMillis } from '@util/timestamp';
+import { Timestamp } from '@models/timestamp';
 
 interface Props {
   state: State;
@@ -79,7 +80,9 @@ function screenshot(): Promise<string> {
 const ImageViewer: FunctionalComponent<ImageViewerProps> = ({ clipView }): VNode => {
   return (
     <div class="image-viewer">
-      <img class="image-viewer__image" src={clipView.clip.media.url} />
+      <div class="image-viewer__image">
+        <img src={clipView.clip.media.url} />
+      </div>
       <ClipMetadata {...clipView}/>
     </div>
   );
@@ -225,22 +228,8 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
 };
 
 const ClipMetadata: FunctionalComponent<ClipView> = ({ clip }): VNode => {
-  let recTs;
-  if (clip.recordingTimestampMs != null) {
-    const startMillis = clip.recordingTimestampMs;
-    const startTs = startMillis >= 0 ? fromMillis(startMillis) : 'N/A';
-    recTs = isVideoClip(clip) ?
-      `${startTs}–${fromMillis(startMillis + clip.media.durationMs)}` :
-      startTs;
-  }
-  let streamTs;
-  if (clip.streamTimestampMs != null) {
-    const startMillis = clip.streamTimestampMs;
-    const startTs = startMillis >= 0 ? fromMillis(startMillis) : 'N/A';
-    streamTs = isVideoClip(clip) ?
-      `${startTs}–${fromMillis(startMillis + clip.media.durationMs)}` :
-      startTs;
-  }
+  const recTs = formatTimestampRange(clip, clip.recordingTimestampMs);
+  const streamTs = formatTimestampRange(clip, clip.streamTimestampMs);
   return (
     <p class="clips__metadata">
       ID: {clip.id}
@@ -249,6 +238,22 @@ const ClipMetadata: FunctionalComponent<ClipView> = ({ clip }): VNode => {
     </p>
   );
 };
+
+function formatTimestampRange(clip: Clip, startMillis: number | undefined): string | undefined {
+  if (startMillis == null) {
+    return undefined;
+  }
+  // NOTE: Milliseconds are omitted to avoid giving the impression of greater
+  // precision than we actually have. Also takes up less space.
+  const startTs = startMillis >= 0 ? removeMs(fromMillis(startMillis)) : 'N/A';
+  return isVideoClip(clip) ?
+    `${startTs}–${removeMs(fromMillis(startMillis + clip.media.durationMs))}` :
+    startTs;
+}
+
+function removeMs(timestamp: Timestamp): string {
+  return timestamp.slice(0, -4);
+}
 
 const ClipDashboard: FunctionalComponent<Props> = ({ state }): VNode => {
   const [ currentClipId, updateCurrentId ] = useState<Id | null>(null);

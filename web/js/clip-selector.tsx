@@ -1,5 +1,5 @@
+import clsx from 'clsx';
 import { h, FunctionalComponent, RenderableProps, VNode, createRef, Fragment } from 'preact';
-import { useState } from 'preact/hooks';
 import { JSXInternal } from 'preact/src/jsx';
 
 import { ClipView, ClipStatus } from '@server/clip/state';
@@ -36,7 +36,12 @@ export const ClipSelector: FunctionalComponent<ClipSelectorModalProps> = ({
     >
       <input type="submit" hidden />
       <div class="clip-selector__list">
-        { includeNone && <label class="clip-selector__option">
+        { includeNone && <label
+          class={clsx(
+            'clip-selector__option',
+            currentClipId == null && 'clip-selector__option--selected',
+          )}
+        >
           <div class="clip-selector__clip-info" onClick={submitForm}>
             <Thumbnail />
             <div class="clip-selector__clip-description">None</div>
@@ -44,13 +49,13 @@ export const ClipSelector: FunctionalComponent<ClipSelectorModalProps> = ({
           <input type="radio" name="clipId" value="" checked={currentClipId == null}/>
         </label> }
         {clips.slice().reverse().map(clipView => (
-          <label class="clip-selector__option" aria-busy={clipView.status === ClipStatus.Rendering}>
-            <div class="clip-selector__clip-info" onClick={submitForm}>
-              <Thumbnail media={clipView.clip.media} />
-              <div class="clip-selector__clip-description">
-                {clipView.clip.description || ''}
-              </div>
-            </div>
+          <label
+            class={clsx(
+              'clip-selector__option',
+              currentClipId === clipView.clip.id && 'clip-selector__option--selected',
+            )}
+            aria-busy={clipView.status === ClipStatus.Rendering}
+          >
             <input
               type="radio"
               name="clipId"
@@ -58,6 +63,12 @@ export const ClipSelector: FunctionalComponent<ClipSelectorModalProps> = ({
               checked={currentClipId === clipView.clip.id}
               disabled={clipView.status === ClipStatus.Rendering}
             />
+            <div class="clip-selector__clip-info" onClick={submitForm}>
+              <Thumbnail media={clipView.clip.media} />
+              <div class="clip-selector__clip-description">
+                {clipView.clip.description || ''}
+              </div>
+            </div>
           </label>
         ))}
       </div>

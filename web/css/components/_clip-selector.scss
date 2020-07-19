@@ -1,3 +1,5 @@
+@use 'tools/focus';
+
 .clip-selector__list {
   display: flex;
   width: max-content;
@@ -15,9 +17,22 @@
 
   flex-flow: column nowrap;
   align-items: center;
-  padding: 0.5rem;
 
   background: var(--bg-alt);
+
+  input {
+    position: absolute;
+    z-index: -1;
+    opacity: 0;
+  }
+
+  &:focus-within {
+    @include focus.focus-outline;
+  }
+}
+
+.clip-selector__option--selected .clip-selector__clip-info .thumbnail {
+  @include focus.focus-outline;
 }
 
 .clip-selector__clip-info {
@@ -27,6 +42,7 @@
   flex-flow: column nowrap;
   justify-content: center;
   align-items: center;
+  padding: 0.5rem 0.5rem 0;
 }
 
 .clip-selector__clip-description {

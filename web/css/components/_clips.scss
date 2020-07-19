@@ -1,6 +1,13 @@
+@use 'tools/fill';
+
+$metadata-padding: 0.5em;
+$min-editor-height: 12rem;
+$video-track-height: 3rem;
+
 .clips {
+  @include fill.fill-parent;
+
   display: flex;
-  height: 100%;
 
   flex-flow: column nowrap;
   overflow-x: hidden;
@@ -35,55 +42,60 @@
   }
 }
 
-.clips__metadata {
-  margin-inline-end: 1em;
-}
-
 .image-viewer, .video-editor {
+  display: flex;
   flex: 1 1 auto;
+  flex-flow: row wrap;
 }
 
 .image-viewer {
-  display: flex;
-  min-height: 8rem;
+  min-height: $min-editor-height;
 
-  flex-flow: row nowrap;
-  align-items: center;
+  .clips__metadata {
+    align-self: center;
+  }
+}
+
+.clips__metadata {
+  margin-inline: $metadata-padding;
 }
 
 .image-viewer__image {
-  max-width: 100%;
-  max-height: 100%;
+  position: relative;
   flex: 1 1 10rem;
-  margin: 0 auto;
+  min-height: $min-editor-height / 2;
 
-  box-sizing: border-box;
-  object-fit: contain;
-}
+  img {
+    position: absolute;
+    display: block;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
 
-.video-editor {
-  display: flex;
-  flex-flow: row wrap;
+    box-sizing: border-box;
+    object-fit: contain;
+  }
 }
 
 .video-editor__trimmer {
   display: flex;
-  flex: 3 1 25rem;
+  flex: 5 1 calc(#{$min-editor-height - $video-track-height} / var(--stream-aspect-ratio));
 
   flex-flow: column nowrap;
   align-content: center;
 }
 
 .video-editor__video {
-  flex: 1 1 auto;
-  height: 8rem;
+  flex: 1 0 auto;
+  height: $min-editor-height - $video-track-height;
 }
 
 .video-editor__range {
   position: relative;
   display: flex;
   flex: 0 0 auto;
-  height: 3rem;
+  height: $video-track-height;
 
   flex-flow: column nowrap;
 }
@@ -98,6 +110,7 @@
 
   background: black;
   image-rendering: crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
   object-fit: fill;
 }
 
@@ -230,6 +243,8 @@
   flex: 1 0 auto;
 
   flex-flow: column nowrap;
+
+  text-indent: $metadata-padding;
 }
 
 .video-editor__description-editor {
