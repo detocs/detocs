@@ -38,6 +38,7 @@ export const ClipSelector: FunctionalComponent<ClipSelectorModalProps> = ({
       <input type="submit" hidden />
       <div class="clip-selector__list">
         { includeNone && <label
+          key={'clearClip'}
           class={clsx(
             'clip-selector__option',
             currentClipId == null && 'clip-selector__option--selected',
@@ -51,6 +52,7 @@ export const ClipSelector: FunctionalComponent<ClipSelectorModalProps> = ({
         </label> }
         {clips.slice().reverse().map(clipView => (
           <label
+            key={clipView.clip.id}
             class={clsx(
               'clip-selector__option',
               currentClipId === clipView.clip.id && 'clip-selector__option--selected',

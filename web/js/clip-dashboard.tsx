@@ -129,6 +129,7 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
           src={`${clip.media.url}#t=${startMs / 1000},${endMs / 1000}`}
           onTimeUpdate={e => updateCurrentTime((e.target as HTMLVideoElement).currentTime * 1000)}
           autoPlay={autoplay && !disabled}
+          preload={'metadata'}
           controls={true}
           loop={true}
           muted={true}

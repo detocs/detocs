@@ -3,10 +3,20 @@
   inline-size: calc(8rem * (var(--stream-aspect-ratio)));
   block-size: min-content;
 
+  overflow: hidden;
   box-sizing: border-box;
 
   background: black;
   border: var(--width-border) solid currentColor;
+
+  &::before {
+    content: '';
+    width: 0;
+    height: 0;
+    float: left;
+
+    padding-top: calc(100% / (var(--stream-aspect-ratio)));
+  }
 }
 
 .thumbnail__media {
