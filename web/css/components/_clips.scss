@@ -4,13 +4,16 @@ $metadata-padding: 0.5em;
 $min-editor-height: 12rem;
 $video-track-height: 3rem;
 
+#clips {
+  overflow: hidden;
+}
+
 .clips {
   @include fill.fill-parent;
 
   display: flex;
-
   flex-flow: column nowrap;
-  overflow-x: hidden;
+  overflow: auto;
 }
 
 .clips__actions {
@@ -236,6 +239,7 @@ $video-track-height: 3rem;
   display: flex;
   flex: 1 1 min-content;
   flex-flow: column nowrap;
+  overflow: hidden; // input-row seems to be causing overflow
 }
 
 .video-editor__description {

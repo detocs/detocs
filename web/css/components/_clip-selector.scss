@@ -1,3 +1,4 @@
+@use 'tools/fill';
 @use 'tools/focus';
 
 .clip-selector__list {
@@ -12,6 +13,7 @@
 }
 
 .clip-selector__option {
+  position: relative;
   display: flex;
   margin: var(--margin-small);
 
@@ -21,7 +23,10 @@
   background: var(--bg-alt);
 
   input {
-    position: absolute;
+    // Make scrolling during keyboard navigation bring as much of the option
+    // into view as possible
+    @include fill.fill-parent;
+
     z-index: -1;
     opacity: 0;
   }
