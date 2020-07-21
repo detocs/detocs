@@ -11,10 +11,12 @@ import State, { Recording } from "./state";
 
 type FilePath = string;
 
+const CURRENT_LOG_FORMAT = "1";
 const asyncMkdir = promisify(mkdir);
 const asyncWriteFile = promisify(writeFile);
 
 export interface Log {
+  format: string;
   version: string;
   file: string;
   bracketService?: string;
@@ -111,6 +113,7 @@ export default class RecordingLogger {
       const logFolder = path.join(state.streamRecordingFolder, logSubfolder);
       const logOutputPath = path.join(logFolder, logFilename + '.json');
       byPath[logOutputPath] = {
+        format: CURRENT_LOG_FORMAT,
         version: getVersion(),
         file: data.recordingFile,
         bracketService: serviceName,
