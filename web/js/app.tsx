@@ -9,6 +9,7 @@ import {
 import InfoState, { nullState as nullInfoState } from '@server/info/state';
 import RecordingState, { nullState as nullRecordingState } from '@server/recording/state';
 import TwitterState, { nullState as nullTwitterState } from '@server/twitter/client-state';
+import { checkResponseStatus } from '@util/ajax';
 import { massagedFormData } from '@util/forms';
 import { getVersion } from '@util/meta';
 
@@ -116,6 +117,7 @@ function bindSubmitHandler(): void {
     }
     const body = massagedFormData(new FormData(form));
     fetch(action, { method, body })
+      .then(checkResponseStatus)
       .catch(logError);
 
     event.preventDefault();

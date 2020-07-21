@@ -8,6 +8,7 @@ import { useStartTimestamp, useStopTimestamp, useRecording } from './hooks/recor
 import { logError } from './log';
 import { Thumbnail } from './thumbnail';
 import { TimestampInput } from './timestamp';
+import { checkResponseStatus } from '@util/ajax';
 
 interface Props {
   state: ServerState;
@@ -20,11 +21,15 @@ const updateEndpoint = recordingEndpoint('/update').href;
 const cutEndpoint = recordingEndpoint('/cut').href;
 
 function start(): void {
-  fetch(startEndpoint, { method: 'POST' }).catch(logError);
+  fetch(startEndpoint, { method: 'POST' })
+    .then(checkResponseStatus)
+    .catch(logError);
 }
 
 function stop(): void {
-  fetch(stopEndpoint, { method: 'POST' }).catch(logError);
+  fetch(stopEndpoint, { method: 'POST' })
+    .then(checkResponseStatus)
+    .catch(logError);
 }
 
 const RecordingDashboard: FunctionalComponent<Props> = ({ state, updateState }): VNode => {

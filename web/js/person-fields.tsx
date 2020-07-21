@@ -1,6 +1,7 @@
 import { h, createRef, Component, ComponentChild, Fragment } from 'preact';
 
 import Person, { PersonUpdate, getName } from '@models/person';
+import { checkResponseStatus } from '@util/ajax';
 import { capitalize } from '@util/string';
 
 import { infoEndpoint } from './api';
@@ -66,9 +67,10 @@ export default class PersonFields extends Component<Props, State> {
   // information between fetching the autocomplete options and selecting one
   public fetchAndUpdatePerson = (person: Person): void => {
     fetch(infoEndpoint(`/people/${person.id}`).href)
-      .catch(logError)
-      .then(resp => resp && resp.json())
-      .then(this.updatePerson);
+      .then(checkResponseStatus)
+      .then(resp => resp.json())
+      .then(this.updatePerson)
+      .catch(logError);
   };
 
   public updatePerson = (person: PersonUpdate): void => {
@@ -90,9 +92,10 @@ export default class PersonFields extends Component<Props, State> {
       const url = infoEndpoint('/people');
       url.search = `q=${encodeURIComponent(val)}`;
       fetch(url.href)
-        .catch(logError)
-        .then(resp => resp && resp.json())
-        .then(this.updateAutocomplete);
+        .then(checkResponseStatus)
+        .then(resp => resp.json())
+        .then(this.updateAutocomplete)
+        .catch(logError);
     }
   };
 
