@@ -30,8 +30,8 @@ export async function getTimestamps(obs: ObsWebSocket): Promise<{
   const resp = await obs.send('GetStreamingStatus')
     .catch(convertError);
   return {
-    recordingTimestamp: resp['stream-timecode'] || null,
-    streamTimestamp: resp['rec-timecode'] || null,
+    streamTimestamp: resp['stream-timecode'] || null,
+    recordingTimestamp: resp['rec-timecode'] || null,
   };
 }
 
