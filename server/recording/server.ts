@@ -126,9 +126,13 @@ async function startRecording(_req: Request, res: Response): Promise<void> {
     return;
   }
   const timestamps = await obsUtil.getTimestamps(obs).catch(logger.error);
-  if (!timestamps || !timestamps.recordingTimestamp) {
-    logger.warn('Unable to get start timestamp');
+  if (!timestamps) {
+    logger.error('Unable to get timestamp');
     res.sendStatus(500);
+    return;
+  }
+  if (!timestamps.recordingTimestamp) {
+    sendUserError(res, 'Attempted to start recording before starting stream recording');
     return;
   }
   const timestamp = timestamps.recordingTimestamp;
