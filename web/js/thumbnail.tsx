@@ -48,7 +48,7 @@ function isImageLoaded(elem: HTMLImageElement): boolean {
   return !!elem.src;
 }
 
-const videoVisibilityHandler = (entries: MediaIntersectionObserverEntry[]): void => {
+function videoVisibilityHandler(entries: MediaIntersectionObserverEntry[]): void {
   entries
     .filter(entry => !entry.isIntersecting && isVideoLoaded(entry.target))
     .map(entry => entry.target)
@@ -64,14 +64,27 @@ const videoVisibilityHandler = (entries: MediaIntersectionObserverEntry[]): void
       video.src = video.dataset.src || '';
       video.load();
     });
-};
+}
+
+function updateVideo(video: HTMLVideoElement): void {
+  if (!video.src || video.src === video.dataset.src) {
+    return;
+  }
+  if (video.networkState === HTMLMediaElement.NETWORK_IDLE ||
+    video.networkState === HTMLMediaElement.NETWORK_LOADING)
+  {
+    video.pause();
+  }
+  video.src = video.dataset.src || '';
+  video.load();
+}
 
 const getVideoObserver = memoize(() => new IntersectionObserver(
   videoVisibilityHandler  as unknown as IntersectionObserverCallback,
   { rootMargin: '10%' },
 ));
 
-const imageVisibilityHandler = (entries: ImageIntersectionObserverEntry[]): void => {
+function imageVisibilityHandler(entries: ImageIntersectionObserverEntry[]): void {
   entries
     .filter(entry => !entry.isIntersecting && isImageLoaded(entry.target))
     .map(entry => entry.target)
@@ -84,7 +97,14 @@ const imageVisibilityHandler = (entries: ImageIntersectionObserverEntry[]): void
     .forEach(image => {
       image.src = image.dataset.src || '';
     });
-};
+}
+
+function updateImage(image: HTMLImageElement): void {
+  if (!image.src || image.src === image.dataset.src) {
+    return;
+  }
+  image.src = image.dataset.src || '';
+}
 
 const getImageObserver = memoize(() => new IntersectionObserver(
   imageVisibilityHandler  as unknown as IntersectionObserverCallback,
@@ -105,6 +125,9 @@ const VideoThumbnail: FC<VideoThumbnailProps> = ({ media, ...additionalProps }):
       videoRef.current && getVideoObserver().unobserve(videoRef.current);
     };
   }, []);
+  useEffect(() => {
+    videoRef.current && updateVideo(videoRef.current);
+  }, [ media.url ]);
   // TODO: Show current playback progress?
   return (
     <div className="thumbnail" {...additionalProps}>
@@ -143,6 +166,9 @@ const ImageThumbnail: FC<ImageThumbnailProps> = ({ media, ...additionalProps }):
       imageRef.current && getImageObserver().unobserve(imageRef.current);
     };
   }, []);
+  useEffect(() => {
+    imageRef.current && updateImage(imageRef.current);
+  }, [ media.url ]);
   return (
     <div className="thumbnail" {...additionalProps}>
       <img
