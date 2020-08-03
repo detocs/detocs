@@ -25,7 +25,7 @@ export default class ChallongeClient implements BracketService {
   private readonly memoizedGetGame: ChallongeClient['getGame'];
 
   public constructor() {
-    const token = getCredentials().challongeApiKey;
+    const token = getCredentials().challongeKey;
     if (!token) {
       throw new Error('No Challonge API key');
     }

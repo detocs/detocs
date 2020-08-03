@@ -23,7 +23,7 @@ import { SMASHGG_SERVICE_NAME } from '@services/smashgg/constants';
 import SmashggClient from '@services/smashgg/smashgg';
 import { VodUploader, Style, Command } from '@upload/vod-uploader';
 import { loadConfig, getConfig } from '@util/configuration/config';
-import { loadCredentials, getCredentials } from '@util/configuration/credentials';
+import { loadCredentials } from '@util/configuration/credentials';
 import { getBasicLogger } from '@util/logger';
 import { getVersion } from '@util/meta';
 import web from '@web/server';
@@ -194,13 +194,19 @@ async function exportPeople(opts: yargs.Arguments<PersonExportOptions>): Promise
       break;
   }
   await exportPeopleDatabase(format, opts.destination)
-    .catch(logger.error);
+    .catch(err => {
+      logger.error(err);
+      process.exit(1);
+    });
   process.exit();
 };
 
 async function importPeople(opts: yargs.Arguments<PersonImportOptions>): Promise<void> {
   await importPeopleDatabase(opts.source)
-    .catch(logger.error);
+    .catch(err => {
+      logger.error(err);
+      process.exit(1);
+    });
   process.exit();
 };
 
@@ -221,7 +227,10 @@ async function vods(opts: yargs.Arguments<VodOptions>): Promise<void> {
     style: opts.ps ? Style.PerSet : Style.Full,
   });
   await uploader.run()
-    .catch(logger.error);
+    .catch(err => {
+      logger.error(err);
+      process.exit(1);
+    });
   process.exit();
 };
 

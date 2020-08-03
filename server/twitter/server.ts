@@ -64,13 +64,13 @@ export default async function start(port: number, mediaServer: MediaServer): Pro
     internalState.apiKey,
     internalState.apiKeySecret,
     async accessToken => {
-      getCredentials().twitterAccessToken = accessToken; // setCredentials?
+      getCredentials().twitterToken = accessToken;
       saveCredentials();
       await logIn(accessToken);
       broadcastState(clientState);
     },
   );
-  const accessToken = getCredentials().twitterAccessToken;
+  const accessToken = getCredentials().twitterToken;
   if (accessToken) {
     // TODO: Handle revoked tokens
     logger.info('Already logged in');
@@ -117,8 +117,9 @@ function broadcastState(state: ClientState): void {
 }
 
 async function loadApiKeys(): Promise<void> {
-  internalState.apiKey = fs.readFileSync('TWITTER_API_KEY', 'utf8').trim();
-  internalState.apiKeySecret = fs.readFileSync('TWITTER_API_KEY_SECRET', 'utf8').trim();
+  const { twitterKey, twitterSecret } = getCredentials();
+  internalState.apiKey = twitterKey || null;
+  internalState.apiKeySecret = twitterSecret || null;
 }
 
 async function logIn(accessToken: AccessToken): Promise<void> {

@@ -41,7 +41,7 @@ export default class SmashggClient implements BracketService {
   private client: GraphQLClient;
 
   public constructor() {
-    const token = getCredentials().smashggApiToken;
+    const token = getCredentials().smashggKey;
     if (!token) {
       throw new Error('No smash.gg API token');
     }

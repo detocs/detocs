@@ -14,11 +14,16 @@ import {
 
 const logger = getLogger('config');
 
+// TODO: Make credentials immutable, add setCredentials
 export interface Credentials {
-  twitterAccessToken?: Twitter;
-  smashggApiToken?: SmashggApiToken;
-  youtubeCredentials?: YoutubeCredentials;
-  challongeApiKey?: ChallongeApiKey;
+  smashggKey?: SmashggApiToken;
+  challongeKey?: ChallongeApiKey;
+  twitterKey?: string;
+  twitterSecret?: string;
+  twitterToken?: Twitter;
+  googleKey?: string;
+  googleSecret?: string;
+  youtubeToken?: YoutubeCredentials;
 }
 
 const DEFAULTS: Credentials = {};

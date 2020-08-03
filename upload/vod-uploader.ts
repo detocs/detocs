@@ -116,7 +116,11 @@ export class VodUploader {
     let youtubeOauthClient: OAuth2Client | null = null;
     if (this.command == Command.Upload) {
       // Get YouTube credentials first, so that the rest can be done unattended
-      youtubeOauthClient = await getYoutubeAuthClient();
+      const res = await getYoutubeAuthClient();
+      if (res.isErr) {
+        throw res._unsafeUnwrapErr();
+      }
+      youtubeOauthClient = res._unsafeUnwrap();
     }
 
     await fs.mkdir(this.dirName, { recursive: true });
@@ -283,7 +287,12 @@ export class VodUploader {
       const p2 = players[1].name;
       return `${set.start} - ${p1} vs ${p2} (${groupId}${set.fullRoundText})`;
     }).join('\n');
-    const description = videoDescription(tournament, videogame, phase, setList.matchDescription || matchDescs);
+    const description = videoDescription(
+      tournament,
+      videogame,
+      phase,
+      setList.matchDescription || matchDescs,
+    );
 
     const players = sets.map(s => s.players)
       .reduce((acc, val) => acc.concat(val), []);

@@ -1,6 +1,7 @@
 import { CodeChallengeMethod, OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
 import http from 'http';
+import { Result, ok, err } from 'neverthrow';
 import open from 'open';
 import url from 'url';
 
@@ -11,36 +12,39 @@ const logger = getLogger('services/youtube');
 export const MAX_TITLE_SIZE = 100;
 export const MAX_DESCRIPTION_SIZE = 5000;
 export const MAX_TAGS_SIZE = 500;
-const CLIENT_ID = '170132986441-rq19gpr8vhh8j70gpllii0qeg62kcs4p.apps.googleusercontent.com';
-// Apparently you're supposed to use this even if you're using a public client? 🤷‍♂️
-const CLIENT_SECRET = 'q5rAzDNHN8zPzodjo-MwZ7Bs';
 const SCOPES = [
   'https://www.googleapis.com/auth/youtube',
   'https://www.googleapis.com/auth/youtubepartner',
 ];
 
-export async function getYoutubeAuthClient(): Promise<OAuth2Client> {
-  const credentials = getCredentials().youtubeCredentials;
+export async function getYoutubeAuthClient(): Promise<Result<OAuth2Client, Error>> {
+  const {
+    googleKey: clientId,
+    googleSecret: clientSecret,
+    youtubeToken,
+  } = getCredentials();
   let auth: OAuth2Client | undefined;
-  if (!credentials) {
+
+  if (!clientId || !clientSecret) {
+    return err(new Error('Google API app credentials missing'));
+  }
+
+  if (!youtubeToken) {
     logger.info('YouTube credentials not found, performing OAuth authorization');
-    auth = await completePkceFlow();
-    getCredentials().youtubeCredentials = auth.credentials;
+    auth = await completePkceFlow(clientId, clientSecret);
+    getCredentials().youtubeToken = auth.credentials;
     saveCredentials();
   } else {
-    logger.info('YouTube access token found', credentials);
+    logger.info('YouTube access token found', youtubeToken);
     // TODO: Do I need to refresh tokens manually?
-    auth = new google.auth.OAuth2({
-      clientId: CLIENT_ID,
-      clientSecret: CLIENT_SECRET,
-    });
-    auth.setCredentials(credentials);
+    auth = new google.auth.OAuth2({ clientId, clientSecret });
+    auth.setCredentials(youtubeToken);
   }
   await printChannelInfo(auth);
-  return auth;
+  return ok(auth);
 }
 
-async function completePkceFlow(): Promise<OAuth2Client> {
+async function completePkceFlow(clientId: string, clientSecret: string): Promise<OAuth2Client> {
   const promise = new Promise<OAuth2Client>((resolve, reject) => {
     const server = http.createServer();
     server.listen(0, async () => {
@@ -49,11 +53,7 @@ async function completePkceFlow(): Promise<OAuth2Client> {
         throw new Error(`Wasn't expecting server.address() to be ${address}`);
       }
       const redirectUri = `http://localhost:${address.port}`;
-      const oAuth2Client = new google.auth.OAuth2({
-        clientId: CLIENT_ID,
-        clientSecret: CLIENT_SECRET,
-        redirectUri,
-      });
+      const oAuth2Client = new google.auth.OAuth2({ clientId, clientSecret, redirectUri });
       const codes = await oAuth2Client.generateCodeVerifierAsync();
       const authorizeUrl = oAuth2Client.generateAuthUrl({
         'access_type': 'offline',
