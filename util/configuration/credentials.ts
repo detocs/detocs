@@ -12,7 +12,7 @@ import {
   parseConfig
 } from "./common";
 
-const logger = getLogger('config');
+const logger = getLogger('credentials');
 
 // TODO: Make credentials immutable, add setCredentials
 export interface Credentials {

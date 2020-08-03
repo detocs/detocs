@@ -8,7 +8,7 @@ import State, { nullState } from '@server/info/state';
 import Output from '@server/info/output/output';
 import { OutputTemplate, parseTemplateFile } from '@server/info/output/templates';
 
-const logger = getLogger('output/websocket');
+const logger = getLogger('output/file');
 
 export default class FileOutput implements Output {
   private readonly path: string;

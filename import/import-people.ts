@@ -6,7 +6,7 @@ import { promises as fs } from 'fs';
 import { loadDatabase, save, saveDatabase } from '@models/people';
 import { PersonUpdate } from '@models/person';
 
-const logger = getLogger('export-people');
+const logger = getLogger('import-people');
 
 export default async function importPeopleDatabase(path: string): Promise<void> {
   loadDatabase();
