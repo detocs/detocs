@@ -1,22 +1,28 @@
-import { h, VNode, FunctionalComponent, Fragment } from "preact";
+import { h, VNode, FunctionalComponent, Fragment } from 'preact';
+import { JSXInternal } from 'preact/src/jsx';
 
-interface Props {
+interface Props extends JSXInternal.HTMLAttributes {
   name: string;
   checked: boolean;
   onChange: () => void;
 }
 
-export const PersistentCheckbox: FunctionalComponent<Props> = (props): VNode => {
-  const checkbox = <input
-    type="checkbox"
-    name={props.name}
-    checked={props.checked}
-    onChange={props.onChange}
-  />;
+export const PersistentCheckbox: FunctionalComponent<Props> = ({
+  name,
+  checked,
+  onChange,
+  ...additionalProps
+}): VNode => {
   return (
     <Fragment>
-      {checkbox}
-      {!props.checked && <input type="hidden" name={props.name} value="" />}
+      <input
+        type="checkbox"
+        name={name}
+        checked={checked}
+        onChange={onChange}
+        {...additionalProps}
+      />
+      {!checked && <input type="hidden" name={name} value="" />}
     </Fragment>
   );
 };

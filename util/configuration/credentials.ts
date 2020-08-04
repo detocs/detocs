@@ -1,6 +1,6 @@
 import { ApiKey as ChallongeApiKey } from '@services/challonge/types';
 import { ApiToken as SmashggApiToken } from '@services/smashgg/types';
-import { AccessToken as Twitter } from '@models/twitter';
+import { AccessToken as Twitter } from '@services/twitter/types';
 import { Credentials as YoutubeCredentials } from '@models/youtube';
 import { getLogger } from '@util/logger';
 
@@ -10,7 +10,7 @@ import {
   findConfigData,
   emptyConfigData,
   parseConfig
-} from "./common";
+} from './common';
 
 const logger = getLogger('credentials');
 

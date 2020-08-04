@@ -1,0 +1,10 @@
+fieldset {
+  margin-inline: 0;
+  min-inline-size: 0;
+
+  padding: 0;
+
+  &:disabled {
+    background: var(--color-bg-inactive);
+  }
+}

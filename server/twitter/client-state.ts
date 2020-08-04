@@ -1,17 +1,13 @@
-import { MediaFile } from '@models/media';
-import { User } from '@models/twitter';
+import { User } from '@services/twitter/types';
 
 export default interface ClientState {
-  loggedIn: boolean;
-  authorizeUrl: string;
+  hasCredentials: boolean;
   user: User | null;
-  screenshot: MediaFile | null;
+  lastTweetId: string | null;
 }
 
-
 export const nullState: ClientState = Object.freeze({
-  loggedIn: false,
-  authorizeUrl: '#',
+  hasCredentials: false,
   user: null,
-  screenshot: null,
+  lastTweetId: null,
 });

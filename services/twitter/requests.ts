@@ -1,6 +1,6 @@
 import Twit, { Twitter } from 'twit';
 
-import { User } from '@models/twitter';
+import { User } from '@services/twitter/types';
 import { sleep } from '@util/async';
 import { getLogger } from '@util/logger';
 

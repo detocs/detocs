@@ -12,9 +12,13 @@
 .twitter__tweet-content {
   display: flex;
   flex-grow: 1;
-  margin-block: var(--margin-small);
+  padding-block: var(--margin-small);
 
   flex-flow: row wrap;
+}
+
+fieldset.twitter__tweet-content {
+  border: 0;
 }
 
 .twitter__tweet-content > * {

@@ -36,6 +36,7 @@ interface Props {
 }
 
 const tweetEndpoint = twitterEndpoint('/tweet').href;
+const loginEndpoint = twitterEndpoint('/login').href;
 const screenshotEndpoint = clipEndpoint('/screenshot').href;
 
 async function submitForm(form: HTMLFormElement): Promise<Response> {
@@ -83,6 +84,7 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
     selectMediaRef.current?.setCustomValidity(mediaError);
   }, [ mediaError ]);
   const textHandler = inputHandler(setBody);
+  const loggedIn = !!twitterState.user;
   return (
     <form
       class="twitter__editor js-manual-form"
@@ -102,24 +104,17 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
     >
       <header>
         <label>
-          <PersistentCheckbox name="thread" checked={thread} onChange={toggleThread}/>
+          <PersistentCheckbox
+            name="thread"
+            checked={thread && !!twitterState.lastTweetId}
+            onChange={toggleThread}
+            disabled={!twitterState.lastTweetId}
+          />
           Thread under previous tweet
         </label>
-        <span>
-          {twitterState.user &&
-            <Fragment>
-              Tweeting as {twitterState.user.name}
-              {' '}
-              (<a href={twitterState.user.url} target="_blank" rel="noopener noreferrer">
-                @{twitterState.user.handle}
-              </a>)
-            </Fragment>
-          }
-          {' '}
-          <a href={twitterState.authorizeUrl} target="_blank" rel="noopener noreferrer">Log In</a>
-        </span>
+        <TwitterUserStatus {...twitterState} />
       </header>
-      <div class="twitter__tweet-content">
+      <fieldset class="twitter__tweet-content" disabled={!loggedIn}>
         <div className="twitter__tweet-body">
           <textarea
             class="twitter__tweet-text"
@@ -179,8 +174,42 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
             </ClipSelectorModal>
           </div>
         </div>
-      </div>
+      </fieldset>
     </form>
+  );
+};
+
+const TwitterUserStatus: FunctionalComponent<ClientState> = ({
+  hasCredentials,
+  user,
+}): VNode => {
+  if (!hasCredentials) {
+    return <span>No Twitter credentials configured.</span>;
+  }
+  return (
+    <span>
+      {user ?
+        <Fragment>
+          Tweeting as {user.name}
+          {' '}
+          (<a href={user.url} target="_blank" rel="noopener noreferrer">
+            @{user.handle}
+          </a>).
+        </Fragment>
+        :
+        'Not logged in.'
+      }
+      {' '}
+      {isLocal() &&
+        <a
+          href={loginEndpoint}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Log In
+        </a>
+      }
+    </span>
   );
 };
 
@@ -190,6 +219,11 @@ function validateTweetBody(text: string): { charCount: number; error: string } {
     charCount: parsed.weightedLength,
     error: parsed.valid || !text.trim() ? '' : 'Invalid tweet',
   };
+}
+
+function isLocal(): boolean {
+  return window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1';
 }
 
 export default TwitterDashboard;

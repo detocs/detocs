@@ -1,17 +1,16 @@
-import { getLogger } from '@util/logger';
-
 // TODO: Replace with interface
 import OAuth from 'oauth-1.0a';
 
-import { AccessToken } from "../../models/twitter";
-import { checkResponseStatus } from "../../util/ajax";
+import { checkResponseStatus } from '@util/ajax';
+import { getLogger } from '@util/logger';
 import { getOauth1 } from '@util/oauth';
 
-const logger = getLogger('server/twitter/oauth');
+import { AccessToken } from './types';
+
+const logger = getLogger('services/twitter/oauth');
 
 export default class TwitterOAuth {
   private oauth: OAuth;
-  private onAuth: (accessToken: AccessToken) => void;
   private apiKey: string;
   private tempToken: string | null = null;
   private tempTokenSecret: string | null = null;
@@ -19,11 +18,9 @@ export default class TwitterOAuth {
   public constructor(
     apiKey: string,
     apiKeySecret: string,
-    onAuth: (accessToken: AccessToken) => void) 
-  {
+  ) {
     this.apiKey = apiKey;
     this.oauth = getOauth1(apiKey, apiKeySecret);
-    this.onAuth = onAuth;
   }
 
   public async getAuthorizeUrl(callbackUrl: string): Promise<string> {
@@ -58,7 +55,7 @@ export default class TwitterOAuth {
       });
   }
 
-  public async authorize(params: Record<string, string>): Promise<string> {
+  public async authorize(params: Record<string, string>): Promise<AccessToken> {
     logger.info('Handling authorization callback');
     if (!this.tempToken) {
       throw new Error('Authorize called before temp token available');
@@ -90,15 +87,15 @@ export default class TwitterOAuth {
       .then(resp => resp.text())
       .then(text => new URLSearchParams(text))
       .then(params => {
-        const accessToken = {
-          key: params.get('oauth_token') || '',
-          secret: params.get('oauth_token_secret') || '',
-        };
-        this.onAuth(accessToken);
-        return `Success!<br>${JSON.stringify(accessToken)}`;
-      })
-      .catch(e => {
-        return `Error: ${e}`;
+        const key = params.get('oauth_token');
+        const secret = params.get('oauth_token_secret');
+        if (!key) {
+          throw new Error('oauth_token not returned token endpoint');
+        }
+        if (!secret) {
+          throw new Error('oauth_token_secret not returned token endpoint');
+        }
+        return { key: key, secret: secret };
       });
   }
 }

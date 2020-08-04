@@ -1,0 +1,70 @@
+import Twit from 'twit';
+
+import { getCredentials, saveCredentials } from '@util/configuration/credentials';
+
+import TwitterOAuth from './oauth';
+import * as requests from './requests';
+import { AccessToken, User } from './types';
+
+export type LoginCallback = (user: User) => unknown;
+
+export default class TwitterClient {
+  private readonly oauth: TwitterOAuth;
+  private readonly twitterKey: string;
+  private readonly twitterSecret: string;
+  private loginCallbacks: LoginCallback[] = [];
+  private twit: Twit | null = null;
+  private user: User | null = null;
+
+  public constructor(twitterKey: string, twitterSecret: string) {
+    this.twitterKey = twitterKey;
+    this.twitterSecret = twitterSecret;
+    this.oauth = new TwitterOAuth(this.twitterKey, this.twitterSecret);
+  }
+
+  public isLoggedIn(): boolean {
+    return !!this.user;
+  }
+
+  public onLogin(cb: LoginCallback): void {
+    this.loginCallbacks.push(cb);
+    if (this.user) {
+      cb(this.user);
+    }
+  }
+
+  public offLogin(cb: LoginCallback): void {
+    this.loginCallbacks = this.loginCallbacks.filter(x => x !== cb);
+  }
+
+  public async getAuthorizeUrl(port: number): Promise<string> {
+    return await this.oauth.getAuthorizeUrl(`http://localhost:${port}/authorize`);
+  }
+
+  public async authorize(params: Record<string, string>): Promise<void> {
+    const accessToken = await this.oauth.authorize(params);
+    getCredentials().twitterToken = accessToken;
+    saveCredentials();
+    await this.logIn(accessToken);
+  };
+
+  public async logIn(accessToken: AccessToken): Promise<void> {
+    const twit = new Twit({
+      'consumer_key': this.twitterKey,
+      'consumer_secret': this.twitterSecret,
+      'access_token': accessToken.key,
+      'access_token_secret': accessToken.secret,
+    });
+    this.twit = twit;
+    const user = await requests.getUser(twit);
+    this.user = user;
+    this.loginCallbacks.forEach(cb => cb(user));
+  }
+
+  public async tweet(body: string, replyTo: string | null, mediaPath?: string): Promise<string> {
+    if (!this.twit) {
+      throw new Error('Twitter client not logged in');
+    }
+    return await requests.tweet(this.twit, body, replyTo, mediaPath);
+  }
+}
