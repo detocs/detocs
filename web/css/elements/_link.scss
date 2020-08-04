@@ -1,0 +1,16 @@
+:any-link {
+  text-decoration: none;
+
+  &:focus {
+    outline: 0;
+    text-decoration: underline;
+  }
+}
+
+:link {
+  color: var(--color-link);
+}
+
+:visited {
+  color: var(--color-link-visited);
+}
