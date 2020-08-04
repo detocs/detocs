@@ -1,7 +1,9 @@
 :any-link {
   text-decoration: none;
 
-  &:focus {
+  &:focus,
+  &:hover,
+  &:active {
     outline: 0;
     text-decoration: underline;
   }
