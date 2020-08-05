@@ -1,10 +1,14 @@
+import { Error as ChainableError } from 'chainable-error';
 import Twit from 'twit';
 
 import { getCredentials, saveCredentials } from '@util/configuration/credentials';
+import { getLogger } from '@util/logger';
 
 import TwitterOAuth from './oauth';
 import * as requests from './requests';
 import { AccessToken, User } from './types';
+
+const logger = getLogger('services/twitter');
 
 export type LoginCallback = (user: User) => unknown;
 
@@ -38,10 +42,12 @@ export default class TwitterClient {
   }
 
   public async getAuthorizeUrl(port: number): Promise<string> {
-    return await this.oauth.getAuthorizeUrl(`http://localhost:${port}/authorize`);
+    logger.info('Getting request token');
+    return this.oauth.getAuthorizeUrl(`http://localhost:${port}/authorize`);
   }
 
   public async authorize(params: Record<string, string>): Promise<void> {
+    logger.info('Handling authorization callback');
     const accessToken = await this.oauth.authorize(params);
     getCredentials().twitterToken = accessToken;
     saveCredentials();
@@ -49,22 +55,26 @@ export default class TwitterClient {
   };
 
   public async logIn(accessToken: AccessToken): Promise<void> {
-    const twit = new Twit({
-      'consumer_key': this.twitterKey,
-      'consumer_secret': this.twitterSecret,
-      'access_token': accessToken.key,
-      'access_token_secret': accessToken.secret,
-    });
-    this.twit = twit;
-    const user = await requests.getUser(twit);
-    this.user = user;
-    this.loginCallbacks.forEach(cb => cb(user));
+    try {
+      const twit = new Twit({
+        'consumer_key': this.twitterKey,
+        'consumer_secret': this.twitterSecret,
+        'access_token': accessToken.key,
+        'access_token_secret': accessToken.secret,
+      });
+      const user = await requests.getUser(twit);
+      this.twit = twit;
+      this.user = user;
+      this.loginCallbacks.forEach(cb => cb(user));
+    } catch (err) {
+      throw new ChainableError('Unable to log in', err);
+    }
   }
 
   public async tweet(body: string, replyTo: string | null, mediaPath?: string): Promise<string> {
     if (!this.twit) {
       throw new Error('Twitter client not logged in');
     }
-    return await requests.tweet(this.twit, body, replyTo, mediaPath);
+    return requests.tweet(this.twit, body, replyTo, mediaPath);
   }
 }

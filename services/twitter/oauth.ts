@@ -1,13 +1,11 @@
+import { Error as ChainableError } from 'chainable-error';
 // TODO: Replace with interface
 import OAuth from 'oauth-1.0a';
 
 import { checkResponseStatus } from '@util/ajax';
-import { getLogger } from '@util/logger';
 import { getOauth1 } from '@util/oauth';
 
 import { AccessToken } from './types';
-
-const logger = getLogger('services/twitter/oauth');
 
 export default class TwitterOAuth {
   private oauth: OAuth;
@@ -24,7 +22,6 @@ export default class TwitterOAuth {
   }
 
   public async getAuthorizeUrl(callbackUrl: string): Promise<string> {
-    logger.info('Getting request token');
     const requestData = {
       url: 'https://api.twitter.com/oauth/request_token',
       method: 'POST',
@@ -41,22 +38,26 @@ export default class TwitterOAuth {
       .then(checkResponseStatus)
       .then(resp => resp.text())
       .then(text => new URLSearchParams(text))
+      .catch(e => {
+        throw new ChainableError('Unable to get request token', e);
+      })
       .then(params => {
         if (params.get('oauth_callback_confirmed') !== 'true') {
           throw new Error('OAuth callback not confirmed');
         }
         this.tempToken = params.get('oauth_token');
         this.tempTokenSecret = params.get('oauth_token_secret');
+        if (!this.tempToken) {
+          throw new Error('Temp oauth_token not received');
+        }
+        if (!this.tempTokenSecret) {
+          throw new Error('Temp oauth_token_secret not received');
+        }
         return `https://api.twitter.com/oauth/authorize?oauth_token=${this.tempToken}`;
-      })
-      .catch(e => {
-        logger.error(`Unable to get request token: ${e}`);
-        return '#';
       });
   }
 
   public async authorize(params: Record<string, string>): Promise<AccessToken> {
-    logger.info('Handling authorization callback');
     if (!this.tempToken) {
       throw new Error('Authorize called before temp token available');
     }
@@ -86,14 +87,17 @@ export default class TwitterOAuth {
       .then(checkResponseStatus)
       .then(resp => resp.text())
       .then(text => new URLSearchParams(text))
+      .catch(e => {
+        throw new ChainableError('Unable to get access token', e);
+      })
       .then(params => {
         const key = params.get('oauth_token');
         const secret = params.get('oauth_token_secret');
         if (!key) {
-          throw new Error('oauth_token not returned token endpoint');
+          throw new Error('oauth_token not received');
         }
         if (!secret) {
-          throw new Error('oauth_token_secret not returned token endpoint');
+          throw new Error('oauth_token_secret not received');
         }
         return { key: key, secret: secret };
       });

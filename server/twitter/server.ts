@@ -45,8 +45,8 @@ export default async function start(port: number, mediaServer: MediaServer): Pro
   if (accessToken) {
     // TODO: Handle revoked tokens
     logger.info('Already logged in');
-    // TODO: Be more tolerant of lack of network connection
-    await twitterClient.logIn(accessToken);
+    await twitterClient.logIn(accessToken)
+      .catch(logger.error);
   }
 
   const { appServer, socketServer } = httpUtil.appWebsocketServer(
@@ -94,12 +94,14 @@ class TwitterServer {
 
   private registerHandlers(): void {
     this.appServer.get('/login', async (_, res): Promise<void> => {
-      res.redirect(await this.twitterClient.getAuthorizeUrl(this.port));
+      return this.twitterClient.getAuthorizeUrl(this.port)
+        .then(url => res.redirect(url))
+        .catch(err => sendServerError(res, err));
     });
     this.appServer.get('/authorize', async (req, res): Promise<unknown> => {
       return this.twitterClient.authorize(req.query)
         .then(() => res.send(`Authentication successful!<br>You can close this window.`))
-        .catch(sendServerError.bind(null, res));
+        .catch(err => sendServerError(res, err));
     });
     this.appServer.post('/tweet', this.tweet);
 
