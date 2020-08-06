@@ -6,6 +6,25 @@ import replace from '@rollup/plugin-replace';
 import bundleSize from 'rollup-plugin-bundle-size';
 import visualizer from 'rollup-plugin-visualizer';
 
+const nullFile = 'export default null';
+const nullFilename = 'rollup_excluded_module';
+/**
+ * @param {RegExp[]} list
+ */
+function exclude(list) {
+  return {
+    resolveId(importee) {
+      if (importee === nullFilename || list.some(regexp => regexp.test(importee))) {
+        return nullFilename;
+      }
+      return null;
+    },
+    load(id) {
+      return id === nullFilename ? nullFile : null;
+    },
+  };
+}
+
 const commonPlugins = [
   json({
     indent: '    ',
@@ -15,6 +34,11 @@ const commonPlugins = [
     'process.env.NODE_ENV': "'production'",
   }),
   commonjs(),
+  exclude([
+    /^core-js\/modules\/es6\..*/,
+    /^core-js\/modules\/es7\..*/,
+    /^core-js\/modules\/web.dom\..*/,
+  ]),
   resolve({
     preferBuiltins: false,
   }),
