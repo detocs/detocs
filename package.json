@@ -12,6 +12,7 @@
   "scripts": {
     "tsc": "tsc && tsc-alias",
     "webjs": "rollup -c -m",
+    "webjs-analyze": "rollup -c -m --environment ANALYZE",
     "webcss": "sass --load-path=node_modules/ --load-path=web/css/ web/css/:web/public/",
     "bundle": "npm run webjs && npm run webcss",
     "build": "npm run tsc && npm run bundle",
@@ -88,6 +89,8 @@
     "license-checker": "^25.0.1",
     "patch-package": "^6.2.2",
     "rollup": "^2.18.0",
+    "rollup-plugin-bundle-size": "^1.0.3",
+    "rollup-plugin-visualizer": "^4.0.4",
     "sass": "^1.26.5",
     "tsc-alias": "^1.1.1",
     "typescript": "^3.7.2"

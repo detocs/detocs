@@ -6,6 +6,7 @@ web/public/*.css.map
 web/public/*.js
 web/public/*.js.map
 *.tsbuildinfo
+*stats.html
 detocs-config.json
 detocs-credentials.json
 TWITTER_API_KEY
