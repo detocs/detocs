@@ -3,9 +3,9 @@
   "version": "0.5.0",
   "description": "Datagram's Esports Tournament Overlay Control System",
   "repository": "github:data-enabler/detocs",
-  "main": "index.js",
+  "main": "src/index.ts",
   "bin": {
-    "detocs": "index.js"
+    "detocs": "build/src/index.js"
   },
   "module": "main.ts",
   "license": "AGPL-3.0",
@@ -13,11 +13,13 @@
     "tsc": "tsc && tsc-alias",
     "webjs": "rollup -c -m",
     "webjs-analyze": "rollup -c -m --environment ANALYZE",
-    "webcss": "sass --load-path=node_modules/ --load-path=web/css/ web/css/:web/public/",
-    "bundle": "npm run webjs && npm run webcss",
+    "webcss": "sass --load-path=node_modules/ --load-path=src/web/styles/ src/web/styles/:build/public/",
+    "webhtml": "cpx -u src/web/views/** build/public/",
+    "webassets": "cpx -u assets/** build/public/",
+    "bundle": "npm run webjs && npm run webcss && npm run webhtml && npm run webassets",
     "build": "npm run tsc && npm run bundle",
     "prestart": "npm run build",
-    "start": "node index.js",
+    "start": "node build/src/index.js",
     "license-check": "license-checker --summary --failOn 'UNKNOWN; UNLICENSED'",
     "postinstall": "patch-package && npm run license-check"
   },
@@ -84,6 +86,7 @@
     "@rollup/plugin-replace": "^2.3.3",
     "@typescript-eslint/eslint-plugin": "^1.13.0",
     "@typescript-eslint/parser": "^1.13.0",
+    "cpx2": "^2.0.0",
     "eslint": "^5.16.0",
     "eslint-plugin-react": "^7.14.3",
     "license-checker": "^25.0.1",

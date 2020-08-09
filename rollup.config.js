@@ -62,17 +62,17 @@ if (process.env.ANALYZE) {
 
 export default [
   {
-    input: 'build/web/js/app.js',
+    input: 'build/src/web/scripts/app.js',
     output: {
-      file: 'web/public/detocs.js',
+      file: 'build/public/detocs.js',
       format: 'iife',
     },
     plugins: appPlugins,
   },
   {
-    input: 'build/web/js/polyfill.js',
+    input: 'build/src/web/scripts/polyfill.js',
     output: {
-      file: 'web/public/polyfill.js',
+      file: 'build/public/polyfill.js',
       format: 'iife',
     },
     plugins: polyfillPlugins,

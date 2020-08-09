@@ -24,10 +24,10 @@ import SmashggClient from '@services/smashgg/smashgg';
 import { VodUploader, Style, Command } from '@upload/vod-uploader';
 import { loadConfig, getConfig } from '@util/configuration/config';
 import { loadCredentials } from '@util/configuration/credentials';
-import { getBasicLogger } from '@util/logger';
-import { getVersion } from '@util/meta';
-import web from '@web/server';
 import { sortedKeys } from '@util/json';
+import { getBasicLogger } from '@util/logger';
+import { getVersion, setAppRoot } from '@util/meta';
+import web from '@web/server';
 
 interface ConfigOptions {
   config?: string;
@@ -52,6 +52,7 @@ interface VodOptions {
   ps: boolean;
 }
 
+setAppRoot(__dirname);
 const logger = getBasicLogger();
 const VERSION = getVersion();
 process.title = `DETOCS ${VERSION}`;
