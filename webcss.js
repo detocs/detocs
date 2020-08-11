@@ -2,6 +2,7 @@
 const fs = require('fs').promises;
 const path = require('path');
 const postCss = require('postcss');
+const presetEnv = require('postcss-preset-env');
 const sass = require('sass');
 
 const inFile = 'src/web/styles/detocs.scss';
@@ -15,7 +16,7 @@ const sassResult = sass.renderSync({
   sourceMap: true,
 });
 
-postCss([])
+postCss([ presetEnv() ])
   .process(sassResult.css, {
     from: sassOut,
     to: outFile,
