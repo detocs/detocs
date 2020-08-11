@@ -25,26 +25,30 @@ export const TimestampInput: FunctionalComponent<{
     }
   };
 
-  return (<fieldset class="timestamp__container">
-    <input
-      type="text"
-      name={name}
-      value={value || ''}
-      onInput={inputHandler(updater)}
-      onKeyDown={keyHandler}
-      pattern="\d\d:\d\d:\d\d(\.\d\d\d)?"
-      placeholder="00:00:00:000"
-      size={12}
-      title="Timestamp in the form HH:mm:ss.SSS"
-      class="timestamp__input"
-    />
-    <div className="timestamp__controls">
-      <button type="button" onClick={backwardMedium}>-3</button>
-      <button type="button" onClick={backwardSmall}>-1</button>
-      <button type="button" onClick={forwardSmall}>+1</button>
-      <button type="button" onClick={forwardMedium}>+3</button>
-    </div>
-  </fieldset>);
+  return (
+    <fieldset class="timestamp__container">
+      <div>
+        <input
+          type="text"
+          name={name}
+          value={value || ''}
+          onInput={inputHandler(updater)}
+          onKeyDown={keyHandler}
+          pattern="\d\d:\d\d:\d\d(\.\d\d\d)?"
+          placeholder="00:00:00:000"
+          size={12}
+          title="Timestamp in the form HH:mm:ss.SSS"
+          class="timestamp__input"
+        />
+        <div className="timestamp__controls">
+          <button type="button" onClick={backwardMedium}>-3</button>
+          <button type="button" onClick={backwardSmall}>-1</button>
+          <button type="button" onClick={forwardSmall}>+1</button>
+          <button type="button" onClick={forwardMedium}>+3</button>
+        </div>
+      </div>
+    </fieldset>
+  );
 };
 
 function adjustTimestamp(

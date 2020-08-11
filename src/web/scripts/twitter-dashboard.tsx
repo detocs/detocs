@@ -114,64 +114,66 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
         </label>
         <TwitterUserStatus {...twitterState} />
       </header>
-      <fieldset class="twitter__tweet-content" disabled={!loggedIn}>
-        <div className="twitter__tweet-body">
-          <textarea
-            class="twitter__tweet-text"
-            name="body"
-            value={body}
-            autofocus={true}
-            ref={bodyRef}
-            onInput={textHandler}
-            onChange={textHandler}
-          />
-          <div className="twitter__tweet-controls">
-            <meter
-              aria-label="Tweet length"
-              max={maxTweetLength + 1}
-              high={maxTweetLength}
-              low={maxTweetLength * 0.8}
-              value={charCount}
-            >
-              {charCount}/{maxTweetLength}
-            </meter>
-
-            {maxTweetLength - charCount} remaining
-            <button type="submit" ref={selectMediaRef}>Tweet</button>
-          </div>
-        </div>
-        <div className="twitter__tweet-media">
-          <input
-            id={mediaInputId}
-            type="hidden"
-            name="media"
-            value={clipView?.clip.media.url || ''}
-          />
-          <output
-            className="twitter__tweet-media-preview"
-            ref={previewRef}
-            for={mediaInputId}
-          >
-            <Thumbnail
-              media={clipView?.clip.media}
-              aria-busy={clipView?.status === ClipStatus.Rendering}
+      <fieldset disabled={!loggedIn}>
+        <div class="twitter__tweet-content">
+          <div className="twitter__tweet-body">
+            <textarea
+              class="twitter__tweet-text"
+              name="body"
+              value={body}
+              autofocus={true}
+              ref={bodyRef}
+              onInput={textHandler}
+              onChange={textHandler}
             />
-          </output>
-          <div className="twitter__tweet-media-actions input-row">
-            <button type="button" onClick={
-              () => takeScreenshot().then(setClipId).catch(logError)
-            }>
-              Take Screenshot
-            </button>
-            <ClipSelectorModal
-              clips={clipState.clips.filter(c =>
-                c.status === ClipStatus.Rendered ||
-                c.status === ClipStatus.Rendering)}
-              onSelect={setClipId}
-              currentClipId={clipId}
+            <div className="twitter__tweet-controls">
+              <meter
+                aria-label="Tweet length"
+                max={maxTweetLength + 1}
+                high={maxTweetLength}
+                low={maxTweetLength * 0.8}
+                value={charCount}
+              >
+                {charCount}/{maxTweetLength}
+              </meter>
+
+              {maxTweetLength - charCount} remaining
+              <button type="submit" ref={selectMediaRef}>Tweet</button>
+            </div>
+          </div>
+          <div className="twitter__tweet-media">
+            <input
+              id={mediaInputId}
+              type="hidden"
+              name="media"
+              value={clipView?.clip.media.url || ''}
+            />
+            <output
+              className="twitter__tweet-media-preview"
+              ref={previewRef}
+              for={mediaInputId}
             >
-              Select Media
-            </ClipSelectorModal>
+              <Thumbnail
+                media={clipView?.clip.media}
+                aria-busy={clipView?.status === ClipStatus.Rendering}
+              />
+            </output>
+            <div className="twitter__tweet-media-actions input-row">
+              <button type="button" onClick={
+                () => takeScreenshot().then(setClipId).catch(logError)
+              }>
+                Take Screenshot
+              </button>
+              <ClipSelectorModal
+                clips={clipState.clips.filter(c =>
+                  c.status === ClipStatus.Rendered ||
+                  c.status === ClipStatus.Rendering)}
+                onSelect={setClipId}
+                currentClipId={clipId}
+              >
+                Select Media
+              </ClipSelectorModal>
+            </div>
           </div>
         </div>
       </fieldset>

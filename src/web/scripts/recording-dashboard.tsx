@@ -87,13 +87,15 @@ const Recording: FunctionalComponent<RecordingProps> = ({ recording, updateRecor
           <input type="hidden" name="id" value={recording.id}/>
           <fieldset class="recording__boundary">
             <legend>Beginning</legend>
-            <Thumbnail
-              media={recording.startThumbnail} />
-            <TimestampInput
-              name="start-timestamp"
-              value={startTimestamp}
-              updater={updateStart}
-            />
+            <div>
+              <Thumbnail
+                media={recording.startThumbnail} />
+              <TimestampInput
+                name="start-timestamp"
+                value={startTimestamp}
+                updater={updateStart}
+              />
+            </div>
           </fieldset>
           <span className="recording__controls">
             <button type="submit">Update</button>
@@ -101,13 +103,15 @@ const Recording: FunctionalComponent<RecordingProps> = ({ recording, updateRecor
           </span>
           <fieldset class="recording__boundary">
             <legend>End</legend>
-            <Thumbnail
-              media={recording.stopThumbnail} />
-            <TimestampInput
-              name="stop-timestamp"
-              value={stopTimestamp}
-              updater={updateStop}
-            />
+            <div>
+              <Thumbnail
+                media={recording.stopThumbnail} />
+              <TimestampInput
+                name="stop-timestamp"
+                value={stopTimestamp}
+                updater={updateStop}
+              />
+            </div>
           </fieldset>
         </form>
         { recording.recordingFile && <div class="recording__file">{recording.recordingFile}</div> }

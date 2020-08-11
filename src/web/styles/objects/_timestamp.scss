@@ -1,6 +1,10 @@
 .timestamp__container {
-  display: flex;
-  flex-flow: column nowrap;
+  display: contents;
+
+  > div {
+    display: flex;
+    flex-flow: column nowrap;
+  }
 }
 
 .timestamp__input {

@@ -20,10 +20,12 @@
 .recording__boundary {
   flex: 1 1 auto;
 
-  display: flex;
-  flex-flow: row wrap;
-  justify-content: space-around;
-  align-items: center;
+  > div {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-around;
+    align-items: center;
+  }
 }
 
 .recording__boundary .thumbnail {
@@ -33,8 +35,10 @@
 }
 
 .recording__controls {
-  flex: 1 0 0;
   display: flex;
+  flex: 1 0 0;
+  margin-inline: var(--margin-small);
+
   flex-flow: row wrap;
 }
 

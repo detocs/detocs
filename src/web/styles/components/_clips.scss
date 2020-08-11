@@ -237,7 +237,7 @@ $video-track-height: 3rem;
 
 .video-editor__buttons {
   display: flex;
-  flex: 1 1 min-content;
+  flex: 1 1 auto;
   flex-flow: column nowrap;
   overflow: hidden; // input-row seems to be causing overflow
 }

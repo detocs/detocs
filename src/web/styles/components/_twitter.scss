@@ -1,12 +1,18 @@
+$thumbnailMinWidth: 12rem;
+
 .twitter__editor {
   height: 100%;
   display: flex;
   flex-flow: column nowrap;
-}
 
-.twitter__editor header {
-  display: flex;
-  justify-content: space-between;
+  > header {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  > fieldset {
+    display: contents;
+  }
 }
 
 .twitter__tweet-content {
@@ -15,19 +21,15 @@
   padding-block: var(--margin-small);
 
   flex-flow: row wrap;
-}
 
-fieldset.twitter__tweet-content {
-  border: 0;
-}
-
-.twitter__tweet-content > * {
-  margin-inline: var(--margin-small);
+  > * {
+    margin-inline: var(--margin-small);
+  }
 }
 
 .twitter__tweet-body {
   display: flex;
-  flex: 4 1 15rem;
+  flex: 4 1 $thumbnailMinWidth * 1.5;
   flex-flow: column nowrap;
 }
 
@@ -56,7 +58,7 @@ fieldset.twitter__tweet-content {
 
 .twitter__tweet-media {
   display: flex;
-  flex: 1 1 10rem;
+  flex: 1 1 $thumbnailMinWidth;
 
   flex-flow: column wrap;
   justify-content: flex-start;
@@ -67,7 +69,7 @@ fieldset.twitter__tweet-content {
 }
 
 .twitter__tweet-media .thumbnail {
-  width: max(12rem, min(100%, calc(var(--stream-aspect-ratio) * (100vh - 7rem))));
+  width: max(#{$thumbnailMinWidth}, min(100%, calc(var(--stream-aspect-ratio) * (100vh - 7rem))));
   align-self: center;
 }
 

@@ -70,23 +70,6 @@ input[type="text"] {
   flex: 0 0 auto;
 }
 
-.players {
-  display: grid;
-  grid-template-columns: auto auto;
-}
-
-.player {
-  min-inline-size: 0;
-}
-
-.player:nth-child(2n) .score {
-  order: 1;
-}
-
-.competitor {
-  flex: 1 1 auto;
-}
-
 :focus:not(:any-link),
 button:focus,
 [type="button"]:focus,
@@ -103,44 +86,6 @@ button:focus,
 
 .warning {
   background: var(--color-bg-warning);
-}
-
-.prefix {
-  flex: 1 1 auto;
-  inline-size: 5em;
-}
-
-.handle {
-  flex: 5 1 auto;
-}
-
-.score {
-  flex: 0 0 auto;
-  margin-top: 0.3em;
-  inline-size: 2em;
-
-  font-size: 2em;
-  text-align: center;
-}
-
-.comment {
-  inline-size: 6em;
-}
-
-.smashgg__phase-id {
-  flex: 0 0 auto;
-}
-
-fieldset[name="match"] {
-  flex: 0.2 0 6em;
-}
-
-fieldset[name="game"] {
-  flex: 0.5 0 9em;
-}
-
-fieldset[name="smashgg"] {
-  flex: 1 0 15em;
 }
 
 .sr-only {
