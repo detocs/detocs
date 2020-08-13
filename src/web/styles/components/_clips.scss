@@ -77,7 +77,9 @@ $video-track-height: 3rem;
     height: 100%;
 
     box-sizing: border-box;
+    /* doiuse-disable object-fit */
     object-fit: contain;
+    /* doiuse-enable object-fit */
   }
 }
 
@@ -114,7 +116,9 @@ $video-track-height: 3rem;
   background: black;
   image-rendering: crisp-edges;
   image-rendering: -webkit-optimize-contrast;
+  /* doiuse-disable object-fit */
   object-fit: fill;
+  /* doiuse-enable object-fit */
 }
 
 .video-editor__progress {

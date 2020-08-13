@@ -3,7 +3,10 @@
 
 .clip-selector__list {
   display: flex;
+  width: auto;
+  /* doiuse-disable intrinsic-width */
   width: max-content;
+  /* doiuse-enable intrinsic-width */
   max-width: 100%;
 
   flex-flow: row wrap;

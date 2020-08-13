@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
+const browserslist = require('browserslist');
+const doiuse = require('doiuse');
 const fs = require('fs').promises;
 const path = require('path');
 const postCss = require('postcss');
@@ -9,6 +11,7 @@ const sass = require('sass');
 const inFile = 'src/web/styles/detocs.scss';
 const sassOut = inFile + '.css';
 const outFile = 'build/public/detocs.css';
+const browsers = browserslist();
 
 const sassResult = sass.renderSync({
   file: inFile,
@@ -20,6 +23,17 @@ const sassResult = sass.renderSync({
 postCss([
   inputRange(),
   presetEnv(),
+  doiuse({
+    browsers,
+    ignore: [ 'css-appearance', 'css-resize', 'multicolumn' ],
+    onFeatureUsage: usageInfo => {
+      const source = usageInfo.usage.source.original.start.source;
+      if (source.endsWith('normalize.css')) {
+        return;
+      }
+      console.warn(usageInfo.message);
+    },
+  }),
 ])
   .process(sassResult.css.toString('utf8'), {
     from: sassOut,
