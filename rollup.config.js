@@ -1,4 +1,5 @@
 import alias from '@rollup/plugin-alias';
+import babel from '@rollup/plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
 import resolve from '@rollup/plugin-node-resolve';
@@ -25,7 +26,12 @@ function exclude(list) {
   };
 }
 
-const commonPlugins = [
+const commonjsPlugin = commonjs();
+const resolvePlugin = resolve({
+  preferBuiltins: false,
+});
+const bundleSizePlugin = bundleSize();
+let appPlugins = [
   json({
     indent: '    ',
     preferConst: true,
@@ -33,25 +39,28 @@ const commonPlugins = [
   replace({
     'process.env.NODE_ENV': "'production'",
   }),
-  commonjs(),
-  exclude([
-    /^core-js\/modules\/es6\..*/,
-    /^core-js\/modules\/es7\..*/,
-    /^core-js\/modules\/web.dom\..*/,
-  ]),
-  resolve({
-    preferBuiltins: false,
+  commonjsPlugin,
+  // exclude([
+  //   /^core-js.*/,
+  // ]), // Some libraries like twitter-text include their own polyfills
+  babel({
+    babelHelpers: 'bundled',
+    exclude: [/\/core-js\//]
   }),
+  resolvePlugin,
   alias({
     entries: {
       'react': 'preact/compat',
       'react-dom': 'preact/compat',
     },
   }),
-  bundleSize(),
+  bundleSizePlugin,
 ];
-let appPlugins = commonPlugins;
-const polyfillPlugins = commonPlugins;
+const polyfillPlugins = [
+  commonjsPlugin,
+  resolvePlugin,
+  bundleSizePlugin,
+];
 
 if (process.env.ANALYZE) {
   appPlugins = appPlugins.concat(/** @type {Plugin} */ (visualizer({
