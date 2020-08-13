@@ -2,6 +2,7 @@
 const fs = require('fs').promises;
 const path = require('path');
 const postCss = require('postcss');
+const inputRange = require('postcss-input-range');
 const presetEnv = require('postcss-preset-env');
 const sass = require('sass');
 
@@ -16,8 +17,11 @@ const sassResult = sass.renderSync({
   sourceMap: true,
 });
 
-postCss([ presetEnv() ])
-  .process(sassResult.css, {
+postCss([
+  inputRange(),
+  presetEnv(),
+])
+  .process(sassResult.css.toString('utf8'), {
     from: sassOut,
     to: outFile,
     map: { prev: sassResult.map.toString('utf8') },

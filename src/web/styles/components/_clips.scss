@@ -127,7 +127,7 @@ $video-track-height: 3rem;
 
   background: transparent;
   border: none;
-  -webkit-appearance: none;
+  appearance: none;
 }
 
 .video-editor__progress::-webkit-progress-value {
@@ -158,8 +158,7 @@ $video-track-height: 3rem;
   flex: 1 1 auto;
   width: calc(var(--range-width) + var(--thumb-width));
 
-  -webkit-appearance: none;
-  -moz-appearance: none;
+  appearance: none;
   background: transparent;
 }
 
@@ -171,60 +170,34 @@ $video-track-height: 3rem;
   border: 0;
 }
 
-.video-editor__range-bound::-webkit-slider-runnable-track {
+.video-editor__range-bound::range-track {
   height: 100%;
 }
 
-.video-editor__range-bound::-webkit-slider-thumb {
+.video-editor__range-bound::range-thumb {
   width: var(--thumb-width);
   height: 100%;
   box-sizing: border-box;
 
-  -webkit-appearance: none;
+  appearance: none;
   background: transparent;
   border: 0.2rem ridge orange;
   border-radius: 0;
-}
 
-.video-editor__range-bound::-moz-range-thumb {
-  width: var(--thumb-width);
-  height: 100%;
-  box-sizing: border-box;
+  @at-root :focus#{&} {
+    background: var(--color-focus);
+    outline: 0.1rem solid var(--color-focus);
+  }
 
-  -moz-appearance: none;
-  background: transparent;
-  border: 0.2rem ridge orange;
-  border-radius: 0;
-}
+  @at-root .video-editor__range-start#{&} {
+    border-right-color: transparent;
+    border-bottom-width: 0;
+  }
 
-.video-editor__range-bound:focus::-webkit-slider-thumb {
-  background: var(--color-focus);
-  outline: 0.1rem solid var(--color-focus);
-}
-
-.video-editor__range-bound:focus::-moz-range-thumb {
-  background: var(--color-focus);
-  outline: 0.1rem solid var(--color-focus);
-}
-
-.video-editor__range-start::-webkit-slider-thumb {
-  border-right-color: transparent;
-  border-bottom-width: 0;
-}
-
-.video-editor__range-start::-moz-range-thumb {
-  border-right-color: transparent;
-  border-bottom-width: 0;
-}
-
-.video-editor__range-end::-webkit-slider-thumb {
-  border-left-color: transparent;
-  border-top-width: 0;
-}
-
-.video-editor__range-end::-moz-range-thumb {
-  border-left-color: transparent;
-  border-top-width: 0;
+  @at-root .video-editor__range-end#{&} {
+    border-left-color: transparent;
+    border-top-width: 0;
+  }
 }
 
 .video-editor__range-start {
