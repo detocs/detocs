@@ -1,7 +1,11 @@
-import { version } from 'package.json';
+import { version, homepage } from 'package.json';
 
 export function getVersion(): string {
   return version;
+}
+
+export function getHomepage(): string {
+  return homepage;
 }
 
 let appRoot: string | null;
@@ -14,4 +18,12 @@ export function getAppRoot(): string {
 
 export function setAppRoot(path: string): void {
   appRoot = path;
+}
+
+export function isPackagedApp(): boolean {
+  return isElectron();
+}
+
+function isElectron(): boolean {
+  return !!process.versions.electron;
 }

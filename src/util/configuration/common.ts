@@ -1,4 +1,5 @@
 import { promises as fs } from "fs";
+import merge from 'lodash.merge';
 import { dirname, join } from "path";
 
 export interface LoadedConfigData {
@@ -44,7 +45,7 @@ export function emptyConfigData(): LoadedConfigData {
 
 export function parseConfig<T>(data: string, defaults: T): T {
   let parsed: Partial<T> = JSON.parse(data);
-  const config = Object.assign({}, defaults, parsed);
+  const config = merge({}, defaults, parsed);
   return config;
 }
 

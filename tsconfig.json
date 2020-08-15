@@ -2,12 +2,13 @@
   "compilerOptions": {
     "outDir": "build",
     "target": "ES2019",
-    "module": "ES2015",
+    "module": "ESNext",
     "strict": true,
     "incremental": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@desktop/*": [ "src/desktop/*" ],
       "@export/*": [ "src/export/*" ],
       "@import/*": [ "src/import/*" ],
       "@models/*": [ "src/models/*" ],

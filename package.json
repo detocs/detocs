@@ -1,9 +1,15 @@
 {
   "name": "detocs",
+  "productName": "DETOCS",
   "version": "0.5.0",
   "description": "Datagram's Esports Tournament Overlay Control System",
+  "author": "Adrian Mullings",
   "repository": "github:data-enabler/detocs",
-  "main": "src/index.ts",
+  "homepage": "https://github.com/data-enabler/detocs",
+  "files": [
+    "build/*"
+  ],
+  "main": "build/src/index.js",
   "bin": {
     "detocs": "build/src/index.js"
   },
@@ -20,8 +26,28 @@
     "build": "npm run tsc && npm run bundle",
     "prestart": "npm run build",
     "start": "node build/src/index.js",
+    "electron": "electron .",
+    "electron-debug": "electron-builder --dir",
+    "electron-archive": "node archive-win.js",
+    "electron-release": "electron-builder && npm run electron-archive",
     "license-check": "license-checker --summary --failOn 'UNKNOWN; UNLICENSED'",
     "postinstall": "patch-package && npm run license-check"
+  },
+  "build": {
+    "appId": "com.datagram.detocs",
+    "files": [
+      "build/**/*"
+    ],
+    "icon": "build/public/images/detocs.png",
+    "win": {
+      "artifactName": "${productName}-${version}.${ext}",
+      "target": "nsis"
+    },
+    "nsis": {
+      "artifactName": "${productName}-${version}_Setup.${ext}",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   },
   "dependencies": {
     "@types/cors": "^2.8.6",
@@ -32,6 +58,7 @@
     "@types/lodash.isequal": "^4.5.5",
     "@types/lodash.merge": "^4.6.6",
     "@types/lodash.sortedindex": "^4.1.6",
+    "@types/node": "^12.12.54",
     "@types/react": "^16.9.38",
     "@types/react-toast-notifications": "^2.4.0",
     "@types/twit": "^2.2.22",
@@ -91,9 +118,13 @@
     "@rollup/plugin-replace": "^2.3.3",
     "@typescript-eslint/eslint-plugin": "^1.13.0",
     "@typescript-eslint/parser": "^1.13.0",
+    "archiver": "^5.0.0",
     "browserslist": "^4.14.0",
     "cpx2": "^2.0.0",
     "doiuse": "^4.2.0",
+    "electron": "^9.2.0",
+    "electron-builder": "^22.8.0",
+    "electron-packager": "^15.0.0",
     "eslint": "^5.16.0",
     "eslint-plugin-react": "^7.14.3",
     "license-checker": "^25.0.1",

@@ -5,6 +5,7 @@ import moment from 'moment';
 import { join } from 'path';
 import yargs from 'yargs';
 
+import app from '@desktop/app';
 import ExportFormat from '@export/export-format';
 import exportPeopleDatabase from '@export/export-people';
 import {
@@ -26,7 +27,7 @@ import { loadConfig, getConfig } from '@util/configuration/config';
 import { loadCredentials } from '@util/configuration/credentials';
 import { sortedKeys } from '@util/json';
 import { getBasicLogger } from '@util/logger';
-import { getVersion, setAppRoot } from '@util/meta';
+import { getVersion, setAppRoot, isPackagedApp } from '@util/meta';
 import web from '@web/server';
 
 interface ConfigOptions {
@@ -57,7 +58,7 @@ const logger = getBasicLogger();
 const VERSION = getVersion();
 process.title = `DETOCS ${VERSION}`;
 
-yargs
+const parser = yargs
   .option('config', {
     alias: 'c',
     type: 'string',
@@ -151,8 +152,12 @@ yargs
   .help('h')
   .alias('h', 'help')
   .version(getVersion())
-  .strict()
-  .parse();
+  .strict();
+if (isPackagedApp()) {
+  parser.parse(process.argv.slice(1));
+} else {
+  parser.parse();
+}
 
 async function middlewareLoadConfig(args: yargs.Arguments<ConfigOptions>): Promise<void> {
   await loadConfig(args.config);
@@ -172,7 +177,11 @@ async function startServer(): Promise<void> {
   const bracketProvider = getBracketProvider();
 
   server({ bracketProvider, mediaServer });
-  web(mediaServer);
+  const port = getConfig().ports.web;
+  web({ mediaServer, port });
+  if (isPackagedApp()) {
+    app({ port });
+  }
 }
 
 async function exportPeople(opts: yargs.Arguments<PersonExportOptions>): Promise<void> {

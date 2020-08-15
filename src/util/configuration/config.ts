@@ -15,6 +15,9 @@ export interface Config {
   clipDirectory: string;
   obsWebsocketPort: number;
   outputs: (WebSocketOutputConfig | FileOutputConfig)[];
+  ports: {
+    web: number;
+  };
 }
 
 export interface OutputConfig {
@@ -38,6 +41,9 @@ const DEFAULTS: Config = {
   clipDirectory: tmpDir('clips'),
   obsWebsocketPort: 4444,
   outputs: [],
+  ports: {
+    web: 8080,
+  },
 };
 let currentConfig = DEFAULTS;
 

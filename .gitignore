@@ -1,5 +1,6 @@
 build/
 databases/
+dist/
 node_modules/
 web/public/*.css
 web/public/*.css.map
