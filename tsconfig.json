@@ -2,7 +2,7 @@
   "compilerOptions": {
     "outDir": "build",
     "target": "ES2019",
-    "module": "ESNext",
+    "module": "CommonJS",
     "strict": true,
     "incremental": true,
     "skipDefaultLibCheck": true,

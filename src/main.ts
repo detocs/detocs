@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import log4js, { Configuration } from 'log4js';
 
 import 'isomorphic-fetch';
