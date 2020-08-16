@@ -24,6 +24,11 @@
 
   background: var(--color-bg);
   box-shadow: 0 0 0.5rem var(--color-shadow);
+
+  @supports not (width: max-content) {
+    min-width: calc(80%);
+    min-height: calc(80%);
+  }
 }
 
 .modal__close-button {
