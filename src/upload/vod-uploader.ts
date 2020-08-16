@@ -117,7 +117,7 @@ export class VodUploader {
     if (this.command == Command.Upload) {
       // Get YouTube credentials first, so that the rest can be done unattended
       const res = await getYoutubeAuthClient();
-      if (res.isErr) {
+      if (res.isErr()) {
         throw res._unsafeUnwrapErr();
       }
       youtubeOauthClient = res._unsafeUnwrap();
