@@ -1,8 +1,8 @@
+import { youtube_v3 as youtubeV3 } from '@googleapis/youtube/v3';
 import childProcess from 'child_process';
 import filenamify from 'filenamify';
 import fsSync, { promises as fs } from 'fs';
 import { OAuth2Client } from 'google-auth-library';
-import { youtube_v3 as youtubeV3 } from 'googleapis';
 import yaml from 'js-yaml';
 import merge from 'lodash.merge';
 import moment from 'moment-timezone';

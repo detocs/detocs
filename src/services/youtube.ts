@@ -1,5 +1,5 @@
+import { youtube } from '@googleapis/youtube';
 import { CodeChallengeMethod, OAuth2Client } from 'google-auth-library';
-import { google } from 'googleapis';
 import http from 'http';
 import { Result, ok, err } from 'neverthrow';
 import open from 'open';
@@ -37,7 +37,7 @@ export async function getYoutubeAuthClient(): Promise<Result<OAuth2Client, Error
   } else {
     logger.info('YouTube access token found', youtubeToken);
     // TODO: Do I need to refresh tokens manually?
-    auth = new google.auth.OAuth2({ clientId, clientSecret });
+    auth = new OAuth2Client({ clientId, clientSecret });
     auth.setCredentials(youtubeToken);
   }
   await printChannelInfo(auth);
@@ -53,7 +53,7 @@ async function completePkceFlow(clientId: string, clientSecret: string): Promise
         throw new Error(`Wasn't expecting server.address() to be ${address}`);
       }
       const redirectUri = `http://localhost:${address.port}`;
-      const oAuth2Client = new google.auth.OAuth2({ clientId, clientSecret, redirectUri });
+      const oAuth2Client = new OAuth2Client({ clientId, clientSecret, redirectUri });
       const codes = await oAuth2Client.generateCodeVerifierAsync();
       const authorizeUrl = oAuth2Client.generateAuthUrl({
         'access_type': 'offline',
@@ -95,9 +95,9 @@ async function completePkceFlow(clientId: string, clientSecret: string): Promise
 
 async function printChannelInfo(auth: OAuth2Client): Promise<void> {
   return new Promise((resolve, reject) => {
-    google.youtube('v3').channels.list({
+    youtube('v3').channels.list({
       auth,
-      part: 'snippet',
+      part: [ 'snippet' ],
       mine: true,
     }, (err, response) => {
       if (err) {
