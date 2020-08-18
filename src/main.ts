@@ -3,6 +3,7 @@ import log4js, { Configuration } from 'log4js';
 
 import 'isomorphic-fetch';
 import moment from 'moment';
+import ObsWebSocket from 'obs-websocket-js';
 import { join } from 'path';
 import yargs from 'yargs';
 
@@ -21,6 +22,8 @@ import server from '@server/server';
 import BracketServiceProvider from '@services/bracket-service-provider';
 import ChallongeClient from '@services/challonge/challonge';
 import { CHALLONGE_SERVICE_NAME } from '@services/challonge/constants';
+import { ObsConnectionImpl } from '@services/obs/connection';
+import ObsClient from '@services/obs/obs';
 import { SMASHGG_SERVICE_NAME } from '@services/smashgg/constants';
 import SmashggClient from '@services/smashgg/smashgg';
 import { VodUploader, Style, Command } from '@upload/vod-uploader';
@@ -172,12 +175,16 @@ async function startServer(): Promise<void> {
   configureLogger();
   logConfig();
 
-  const mediaServer = new MediaServer();
+  const obsConn = new ObsConnectionImpl(new ObsWebSocket());
+  const obsClient = new ObsClient(obsConn);
+  obsConn.connect().catch(logger.warn);
+
+  const mediaServer = new MediaServer({ obsClient, dirName: 'media' });
   mediaServer.start();
 
   const bracketProvider = getBracketProvider();
 
-  server({ bracketProvider, mediaServer });
+  server({ bracketProvider, mediaServer, obsClient });
   const port = getConfig().ports.web;
   web({ mediaServer, port });
   if (isPackagedApp()) {

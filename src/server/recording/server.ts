@@ -4,7 +4,6 @@ import formidable from 'express-formidable';
 import filenamify from 'filenamify';
 import fs from 'fs';
 import { createServer } from 'http';
-import ObsWebSocket from 'obs-websocket-js';
 import path from 'path';
 import { promisify } from 'util';
 import * as ws from 'ws';
@@ -13,7 +12,7 @@ import InfoState from '@server/info/state';
 import { MediaServer } from '@server/media/server';
 import { INFO_PORT } from '@server/ports';
 import BracketServiceProvider from '@services/bracket-service-provider';
-import * as obsUtil from '@services/obs';
+import ObsClient from '@services/obs/obs';
 import * as ffmpeg from '@util/ffmpeg';
 import * as httpUtil from '@util/http-server';
 import { getId } from '@util/id';
@@ -44,7 +43,7 @@ interface UpdateRequest {
   'stop-timestamp'?: string;
 }
 
-const obs = new ObsWebSocket();
+let obs: ObsClient | undefined;
 let media: MediaServer | null = null;
 let socketServer: ws.Server | null = null;
 let recordingLogger: RecordingLogger | null = null;
@@ -55,26 +54,29 @@ const state: State = {
 };
 
 
-export default function start({ port, mediaServer, bracketProvider }: {
+export default function start({ port, mediaServer, bracketProvider, obsClient }: {
   port: number;
   mediaServer: MediaServer;
   bracketProvider: BracketServiceProvider;
+  obsClient: ObsClient;
 }): void {
   logger.info('Initializing match recording server');
 
+  obs = obsClient;
   media = mediaServer;
 
-  obs.on('error' as any, logger.error); // eslint-disable-line @typescript-eslint/no-explicit-any
   // The recording file doesn't appear immediately
   obs.on('RecordingStarted', () => setTimeout(getRecordingFile, 2000));
   obs.on('RecordingStopping', stopInProgressRecording);
-  obsUtil.connect(obs)
-    .then(async () => {
-      logger.info('Connected to OBS');
-      if (await obsUtil.isRecording(obs)) {
-        getRecordingFile();
-      }
-    });
+  obs.on('ConnectionOpened', async () => {
+    logger.info('Connected to OBS');
+    obsClient.isRecording()
+      .map(isRecording => {
+        if (isRecording) {
+          getRecordingFile();
+        }
+      });
+  });
 
   recordingLogger = new RecordingLogger(bracketProvider);
 
@@ -125,7 +127,11 @@ async function startRecording(_req: Request, res: Response): Promise<void> {
     sendUserError(res, 'Attempted to start recording before starting stream recording');
     return;
   }
-  const timestamps = await obsUtil.getTimestamps(obs).catch(logger.error);
+  const timestamps = await obs?.getTimestamps()
+    .match(
+      t => t,
+      e => { throw e; },
+    );
   if (!timestamps) {
     logger.error('Unable to get timestamp');
     res.sendStatus(500);
@@ -174,7 +180,11 @@ async function stopInProgressRecording(): Promise<void> {
 }
 
 async function stopRecording(callback?: Function): Promise<void> {
-  const timestamps = await obsUtil.getTimestamps(obs).catch(logger.error);
+  const timestamps = await obs?.getTimestamps()
+    .match(
+      t => t,
+      e => { throw e; },
+    );
   if (!timestamps || !timestamps.recordingTimestamp) {
     throw new Error('Unable to get stop timestamp');
   }
@@ -301,7 +311,14 @@ async function cutRecording(req: Request, res: Response): Promise<void> {
 };
 
 async function getRecordingFile(): Promise<void> {
-  const { file, folder } = await obsUtil.getRecordingFile(obs);
+  if (!obs) {
+    return;
+  }
+  const { file, folder } = await obs.getRecordingFile()
+    .match(
+      t => t,
+      e => { throw e; },
+    );
   state.streamRecordingFile = file;
   state.streamRecordingFolder = folder;
   logger.info(`Recording file: ${state.streamRecordingFile}`);

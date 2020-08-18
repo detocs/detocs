@@ -1,14 +1,13 @@
 import { promises as fs } from 'fs';
-import ObsWebSocket, { ObsError } from 'obs-websocket-js';
 import path from 'path';
 
 import { Screenshot, Replay, MediaFile, VideoFile, ImageFile } from '@models/media';
 import { Timestamp } from '@models/timestamp';
-import * as obs from '@services/obs';
+import ObsClient from '@services/obs/obs';
 import { sleep } from '@util/async';
 import { getLogger } from '@util/logger';
 import * as ffmpeg from '@util/ffmpeg';
-import { tmpDir, waitForFile, Watcher } from '@util/fs';
+import { tmpDir } from '@util/fs';
 import * as pathUtil from '@util/path';
 import { sanitizeTimestamp, toMillis, fromMillis } from '@util/timestamp';
 
@@ -23,10 +22,9 @@ const REPLAY_COMPLETION_POLL_ATTEMPTS = 10;
 const REPLAY_COMPLETION_POLL_INTERVAL_MS = 250;
 
 export class MediaServer {
-  private readonly obsWs = new ObsWebSocket();
+  private readonly obs: ObsClient;
   private readonly dirName: string;
   private dir: string | undefined;
-  private isConnected = false;
   private streamWidth = 0;
   private streamHeight = 0;
   private recordingFile?: string;
@@ -36,7 +34,8 @@ export class MediaServer {
   private thumbnailCache = new ScreenshotCache(SCREENSHOT_CACHE_LENIENCY_MS);
   private replayCache = new ReplayCache(REPLAY_CACHE_LENIENCY_MS);
 
-  public constructor(dirName = 'media') {
+  public constructor({ obsClient, dirName }: { obsClient: ObsClient; dirName: string }) {
+    this.obs = obsClient;
     this.dirName = dirName;
   }
 
@@ -47,35 +46,28 @@ export class MediaServer {
   }
 
   private initObs(): void {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.obsWs.on('error' as any, logger.error);
-    this.obsWs.on('ConnectionClosed', () => {
-      this.isConnected = false;
-    });
     // The recording file doesn't appear immediately
-    this.obsWs.on('RecordingStarted', () => setTimeout(this.getRecordingFile.bind(this), 2000));
-    obs.connect(this.obsWs)
-      .then(async () => {
-        this.isConnected = true;
-        logger.info('Connected to OBS');
-        obs.isRecording(this.obsWs)
-          .then(isRecording => {
-            if (isRecording) {
-              this.getRecordingFile();
-            } else {
-              this.getRecordingFolder();
-            }
-          });
-        obs.getOutputDimensions(this.obsWs)
-          .then(dims => {
-            this.streamWidth = dims.width;
-            this.streamHeight = dims.height;
-          });
-      });
+    this.obs.on('RecordingStarted', () => setTimeout(this.getRecordingFile.bind(this), 2000));
+    this.obs.on('ConnectionOpened', async () => {
+      logger.info('Connected to OBS');
+      this.obs.isRecording()
+        .map(isRecording => {
+          if (isRecording) {
+            this.getRecordingFile();
+          } else {
+            this.getRecordingFolder();
+          }
+        });
+      this.obs.getOutputDimensions()
+        .map(dims => {
+          this.streamWidth = dims.width;
+          this.streamHeight = dims.height;
+        });
+    });
   }
 
   public connected(): boolean {
-    return this.isConnected;
+    return this.obs.isConnected();
   }
 
   public getDir(): string {
@@ -90,7 +82,11 @@ export class MediaServer {
   }
 
   private async getRecordingFile(): Promise<void> {
-    const { file, folder } = await obs.getRecordingFile(this.obsWs);
+    const { file, folder } = await this.obs.getRecordingFile()
+      .match(
+        t => t,
+        e => { throw e; },
+      );
     // TODO: FFmpeg cannot operate on certain file types while they're still being written (e.g.
     // mp4). We should handle this somehow.
     this.recordingFile = file;
@@ -103,14 +99,26 @@ export class MediaServer {
   }
 
   private async getRecordingFolder(): Promise<void> {
-    const folder = await obs.getRecordingFolder(this.obsWs);
+    const folder = await this.obs.getRecordingFolder()
+      .match(
+        t => t,
+        e => { throw e; },
+      );
     this.recordingFolder = folder;
     logger.info(`Recording folder: ${this.recordingFolder}`);
   }
 
   private async getCurrentScreenshot(height: number): Promise<Screenshot> {
-    const timestampPromise = obs.getTimestamps(this.obsWs);
-    const imgPromise = obs.getCurrentThumbnail(this.obsWs, { height });
+    const timestampPromise = this.obs.getTimestamps()
+      .match(
+        t => t,
+        e => { throw e; },
+      );
+    const imgPromise = this.obs.getCurrentThumbnail({ height })
+      .match(
+        t => t,
+        e => { throw e; },
+      );
     const [ timestamps, base64Img ] = await Promise.all([timestampPromise, imgPromise]);
     if (!base64Img) {
       throw new Error('Couldn\'t get screenshot');
@@ -265,27 +273,13 @@ export class MediaServer {
     return url.replace(`/${this.dirName}`, this.getDir());
   }
 
-  public async getReplay(): Promise<Replay | null> {
-    // TODO: 'SaveReplayBuffer' doesn't wait until the file written to resolve, so we'll need to
-    // figure out something else here.
-    return this.obsWs.send('SaveReplayBuffer')
-      .catch((err: ObsError) => { throw new Error(err.error); })
-      .then(this.waitForReplayFile)
-      .then(r => r ? this.fetchReplayFile(r) : null);
+  public async getReplay(): Promise<Replay> {
+    return this.obs.saveReplayBuffer()
+      .match(
+        file => this.fetchReplayFile(file),
+        e => { throw e; },
+      );
   }
-
-  private waitForReplayFile = async (): Promise<string | null> => {
-    if (!this.recordingFolder) {
-      throw new Error('Missing recording folder path');
-    }
-    const glob = path.join(this.recordingFolder, obs.OBS_REPLAY_PREFIX) + '*';
-    let watcher: Watcher | undefined;
-    return new Promise<string | null>((resolve, reject) => {
-      watcher = waitForFile(glob, resolve);
-      setTimeout(() => reject(new Error('Timed out while waiting for replay file')), 10 * 1000);
-    })
-      .finally(() => watcher && watcher.close());
-  };
 
   private async fetchReplayFile(filePath: string): Promise<Replay> {
     logger.info('Fetching replay file:', filePath);
@@ -297,7 +291,11 @@ export class MediaServer {
     const dir = this.getDir();
     const nowMs = Date.now();
     const [ timestamps, fileStats, copiedFilePath ] = await Promise.all([
-      obs.getTimestamps(this.obsWs),
+      this.obs.getTimestamps()
+        .match(
+          t => t,
+          e => { throw e; },
+        ),
       fs.stat(filePath),
       ffmpeg.copyToWebCompatibleFormat(filePath, dir),
     ]);

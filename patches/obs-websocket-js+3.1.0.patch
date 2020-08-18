@@ -1,0 +1,53 @@
+diff --git a/node_modules/obs-websocket-js/types/index.d.ts b/node_modules/obs-websocket-js/types/index.d.ts
+index 2c7ba69..87685a2 100644
+--- a/node_modules/obs-websocket-js/types/index.d.ts
++++ b/node_modules/obs-websocket-js/types/index.d.ts
+@@ -65,7 +65,6 @@ declare module "obs-websocket-js" {
+       name: string;
+       sources: ObsWebSocket.SceneItem[];
+     }
+-  }
+ 
+   interface RequestMethodsArgsMap {
+     GetVersion: void;
+@@ -934,6 +933,7 @@ declare module "obs-websocket-js" {
+ 
+     StudioModeSwitched: { "new-state": boolean };
+   }
++  }
+ 
+   class ObsWebSocket extends EventEmitter {
+     connect(
+@@ -942,23 +942,23 @@ declare module "obs-websocket-js" {
+     ): Promise<void>;
+     disconnect(): void;
+ 
+-    send<K extends keyof RequestMethodsArgsMap>(
++    send<K extends keyof ObsWebSocket.RequestMethodsArgsMap>(
+       requestType: K,
+-      ...args: RequestMethodsArgsMap[K] extends object
+-        ? [RequestMethodsArgsMap[K]]
++      ...args: ObsWebSocket.RequestMethodsArgsMap[K] extends object
++        ? [ObsWebSocket.RequestMethodsArgsMap[K]]
+         : [undefined?]
+-    ): Promise<RequestMethodReturnMap[K]>;
++    ): Promise<ObsWebSocket.RequestMethodReturnMap[K]>;
+ 
+-    sendCallback<K extends keyof RequestMethodsArgsMap>(
++    sendCallback<K extends keyof ObsWebSocket.RequestMethodsArgsMap>(
+       requestType: K,
+-      ...args: RequestMethodsArgsMap[K] extends object
+-        ? [RequestMethodsArgsMap[K], ObsWebSocket.Callback<K>]
++      ...args: ObsWebSocket.RequestMethodsArgsMap[K] extends object
++        ? [ObsWebSocket.RequestMethodsArgsMap[K], ObsWebSocket.Callback<K>]
+         : [ObsWebSocket.Callback<K>]
+     ): void;
+ 
+-    on<K extends keyof EventHandlersDataMap>(
++    on<K extends keyof ObsWebSocket.EventHandlersDataMap>(
+       type: K,
+-      listener: (data: EventHandlersDataMap[K]) => void
++      listener: (data: ObsWebSocket.EventHandlersDataMap[K]) => void
+     ): this;
+   }
+ 

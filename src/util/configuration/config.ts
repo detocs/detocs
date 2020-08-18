@@ -13,10 +13,13 @@ export interface Config {
   peopleDatabaseFile: string;
   logDirectory: string | null;
   clipDirectory: string;
-  obsWebsocketPort: number;
   outputs: (WebSocketOutputConfig | FileOutputConfig)[];
   ports: {
     web: number;
+  };
+  obs: {
+    address: string;
+    password?: string;
   };
 }
 
@@ -39,11 +42,14 @@ const DEFAULTS: Config = {
   peopleDatabaseFile: 'people.json',
   logDirectory: null,
   clipDirectory: tmpDir('clips'),
-  obsWebsocketPort: 4444,
   outputs: [],
   ports: {
     web: 8080,
   },
+  obs: {
+    address: 'localhost:4444',
+    password: undefined,
+  }
 };
 let currentConfig = DEFAULTS;
 

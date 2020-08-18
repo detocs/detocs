@@ -1,4 +1,5 @@
 import BracketServiceProvider from '@services/bracket-service-provider';
+import ObsClient from '@services/obs/obs';
 import { getLogger } from '@util/logger';
 
 import startBracketServer from './bracket/server';
@@ -22,13 +23,14 @@ const logger = getLogger('server');
 interface ServerParams {
   bracketProvider: BracketServiceProvider;
   mediaServer: MediaServer;
+  obsClient: ObsClient;
 }
 
-export default function start({ bracketProvider, mediaServer }: ServerParams): void {
+export default function start({ bracketProvider, mediaServer, obsClient }: ServerParams): void {
   logger.info('DETOCS server initializing...');
   startControlServer(CONTROL_PORT);
   startInfoServer(INFO_PORT);
-  startRecordingServer({ port: RECORDING_PORT, mediaServer, bracketProvider });
+  startRecordingServer({ port: RECORDING_PORT, mediaServer, bracketProvider, obsClient });
   startTwitterServer(TWITTER_PORT, mediaServer);
   startBracketServer({ port: BRACKETS_PORT, bracketProvider });
   startClipServer(MEDIA_DASHBOARD_PORT, mediaServer);
