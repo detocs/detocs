@@ -1,10 +1,14 @@
 @use 'generic/reset';
 
 @use 'elements/aria';
+@use 'elements/button';
 @use 'elements/fieldset';
 @use 'elements/link';
 @use 'elements/main';
 
+@use 'objects/a11y';
+@use 'objects/layout';
+@use 'objects/status';
 @use 'objects/timestamp';
 
 @use 'components/bracket';

@@ -94,7 +94,7 @@ const BracketDashboard: FunctionalComponent<Props> = ({ state, updateState }): V
           {state.unfinishedSets.map(e => <li>{e.displayName}</li>)}
         </ul>
       </div>}
-      <div class="input-row">
+      <div class="action-row">
         <button type="submit">Update</button>
       </div>
     </form>

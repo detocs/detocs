@@ -226,7 +226,7 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
           >
           </textarea>
         </label>
-        <div class="input-row">
+        <div class="action-row">
           <button type="submit" disabled={disabled}>Update</button>
           <button type="submit" disabled={disabled} formAction={cutEndpoint}>Cut</button>
         </div>
@@ -269,7 +269,7 @@ const ClipDashboard: FunctionalComponent<Props> = ({ state }): VNode => {
     state.clips.find(cv => cv.clip.id === currentClipId);
   return (
     <div class="clips">
-      <div class="clips__actions">
+      <div class="clips__actions action-row">
         {clipEndpoints.map(ep =>
           <button
             type="button"

@@ -1,0 +1,34 @@
+.input-row, .action-row {
+  margin-block: var(--margin-small);
+
+  display: flex;
+  flex-wrap: wrap;
+
+  > * {
+    margin-inline: var(--margin-small);
+    margin-block: calc(var(--margin-small) / 2);
+  }
+}
+
+.input-row {
+  > * {
+    flex-grow: 1;
+  }
+
+  > input:not([type]),
+  input[type="text"],
+  input[type="email"],
+  input[type="range"],
+  input[type="search"],
+  input[type="url"],
+  select,
+  textarea,
+  fieldset,
+  div {
+    flex-grow: 9999; // https://joren.co/flex-grow-9999-hack/
+  }
+}
+
+.action-row > button {
+  flex: 1 0 8em;
+}

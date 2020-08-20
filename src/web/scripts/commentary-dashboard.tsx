@@ -79,8 +79,11 @@ const CommentaryDashboard: FunctionalComponent<Props> = ({ state, updateState })
           </div>
         </fieldset>
       </div>
-      <div class="input-row">
-        <button type="button" class="warning" onClick={resetCommentators.bind(null, state, updateState)}>
+      <div class="action-row">
+        <button type="button"
+          class="warning"
+          onClick={resetCommentators.bind(null, state, updateState)}
+        >
           Reset
         </button>
         <button type="button" onClick={swapCommentators.bind(null, state, updateState)}>
@@ -96,7 +99,7 @@ export default CommentaryDashboard;
 function resetCommentator(updater: StateUpdater<PersonUpdate>, event: UIEvent): void {
   updater(nullPerson);
   const button = event.target as HTMLButtonElement;
-  button?.closest('.input-row')
+  button?.closest('fieldset')
     ?.querySelector<HTMLInputElement>(INTERACTIVE_SELECTOR)
     ?.focus();
 }

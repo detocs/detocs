@@ -158,7 +158,7 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
                 aria-busy={clipView?.status === ClipStatus.Rendering}
               />
             </output>
-            <div className="twitter__tweet-media-actions input-row">
+            <div className="twitter__tweet-media-actions action-row">
               <button type="button" onClick={
                 () => takeScreenshot().then(setClipId).catch(logError)
               }>

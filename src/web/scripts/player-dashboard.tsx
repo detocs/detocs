@@ -16,10 +16,10 @@ import {
 } from './hooks/info';
 
 import { infoEndpoint } from './api';
+import BracketSet from './bracket-set';
 import GameFields from './game-fields';
 import MatchFields from './match-fields';
 import PlayerFields from './player-fields';
-import SmashggSet from './smashgg-set';
 
 interface Props {
   state: InfoState;
@@ -80,12 +80,12 @@ const PlayerDashboard: FunctionalComponent<Props> = ({
       <div class="input-row">
         <MatchFields value={match} updateValue={updateMatch} />
         <GameFields value={game} updateValue={updateGame} />
-        <SmashggSet
+        <BracketSet
           set={state.set}
           unfinishedSets={bracketState.unfinishedSets}
         />
       </div>
-      <div class="input-row">
+      <div class="action-row">
         <button type="button" class="warning" onClick={resetPlayers.bind({}, state, updateState)}>
           Reset Players
         </button>

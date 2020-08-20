@@ -26,7 +26,7 @@ const BreakDashboard: FunctionalComponent<Props> = ({ state, updateState }): VNo
     >
       <fieldset name="messages">
         <legend>Messages</legend>
-        {messages.map((m, i) => 
+        {messages.map((m, i) =>
           <div class="input-row">
             <input
               type="text"
@@ -41,7 +41,7 @@ const BreakDashboard: FunctionalComponent<Props> = ({ state, updateState }): VNo
             />
           </div>
         )}
-        <div class="input-row">
+        <div class="action-row">
           <button
             type="button"
             onClick={appendMsg}
@@ -59,7 +59,7 @@ const BreakDashboard: FunctionalComponent<Props> = ({ state, updateState }): VNo
           </button>
         </div>
       </fieldset>
-      <div class="input-row">
+      <div class="action-row">
         <button type="submit">Update</button>
       </div>
     </form>

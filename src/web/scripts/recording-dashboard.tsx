@@ -48,7 +48,7 @@ const RecordingDashboard: FunctionalComponent<Props> = ({ state, updateState }):
 
   return (
     <Fragment>
-      <div class="input-row">
+      <div class="action-row">
         <button type="button" onClick={start}>Start</button>
         <button type="button" onClick={stop} disabled={!isRecording}>Stop</button>
       </div>

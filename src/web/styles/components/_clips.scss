@@ -24,9 +24,8 @@ $video-track-height: 3rem;
   flex-flow: row wrap;
 }
 
-.clips__actions > * {
-  flex-grow: 1;
-  margin-inline: var(--margin-small);
+.clips__actions > button {
+  flex-basis: auto;
 }
 
 .clips__clip-selector {
@@ -235,8 +234,4 @@ $video-track-height: 3rem;
   box-sizing: border-box;
 
   resize: vertical;
-}
-
-.video-editor__buttons button {
-  flex: 0 0 auto;
 }

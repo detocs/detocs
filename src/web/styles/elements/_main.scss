@@ -46,30 +46,6 @@ input[type="text"] {
   min-inline-size: 0;
 }
 
-.input-row {
-  margin-block: var(--margin-small);
-
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.input-row > *,
-.input-row > .fragment > *,
-.players > * {
-  flex-grow: 1;
-  margin-inline: var(--margin-small);
-}
-
-.input-row button {
-  display: block;
-  flex-basis: 8em;
-  inline-size: 100%;
-}
-
-.input-row label {
-  flex: 0 0 auto;
-}
-
 :focus:not(:any-link),
 button:focus,
 [type="button"]:focus,
@@ -82,14 +58,4 @@ button:focus,
 ::selection {
   background: var(--color-selection);
   color: white;
-}
-
-.warning {
-  background: var(--color-bg-warning);
-}
-
-.sr-only {
-  position: absolute;
-  top: auto;
-  left: -10000px;
 }
