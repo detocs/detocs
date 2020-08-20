@@ -87,7 +87,6 @@ export default class PersonFields extends Component<Props, State> {
       return;
     }
     this.updatePerson(updater(this.props.person, val));
-    this.props.person.id = undefined;
     if (val.length > 0) {
       const url = infoEndpoint('/people');
       url.search = `q=${encodeURIComponent(val)}`;
