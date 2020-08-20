@@ -76,31 +76,33 @@ export class ObsConnectionImpl implements ObsConnection {
   };
 
   public readonly connect: ObsConnection['connect'] = async () => {
-    return this.connectionQueue(() => this.connectInternal(MAX_RECONNECTION_ATTEMPTS));
+    return this.connectInternal(MAX_RECONNECTION_ATTEMPTS);
   };
 
   private reconnect(): ResultAsync<void, Error> {
     return ResultAsync.fromPromise(
-      this.connectionQueue(() => this.connectInternal(1)),
+      this.connectInternal(1),
       error => error as Error,
     );
   }
 
   private async connectInternal(maxAttempts: number): Promise<void> {
-    if (this.connected) {
-      return;
-    }
     let delay = MIN_RECONNECTION_DELAY;
     for (let i = 0; i < maxAttempts; i++) {
-      logger.debug(`Connection attempt ${i + 1}/${maxAttempts}`);
       if (i > 0) {
         await sleep(delay);
         delay = Math.min(MAX_RECONNECTION_DELAY, delay * RECONNECTION_DELAY_GROWTH);
       }
       const obsConfig = getConfig().obs;
       try {
-        await this.ws.connect(obsConfig);
-        logger.info(`Connected to OBS at ${obsConfig.address}`);
+        await this.connectionQueue(async () => {
+          if (this.connected) {
+            return;
+          }
+          logger.debug(`Connection attempt ${i + 1}/${maxAttempts}`);
+          await this.ws.connect(obsConfig);
+          logger.info(`Connected to OBS at ${obsConfig.address}`);
+        });
         return;
       } catch(error) {
         if (this.connected) {
