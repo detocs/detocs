@@ -60,6 +60,19 @@ export default function start(port: number): void {
     broadcastState(state);
     outputs.forEach(o => o.update(state));
   });
+  app.post('/scoreboardBracketFill', async (req, res) => {
+    logger.debug(`Bracket set fill update received:\n`, req.fields);
+    if (!req.fields) {
+      res.sendStatus(400);
+      return;
+    }
+    const { unfinishedSets } = await getBracketState();
+    const scoreboard = fillBracketSet(req.fields, unfinishedSets);
+    Object.assign(state, scoreboard);
+    res.sendStatus(200);
+    broadcastState(state);
+    outputs.forEach(o => o.update(state));
+  });
   app.post('/lowerthird', (req, res) => {
     logger.debug(`Lower third update received:\n`, req.fields);
     if (!req.fields) {
@@ -181,17 +194,10 @@ function parseScoreboard(
     players.push({ person, score, inLosers, comment });
   }
 
-  let match = parseMatch(fields);
-  let game = parseGame(fields);
-
-  // TODO: Reload people from datastore?
+  const match = parseMatch(fields);
+  const game = parseGame(fields);
   const set = parseSet(fields, unfinishedSets);
-  const playersUnset = players.filter(p => !!p.person.handle).length == 0;
-  if (isSetChanged(set) && playersUnset) {
-    players = playersFromSet(set).concat(players).slice(0, 2);
-    match = set.match || nullMatch;
-    game = set.videogame || nullGame;
-  }
+  // TODO: Reload people from datastore?
 
   return {
     players,
@@ -201,8 +207,24 @@ function parseScoreboard(
   };
 }
 
-function isSetChanged(set: TournamentSet | undefined): set is TournamentSet {
-  return !!set && (!state.set || !isEqual(state.set.serviceInfo, set.serviceInfo));
+function fillBracketSet(
+  fields: Record<string, unknown>,
+  unfinishedSets: TournamentSet[],
+): Partial<Scoreboard> {
+  const set = parseSet(fields, unfinishedSets);
+  if (!set) {
+    return {};
+  }
+  const players = playersFromSet(set).concat(state.players).slice(0, 2);
+  const match = set.match || nullMatch;
+  const game = set.videogame || nullGame;
+
+  return {
+    players,
+    game,
+    match,
+    set,
+  };
 }
 
 function playersFromSet(set: TournamentSet): Player[] {

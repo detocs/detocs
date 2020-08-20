@@ -1,3 +1,5 @@
+export type FormControlElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+
 /**
  * Shim that lets us pretend that the server can handle repeated keys in
  * multipart form data
@@ -29,4 +31,12 @@ export function submitForm(event: Event): void {
   }
   const form = target.form || target.closest('form');
   form?.requestSubmit();
+}
+
+export function fieldSetFormData(fieldSet: HTMLFieldSetElement): FormData {
+  const data = new FormData();
+  for (const elem of fieldSet.elements as HTMLCollectionOf<FormControlElement>) {
+    data.append(elem.name, elem.value);
+  }
+  return data;
 }
