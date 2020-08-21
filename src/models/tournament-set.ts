@@ -20,7 +20,7 @@ export default interface TournamentSet {
       smashggId: SmashggId; // TODO: per-service
       handle: string;
       prefix: string | null;
-      twitter: string | null;
+      twitter?: string;
     }[];
     inLosers?: boolean;
   }[];

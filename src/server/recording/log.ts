@@ -17,7 +17,7 @@ const asyncWriteFile = promisify(writeFile);
 
 export interface Log {
   format: string;
-  version: string;
+  version: string; // App version
   file: string;
   bracketService?: string;
   eventId?: string;

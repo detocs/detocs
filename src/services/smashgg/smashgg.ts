@@ -131,7 +131,7 @@ export default class SmashggClient implements BracketService {
             smashggId: p.player.id.toString(),
             handle: p.player.gamerTag,
             prefix: p.prefix || (p.player.prefix || null),
-            twitter: p.user?.authorizations?.[0].externalUsername || null,
+            twitter: p.user?.authorizations?.[0].externalUsername || undefined,
           })),
           inLosers: isTrueFinals(match) || (isGrandFinals(match) && index === 1),
         })),

@@ -106,8 +106,8 @@ export default function start(port: number): void {
     }
     res.send(People.searchByHandle(query));
   });
-  app.get('/people/:id(\\d+)', (req, res) => {
-    const id = +req.params['id'];
+  app.get('/people/:id', (req, res) => {
+    const id = req.params['id'];
     res.send(People.getById(id));
   });
   app.get('/games', (_, res) => {
@@ -167,7 +167,7 @@ function loadOutputs(): Output[] {
 // TODO: Subscribe to player id?
 function updatePeople(list: { person: Person }[]): void {
   list.forEach(x => {
-    if (x.person.id == null || x.person.id < 0) {
+    if (x.person.id == null || x.person.id === '') {
       return;
     }
     const p = People.getById(x.person.id);
@@ -312,7 +312,7 @@ function parseBreak(fields: Record<string, unknown>): Break {
 }
 
 function parsePerson(fields: Record<string, unknown>, fieldPrefix: string): Person {
-  const id: number | undefined = parseId(fields[`${fieldPrefix}[id]`]);
+  const id = parseId(fields[`${fieldPrefix}[id]`]);
   const update: PersonUpdate = { id };
   const handle = fields[`${fieldPrefix}[handle]`] as string | undefined;
   if (handle != null) {
@@ -324,7 +324,7 @@ function parsePerson(fields: Record<string, unknown>, fieldPrefix: string): Pers
   }
   const twitter = fields[`${fieldPrefix}[twitter]`] as string | undefined;
   if (twitter != null) {
-    update.twitter = twitter.trim() || null;
+    update.twitter = twitter.trim() || undefined;
   }
   return People.save(update);
 }
@@ -386,11 +386,11 @@ function parseSet(
   return unfinishedSets.find(s => isEqual(s.serviceInfo, serviceInfo));
 }
 
-function parseId(idStr: unknown): number | undefined {
+function parseId(idStr: unknown): string | undefined {
   if (!(typeof idStr === 'string')) {
     return undefined;
   }
-  return idStr ? parseInt(idStr) : undefined;
+  return idStr || undefined;
 }
 
 function parseOptionalString(fields: Record<string, unknown>, name: string): string | undefined {

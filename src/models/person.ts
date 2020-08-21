@@ -1,24 +1,17 @@
 export default interface Person {
-  id: number;
+  id: string;
   handle: string;
   prefix: string | null;
-  twitter: string | null;
+  twitter?: string;
   smashggId?: string;
 };
 
-export interface PersonUpdate {
-  id?: number;
-  handle?: string;
-  prefix?: string | null;
-  twitter?: string | null;
-  smashggId?: string;
-};
+export type PersonUpdate = Partial<Person>;
 
 export const nullPerson: Person = Object.freeze({
-  id: -1,
+  id: '',
   handle: '',
   prefix: null,
-  twitter: null
 });
 
 export function isEqual(p1: Person, p2: Person): boolean {

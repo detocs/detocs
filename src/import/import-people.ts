@@ -17,7 +17,7 @@ export default async function importPeopleDatabase(path: string): Promise<void> 
     const p: PersonUpdate = {
       handle: r[0],
       prefix: r[1] || null,
-      twitter: r[2] || null,
+      twitter: r[2] || undefined,
     };
     save(p);
   }

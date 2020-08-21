@@ -5,25 +5,32 @@ import { dirname } from 'path';
 
 import { getConfig } from '@util/configuration/config';
 import { getVersion } from '@util/meta';
+import { nonNull } from '@util/predicates';
 
 import Person, { isEqual, PersonUpdate, nullPerson, getName } from './person';
+import { getId } from '@util/id';
 
+const CURRENT_DB_FORMAT = "1";
 const logger = getLogger('people');
 
-// TODO: Proper serialization
 interface Database {
-  version: string;
+  format: string;
+  version: string; // App version
   people: Person[];
+}
+
+interface LoadedDatabase extends Omit<Database, 'people'> {
+  people: Partial<Person>[];
 }
 
 const DEFAULTS = nullPerson;
 
 // TODO: Make PersonDatabase class
 const database: Database = {
+  format: CURRENT_DB_FORMAT,
   version: getVersion(),
   people: [],
 };
-let nextId = getNextId(database.people);
 let backedUp = false;
 
 export function loadDatabase(): void {
@@ -36,22 +43,32 @@ export function loadDatabase(): void {
     return;
   }
   logger.info(`Loading person database from ${filePath}.
+format: ${db.format}
 version: ${db.version}
 person count: ${db.people.length}`);
-  database.people = db.people.map(parsePerson);
-  nextId = getNextId(database.people);
+  database.people = db.people.map(parsePerson)
+    .filter(nonNull);
   backedUp = false;
 }
 
-function parsePerson(p: Person): Person {
-  return p;
-  // TODO: Figure out a way to automate keeping this up to date?
-  /*return {
-    id: p['id'],
-    handle: p['handle'],
-    prefix: p['prefix'],
-    twitter: p['twitter'],
-  };*/
+function parsePerson(p: Partial<Person>): Person | null {
+  const handle = p.handle;
+  if (!handle) {
+    logger.warn('`handle` field is required. Skipping person record.');
+    return null;
+  }
+  let id = p.id;
+  if (typeof id !== 'string' || id === '') {
+    logger.info(`Valid ID not found for ${handle}. Generating new ID.`);
+    id = getId();
+  }
+  return {
+    ...p,
+    id,
+    handle,
+    prefix: p.prefix || null,
+    twitter: p.twitter || undefined,
+  };
 }
 
 export async function saveDatabase(): Promise<void> {
@@ -67,14 +84,8 @@ export async function saveDatabase(): Promise<void> {
   writeFileSync(filePath, JSON.stringify(database, null, 2));
 }
 
-function getNextId(people: Person[]): number {
-  const maxId = people.map(p => p.id)
-    .reduce((prev, cur) => prev > cur ? prev : cur, -1);
-  return maxId + 1;
-}
-
-export function getById(id?: number): Person | null {
-  if (id == null || id < 0) {
+export function getById(id?: string): Person | null {
+  if (id == null || id === '') {
     return null;
   }
   return database.people.find(p => p.id === id) || null;
@@ -101,7 +112,7 @@ function add(update: PersonUpdate): Person {
   }
 
   logger.info('New person:', update);
-  person.id = nextId++;
+  person.id = getId();
   database.people.push(person);
   saveDatabase();
   logger.debug('People:', database.people.slice(-10));

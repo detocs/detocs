@@ -69,7 +69,6 @@ export default class ChallongeClient implements BracketService {
           smashggId: p.id,
           handle: p.name,
           prefix: null, // TODO: split on pipe?
-          twitter: null,
         }],
         inLosers: inLosers,
       };

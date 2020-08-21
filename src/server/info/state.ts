@@ -28,7 +28,7 @@ export const sampleState: State = Object.freeze({
   players: [
     {
       person: {
-        id: 0,
+        id: 'd202007190602063570000',
         handle: "Quick Dwarf",
         prefix: null,
         twitter: "QuickDwarf"
@@ -37,7 +37,7 @@ export const sampleState: State = Object.freeze({
     },
     {
       person: {
-        id: 610,
+        id: 'd202008190602063570000',
         handle: "Nymphs Blitz",
         prefix: "VEX JOG",
         twitter: "VJ_NymphsBlitz"
@@ -70,7 +70,7 @@ export const sampleState: State = Object.freeze({
   commentators: [
     {
       person: {
-        id: 0,
+        id: 'd202007190602063570000',
         handle: "Quick Dwarf",
         prefix: null,
         twitter: "QuickDwarf"
@@ -78,7 +78,7 @@ export const sampleState: State = Object.freeze({
     },
     {
       person: {
-        id: 610,
+        id: 'd202008190602063570000',
         handle: "Nymphs Blitz",
         prefix: "VEX JOG",
         twitter: "VJ_NymphsBlitz"
