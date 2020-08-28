@@ -36,4 +36,14 @@ module.exports = {
     'react/jsx-uses-react': 'error',
     'react/jsx-uses-vars': 'error',
   },
+  overrides: [
+    {
+      files: [
+        '*.js'
+      ],
+      rules: {
+        '@typescript-eslint/no-var-requires': 'off',
+      }
+    },
+  ],
 };

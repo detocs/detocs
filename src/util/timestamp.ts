@@ -54,7 +54,7 @@ export function subtractTimestamp(a: Timestamp, b: Timestamp): Timestamp {
     return '-' + moment.utc(timeB.diff(timeA))
       .format(TIMESTAMP_FORMAT);
   } else {
-    return '-' + moment.utc(timeA.diff(timeB))
+    return moment.utc(timeA.diff(timeB))
       .format(TIMESTAMP_FORMAT);
   }
 }

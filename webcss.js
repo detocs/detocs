@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
 const browserslist = require('browserslist');
 const doiuse = require('doiuse');
 const fs = require('fs').promises;

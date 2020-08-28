@@ -34,7 +34,8 @@
     "electron-archive": "node archive-win.js",
     "electron-release": "electron-builder && npm run electron-archive",
     "license-check": "license-checker --summary --failOn 'UNKNOWN; UNLICENSED'",
-    "postinstall": "patch-package && npm run license-check"
+    "postinstall": "patch-package && npm run license-check",
+    "test": "jest"
   },
   "build": {
     "appId": "com.datagram.detocs",
@@ -125,6 +126,7 @@
     "eslint": "^5.16.0",
     "eslint-plugin-react": "^7.14.3",
     "form-request-submit-polyfill": "^2.0.0",
+    "jest": "^26.4.2",
     "license-checker": "^25.0.1",
     "normalize.css": "^8.0.1",
     "patch-package": "^6.2.2",
@@ -138,9 +140,10 @@
     "rollup-plugin-bundle-size": "^1.0.3",
     "rollup-plugin-visualizer": "^4.0.4",
     "sass": "^1.26.5",
+    "ts-jest": "^26.2.0",
     "tsc-alias": "^1.1.1",
     "twitter-text": "^3.1.0",
-    "typescript": "^3.7.2",
+    "typescript": "^3.9.7",
     "w3c-keys": "^1.0.1"
   }
 }
