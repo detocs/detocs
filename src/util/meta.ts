@@ -1,7 +1,11 @@
-import { version, homepage } from 'package.json';
+import { version, productName, homepage } from 'package.json';
 
 export function getVersion(): string {
   return version;
+}
+
+export function getProductName(): string {
+  return productName;
 }
 
 export function getHomepage(): string {

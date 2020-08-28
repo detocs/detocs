@@ -31,7 +31,7 @@ import { loadConfig, getConfig } from '@util/configuration/config';
 import { loadCredentials } from '@util/configuration/credentials';
 import { sortedKeys } from '@util/json';
 import { getBasicLogger } from '@util/logger';
-import { getVersion, setAppRoot, isPackagedApp } from '@util/meta';
+import { getVersion, setAppRoot, isPackagedApp, getProductName } from '@util/meta';
 import web from '@web/server';
 
 interface ConfigOptions {
@@ -60,16 +60,19 @@ interface VodOptions {
 setAppRoot(__dirname);
 const logger = getBasicLogger();
 const VERSION = getVersion();
-process.title = `DETOCS ${VERSION}`;
+const PRODUCT_NAME = getProductName();
+process.title = `${PRODUCT_NAME} ${VERSION}`;
 
 const parser = yargs
-  .option('config', {
-    alias: 'c',
+  .option('c', {
+    alias: 'config',
+    describe: 'Use the specified config file',
     type: 'string',
     global: true,
   })
-  .option('credentials', {
-    alias: 'k',
+  .option('k', {
+    alias: 'credentials',
+    describe: 'Use the specified credentials file',
     type: 'string',
     global: true,
   })
@@ -80,69 +83,68 @@ const parser = yargs
   .command({
     command: 'server',
     aliases: '$0',
-    describe: 'start server',
+    describe: `${PRODUCT_NAME} server`,
     handler: startServer,
   })
   .command({
     command: 'export-people <destination>',
-    describe: 'export person database',
+    describe: 'Export people from the database',
     handler: exportPeople,
     builder: (y: yargs.Argv<{}>): yargs.Argv<PersonExportOptions> => y
       .positional('destination', {
-        describe: 'output file path',
+        describe: 'Output file path',
         type: 'string',
         demandOption: 'you must provide a destination path',
       })
       .option('sa', {
         alias: 'scoreboard-assistant',
-        describe: 'use Scoreboard Assistant format',
+        describe: 'Scoreboard Assistant format',
         type: 'boolean',
         group: 'Formats',
       })
       .option('sat', {
         alias: 'scoreboard-assistant-twitter',
-        describe: 'use Scoreboard Assistant format (include Twitter handles)',
+        describe: 'Scoreboard Assistant format (include Twitter handles)',
         type: 'boolean',
         group: 'Formats',
       })
       .option('sc', {
         alias: 'stream-control',
-        describe: 'use Stream Control format',
+        describe: 'StreamControl format',
         type: 'boolean',
         group: 'Formats',
       })
       .option('sct', {
         alias: 'stream-control-twitter',
-        describe: 'use Stream Control format (include Twitter handles)',
+        describe: 'StreamControl format (include Twitter handles)',
         type: 'boolean',
         group: 'Formats',
       }),
   })
   .command({
     command: 'import-people <source>',
-    describe: 'import people into database',
+    describe: 'Import people into the database',
     handler: importPeople,
     builder: (y: yargs.Argv<{}>): yargs.Argv<PersonImportOptions> => y
       .positional('source', {
-        describe: 'input file path (CSV only)',
+        describe: 'Input file path (CSV only)',
         type: 'string',
         demandOption: 'you must provide a source path',
       }),
   })
   .command({
     command: 'vod <logFile> [command]',
-    describe: 'cut vods and upload to YouTube',
+    describe: 'Cut vods and upload them to YouTube',
     handler: vods,
     builder: (y: yargs.Argv<{}>): yargs.Argv<VodOptions> => y
       .positional('logFile', {
-        describe: 'DETOCS recording log file',
+        describe: `${PRODUCT_NAME} recording log file`,
         type: 'string',
         demandOption: 'you must provide a detocs log file',
       })
       .positional('command', {
-        describe: 'upload to YouTube',
         type: 'string',
-        choices: ['metadata', 'video', 'upload'],
+        choices: ['metadata', 'cut', 'upload'],
         default: 'metadata',
       })
       .option('ps', {
@@ -155,7 +157,7 @@ const parser = yargs
   })
   .help('h')
   .alias('h', 'help')
-  .version(getVersion())
+  .version(VERSION)
   .strict();
 if (isPackagedApp()) {
   parser.parse(process.argv.slice(1));
@@ -234,7 +236,7 @@ async function vods(opts: yargs.Arguments<VodOptions>): Promise<void> {
     case 'upload':
       command = Command.Upload;
       break;
-    case 'video':
+    case 'cut':
       command = Command.Video;
       break;
   }

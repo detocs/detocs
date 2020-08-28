@@ -11,7 +11,7 @@ import RecordingState, { nullState as nullRecordingState } from '@server/recordi
 import TwitterState, { nullState as nullTwitterState } from '@server/twitter/client-state';
 import { checkResponseStatus } from '@util/ajax';
 import { massagedFormData } from '@util/forms';
-import { getVersion } from '@util/meta';
+import { getVersion, getProductName } from '@util/meta';
 
 import {
   infoEndpoint,
@@ -38,7 +38,8 @@ document.addEventListener('DOMContentLoaded', () => {
   render(<App />, document.getElementById("app") as HTMLDivElement);
 });
 
-const version = getVersion();
+const VERSION = getVersion();
+const PRODUCT_NAME = getProductName();
 
 const App: FunctionalComponent<{}> = (): VNode => {
   const [ infoState, updateInfoState ] = useServerState<InfoState>(
@@ -94,7 +95,7 @@ const App: FunctionalComponent<{}> = (): VNode => {
           <BreakDashboard state={infoState} updateState={updateInfoState}/>
         </Tab>
       </TabController>
-      <footer id="version">DETOCS {version}</footer>
+      <footer id="version">{PRODUCT_NAME} {VERSION}</footer>
       <ToastContainer />
     </Fragment>
   );
