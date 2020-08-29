@@ -2,7 +2,7 @@ import { h, FunctionalComponent, RenderableProps, VNode, Fragment, createRef } f
 
 import TournamentSet from '@models/tournament-set';
 
-import Autocomplete from './autocomplete';
+import Autocomplete, { useAutocompleteId } from './autocomplete';
 
 export interface Props {
   set?: TournamentSet;
@@ -13,7 +13,7 @@ export interface Props {
 const SetSelector: FunctionalComponent<Props> = (props: RenderableProps<Props>): VNode => {
   const sets = props.unfinishedSets || [];
   const inputRef = createRef<HTMLInputElement>();
-  const autocompleteId = Autocomplete.useId();
+  const autocompleteId = useAutocompleteId();
   // TODO: Implement a way to clear this field
   return(
     <Fragment>

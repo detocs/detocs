@@ -1,4 +1,4 @@
-import { h, Component, ComponentChild, RefObject } from 'preact';
+import { h, RefObject, Component, ComponentChild } from 'preact';
 
 import nextId from '@util/next-id';
 
@@ -10,6 +10,18 @@ function getPlaceholder(id: string): string {
   return `{{${id}}}`;
 }
 
+export function newAutocompleteId(): string {
+  return nextId('autocomplete-');
+}
+
+export function useAutocompleteId(): string {
+  return useId(1, 'autocomplete-')[0];
+}
+
+export function isAutocompleteValue(val: string): boolean {
+  return idRegex.test(val);
+}
+
 interface AutocompleteProps<T> {
   id: string;
   options: T[];
@@ -19,43 +31,16 @@ interface AutocompleteProps<T> {
   setValue: (entity: T) => void;
 }
 
-class Autocomplete<T> extends Component<AutocompleteProps<T>> {
-  public static newId(): string {
-    return nextId('autocomplete-');
-  }
-
-  public static useId(): string {
-    return useId(1, 'autocomplete-')[0];
-  }
-
-  public static isAutocompleteValue(val: string): boolean {
-    return idRegex.test(val);
-  }
-
-  public componentDidMount(): void {
-    const input = this.props.inputRef.current;
-    if (input) {
-      input.addEventListener('input', this.handleInput.bind(this));
-    }
-  }
-
+export default class Autocomplete<T> extends Component<AutocompleteProps<T>> {
   private findValueInOptions(id: string): T | null {
     return this.props.options
       .find(t => this.props.idMapper(t) === id) ||
       null;
   }
 
-  protected setValue(value: T): void {
-    this.setState({ value });
-  }
-
-  protected setOptions(options: T[]): void {
-    this.setState({ options });
-  }
-
-  private handleInput = (event: Event): void => {
-    const name = (event.target as HTMLInputElement).value;
-    const match = idRegex.exec(name);
+  private readonly handleInput = (event: Event): void => {
+    const val = (event.target as HTMLInputElement).value;
+    const match = idRegex.exec(val);
     if (match) {
       const id = match[1];
       const entity = this.findValueInOptions(id);
@@ -63,15 +48,32 @@ class Autocomplete<T> extends Component<AutocompleteProps<T>> {
     }
   };
 
-  public render(props: AutocompleteProps<T>): ComponentChild {
+  public componentDidMount(): void {
+    const input = this.props.inputRef.current;
+    if (input) {
+      input.addEventListener('input', this.handleInput);
+    }
+  }
+
+  public componentWillUnmount(): void {
+    const input = this.props.inputRef.current;
+    if (input) {
+      input.removeEventListener('input', this.handleInput);
+    }
+  }
+
+  public render({
+    id,
+    options,
+    idMapper,
+    nameMapper,
+  }: AutocompleteProps<T>): ComponentChild {
     return (
-      <datalist id={props.id}>
-        {props.options.map(
-          t => <option value={getPlaceholder(props.idMapper(t))}>{props.nameMapper(t)}</option>
+      <datalist id={id}>
+        {options.map(
+          t => <option value={getPlaceholder(idMapper(t))}>{nameMapper(t)}</option>
         )}
       </datalist>
     );
   }
-}
-
-export default Autocomplete;
+};

@@ -5,10 +5,9 @@ import { nullPerson, PersonUpdate } from '@models/person';
 import InfoState from '@server/info/state';
 import { INTERACTIVE_SELECTOR } from '@util/dom';
 
-import { useCommentator1, useCommentator2 } from './hooks/info';
-
 import { infoEndpoint } from './api';
-import PersonFields from './person-fields';
+import { useCommentator1, useCommentator2 } from './hooks/info';
+import { PersonFieldInput, PersonSelector, PersonFieldProps } from './person-fields';
 
 interface Props {
   state: InfoState;
@@ -26,34 +25,18 @@ const CommentaryDashboard: FunctionalComponent<Props> = ({ state, updateState })
       autocomplete="off"
     >
       <div class="players">
-        <fieldset name="commentator" class="commentator js-commentator">
-          <legend>Commentator 1</legend>
-          <div className="input-row">
-            <PersonFields
-              person={com1}
-              prefix="players[]"
-              personFields={[ "handle", "prefix", "twitter" ]}
-              onUpdatePerson={updateCom1}
-            />
-            <button type="button" class="warning" onClick={resetCommentator.bind(null, updateCom1)}>
-              Reset 1
-            </button>
-          </div>
-        </fieldset>
-        <fieldset name="commentator" class="commentator js-commentator">
-          <legend>Commentator 2</legend>
-          <div className="input-row">
-            <PersonFields
-              person={com2}
-              prefix="players[]"
-              personFields={["handle", "prefix", "twitter"]}
-              onUpdatePerson={updateCom2}
-            />
-            <button type="button" class="warning" onClick={resetCommentator.bind(null, updateCom2)}>
-              Reset 2
-            </button>
-          </div>
-        </fieldset>
+        <Commentator
+          index={1}
+          prefix="players[]"
+          person={com1}
+          onUpdatePerson={updateCom1}
+        />
+        <Commentator
+          index={2}
+          prefix="players[]"
+          person={com2}
+          onUpdatePerson={updateCom2}
+        />
       </div>
       <div class="input-row">
         <fieldset name="tournament">
@@ -95,6 +78,54 @@ const CommentaryDashboard: FunctionalComponent<Props> = ({ state, updateState })
   );
 };
 export default CommentaryDashboard;
+
+
+type CommentatorProps = PersonFieldProps & {
+  index: number;
+};
+
+function Commentator({ index, prefix, person, onUpdatePerson }: CommentatorProps): VNode {
+  return (
+    <fieldset name="commentator" class="commentator js-commentator">
+      <legend>Commentator {index}</legend>
+      <div className="input-row">
+        <PersonSelector
+          prefix={prefix}
+          person={person}
+          onUpdatePerson={onUpdatePerson}
+        />
+        <PersonFieldInput
+          fieldName="prefix"
+          prefix={prefix}
+          person={person}
+          onUpdatePerson={onUpdatePerson}
+        />
+        <PersonFieldInput
+          fieldName="twitter"
+          prefix={prefix}
+          person={person}
+          onUpdatePerson={onUpdatePerson}
+        />
+        <details>
+          <summary>More</summary>
+          <div class="input-row">
+            {[ 'handle', 'alias' ].map(fieldName =>
+              <PersonFieldInput
+                fieldName={fieldName}
+                prefix={prefix}
+                person={person}
+                onUpdatePerson={onUpdatePerson}
+              />
+            )}
+          </div>
+        </details>
+        <button type="button" class="warning" onClick={resetCommentator.bind(null, onUpdatePerson)}>
+          Reset {index}
+        </button>
+      </div>
+    </fieldset>
+  );
+}
 
 function resetCommentator(updater: StateUpdater<PersonUpdate>, event: UIEvent): void {
   updater(nullPerson);

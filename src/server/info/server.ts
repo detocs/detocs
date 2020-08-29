@@ -314,9 +314,17 @@ function parseBreak(fields: Record<string, unknown>): Break {
 function parsePerson(fields: Record<string, unknown>, fieldPrefix: string): Person {
   const id = parseId(fields[`${fieldPrefix}[id]`]);
   const update: PersonUpdate = { id };
+  const handleOrAlias = fields[`${fieldPrefix}[handleOrAlias]`] as string | undefined;
+  if (handleOrAlias != null) {
+    update.handle = handleOrAlias.trim();
+  }
   const handle = fields[`${fieldPrefix}[handle]`] as string | undefined;
   if (handle != null) {
     update.handle = handle.trim();
+  }
+  const alias = fields[`${fieldPrefix}[alias]`] as string | undefined;
+  if (alias != null) {
+    update.alias = alias.trim() || undefined;
   }
   const prefix = fields[`${fieldPrefix}[prefix]`] as string | undefined;
   if (prefix != null) {

@@ -1,6 +1,7 @@
 export default interface Person {
   id: string;
   handle: string;
+  alias?: string;
   prefix: string | null;
   twitter?: string;
   smashggId?: string;
@@ -25,4 +26,10 @@ export function isEqual(p1: Person, p2: Person): boolean {
 export function getName(p: Person | PersonUpdate): string {
   const prefix = p.prefix ? `${p.prefix} | ` : '';
   return `${prefix}${p.handle}`;
+}
+
+export function getNameWithAlias(p: Person | PersonUpdate): string {
+  const prefix = p.prefix ? `${p.prefix} | ` : '';
+  const suffix = p.alias ? ` (${p.handle})` : '';
+  return `${prefix}${p.alias || p.handle}${suffix}`;
 }

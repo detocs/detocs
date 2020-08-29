@@ -1,9 +1,9 @@
-import { h, Component, ComponentChild } from "preact";
+import { h, Component, ComponentChild } from 'preact';
 
-import { PersistentCheckbox } from "./persistent-checkbox";
-import PersonFields, { Props as PersonFieldsProps } from "./person-fields";
+import { PersistentCheckbox } from './persistent-checkbox';
+import { PersonFieldInput, PersonSelector, PersonFieldProps } from './person-fields';
 
-export type Props = PersonFieldsProps & {
+export type Props = PersonFieldProps & {
   index: number;
   score: number;
   onUpdateScore: (score: number) => void;
@@ -34,12 +34,30 @@ export default class PlayerFields extends Component<Props, {}> {
           <fieldset name="competitor" class="competitor">
             <legend>Competitor</legend>
             <div class="input-row">
-              <PersonFields
+              <PersonSelector
                 prefix={props.prefix}
-                personFields={props.personFields}
                 person={props.person}
                 onUpdatePerson={props.onUpdatePerson}
               />
+              <PersonFieldInput
+                fieldName="prefix"
+                prefix={props.prefix}
+                person={props.person}
+                onUpdatePerson={props.onUpdatePerson}
+              />
+              <details>
+                <summary>More</summary>
+                <div class="input-row">
+                  {[ 'handle', 'alias', 'twitter' ].map(fieldName =>
+                    <PersonFieldInput
+                      fieldName={fieldName}
+                      prefix={props.prefix}
+                      person={props.person}
+                      onUpdatePerson={props.onUpdatePerson}
+                    />
+                  )}
+                </div>
+              </details>
             </div>
           </fieldset>
           <fieldset name="extra">

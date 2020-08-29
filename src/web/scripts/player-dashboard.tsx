@@ -52,7 +52,6 @@ const PlayerDashboard: FunctionalComponent<Props> = ({
       <div class="players">
         <PlayerFields
           prefix="players[]"
-          personFields={[ "handle", "prefix" ]}
           index={0}
           person={player1}
           onUpdatePerson={updatePlayer1}
@@ -65,7 +64,6 @@ const PlayerDashboard: FunctionalComponent<Props> = ({
         />
         <PlayerFields
           prefix="players[]"
-          personFields={[ "handle", "prefix" ]}
           index={1}
           person={player2}
           onUpdatePerson={updatePlayer2}

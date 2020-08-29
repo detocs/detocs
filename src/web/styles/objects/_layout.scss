@@ -2,7 +2,8 @@
   margin-block: var(--margin-small);
 
   display: flex;
-  flex-wrap: wrap;
+  flex-flow: row wrap;
+  align-items: center;
 
   > * {
     margin-inline: var(--margin-small);
