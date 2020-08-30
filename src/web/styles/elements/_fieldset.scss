@@ -8,3 +8,8 @@ fieldset {
     background: var(--color-bg-inactive);
   }
 }
+
+legend button {
+  line-height: 0.85;
+  padding-inline: 0.5em;
+}

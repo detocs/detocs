@@ -138,6 +138,7 @@ export const PersonSelector: FunctionalComponent<PersonFieldProps> = ({
         list={autocompleteId}
         onInput={handleHandleInput.bind(null, fieldMappings['handleOrAlias'].updatedWithValue)}
         placeholder="Handle/Alias"
+        autoFocus={true}
       />
       <Autocomplete<Person>
         id={autocompleteId}

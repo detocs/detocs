@@ -26,13 +26,13 @@ const CommentaryDashboard: FunctionalComponent<Props> = ({ state, updateState })
     >
       <div class="players">
         <Commentator
-          index={1}
+          index={0}
           prefix="players[]"
           person={com1}
           onUpdatePerson={updateCom1}
         />
         <Commentator
-          index={2}
+          index={1}
           prefix="players[]"
           person={com2}
           onUpdatePerson={updateCom2}
@@ -87,7 +87,13 @@ type CommentatorProps = PersonFieldProps & {
 function Commentator({ index, prefix, person, onUpdatePerson }: CommentatorProps): VNode {
   return (
     <fieldset name="commentator" class="commentator js-commentator">
-      <legend>Commentator {index}</legend>
+      <legend>
+        Commentator {index+1}
+        {' '}
+        <button type="button" class="warning" onClick={resetCommentator.bind(null, onUpdatePerson)}>
+          Reset
+        </button>
+      </legend>
       <div className="input-row">
         <PersonSelector
           prefix={prefix}
@@ -119,9 +125,6 @@ function Commentator({ index, prefix, person, onUpdatePerson }: CommentatorProps
             )}
           </div>
         </details>
-        <button type="button" class="warning" onClick={resetCommentator.bind(null, onUpdatePerson)}>
-          Reset {index}
-        </button>
       </div>
     </fieldset>
   );
