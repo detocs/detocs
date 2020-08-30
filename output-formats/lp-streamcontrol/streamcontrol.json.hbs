@@ -1,5 +1,5 @@
 {{#*inline "playerName"}}
-{{~escapeJson person.handle}}
+{{~#if person.alias}}{{escapeJson person.alias}}{{else}}{{escapeJson person.handle}}{{/if}}
 {{~#if comment}} ({{escapeJson comment}}){{/if}}
 {{~#if inLosers}} [L]{{/if}}
 {{~/inline}}

@@ -11,7 +11,7 @@
 {{~escapeJson (escapeString . "||" "|")}}
 {{~/inline}}
 {{#*inline "player"}}
-{{~> escapeName person.handle}}
+{{~#if person.alias}}{{> escapeName person.alias}}{{else}}{{> escapeName person.handle}}{{/if}}
 {{~#if comment}} ({{> escapeName comment}}){{/if}}
 {{~#if inLosers}} [L]{{/if}}
 {{~#if person.prefix}} || {{> escapeName person.prefix}}{{/if}}
