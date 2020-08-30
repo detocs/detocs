@@ -7,7 +7,7 @@ import { getConfig } from '@util/configuration/config';
 import { getVersion } from '@util/meta';
 import { nonNull } from '@util/predicates';
 
-import Person, { isEqual, PersonUpdate, nullPerson, getName } from './person';
+import Person, { isEqual, PersonUpdate, nullPerson, getPrefixedAlias } from './person';
 import { getId } from '@util/id';
 
 const CURRENT_DB_FORMAT = "1";
@@ -136,12 +136,16 @@ export function all(): Person[] {
   return database.people;
 }
 
-export function searchByHandle(query: string): Person[] {
+export function search(query: string): Person[] {
   query = query.toLowerCase();
-  return database.people.filter(p => p.handle.toLowerCase().includes(query));
+  return database.people.filter(p =>
+    p.handle.toLowerCase().includes(query) ||
+    p.alias?.toLowerCase().includes(query) ||
+    p.prefix?.toLowerCase().includes(query)
+  );
 }
 
 export function findByFullName(query: string): Person[] {
   query = query.toLowerCase();
-  return database.people.filter(p => getName(p).toLowerCase() === query);
+  return database.people.filter(p => getPrefixedAlias(p).toLowerCase() === query);
 }

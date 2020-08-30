@@ -3,7 +3,7 @@ import { forwardRef } from 'preact/compat';
 import { useState, useRef, StateUpdater } from 'preact/hooks';
 import { JSXInternal } from 'preact/src/jsx';
 
-import Person, { PersonUpdate, getNameWithAlias } from '@models/person';
+import Person, { PersonUpdate, getPrefixedNameWithAlias, getNameWithAlias } from '@models/person';
 import { checkResponseStatus } from '@util/ajax';
 import { capitalize } from '@util/string';
 
@@ -18,7 +18,7 @@ interface FieldMapping {
 }
 const fieldMappings: Record<string, FieldMapping> = {
   'handleOrAlias': {
-    getValue: p => p.alias || p.handle,
+    getValue: p => getNameWithAlias(p),
     updatedWithValue: (p, val) => {
       return ({
         handle: val,
@@ -143,7 +143,7 @@ export const PersonSelector: FunctionalComponent<PersonFieldProps> = ({
         id={autocompleteId}
         inputRef={inputRef}
         idMapper={p => `${p.id}`}
-        nameMapper={getNameWithAlias}
+        nameMapper={getPrefixedNameWithAlias}
         setValue={fetchAndUpdatePerson}
         options={options}
       />

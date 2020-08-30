@@ -23,13 +23,23 @@ export function isEqual(p1: Person, p2: Person): boolean {
     p1.smashggId === p2.smashggId;
 }
 
-export function getName(p: Person | PersonUpdate): string {
+export function getPrefixedName(p: Person | PersonUpdate): string {
   const prefix = p.prefix ? `${p.prefix} | ` : '';
   return `${prefix}${p.handle}`;
 }
 
-export function getNameWithAlias(p: Person | PersonUpdate): string {
+export function getPrefixedAlias(p: Person | PersonUpdate): string {
+  const prefix = p.prefix ? `${p.prefix} | ` : '';
+  return `${prefix}${p.alias || p.handle}`;
+}
+
+export function getPrefixedNameWithAlias(p: Person | PersonUpdate): string {
   const prefix = p.prefix ? `${p.prefix} | ` : '';
   const suffix = p.alias ? ` (${p.handle})` : '';
   return `${prefix}${p.alias || p.handle}${suffix}`;
+}
+
+export function getNameWithAlias(p: Person | PersonUpdate): string {
+  const suffix = p.alias ? ` (${p.handle})` : '';
+  return `${p.alias || p.handle}${suffix}`;
 }

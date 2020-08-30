@@ -14,7 +14,7 @@ import LowerThird from '@models/lower-third';
 import Match, { nullMatch } from '@models/match';
 import matchList from '@models/matches';
 import * as People from '@models/people';
-import Person, { PersonUpdate, getName } from '@models/person';
+import Person, { PersonUpdate, getPrefixedName } from '@models/person';
 import Player from '@models/player';
 import Scoreboard from '@models/scoreboard';
 import TournamentSet from '@models/tournament-set';
@@ -104,7 +104,7 @@ export default function start(port: number): void {
       res.sendStatus(400);
       return;
     }
-    res.send(People.searchByHandle(query));
+    res.send(People.search(query));
   });
   app.get('/people/:id', (req, res) => {
     const id = req.params['id'];
@@ -243,7 +243,7 @@ function playersFromSet(set: TournamentSet): Player[] {
         };
       }
 
-      const foundPeople = People.findByFullName(getName(participant));
+      const foundPeople = People.findByFullName(getPrefixedName(participant));
       if (foundPeople.length == 1) {
         const foundByName = People.save({
           id: foundPeople[0].id,
