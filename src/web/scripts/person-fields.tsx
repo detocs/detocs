@@ -10,6 +10,7 @@ import { capitalize } from '@util/string';
 import { infoEndpoint } from './api';
 import Autocomplete, { useAutocompleteId, isAutocompleteValue } from './autocomplete';
 import { logError } from './log';
+import TextInput from './text-input';
 
 type PersonUpdater = (p: PersonUpdate, val: string) => PersonUpdate;
 interface FieldMapping {
@@ -78,11 +79,11 @@ export const PersonFieldInput: FunctionalComponent<PersonFieldInputProps> = forw
     // TODO: Just pass updater?
     onUpdatePerson(mapping.updatedWithValue(person, val));
   };
-  return <input
+  return <TextInput
     name={`${prefix}[${fieldName}]`}
     value={mapping.getValue(person) || ''}
     onInput={handler}
-    placeholder={capitalize(fieldName)}
+    label={capitalize(fieldName)}
     class={fieldName}
     ref={ref}
     {...additionalAttributes}
@@ -136,7 +137,7 @@ export const PersonSelector: FunctionalComponent<PersonFieldProps> = ({
         ref={inputRef}
         list={autocompleteId}
         onInput={handleHandleInput.bind(null, fieldMappings['handleOrAlias'].updatedWithValue)}
-        placeholder="Handle/Alias"
+        label="Handle/Alias"
         autoFocus={true}
       />
       <Autocomplete<Person>

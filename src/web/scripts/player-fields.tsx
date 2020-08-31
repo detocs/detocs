@@ -6,6 +6,7 @@ import { inputHandler, INTERACTIVE_SELECTOR } from '@util/dom';
 
 import { PersistentCheckbox } from './persistent-checkbox';
 import { PersonFieldInput, PersonSelector, PersonFieldProps } from './person-fields';
+import TextInput from './text-input';
 
 export type Props = PersonFieldProps & {
   index: number;
@@ -90,12 +91,12 @@ export default function PlayerFields({
                 onChange={toggleInLosers}
               />
             </label>
-            <input
+            <TextInput
               name={`${prefix}[comment]`}
               value={comment}
               onInput={changeComment}
               class="comment"
-              placeholder="Comment"
+              label="Comment"
             />
           </div>
         </fieldset>

@@ -2,3 +2,7 @@
   background: var(--color-selection);
   color: white;
 }
+
+::placeholder {
+  text-align: right;
+}

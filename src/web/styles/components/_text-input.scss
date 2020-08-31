@@ -1,0 +1,48 @@
+$borderSize: 1px;
+$inputPadding: 1px;
+
+.textInput {
+  position: relative;
+  display: inline-block;
+
+  ::placeholder {
+    opacity: 0;
+  }
+}
+
+.textInput__input {
+  width: 100%;
+  box-sizing: border-box;
+  border: $borderSize inset;
+}
+
+.textInput__label {
+  position: absolute;
+  top: calc(100% - #{$borderSize * 2 + $inputPadding} - 1ex);
+  inset-inline-end: 0;
+
+  padding: 0 0.1em;
+
+  background: linear-gradient(to bottom, transparent, var(--color-bg-input) 1ex) padding-box;
+  border-inline-end: $borderSize inset;
+  border-bottom: $borderSize inset;
+  color: var(--color-text-input);
+  font-size: 0.65em;
+  line-height: 0.9;
+  margin-top: $inputPadding + $borderSize;
+  margin-bottom: $inputPadding;
+  pointer-events: none;
+  transition-duration: 0.1s;
+  transition-timing-function: ease-in-out;
+  transition-property: top, opacity, font-size, line-height;
+
+  @at-root .textInput__input:placeholder-shown + & {
+    top: 0;
+
+    border-inline-end-color: transparent;
+    border-bottom-color: transparent;
+    font-size: 1em;
+    line-height: 1.15;
+    opacity: 0.54;
+  }
+}
