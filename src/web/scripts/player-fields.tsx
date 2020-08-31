@@ -91,7 +91,6 @@ export default function PlayerFields({
               />
             </label>
             <input
-              type="text"
               name={`${prefix}[comment]`}
               value={comment}
               onInput={changeComment}

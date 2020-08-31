@@ -29,7 +29,6 @@ const BreakDashboard: FunctionalComponent<Props> = ({ state, updateState }): VNo
         {messages.map((m, i) =>
           <div class="input-row">
             <input
-              type="text"
               name="messages[]"
               placeholder={`Message ${i + 1}`}
               value={m}

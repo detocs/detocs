@@ -69,7 +69,6 @@ class AutocompleteFields<T extends Autocompletable>
             value={props.value.id}
           />
           <input
-            type="text"
             name={`${this.id}[name]`}
             value={props.value.name}
             onInput={this.handleInput}

@@ -43,7 +43,6 @@ const CommentaryDashboard: FunctionalComponent<Props> = ({ state, updateState })
           <legend>Tournament</legend>
           <div class="input-row">
             <input
-              type="text"
               name="tournament"
               placeholder="Tournament"
               value={state.tournament}
@@ -54,7 +53,6 @@ const CommentaryDashboard: FunctionalComponent<Props> = ({ state, updateState })
           <legend>Event</legend>
           <div class="input-row">
             <input
-              type="text"
               name="event"
               placeholder="Event"
               value={state.event}

@@ -79,7 +79,6 @@ export const PersonFieldInput: FunctionalComponent<PersonFieldInputProps> = forw
     onUpdatePerson(mapping.updatedWithValue(person, val));
   };
   return <input
-    type="text"
     name={`${prefix}[${fieldName}]`}
     value={mapping.getValue(person) || ''}
     onInput={handler}

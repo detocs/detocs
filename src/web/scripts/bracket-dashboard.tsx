@@ -42,7 +42,6 @@ const BracketDashboard: FunctionalComponent<Props> = ({ state, updateState }): V
         </div> :
         <label>
           Tournament URL or slug: <input
-            type="text"
             name="tournamentUrl"
           />
         </label>

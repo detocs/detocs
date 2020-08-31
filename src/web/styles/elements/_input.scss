@@ -1,0 +1,7 @@
+input:invalid {
+  background-color: var(--color-bg-error);
+}
+
+input[type="text"], input:not([type]) {
+  min-inline-size: 0;
+}

@@ -1,10 +1,15 @@
 @use 'generic/reset';
+@use 'generic/theme';
 
 @use 'elements/aria';
 @use 'elements/button';
+@use 'elements/details';
 @use 'elements/fieldset';
+@use 'elements/input';
 @use 'elements/link';
-@use 'elements/main';
+@use 'elements/pseudoelements';
+@use 'elements/root';
+@use 'elements/states';
 
 @use 'objects/a11y';
 @use 'objects/layout';

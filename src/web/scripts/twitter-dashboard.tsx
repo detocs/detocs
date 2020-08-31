@@ -126,7 +126,7 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
               onInput={textHandler}
               onChange={textHandler}
             />
-            <div className="twitter__tweet-controls">
+            <div className="twitter__tweet-controls input-row">
               <meter
                 aria-label="Tweet length"
                 max={maxTweetLength + 1}

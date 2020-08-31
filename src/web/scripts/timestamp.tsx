@@ -29,7 +29,6 @@ export const TimestampInput: FunctionalComponent<{
     <fieldset class="timestamp__container">
       <div>
         <input
-          type="text"
           name={name}
           value={value || ''}
           onInput={inputHandler(updater)}

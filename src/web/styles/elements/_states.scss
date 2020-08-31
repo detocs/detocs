@@ -1,0 +1,10 @@
+@use 'tools/focus';
+
+:focus:not(:any-link),
+button:focus,
+[type="button"]:focus,
+[type="reset"]:focus,
+[type="submit"]:focus {
+  /* Overrides normalize.css Firefox styles */
+  @include focus.focus-outline;
+}

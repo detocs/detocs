@@ -1,6 +1,4 @@
-@use 'tools/focus';
-
-// TODO: Assign custom properties to SASS variables, move to settings folder
+// TODO: Assign custom properties to SASS variables
 :root {
   --color-bg: hsl(180, 13%, 16%);
   --color-bg-focus: hsl(180, 13%, 32%);
@@ -23,39 +21,4 @@
   --tab-height: 1.5rem;
   --width-border: 2px;
   --stream-aspect-ratio: 16/9;
-  font-size: 120%;
-}
-
-body {
-  margin: 0;
-  min-height: 100vh;
-
-  background-color: var(--color-bg);
-  color: var(--color-text);
-}
-
-legend {
-  margin-inline-start: 0.5em;
-}
-
-input:invalid {
-  background-color: var(--color-bg-error);
-}
-
-input[type="text"] {
-  min-inline-size: 0;
-}
-
-:focus:not(:any-link),
-button:focus,
-[type="button"]:focus,
-[type="reset"]:focus,
-[type="submit"]:focus {
-  /* Overrides normalize.css Firefox styles */
-  @include focus.focus-outline;
-}
-
-::selection {
-  background: var(--color-selection);
-  color: white;
 }

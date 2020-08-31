@@ -38,24 +38,6 @@ $thumbnailMinWidth: 12rem;
   min-height: 6em;
 }
 
-.twitter__tweet-controls {
-  margin-block: var(--margin-small);
-  display: flex;
-  flex-flow: row wrap;
-
-  > * {
-    margin-inline: var(--margin-small);
-  }
-
-  > meter {
-    flex: 1 1 auto;
-  }
-
-  > button {
-    flex: 0.2 0 auto;
-  }
-}
-
 .twitter__tweet-media {
   display: flex;
   flex: 1 1 $thumbnailMinWidth;

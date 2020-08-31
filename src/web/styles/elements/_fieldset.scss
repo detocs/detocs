@@ -9,7 +9,11 @@ fieldset {
   }
 }
 
-legend button {
-  line-height: 0.85;
-  padding-inline: 0.5em;
+legend {
+  margin-inline-start: 0.5em;
+
+  button {
+    line-height: 0.85;
+    padding-inline: 0.5em;
+  }
 }
