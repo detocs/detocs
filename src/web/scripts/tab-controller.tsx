@@ -15,7 +15,7 @@ const UNIVERSAL_SHORTCUTS: Shortcut[] = [
   [ '^PageUp', 'Previous', i => i - 1 ],
   [ '!PageDown', 'Next', i => i + 1 ],
   [ '^PageDown', 'Next', i => i + 1 ],
-  [ '^0', 'Last', (_, numTabs) => numTabs - 1 ],
+  [ '^9', 'Last', (_, numTabs) => numTabs - 1 ],
 ];
 
 const TAB_SHORTCUTS: Shortcut[] = [
@@ -27,7 +27,6 @@ const TAB_SHORTCUTS: Shortcut[] = [
   [ '^6', 'Sixth', () => 5 ],
   [ '^7', 'Seventh', () => 6 ],
   [ '^8', 'Eigth', () => 7 ],
-  [ '^9', 'Ninth', () => 8 ],
 ];
 
 const TabController: FunctionalComponent = ({ children }: RenderableProps<{}>): VNode => {
