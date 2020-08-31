@@ -5,14 +5,17 @@ import { INTERACTIVE_SELECTOR } from '@util/dom';
 
 import { register } from './key-manager';
 
-type Shortcut = [string, string, (i: number) => number];
+type Shortcut = [string, string, (i: number, numTabs: number) => number];
 
 const CONTROL_SELECTOR = ':scope > .js-tabbable-section > .js-tabbable-section-control';
 const AUTOFOCUS_SELECTOR = '[autofocus]';
 
 const UNIVERSAL_SHORTCUTS: Shortcut[] = [
-  [ 'PageUp', 'Previous', i => i - 1 ],
-  [ 'PageDown', 'Next', i => i + 1 ],
+  [ '!PageUp', 'Previous', i => i - 1 ],
+  [ '^PageUp', 'Previous', i => i - 1 ],
+  [ '!PageDown', 'Next', i => i + 1 ],
+  [ '^PageDown', 'Next', i => i + 1 ],
+  [ '^0', 'Last', (_, numTabs) => numTabs - 1 ],
 ];
 
 const TAB_SHORTCUTS: Shortcut[] = [
@@ -30,7 +33,7 @@ const TAB_SHORTCUTS: Shortcut[] = [
 const TabController: FunctionalComponent = ({ children }: RenderableProps<{}>): VNode => {
   // TODO: Support changing number of children
   const numChildren = Array.isArray(children) ?
-    children.length : 
+    children.length :
     children != null ? 1 : 0;
   const ref = useCallback((node: Element | null) => {
     selectFirstTab(node);
@@ -77,20 +80,20 @@ function registerKeyboardShortcuts(node: Element | null, numTabs: number): VoidF
     return [];
   }
   const shortcuts = UNIVERSAL_SHORTCUTS.concat(TAB_SHORTCUTS.slice(0, numTabs));
-  return shortcuts.map(s => shortcut(node, s[0], s[1], s[2]));
+  return shortcuts.map(s => shortcut(node, numTabs, s));
 }
 
 function shortcut(
   node: Element,
-  keystroke: string,
-  name: string,
-  idxFunc: (index: number) => number
+  numTabs: number,
+  shortcut: Shortcut,
 ): () => void {
+  const [ keystroke, name, idxFunc] = shortcut;
   return register(
     keystroke,
     `Tabs: ${name}`,
     () => {
-      const newIndex = idxFunc(getIndex(node));
+      const newIndex = idxFunc(getIndex(node), numTabs);
       move(node, newIndex);
     },
   );
