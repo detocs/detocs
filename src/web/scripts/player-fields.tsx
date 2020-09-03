@@ -4,6 +4,7 @@ import { StateUpdater } from 'preact/hooks';
 import { nullPerson } from '@models/person';
 import { inputHandler, INTERACTIVE_SELECTOR } from '@util/dom';
 
+import Icon from './icon';
 import { PersistentCheckbox } from './persistent-checkbox';
 import { PersonFieldInput, PersonSelector, PersonFieldProps } from './person-fields';
 import TextInput from './text-input';
@@ -66,7 +67,10 @@ export default function PlayerFields({
               onUpdatePerson={onUpdatePerson}
             />
             <details>
-              <summary>More</summary>
+              <summary>
+                <span class="details--closed"><Icon name="more" label="More" /></span>
+                <span class="details--open"> Additional Fields</span>
+              </summary>
               <div class="input-row">
                 {[ 'handle', 'alias', 'twitter' ].map(fieldName =>
                   <PersonFieldInput

@@ -19,6 +19,8 @@
 @use 'components/bracket';
 @use 'components/clip-selector';
 @use 'components/clips';
+@use 'components/details' as detailsComponent;
+@use 'components/icon';
 @use 'components/modal';
 @use 'components/recording';
 @use 'components/scoreboard';

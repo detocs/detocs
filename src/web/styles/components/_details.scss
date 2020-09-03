@@ -1,0 +1,7 @@
+details:not([open]) > summary > .details--open {
+  display: none;
+}
+
+details[open] > summary > .details--closed {
+  display: none;
+}
