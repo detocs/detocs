@@ -1,3 +1,20 @@
 details {
   min-inline-size: 0;
 }
+
+summary {
+  list-style: none;
+  margin-inline: var(--margin-small);
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+
+  @at-root details:not([open]) > &::after {
+    content: '…';
+  }
+
+  @at-root details[open] > & {
+    border-bottom: var(--width-border) solid currentColor;
+  }
+}

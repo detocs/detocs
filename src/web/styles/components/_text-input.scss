@@ -1,5 +1,8 @@
+@use 'settings/opacity';
+
 $borderSize: 1px;
 $inputPadding: 1px;
+$border: $borderSize inset rgb(238, 238, 238); // Default browser border color
 
 .textInput {
   position: relative;
@@ -13,36 +16,42 @@ $inputPadding: 1px;
 .textInput__input {
   width: 100%;
   box-sizing: border-box;
-  border: $borderSize inset;
+  border: $border;
 }
 
 .textInput__label {
+  $verticalLabelOffset: 0.75ex;
+
   position: absolute;
-  top: calc(100% - #{$borderSize * 2 + $inputPadding} - 1ex);
+  bottom: calc(100% - #{$borderSize * 2 + $inputPadding} - #{$verticalLabelOffset});
   inset-inline-end: 0;
 
   padding: 0 0.1em;
 
-  background: linear-gradient(to bottom, transparent, var(--color-bg-input) 1ex) padding-box;
-  border-inline-end: $borderSize inset;
-  border-bottom: $borderSize inset;
-  color: var(--color-text-input);
-  font-size: 0.65em;
+  background: linear-gradient(
+    to top,
+    transparent,
+    var(--color-bg-input) $verticalLabelOffset,
+  ) padding-box;
+  border-inline-end: $border;
+  border-top: $border;
+  color: var(--color-text-placeholder);
+  font-size: 0.8em;
   line-height: 0.9;
-  margin-top: $inputPadding + $borderSize;
-  margin-bottom: $inputPadding;
+  margin-top: $inputPadding;
+  margin-bottom: $inputPadding + $borderSize;
   pointer-events: none;
   transition-duration: 0.1s;
   transition-timing-function: ease-in-out;
-  transition-property: top, opacity, font-size, line-height;
+  transition-property: bottom, opacity, font-size, line-height;
 
   @at-root .textInput__input:placeholder-shown + & {
-    top: 0;
+    bottom: 0;
 
     border-inline-end-color: transparent;
-    border-bottom-color: transparent;
+    border-top-color: transparent;
     font-size: 1em;
     line-height: 1.15;
-    opacity: 0.54;
+    opacity: opacity.$placeholder;
   }
 }

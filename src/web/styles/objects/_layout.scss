@@ -1,3 +1,5 @@
+@use 'settings/flex';
+
 .input-row, .action-row {
   margin-block: var(--margin-small);
 
@@ -7,7 +9,7 @@
 
   > * {
     margin-inline: var(--margin-small);
-    margin-block: calc(var(--margin-small) / 2);
+    margin-block: var(--margin-small);
   }
 }
 
@@ -28,12 +30,12 @@
   fieldset,
   .textInput,
   div {
-    flex-grow: 9999; // https://joren.co/flex-grow-9999-hack/
+    flex-grow: flex.$hackGrow;
   }
 }
 
 fieldset > .input-row {
-  margin-top: 0;
+  margin-top: calc(var(--margin-small) * -1);
 }
 
 details > .input-row {

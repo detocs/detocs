@@ -1,3 +1,5 @@
+@use 'settings/flex';
+
 .players {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -17,14 +19,21 @@
   flex: 1 1 auto;
 }
 
-.prefix {
-  flex: 1 1 auto;
-  inline-size: 5em;
+.handle, .handleOrAlias, .alias {
+  flex-grow: 2 * flex.$hackGrow;
+  inline-size: 9em;
 }
 
-.handle {
-  flex: 5 1 auto;
-  inline-size: 10em;
+.prefix {
+  inline-size: 4em;
+}
+
+.twitter {
+  inline-size: 7em;
+}
+
+.comment {
+  inline-size: 5em;
 }
 
 .score {
@@ -33,10 +42,6 @@
 
   font-size: 2em;
   text-align: center;
-}
-
-.comment {
-  inline-size: 6em;
 }
 
 fieldset[name="match"] {
