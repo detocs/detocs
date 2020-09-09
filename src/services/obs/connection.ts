@@ -11,12 +11,10 @@ import { sleep } from '@util/async';
 import { getConfig } from '@util/configuration/config';
 
 const logger = getLogger('services/obs/connection');
-const MIN_RECONNECTION_DELAY = 3 * 1000;
+const MIN_RECONNECTION_DELAY = 5 * 1000;
 const MAX_RECONNECTION_DELAY = 5 * 60 * 1000;
-const RECONNECTION_DELAY_GROWTH = 2;
-const MAX_RECONNECTION_ATTEMPTS = 25;
-
-type ResolveType<T> = T extends PromiseLike<infer U> ? U : T;
+const RECONNECTION_DELAY_GROWTH = 5;
+const MAX_RECONNECTION_ATTEMPTS = 3;
 
 export interface ObsConnection {
   connect(): Promise<void>;
