@@ -14,7 +14,7 @@ import LowerThird from '@models/lower-third';
 import Match, { nullMatch } from '@models/match';
 import matchList from '@models/matches';
 import * as People from '@models/people';
-import Person, { PersonUpdate, getPrefixedName } from '@models/person';
+import Person, { PersonUpdate, getPrefixedName, nullPerson } from '@models/person';
 import Player from '@models/player';
 import Scoreboard from '@models/scoreboard';
 import TournamentSet from '@models/tournament-set';
@@ -215,16 +215,27 @@ function fillBracketSet(
   if (!set) {
     return {};
   }
-  const players = playersFromSet(set).concat(state.players).slice(0, 2);
-  const match = set.match || nullMatch;
-  const game = set.videogame || nullGame;
+  const scoreboard: Partial<Scoreboard> = {};
+  scoreboard.players = playersFromSet(set).concat([
+    {
+      person: nullPerson,
+      score: 0,
+      inLosers: false,
+    },
+    {
+      person: nullPerson,
+      score: 0,
+      inLosers: false,
+    },
+  ]).slice(0, 2);
+  if (set.match) {
+    scoreboard.match = set.match;
+  }
+  if (set.videogame) {
+    scoreboard.game = set.videogame;
+  }
 
-  return {
-    players,
-    game,
-    match,
-    set,
-  };
+  return scoreboard;
 }
 
 function playersFromSet(set: TournamentSet): Player[] {
