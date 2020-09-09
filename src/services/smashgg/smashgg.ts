@@ -229,7 +229,14 @@ export default class SmashggClient implements BracketService {
       throw new Error(`No event found with id ${eventId}`);
     }
     const videogame = getGameByServiceId(this.name(), event.videogame.id.toString()) ||
-      Object.assign({}, nullGame, { name: event.videogame.name });
+      Object.assign({}, nullGame, {
+        name: event.videogame.name,
+        serviceInfo: {
+          smashgg: {
+            id: event.videogame.id.toString(),
+          }
+        }
+      });
     const tournament: Required<Tournament> = {
       ...event.tournament,
       id: event.tournament.id.toString(),

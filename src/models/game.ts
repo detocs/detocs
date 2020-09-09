@@ -3,10 +3,11 @@ export default interface Game {
   name: string;
   shortNames: string[];
   hashtags: string[];
+  additionalTags?: string[];
   serviceInfo: {
     [serviceName: string]: {
       id: string;
-    };
+    } | undefined;
   };
 };
 

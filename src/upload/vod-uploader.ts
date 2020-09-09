@@ -84,16 +84,6 @@ const pExecFile = util.promisify(childProcess.execFile);
 const nonEmpty = (str?: string | null): str is string => !!str;
 let keyframeInterval = 3;
 
-const additionalTags: Record<number, string[]> = {
-  38: ['King of Fighters XIV', 'King of Fighters 14', 'King of Fighters', 'KOF14'],
-  451: ['Under Night In-Birth', 'Under Night'],
-  3958: ['Melty Blood', 'Melty'],
-  17413: ['KOF98', 'KOF98UM'],
-  22107: ['Granblue Fantasy', 'Granblue', 'GBFV'],
-  22407: ['Melty Blood', 'Melty'],
-  33870: ['Under Night In-Birth', 'Under Night'],
-};
-
 export class VodUploader {
   private readonly bracketProvider: BracketServiceProvider;
   private readonly logFile: string;
@@ -511,8 +501,6 @@ async function getEventInfo(
   }
   videogame.shortName = videogame.shortNames[0] || videogame.name;
   videogame.hashtag = videogame.hashtags[0] || undefined;
-  // TODO: Add additionalTags to Game
-  videogame.additionalTags = additionalTags[+videogame.serviceInfo['smashgg'].id] || [];
   logger.debug('Videogame:', videogame);
 
   const phaseId = setList.phaseId;
@@ -602,7 +590,7 @@ function videoTags(
   const tags = [
     videogame.name,
     videogame.hashtag,
-    ...videogame.additionalTags,
+    ...videogame.additionalTags || [],
     `${videogame.shortName} ${phase.name}`,
     ...interpolate(
       [tournament.shortName, ...tournament.additionalTags],

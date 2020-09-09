@@ -10,7 +10,6 @@ export type VodTournament = Tournament & {
 export type VodVideogame = Game & {
   hashtag: string;
   shortName: string;
-  additionalTags: string[];
 };
 
 export type Log = RecordingLog & {

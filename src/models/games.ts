@@ -14,6 +14,7 @@ const games: Game[] = [
       'UNIclr',
       'inbirth',
     ],
+    additionalTags: ['Under Night In-Birth', 'Under Night'],
     serviceInfo: {
       twitch: { id: 'Under Night In-Birth Exe:Late[cl-r]' },
       smashgg: { id: '33870' },
@@ -31,6 +32,7 @@ const games: Game[] = [
       'MBAACC',
       'メルブラ',
     ],
+    additionalTags: ['Melty Blood', 'Melty'],
     serviceInfo: {
       twitch: { id: 'Melty Blood: Actress Again: Current Code' },
       smashgg: { id: '22407' },
@@ -119,6 +121,23 @@ const games: Game[] = [
   },
   {
     id: 'kof98',
+    name: 'The King of Fighters \'98',
+    shortNames: [
+      'King of Fighters 98',
+      'KOF 98',
+    ],
+    hashtags: [
+      'KOF98',
+      'KOF',
+    ],
+    additionalTags: ['KOF98'],
+    serviceInfo: {
+      twitch: { id: 'The King of Fighters \'98: The Slugfest' },
+      smashgg: { id: '2804' },
+    },
+  },
+  {
+    id: 'kof98um',
     name: 'The King of Fighters \'98: UMFE',
     shortNames: [
       'King of Fighters 98 UMFE',
@@ -128,6 +147,7 @@ const games: Game[] = [
       'KOF98',
       'KOF',
     ],
+    additionalTags: ['KOF98', 'KOF98UM'],
     serviceInfo: {
       twitch: { id: 'The King of Fighters \'98 Ultimate Match' },
       smashgg: { id: '17413' },
@@ -190,6 +210,7 @@ const games: Game[] = [
       'KOFXIV',
       'KOF',
     ],
+    additionalTags: ['King of Fighters XIV', 'King of Fighters 14', 'King of Fighters', 'KOF14'],
     serviceInfo: {
       twitch: { id: 'The King of Fighters XIV' },
       smashgg: { id: '38' },
@@ -253,6 +274,7 @@ const games: Game[] = [
     hashtags: [
       'GBVS',
     ],
+    additionalTags: ['Granblue Fantasy', 'Granblue', 'GBFV'],
     serviceInfo: {
       twitch: { id: 'Granblue Fantasy: Versus' },
       smashgg: { id: '22107' },
