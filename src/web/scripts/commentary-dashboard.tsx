@@ -13,11 +13,33 @@ import { PersonFieldInput, PersonSelector, PersonFieldProps } from './person-fie
 interface Props {
   state: InfoState;
   updateState: StateUpdater<InfoState>;
+  reversed: boolean;
 }
 
-const CommentaryDashboard: FunctionalComponent<Props> = ({ state, updateState }): VNode => {
+const CommentaryDashboard: FunctionalComponent<Props> = ({
+  state,
+  updateState,
+  reversed,
+}): VNode => {
   const [ com1, updateCom1 ] = useCommentator1(state, updateState);
   const [ com2, updateCom2 ] = useCommentator2(state, updateState);
+  const commentators = [
+    <Commentator
+      index={0}
+      prefix="players[]"
+      person={com1}
+      onUpdatePerson={updateCom1}
+    />,
+    <Commentator
+      index={1}
+      prefix="players[]"
+      person={com2}
+      onUpdatePerson={updateCom2}
+    />
+  ];
+  if (reversed) {
+    commentators.reverse();
+  }
   return(
     <form
       action={infoEndpoint('/lowerthird').href}
@@ -26,18 +48,7 @@ const CommentaryDashboard: FunctionalComponent<Props> = ({ state, updateState })
       autocomplete="off"
     >
       <div class="players">
-        <Commentator
-          index={0}
-          prefix="players[]"
-          person={com1}
-          onUpdatePerson={updateCom1}
-        />
-        <Commentator
-          index={1}
-          prefix="players[]"
-          person={com2}
-          onUpdatePerson={updateCom2}
-        />
+        {commentators}
       </div>
       <div class="input-row">
         <fieldset name="tournament">

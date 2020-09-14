@@ -25,9 +25,11 @@ import BreakDashboard from './break-dashboard';
 import ClipDashboard from './clip-dashboard';
 import CommentaryDashboard from './commentary-dashboard';
 import { useServerState } from './hooks/server-state';
+import { usePlayersReversed, useCommentatorsReversed } from './hooks/settings';
 import { logError } from './log';
 import PlayerDashboard from './player-dashboard';
 import RecordingDashboard from './recording-dashboard';
+import SettingsDashboard from './settings-dashboard';
 import Tab from './tab';
 import TabController from './tab-controller';
 import TwitterDashboard from './twitter-dashboard';
@@ -62,6 +64,8 @@ const App: FunctionalComponent<{}> = (): VNode => {
     clipEndpoint('', 'ws:'),
     nullClipState,
   );
+  const [ playersReversed, togglePlayersReversed ] = usePlayersReversed();
+  const [ commentatorsReversed, toggleCommentatorsReversed ] = useCommentatorsReversed();
   const ToastContainer = ReactToastContainer as FunctionalComponent;
   return (
     <Fragment>
@@ -71,10 +75,15 @@ const App: FunctionalComponent<{}> = (): VNode => {
             state={infoState}
             updateState={updateInfoState}
             bracketState={bracketState}
+            reversed={playersReversed}
           />
         </Tab>
         <Tab id="commentary">
-          <CommentaryDashboard state={infoState} updateState={updateInfoState}/>
+          <CommentaryDashboard
+            state={infoState}
+            updateState={updateInfoState}
+            reversed={commentatorsReversed}
+          />
         </Tab>
         <Tab id="recording">
           <RecordingDashboard state={recordingState} updateState={updateRecordingState}/>
@@ -93,6 +102,16 @@ const App: FunctionalComponent<{}> = (): VNode => {
         </Tab>
         <Tab id="break">
           <BreakDashboard state={infoState} updateState={updateInfoState}/>
+        </Tab>
+        <Tab id="settings">
+          <SettingsDashboard
+            {...{
+              playersReversed,
+              togglePlayersReversed,
+              commentatorsReversed,
+              toggleCommentatorsReversed,
+            }}
+          />
         </Tab>
       </TabController>
       <footer id="version">{PRODUCT_NAME} {VERSION}</footer>

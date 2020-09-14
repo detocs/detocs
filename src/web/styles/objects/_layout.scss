@@ -45,3 +45,8 @@ details > .input-row {
 .action-row > button {
   flex: 1 0 8em;
 }
+
+.input-block {
+  margin-block: var(--margin-small);
+  margin-inline: var(--margin-medium);
+}

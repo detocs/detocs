@@ -6,6 +6,9 @@ import { nullPerson } from '@models/person';
 import BracketState from '@server/bracket/state';
 import InfoState from '@server/info/state';
 
+import { infoEndpoint } from './api';
+import BracketSet from './bracket-set';
+import GameFields from './game-fields';
 import {
   usePlayer1, usePlayer2,
   useScore1, useScore2,
@@ -14,10 +17,6 @@ import {
   useMatch,
   useGame,
 } from './hooks/info';
-
-import { infoEndpoint } from './api';
-import BracketSet from './bracket-set';
-import GameFields from './game-fields';
 import MatchFields from './match-fields';
 import PlayerFields from './player-fields';
 
@@ -25,12 +24,14 @@ interface Props {
   state: InfoState;
   updateState: StateUpdater<InfoState>;
   bracketState: BracketState;
+  reversed: boolean;
 }
 
 const PlayerDashboard: FunctionalComponent<Props> = ({
   state,
   updateState,
   bracketState,
+  reversed,
 }): VNode => {
   const [ player1, updatePlayer1 ] = usePlayer1(state, updateState);
   const [ score1, updateScore1 ] = useScore1(state, updateState);
@@ -42,6 +43,35 @@ const PlayerDashboard: FunctionalComponent<Props> = ({
   const [ inLosers2, updateInLosers2 ] = useInLosers2(state, updateState);
   const [ match, updateMatch ] = useMatch(state, updateState);
   const [ game, updateGame ] = useGame(state, updateState);
+  const players = [
+    <PlayerFields
+      prefix="players[]"
+      index={0}
+      person={player1}
+      onUpdatePerson={updatePlayer1}
+      score={score1}
+      onUpdateScore={updateScore1}
+      comment={comment1 || ''}
+      onUpdateComment={updateComment1}
+      inLosers={!!inLosers1}
+      onUpdateInLosers={updateInLosers1}
+    />,
+    <PlayerFields
+      prefix="players[]"
+      index={1}
+      person={player2}
+      onUpdatePerson={updatePlayer2}
+      score={score2}
+      onUpdateScore={updateScore2}
+      comment={comment2 || ''}
+      onUpdateComment={updateComment2}
+      inLosers={!!inLosers2}
+      onUpdateInLosers={updateInLosers2}
+    />
+  ];
+  if (reversed) {
+    players.reverse();
+  }
   return(
     <form
       action={infoEndpoint('/scoreboard').href}
@@ -50,30 +80,7 @@ const PlayerDashboard: FunctionalComponent<Props> = ({
       autocomplete="off"
     >
       <div class="players">
-        <PlayerFields
-          prefix="players[]"
-          index={0}
-          person={player1}
-          onUpdatePerson={updatePlayer1}
-          score={score1}
-          onUpdateScore={updateScore1}
-          comment={comment1 || ''}
-          onUpdateComment={updateComment1}
-          inLosers={!!inLosers1}
-          onUpdateInLosers={updateInLosers1}
-        />
-        <PlayerFields
-          prefix="players[]"
-          index={1}
-          person={player2}
-          onUpdatePerson={updatePlayer2}
-          score={score2}
-          onUpdateScore={updateScore2}
-          comment={comment2 || ''}
-          onUpdateComment={updateComment2}
-          inLosers={!!inLosers2}
-          onUpdateInLosers={updateInLosers2}
-        />
+        {players}
       </div>
       <div class="input-row">
         <MatchFields value={match} updateValue={updateMatch} />
