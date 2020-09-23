@@ -84,7 +84,7 @@ $video-track-height: 3rem;
 
 .video-editor__trimmer {
   display: flex;
-  flex: 5 1 calc(#{$min-editor-height - $video-track-height} / var(--stream-aspect-ratio));
+  flex: 5 1 calc(#{$min-editor-height - $video-track-height} * var(--stream-aspect-ratio));
 
   flex-flow: column nowrap;
   align-content: center;
@@ -93,6 +93,7 @@ $video-track-height: 3rem;
 .video-editor__video {
   flex: 1 0 auto;
   height: $min-editor-height - $video-track-height;
+  width: 100%;
 }
 
 .video-editor__range {
@@ -214,6 +215,7 @@ $video-track-height: 3rem;
 .video-editor__buttons {
   display: flex;
   flex: 1 1 auto;
+  flex: 1 1 min-content;
   flex-flow: column nowrap;
   overflow: hidden; // input-row seems to be causing overflow
 }

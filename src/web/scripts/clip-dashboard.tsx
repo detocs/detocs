@@ -221,7 +221,7 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
             value={description}
             onInput={inputHandler(updateDescription)}
             class="video-editor__description-editor"
-            rows={1}
+            rows={2}
             disabled={disabled}
           >
           </textarea>
