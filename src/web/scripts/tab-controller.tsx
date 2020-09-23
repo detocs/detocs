@@ -111,6 +111,7 @@ function move(root: Element, index: number): void {
       tab.checked = true;
       tab.setAttribute('aria-selected', 'true');
       const section = tab.closest('.js-tabbable-section') as HTMLElement;
+      section.scrollIntoView({ behavior: 'smooth' });
       const content = section.querySelector('.js-tabbable-section-content') as HTMLElement;
       let input = content.querySelector<HTMLElement>(AUTOFOCUS_SELECTOR) ||
         content.querySelector<HTMLElement>(INTERACTIVE_SELECTOR);
