@@ -270,7 +270,7 @@ export class VodUploader {
       phase.name,
     ].filter(nonEmpty).join(' ');
 
-    const matchDescs = sets.map(set => {
+    const matchDescs = '0:00:00 - Intro\n' + sets.map(set => {
       const players = set.players;
       const groupId = setToPhaseGroupId[set.id] ? `${setToPhaseGroupId[set.id]} ` : '';
       const p1 = players[0].name;
