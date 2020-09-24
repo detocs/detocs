@@ -126,6 +126,13 @@ export const PersonSelector: FunctionalComponent<PersonFieldProps> = ({
       .catch(logError);
   };
 
+  const label = person.alias ?
+    getNameWithAlias({
+      handle: 'Handle',
+      alias: 'Alias',
+    }) :
+    'Handle';
+
   return (
     <Fragment>
       <input type="hidden" name={`${prefix}[id]`} value={person.id}/>
@@ -137,7 +144,7 @@ export const PersonSelector: FunctionalComponent<PersonFieldProps> = ({
         ref={inputRef}
         list={autocompleteId}
         onInput={handleHandleInput.bind(null, fieldMappings['handleOrAlias'].updatedWithValue)}
-        label="Handle/Alias"
+        label={label}
         autoFocus={true}
       />
       <Autocomplete<Person>

@@ -17,7 +17,7 @@ import * as People from '@models/people';
 import Person, { PersonUpdate, getPrefixedName } from '@models/person';
 import Player, { nullPlayer } from '@models/player';
 import Scoreboard from '@models/scoreboard';
-import TournamentSet from '@models/tournament-set';
+import TournamentSet, { TournamentParticipant } from '@models/tournament-set';
 import { getConfig } from '@util/configuration/config';
 import BracketState from '@server/bracket/state';
 import { BRACKETS_PORT } from '@server/ports';
@@ -240,7 +240,7 @@ function playersFromSet(set: TournamentSet): Player[] {
       const foundById = People.getBySmashggId(participant.smashggId);
       if (foundById) {
         return {
-          person: foundById,
+          person: mergeSetParticipant(foundById, participant),
           score: 0,
           inLosers: entrant.inLosers,
         };
@@ -259,7 +259,12 @@ function playersFromSet(set: TournamentSet): Player[] {
         };
       }
 
-      const newPerson = People.save(participant);
+      const newPerson = People.save({
+        handle: participant.handle,
+        prefix: participant.prefix,
+        smashggId: participant.smashggId,
+        twitter: participant.twitter,
+      });
       return {
         person: newPerson,
         score: 0,
@@ -283,6 +288,27 @@ function playersFromSet(set: TournamentSet): Player[] {
       };
     }
   });
+}
+
+function mergeSetParticipant(orig: Person, participant: TournamentParticipant): Person {
+  if ((orig.handle === participant.handle || orig.alias === participant.handle) &&
+    orig.prefix === participant.prefix)
+  {
+    return orig;
+  } else {
+    let person = Object.assign({}, orig, {
+      prefix: participant.prefix,
+      twitter: participant.twitter,
+      smashggId: participant.smashggId,
+    });
+    if (participant.handle !== orig.handle) {
+      person = Object.assign({}, person, {
+        alias: participant.handle,
+      });
+    }
+    People.save(person);
+    return person;
+  }
 }
 
 function parseLowerThird(fields: Record<string, unknown>): LowerThird {
