@@ -4,8 +4,8 @@ export type SubstateTransformer<Full, Subset> =
   (state: Full, updateState: StateUpdater<Full>) => [Subset, StateUpdater<Subset>];
 
 export function useSubstate<Full, Subset>(
-  getter: (state: Full) => Subset,
-  setter: (state: Full, value: Subset) => void,
+  getter: (state: Readonly<Full>) => Subset,
+  setter: (state: Readonly<Full>, value: Subset) => Full,
 ): SubstateTransformer<Full, Subset> {
   return (state, updateState) => [
     getter(state),
@@ -16,9 +16,7 @@ export function useSubstate<Full, Subset>(
       } else {
         v = valueOrUpdater;
       }
-      const newState = Object.assign({}, state);
-      setter(newState, v);
-      updateState(newState);
+      updateState(setter(state, v));
     },
   ];
 }

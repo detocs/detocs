@@ -1,3 +1,4 @@
+import updateImmutable from 'immutability-helper';
 import { StateUpdater } from 'preact/hooks/src';
 
 import RecordingState, { Recording } from '@server/recording/state';
@@ -11,14 +12,23 @@ export const useRecording = (
 ): [Recording, StateUpdater<Recording>] =>
   useSubstate<RecordingState, Recording>(
     state => state.recordings[index],
-    (state, value) => state.recordings[index] = value,
+    (state, value) => updateImmutable(
+      state,
+      { recordings: { [index]: { $set: value } } },
+    ),
   )(value, updater);
 
 export const useStartTimestamp = useSubstate<Recording, string>(
   recording => recording.startTimestamp,
-  (recording, value) => recording.startTimestamp = value,
+  (recording, value) => updateImmutable(
+    recording,
+    { startTimestamp: { $set: value } },
+  ),
 );
 export const useStopTimestamp = useSubstate<Recording, string | null>(
   recording => recording.stopTimestamp,
-  (recording, value) => recording.stopTimestamp = value,
+  (recording, value) => updateImmutable(
+    recording,
+    { stopTimestamp: { $set: value } },
+  ),
 );

@@ -119,7 +119,7 @@ function resetPlayers(state: InfoState, updateState: StateUpdater<InfoState>): v
 
 function resetScores(state: InfoState, updateState: StateUpdater<InfoState>): void {
   const newState = Object.assign({}, state);
-  newState.players.forEach(p => p.score = 0);
+  newState.players = newState.players.map(p => ({ ...p, score: 0 }));
   updateState(newState);
 }
 

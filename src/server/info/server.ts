@@ -14,8 +14,8 @@ import LowerThird from '@models/lower-third';
 import Match, { nullMatch } from '@models/match';
 import matchList from '@models/matches';
 import * as People from '@models/people';
-import Person, { PersonUpdate, getPrefixedName, nullPerson } from '@models/person';
-import Player from '@models/player';
+import Person, { PersonUpdate, getPrefixedName } from '@models/person';
+import Player, { nullPlayer } from '@models/player';
 import Scoreboard from '@models/scoreboard';
 import TournamentSet from '@models/tournament-set';
 import { getConfig } from '@util/configuration/config';
@@ -127,7 +127,7 @@ export default function start(port: number): void {
   });
 
   httpServer.listen(port, () => logger.info(`Listening on port ${port}`));
-};
+}
 
 function broadcastState(state: State): void {
   if (!socketServer) {
@@ -182,7 +182,7 @@ function parseScoreboard(
   fields: Record<string, unknown>,
   unfinishedSets: TournamentSet[],
 ): Scoreboard {
-  let players = [];
+  const players = [];
   for (let i = 0; i < 2; i++) {
     const fieldPrefix = `players[${i}]`;
     const person = parsePerson(fields, fieldPrefix);
@@ -217,16 +217,8 @@ function fillBracketSet(
   }
   const scoreboard: Partial<Scoreboard> = {};
   scoreboard.players = playersFromSet(set).concat([
-    {
-      person: nullPerson,
-      score: 0,
-      inLosers: false,
-    },
-    {
-      person: nullPerson,
-      score: 0,
-      inLosers: false,
-    },
+    nullPlayer,
+    nullPlayer,
   ]).slice(0, 2);
   if (set.match) {
     scoreboard.match = set.match;
