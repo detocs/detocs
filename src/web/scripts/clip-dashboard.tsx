@@ -1,5 +1,6 @@
+import debounce from 'lodash.debounce';
 import { h, FunctionalComponent, Fragment } from 'preact';
-import { StateUpdater, useRef, useState, PropRef, Ref } from 'preact/hooks';
+import { StateUpdater, useRef, useState, PropRef } from 'preact/hooks';
 
 import { ImageClip, VideoClip, isVideoClip, Clip } from '@models/media';
 import { GetClipResponse } from '@server/clip/server';
@@ -46,6 +47,11 @@ const CLIP_END_PLAYBACK_OFFSET_MS = 2000;
  * So that we don't have to adjust 1ms at a time
  */
 const CLIP_RANGE_STEP_MS = 250;
+
+/**
+ * Limits the rate at which values get updated while dragging range sliders
+ */
+const EDITOR_DEBOUNCE_TIME = 100;
 
 const updateEndpoint = clipEndpoint('/update').href;
 const cutEndpoint = clipEndpoint('/cut').href;
@@ -155,7 +161,28 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
     }
     videoRef.current.currentTime = timestampMs / 1000;
     prevTimestamp.current = timestampMs;
+    updateCurrentTime(timestampMs);
   };
+
+  const rangeStartUpdater = debounce(
+    rangeUpdateHandler(videoRef, updateStartMs, playbackUpdater),
+    EDITOR_DEBOUNCE_TIME,
+  );
+
+  const playbackPositionUpdater = debounce(
+    playbackUpdateHandler(videoRef, playbackUpdater),
+    EDITOR_DEBOUNCE_TIME);
+
+  const rangeEndUpdater = debounce(
+    rangeUpdateHandler(
+      videoRef,
+      updateEndMs,
+      playbackUpdater,
+      CLIP_END_PLAYBACK_OFFSET_MS,
+      startMs,
+    ),
+    EDITOR_DEBOUNCE_TIME,
+  );
 
   return (
     <form
@@ -200,8 +227,8 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
             max={startMaximum}
             step={CLIP_RANGE_STEP_MS}
             value={startMs}
-            onInput={rangeUpdateHandler(videoRef, updateStartMs, playbackUpdater)}
-            onChange={rangeUpdateHandler(videoRef, updateStartMs, playbackUpdater)}
+            onInput={rangeStartUpdater}
+            onChange={rangeStartUpdater}
           />}
           <input
             type="range"
@@ -211,8 +238,8 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
             step={CLIP_RANGE_STEP_MS}
             value={Math.trunc(currentTime)}
             disabled={disabled}
-            onInput={playbackUpdateHandler(videoRef, playbackUpdater)}
-            onChange={playbackUpdateHandler(videoRef, playbackUpdater)}
+            onInput={playbackPositionUpdater}
+            onChange={playbackPositionUpdater}
           />
           {!disabled && <input
             type="range"
@@ -223,14 +250,8 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
             max={durationMs}
             step={CLIP_RANGE_STEP_MS}
             value={endMs}
-            onInput={rangeUpdateHandler(videoRef, updateEndMs, playbackUpdater)}
-            onChange={rangeUpdateHandler(
-              videoRef,
-              updateEndMs,
-              playbackUpdater,
-              CLIP_END_PLAYBACK_OFFSET_MS,
-              startMs,
-            )}
+            onInput={rangeEndUpdater}
+            onChange={rangeEndUpdater}
           />}
         </div>
       </div>
@@ -270,8 +291,12 @@ function rangeUpdateHandler(
       return;
     }
     const newValue = +(e.target as HTMLInputElement).value;
-    const playbackStartMs = Math.max(newValue - offset, minValue);
-    playbackUpdater(playbackStartMs);
+    if (offset && e.type === 'change') {
+      const playbackStartMs = Math.max(newValue - offset, minValue);
+      playbackUpdater(playbackStartMs);
+    } else {
+      playbackUpdater(newValue);
+    }
     rangeUpdater(newValue);
     videoRef.current.pause();
   };
