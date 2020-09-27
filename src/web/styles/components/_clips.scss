@@ -3,6 +3,9 @@
 $metadata-padding: 0.5em;
 $min-editor-height: 12rem;
 $video-track-height: 3rem;
+$range-thumb-width: 0.2rem;
+$range-brace-width: 0.6rem;
+$cursor-width: 2px;
 
 #clips {
   overflow: hidden;
@@ -103,6 +106,8 @@ $video-track-height: 3rem;
   height: $video-track-height;
 
   flex-flow: column nowrap;
+
+  overflow-x: hidden;
 }
 
 .video-editor__waveform {
@@ -157,50 +162,56 @@ $video-track-height: 3rem;
   border: 0.1rem solid var(--color-focus);
 }
 
-.video-editor__range-bound {
-  --thumb-width: 0.4rem;
+.video-editor__range-bound, .video-editor__playback-cursor {
   flex: 1 1 auto;
-  width: calc(var(--range-width) + var(--thumb-width));
+  min-height: 0;
 
   appearance: none;
   background: transparent;
-}
 
-.video-editor__range-bound:focus {
-  outline: none;
-}
-
-.video-editor__range-bound::-moz-focus-inner {
-  border: 0;
-}
-
-.video-editor__range-bound::range-track {
-  height: 100%;
-}
-
-.video-editor__range-bound::range-thumb {
-  width: var(--thumb-width);
-  height: 100%;
-  box-sizing: border-box;
-
-  appearance: none;
-  background: transparent;
-  border: 0.2rem ridge orange;
-  border-radius: 0;
-
-  @at-root :focus#{&} {
-    background: var(--color-focus);
-    outline: 0.1rem solid var(--color-focus);
+  &::range-thumb {
+    border-color: var(--color-focus);
   }
 
-  @at-root .video-editor__range-start#{&} {
-    border-right-color: transparent;
-    border-bottom-width: 0;
+  &:focus {
+    outline: 0;
+
+    &::range-thumb {
+      border-color: orange;
+    }
   }
 
-  @at-root .video-editor__range-end#{&} {
-    border-left-color: transparent;
-    border-top-width: 0;
+  &::range-track {
+    height: 100%;
+  }
+}
+
+.video-editor__range-bound {
+  width: calc(var(--range-width) + #{$range-brace-width});
+  cursor: ew-resize;
+
+  &::range-thumb {
+    width: $range-brace-width;
+    height: 100%;
+    box-sizing: border-box;
+
+    appearance: none;
+    background: transparent;
+    border-style: ridge;
+    border-width: $range-thumb-width;
+    border-radius: 0;
+
+    @at-root .video-editor__range-start#{&} {
+      border-right-color: transparent;
+      border-right-style: solid;
+      border-bottom-width: 0;
+    }
+
+    @at-root .video-editor__range-end#{&} {
+      border-left-color: transparent;
+      border-left-style: solid;
+      border-top-width: 0;
+    }
   }
 }
 
@@ -210,6 +221,25 @@ $video-track-height: 3rem;
 
 .video-editor__range-end {
   align-self: flex-end;
+}
+
+.video-editor__playback-cursor {
+  width: 100%;
+  cursor: crosshair;
+
+  &::range-thumb {
+    width: 0;
+    height: 100%;
+    box-sizing: content-box;
+
+    appearance: none;
+    border-left-style: solid;
+    border-left-width: $cursor-width;
+    border-right-width: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+    border-radius: 0;
+  }
 }
 
 .video-editor__buttons {

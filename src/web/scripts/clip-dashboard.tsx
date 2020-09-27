@@ -1,5 +1,5 @@
-import { h, FunctionalComponent, VNode, Fragment } from 'preact';
-import { StateUpdater, useRef, useState } from 'preact/hooks';
+import { h, FunctionalComponent, Fragment } from 'preact';
+import { StateUpdater, useRef, useState, PropRef } from 'preact/hooks';
 
 import { ImageClip, VideoClip, isVideoClip, Clip } from '@models/media';
 import { GetClipResponse } from '@server/clip/server';
@@ -78,7 +78,19 @@ function screenshot(): Promise<string> {
     .then(resp => resp.id);
 }
 
-const ImageViewer: FunctionalComponent<ImageViewerProps> = ({ clipView }): VNode => {
+const ClipMetadata: FunctionalComponent<ClipView> = ({ clip }) => {
+  const recTs = formatTimestampRange(clip, clip.recordingTimestampMs);
+  const streamTs = formatTimestampRange(clip, clip.streamTimestampMs);
+  return (
+    <p class="clips__metadata">
+      ID: {clip.id}
+      {recTs && <Fragment><br />Recording: {recTs}</Fragment>}
+      {streamTs && <Fragment><br />Stream: {streamTs}</Fragment>}
+    </p>
+  );
+};
+
+const ImageViewer: FunctionalComponent<ImageViewerProps> = ({ clipView }) => {
   return (
     <div class="image-viewer">
       <div class="image-viewer__image">
@@ -89,7 +101,7 @@ const ImageViewer: FunctionalComponent<ImageViewerProps> = ({ clipView }): VNode
   );
 };
 
-const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay }): VNode => {
+const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay }) => {
   const { clip, status } = clipView;
   const durationMs = clip.media.durationMs;
   const disabled = status !== ClipStatus.Uncut;
@@ -158,27 +170,20 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
             max={startMaximum}
             step={CLIP_RANGE_STEP_MS}
             value={startMs}
-            disabled={disabled}
-            onInput={(e) => {
-              // TODO: Debounce
-              if (!videoRef.current) {
-                return;
-              }
-              const newStartMs = +(e.target as HTMLInputElement).value;
-              videoRef.current.currentTime = newStartMs / 1000;
-              updateStartMs(newStartMs);
-              videoRef.current.pause();
-            }}
-            onChange={(e) => {
-              if (!videoRef.current) {
-                return;
-              }
-              const newStartMs = +(e.target as HTMLInputElement).value;
-              videoRef.current.currentTime = newStartMs / 1000;
-              updateStartMs(newStartMs);
-              videoRef.current.pause();
-            }}
+            onInput={rangeUpdateHandler(videoRef, updateStartMs)}
+            onChange={rangeUpdateHandler(videoRef, updateStartMs)}
           />}
+          <input
+            type="range"
+            class="video-editor__playback-cursor"
+            min={0}
+            max={durationMs}
+            step={CLIP_RANGE_STEP_MS}
+            value={Math.trunc(currentTime)}
+            disabled={disabled}
+            onInput={playbackUpdateHandler(videoRef)}
+            onChange={playbackUpdateHandler(videoRef)}
+          />
           {!disabled && <input
             type="range"
             name="endMs"
@@ -188,26 +193,13 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
             max={durationMs}
             step={CLIP_RANGE_STEP_MS}
             value={endMs}
-            disabled={disabled}
-            onInput={(e) => {
-              if (!videoRef.current) {
-                return;
-              }
-              const newEndMs = +(e.target as HTMLInputElement).value;
-              videoRef.current.currentTime = newEndMs / 1000;
-              updateEndMs(newEndMs);
-              videoRef.current.pause();
-            }}
-            onChange={(e) => {
-              if (!videoRef.current) {
-                return;
-              }
-              const newEndMs = +(e.target as HTMLInputElement).value;
-              const playbackStartMs = Math.max(newEndMs - CLIP_END_PLAYBACK_OFFSET_MS, startMs);
-              videoRef.current.currentTime = playbackStartMs / 1000;
-              updateEndMs(newEndMs);
-              videoRef.current.pause();
-            }}
+            onInput={rangeUpdateHandler(videoRef, updateEndMs)}
+            onChange={rangeUpdateHandler(
+              videoRef,
+              updateEndMs,
+              CLIP_END_PLAYBACK_OFFSET_MS,
+              startMs,
+            )}
           />}
         </div>
       </div>
@@ -235,17 +227,33 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
   );
 };
 
-const ClipMetadata: FunctionalComponent<ClipView> = ({ clip }): VNode => {
-  const recTs = formatTimestampRange(clip, clip.recordingTimestampMs);
-  const streamTs = formatTimestampRange(clip, clip.streamTimestampMs);
-  return (
-    <p class="clips__metadata">
-      ID: {clip.id}
-      {recTs && <Fragment><br />Recording: {recTs}</Fragment>}
-      {streamTs && <Fragment><br />Stream: {streamTs}</Fragment>}
-    </p>
-  );
-};
+function rangeUpdateHandler(
+  videoRef: PropRef<HTMLVideoElement>,
+  updater: StateUpdater<number>,
+  offset = 0,
+  minValue = 0,
+): EventHandlerNonNull {
+  return (e) => {
+    if (!videoRef.current) {
+      return;
+    }
+    const newValue = +(e.target as HTMLInputElement).value;
+    const playbackStartMs = Math.max(newValue - offset, minValue);
+    videoRef.current.currentTime = playbackStartMs / 1000;
+    updater(newValue);
+    videoRef.current.pause();
+  };
+}
+
+function playbackUpdateHandler(videoRef: PropRef<HTMLVideoElement>): EventHandlerNonNull {
+  return (e) => {
+    if (!videoRef.current) {
+      return;
+    }
+    const newValue = +(e.target as HTMLInputElement).value;
+    videoRef.current.currentTime = newValue / 1000;
+  };
+}
 
 function formatTimestampRange(clip: Clip, startMillis: number | undefined): string | undefined {
   if (startMillis == null) {
@@ -263,7 +271,7 @@ function removeMs(timestamp: Timestamp): string {
   return timestamp.slice(0, -4);
 }
 
-const ClipDashboard: FunctionalComponent<Props> = ({ state }): VNode => {
+const ClipDashboard: FunctionalComponent<Props> = ({ state }) => {
   const [ currentClipId, updateCurrentId ] = useState<Id | null>(null);
   const clipView = !currentClipId ? state.clips[state.clips.length - 1] :
     state.clips.find(cv => cv.clip.id === currentClipId);
