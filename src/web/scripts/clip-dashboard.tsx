@@ -1,5 +1,5 @@
 import { h, FunctionalComponent, Fragment } from 'preact';
-import { StateUpdater, useRef, useState, PropRef } from 'preact/hooks';
+import { StateUpdater, useRef, useState, PropRef, Ref } from 'preact/hooks';
 
 import { ImageClip, VideoClip, isVideoClip, Clip } from '@models/media';
 import { GetClipResponse } from '@server/clip/server';
@@ -127,6 +127,36 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
       videoRef.current.muted = true;
     }
   }, [ status ]);
+
+  const prevTimestamp = useRef(clip.clipStartMs);
+  const handleTimeUpdate = (e: Event): void => {
+    const video = e.target as HTMLVideoElement;
+    const timestamp = video.currentTime * 1000;
+    updateCurrentTime(timestamp);
+
+    // Loop selected range
+    if (prevTimestamp.current != timestamp &&
+      prevTimestamp.current < endMs &&
+      (timestamp > endMs || timestamp === 0))
+    {
+      video.currentTime = startMs / 1000;
+    }
+    prevTimestamp.current = timestamp;
+  };
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = clip.clipStartMs / 1000;
+    }
+  }, [ clip ]);
+
+  const playbackUpdater = (timestampMs: number): void => {
+    if (!videoRef.current) {
+      return;
+    }
+    videoRef.current.currentTime = timestampMs / 1000;
+    prevTimestamp.current = timestampMs;
+  };
+
   return (
     <form
       method="post"
@@ -138,8 +168,8 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
         <video
           class="video-editor__video"
           ref={videoRef}
-          src={`${clip.media.url}#t=${startMs / 1000},${endMs / 1000}`}
-          onTimeUpdate={e => updateCurrentTime((e.target as HTMLVideoElement).currentTime * 1000)}
+          src={clip.media.url}
+          onTimeUpdate={handleTimeUpdate}
           autoPlay={autoplay && !disabled}
           preload={'metadata'}
           controls={true}
@@ -170,8 +200,8 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
             max={startMaximum}
             step={CLIP_RANGE_STEP_MS}
             value={startMs}
-            onInput={rangeUpdateHandler(videoRef, updateStartMs)}
-            onChange={rangeUpdateHandler(videoRef, updateStartMs)}
+            onInput={rangeUpdateHandler(videoRef, updateStartMs, playbackUpdater)}
+            onChange={rangeUpdateHandler(videoRef, updateStartMs, playbackUpdater)}
           />}
           <input
             type="range"
@@ -181,8 +211,8 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
             step={CLIP_RANGE_STEP_MS}
             value={Math.trunc(currentTime)}
             disabled={disabled}
-            onInput={playbackUpdateHandler(videoRef)}
-            onChange={playbackUpdateHandler(videoRef)}
+            onInput={playbackUpdateHandler(videoRef, playbackUpdater)}
+            onChange={playbackUpdateHandler(videoRef, playbackUpdater)}
           />
           {!disabled && <input
             type="range"
@@ -193,10 +223,11 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
             max={durationMs}
             step={CLIP_RANGE_STEP_MS}
             value={endMs}
-            onInput={rangeUpdateHandler(videoRef, updateEndMs)}
+            onInput={rangeUpdateHandler(videoRef, updateEndMs, playbackUpdater)}
             onChange={rangeUpdateHandler(
               videoRef,
               updateEndMs,
+              playbackUpdater,
               CLIP_END_PLAYBACK_OFFSET_MS,
               startMs,
             )}
@@ -229,7 +260,8 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
 
 function rangeUpdateHandler(
   videoRef: PropRef<HTMLVideoElement>,
-  updater: StateUpdater<number>,
+  rangeUpdater: StateUpdater<number>,
+  playbackUpdater: (timestampMs: number) => void,
   offset = 0,
   minValue = 0,
 ): EventHandlerNonNull {
@@ -239,19 +271,22 @@ function rangeUpdateHandler(
     }
     const newValue = +(e.target as HTMLInputElement).value;
     const playbackStartMs = Math.max(newValue - offset, minValue);
-    videoRef.current.currentTime = playbackStartMs / 1000;
-    updater(newValue);
+    playbackUpdater(playbackStartMs);
+    rangeUpdater(newValue);
     videoRef.current.pause();
   };
 }
 
-function playbackUpdateHandler(videoRef: PropRef<HTMLVideoElement>): EventHandlerNonNull {
+function playbackUpdateHandler(
+  videoRef: PropRef<HTMLVideoElement>,
+  playbackUpdater: (timestampMs: number) => void,
+): EventHandlerNonNull {
   return (e) => {
     if (!videoRef.current) {
       return;
     }
     const newValue = +(e.target as HTMLInputElement).value;
-    videoRef.current.currentTime = newValue / 1000;
+    playbackUpdater(newValue);
   };
 }
 
