@@ -61,10 +61,6 @@ $cursor-width: 2px;
   }
 }
 
-.clips__metadata {
-  margin-inline: $metadata-padding;
-}
-
 .image-viewer__image {
   position: relative;
   flex: 1 1 10rem;
@@ -245,9 +241,10 @@ $cursor-width: 2px;
 .video-editor__buttons {
   display: flex;
   flex: 1 1 auto;
-  flex: 1 1 min-content;
+
   flex-flow: column nowrap;
   overflow: hidden; // input-row seems to be causing overflow
+  padding: 0 var(--margin-medium);
 }
 
 .video-editor__description {
@@ -255,8 +252,6 @@ $cursor-width: 2px;
   flex: 1 0 auto;
 
   flex-flow: column nowrap;
-
-  text-indent: $metadata-padding;
 }
 
 .video-editor__description-editor {

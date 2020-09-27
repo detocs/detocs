@@ -110,7 +110,8 @@ const ImageViewer: FunctionalComponent<ImageViewerProps> = ({ clipView }) => {
 const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay }) => {
   const { clip, status } = clipView;
   const durationMs = clip.media.durationMs;
-  const disabled = status !== ClipStatus.Uncut;
+  const isRendering = status === ClipStatus.Rendering;
+  const isRendered = status === ClipStatus.Rendered;
 
   const videoRef = useRef<HTMLVideoElement>();
   const [ startMs, updateStartMs ] = useLocalState(
@@ -197,7 +198,7 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
           ref={videoRef}
           src={clip.media.url}
           onTimeUpdate={handleTimeUpdate}
-          autoPlay={autoplay && !disabled}
+          autoPlay={autoplay && !isRendering}
           preload={'metadata'}
           controls={true}
           loop={true}
@@ -212,13 +213,13 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
             value={Math.trunc(currentTime)}
           >
           </progress>
-          <div
+          {!isRendered && <div
             class="video-editor__range-outline"
             style={`left: ${startMs/durationMs*100}%;` +
             `right: ${(durationMs - endMs)/durationMs*100}%;`}
           >
-          </div>
-          {!disabled && <input
+          </div>}
+          {!isRendered && <input
             type="range"
             name="startMs"
             class="video-editor__range-bound video-editor__range-start"
@@ -227,6 +228,7 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
             max={startMaximum}
             step={CLIP_RANGE_STEP_MS}
             value={startMs}
+            disabled={isRendering}
             onInput={rangeStartUpdater}
             onChange={rangeStartUpdater}
           />}
@@ -237,11 +239,11 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
             max={durationMs}
             step={CLIP_RANGE_STEP_MS}
             value={Math.trunc(currentTime)}
-            disabled={disabled}
+            disabled={isRendering}
             onInput={playbackPositionUpdater}
             onChange={playbackPositionUpdater}
           />
-          {!disabled && <input
+          {!isRendered && <input
             type="range"
             name="endMs"
             class="video-editor__range-bound video-editor__range-end"
@@ -250,6 +252,7 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
             max={durationMs}
             step={CLIP_RANGE_STEP_MS}
             value={endMs}
+            disabled={isRendering}
             onInput={rangeEndUpdater}
             onChange={rangeEndUpdater}
           />}
@@ -266,13 +269,18 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
             onInput={inputHandler(updateDescription)}
             class="video-editor__description-editor"
             rows={2}
-            disabled={disabled}
+            disabled={isRendering}
+            readOnly={isRendered}
           >
           </textarea>
         </label>
         <div class="action-row">
-          <button type="submit" disabled={disabled}>Update</button>
-          <button type="submit" disabled={disabled} formAction={cutEndpoint}>Cut</button>
+          <button type="submit" disabled={isRendering || isRendered}>
+            Update
+          </button>
+          <button type="submit" disabled={isRendering || isRendered} formAction={cutEndpoint}>
+            Cut
+          </button>
         </div>
       </div>
     </form>
