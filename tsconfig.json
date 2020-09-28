@@ -25,5 +25,6 @@
     "resolveJsonModule": true,
     "jsx": "react",
     "jsxFactory": "h"
-  }
+  },
+  "exclude": [ "test/" ]
 }
