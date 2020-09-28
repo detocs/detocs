@@ -5,9 +5,10 @@ import { Screenshot, Replay, MediaFile, VideoFile, ImageFile } from '@models/med
 import { Timestamp } from '@models/timestamp';
 import ObsClient from '@services/obs/obs';
 import { sleep } from '@util/async';
-import { getLogger } from '@util/logger';
+import { getConfig } from '@util/configuration/config';
 import * as ffmpeg from '@util/ffmpeg';
 import { tmpDir } from '@util/fs';
+import { getLogger } from '@util/logger';
 import * as pathUtil from '@util/path';
 import { sanitizeTimestamp, toMillis, fromMillis } from '@util/timestamp';
 
@@ -42,7 +43,22 @@ export class MediaServer {
   public start(): void {
     this.dir = tmpDir(this.dirName);
     fs.mkdir(this.dir, { recursive: true });
+    this.deleteOldTempFiles(this.dir);
     this.initObs();
+  }
+
+  private async deleteOldTempFiles(dir: string): Promise<void[]> {
+    const cutoff = Date.now() - getConfig().tempFileExpirationDays * 24 * 60 * 60 * 1000;
+    const files = await fs.readdir(dir);
+    return Promise.all(files.map(file => {
+      const filePath = path.join(dir, file);
+      return fs.stat(filePath).then(async stats => {
+        if (stats.birthtimeMs < cutoff) {
+          logger.debug(`Deleting expired temp file ${filePath}`);
+          return fs.unlink(filePath);
+        }
+      });
+    }));
   }
 
   private initObs(): void {

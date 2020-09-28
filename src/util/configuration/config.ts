@@ -13,6 +13,7 @@ export interface Config {
   peopleDatabaseFile: string;
   logDirectory: string | null;
   clipDirectory: string;
+  tempFileExpirationDays: number;
   outputs: (WebSocketOutputConfig | FileOutputConfig)[];
   ports: {
     web: number;
@@ -42,6 +43,7 @@ const DEFAULTS: Config = {
   peopleDatabaseFile: 'people.json',
   logDirectory: null,
   clipDirectory: tmpDir('clips'),
+  tempFileExpirationDays: 5,
   outputs: [],
   ports: {
     web: 8080,
