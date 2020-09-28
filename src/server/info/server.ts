@@ -215,11 +215,13 @@ function fillBracketSet(
   if (!set) {
     return {};
   }
-  const scoreboard: Partial<Scoreboard> = {};
-  scoreboard.players = playersFromSet(set).concat([
-    nullPlayer,
-    nullPlayer,
-  ]).slice(0, 2);
+  const scoreboard: Partial<Scoreboard> = {
+    set,
+    players: playersFromSet(set).concat([
+      nullPlayer,
+      nullPlayer,
+    ]).slice(0, 2),
+  };
   if (set.match) {
     scoreboard.match = set.match;
   }

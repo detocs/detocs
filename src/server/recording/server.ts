@@ -8,6 +8,7 @@ import path from 'path';
 import { promisify } from 'util';
 import * as ws from 'ws';
 
+import { getPrefixedNameWithAlias } from '@models/person';
 import InfoState from '@server/info/state';
 import { MediaServer } from '@server/media/server';
 import { INFO_PORT } from '@server/ports';
@@ -26,16 +27,6 @@ const logger = getLogger('server/recording');
 const asyncMkdir = promisify(fs.mkdir);
 const sendUserError = httpUtil.sendUserError.bind(null, logger);
 const sendServerError = httpUtil.sendServerError.bind(null, logger);
-
-interface ProcessInfo {
-  pid: number;
-  ppid?: number;
-  uid?: number;
-  gid?: number;
-  name: string;
-  cmd: string;
-  bin: string;
-}
 
 interface UpdateRequest {
   'id'?: string;
@@ -101,7 +92,7 @@ export default function start({ port, mediaServer, bracketProvider, obsClient }:
   });
 
   httpServer.listen(port, () => logger.info(`Listening on port ${port}`));
-};
+}
 
 function broadcastState(state: State): void {
   if (!socketServer) {
@@ -155,7 +146,7 @@ async function startRecording(_req: Request, res: Response): Promise<void> {
   broadcastState(state);
   saveLogs(state);
   getCurrentThumbnail(recording.id, 'startThumbnail');
-};
+}
 
 async function stopRecordingHandler(_: Request, res: Response): Promise<void> {
   if (!state.streamRecordingFile || !state.streamRecordingFolder) {
@@ -179,7 +170,7 @@ async function stopInProgressRecording(): Promise<void> {
   await stopRecording().catch(logger.error);
 }
 
-async function stopRecording(callback?: Function): Promise<void> {
+async function stopRecording(callback?: () => void): Promise<void> {
   const timestamps = await obs?.getTimestamps()
     .match(
       t => t,
@@ -211,7 +202,7 @@ async function setMetadata(recordingId: string): Promise<void> {
   }
 
   Object.assign(info, { unfinishedSets: undefined });
-  recording.displayName = info.set ? info.set.displayName : info.match.name,
+  recording.displayName = formatDisplayName(info);
   recording.metadata = info;
   broadcastState(state);
   saveLogs(state);
@@ -308,7 +299,7 @@ async function cutRecording(req: Request, res: Response): Promise<void> {
     recording.recordingFile = file;
     broadcastState(state);
   }).catch(logger.error);
-};
+}
 
 async function getRecordingFile(): Promise<void> {
   if (!obs) {
@@ -393,6 +384,19 @@ function getInfo(): Promise<InfoState> {
     .then(resp => resp.json());
 }
 
+function formatDisplayName(info: InfoState): string {
+  const matchDisp = [
+    info.set?.shortIdentifier,
+    info.match.id || info.match.name,
+  ].filter(str => !!str).join(' - ');
+  const playersDisp = info.players
+    .map(p => p.person)
+    .map(getPrefixedNameWithAlias)
+    .filter(str => !!str)
+    .join(' vs ');
+  return [ matchDisp, playersDisp ].join(': ');
+}
+
 function newRecording(streamRecordingFile: string, startTimestamp: string): Recording {
   return {
     id: getId(),
@@ -402,7 +406,7 @@ function newRecording(streamRecordingFile: string, startTimestamp: string): Reco
     stopTimestamp: null,
     startThumbnail: null,
     stopThumbnail: null,
-    displayName: null,
+    displayName: 'Current Recording',
     metadata: null,
   };
 }
