@@ -1,4 +1,4 @@
-import { youtube } from '@googleapis/youtube';
+import { youtube } from '@google/youtube';
 import { CodeChallengeMethod, OAuth2Client } from 'google-auth-library';
 import http from 'http';
 import { Result, ok, err } from 'neverthrow';

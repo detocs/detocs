@@ -1,5 +1,5 @@
 declare module 'node-youtube-resumable-upload' {
-  import { youtube_v3 as youtubeV3 } from '@googleapis/youtube/v3';
+  import { youtube_v3 as youtubeV3 } from '@google/youtube/v3';
 
   export default class ResumableUpload {
     public tokens: {

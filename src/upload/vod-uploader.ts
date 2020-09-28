@@ -1,4 +1,4 @@
-import { youtube_v3 as youtubeV3 } from '@googleapis/youtube/v3';
+import { youtube_v3 as youtubeV3 } from '@google/youtube/v3';
 import childProcess from 'child_process';
 import filenamify from 'filenamify';
 import fsSync, { promises as fs } from 'fs';
