@@ -128,7 +128,7 @@ export default class SmashggClient implements BracketService {
         .map((entrant, index) => ({
           name: entrant.name,
           participants: entrant.participants.map(p => ({
-            smashggId: p.player.id.toString(),
+            serviceId: p.player.id.toString(),
             handle: p.player.gamerTag,
             prefix: p.prefix || (p.player.prefix || null),
             twitter: p.user?.authorizations?.[0].externalUsername || undefined,

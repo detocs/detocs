@@ -1,13 +1,11 @@
-import { SmashggId } from "@services/smashgg/types";
-
 import Match from "./match";
 import Game from "./game";
 
 export interface TournamentParticipant {
-  smashggId: SmashggId; // TODO: per-service
+  serviceId: string;
   handle: string;
   prefix: string | null;
-  twitter?: string;
+  twitter?: string; // TODO: Generify
 }
 
 export default interface TournamentSet {

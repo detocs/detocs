@@ -14,11 +14,13 @@ import TextInput from './text-input';
 
 type PersonUpdater = (p: PersonUpdate, val: string) => PersonUpdate;
 interface FieldMapping {
+  formName: string | null;
   getValue: (p: PersonUpdate) => string | null | undefined;
   updatedWithValue: PersonUpdater;
 }
 const fieldMappings: Record<string, FieldMapping> = {
   'handleOrAlias': {
+    formName: null,
     getValue: p => getNameWithAlias(p),
     updatedWithValue: (p, val) => {
       return ({
@@ -29,25 +31,29 @@ const fieldMappings: Record<string, FieldMapping> = {
     },
   },
   'handle': {
+    formName: '[handle]',
     getValue: p => p.handle,
     updatedWithValue: (p, val) => {
       return Object.assign({}, p, { handle: val });
     },
   },
   'alias': {
+    formName: '[alias]',
     getValue: p => p.alias,
     updatedWithValue: (p, val) => {
       return Object.assign({}, p, { alias: val });
     },
   },
   'prefix': {
+    formName: '[prefix]',
     getValue: p => p.prefix,
     updatedWithValue: (p, val) => {
       return Object.assign({}, p, { prefix: val });
     },
   },
   'twitter': {
-    getValue: p => p.twitter,
+    formName: '[serviceIds][twitter]',
+    getValue: p => p.serviceIds?.twitter,
     updatedWithValue: (p, val) => {
       return Object.assign({}, p, { twitter: val });
     },
@@ -80,7 +86,7 @@ export const PersonFieldInput: FunctionalComponent<PersonFieldInputProps> = forw
     onUpdatePerson(mapping.updatedWithValue(person, val));
   };
   return <TextInput
-    name={`${prefix}[${fieldName}]`}
+    name={mapping.formName ? `${prefix}${mapping.formName}` : undefined}
     value={mapping.getValue(person) || ''}
     onInput={handler}
     label={capitalize(fieldName)}

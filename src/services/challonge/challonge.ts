@@ -66,7 +66,7 @@ export default class ChallongeClient implements BracketService {
       return {
         name: p.name,
         participants: [{
-          smashggId: p.id,
+          serviceId: p.id,
           handle: p.name,
           prefix: null, // TODO: split on pipe?
         }],

@@ -6,10 +6,11 @@ import { promises as fs } from 'fs';
 import Handlebars from 'handlebars';
 import { basename } from 'path';
 
+import State, { sampleState } from '@server/info/state';
 import { escapeJson, escapeCsv, escapeString } from '@util/escaping';
 import { watchFile, Watcher } from '@util/fs';
 
-import State, { sampleState } from '@server/info/state';
+import { OutputState, toOutputState } from './output';
 
 export interface OutputTemplate {
   name: string;
@@ -18,7 +19,7 @@ export interface OutputTemplate {
 }
 
 interface OutputTemplateData {
-  state: State;
+  state: OutputState;
   timestamp: number;
   userData: unknown;
 }
@@ -38,11 +39,11 @@ export async function parseTemplateFile(path: string): Promise<OutputTemplate> {
 }
 
 class OutputTemplateImpl implements OutputTemplate {
-  public render: (data: State) => string = () => '';
+  public render = (): string => '';
   public userData: unknown;
   public  readonly name: string;
   private readonly path: string;
-  private watcher: Watcher = { close: () => {} };
+  private watcher: Watcher = { close: () => {/* ignore */} };
 
   public constructor(path: string) {
     this.path = path;
@@ -68,11 +69,14 @@ function loadTemplateFile(path: string): Promise<string> {
 function parseTemplate(contents: string, name: string): OutputTemplate | null {
   const { userData, templateStr } = extractFrontMatter(contents);
   const renderTemplate = hb.compile<OutputTemplateData>(templateStr, { noEscape: true });
-  const render = (state: State): string => renderTemplate({
-    state,
-    timestamp: getTimestamp(),
-    userData,
-  });
+  const render: OutputTemplate['render'] = state => {
+    const templateData: OutputTemplateData = {
+      state: toOutputState(state),
+      timestamp: getTimestamp(),
+      userData,
+    };
+    return renderTemplate(templateData);
+  };
   try {
     render(sampleState);
   } catch(e) {

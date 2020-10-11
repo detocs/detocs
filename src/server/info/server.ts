@@ -14,11 +14,13 @@ import LowerThird from '@models/lower-third';
 import Match, { nullMatch } from '@models/match';
 import matchList from '@models/matches';
 import * as People from '@models/people';
-import Person, { PersonUpdate, getPrefixedName } from '@models/person';
+import Person, { getPrefixedName } from '@models/person';
 import Player, { nullPlayer } from '@models/player';
 import Scoreboard from '@models/scoreboard';
 import TournamentSet, { TournamentParticipant } from '@models/tournament-set';
 import { getConfig } from '@util/configuration/config';
+import { filterValues } from '@util/object';
+import { parseFormData } from '@util/parsing';
 import BracketState from '@server/bracket/state';
 import { BRACKETS_PORT } from '@server/ports';
 
@@ -31,6 +33,45 @@ import State, { nullState } from './state';
 const logger = getLogger('server/info');
 const state: State = Object.assign({}, nullState);
 let socketServer: ws.Server | null = null;
+
+interface PersonForm extends Partial<Person> {
+  handleOrAlias?: string;
+}
+
+type PlayerForm = PersonForm & {
+  score: string;
+  inLosers: string;
+  comment: string;
+};
+
+interface MatchLocator {
+  id?: string;
+  name?: string;
+}
+
+interface GameLocator {
+  id?: string;
+  name?: string;
+}
+
+type SetLocator = Partial<TournamentSet['serviceInfo']>;
+
+interface ScoreboardForm {
+  players: PlayerForm[];
+  match: MatchLocator;
+  game: GameLocator;
+  set: SetLocator;
+}
+
+interface LowerThirdForm {
+  players: PlayerForm[];
+  tournament?: string;
+  event?: string;
+}
+
+interface FillBracketForm {
+  set: SetLocator;
+}
 
 export default function start(port: number): void {
   loadDatabases();
@@ -53,7 +94,9 @@ export default function start(port: number): void {
       return;
     }
     const { unfinishedSets } = await getBracketState();
-    const scoreboard = parseScoreboard(req.fields, unfinishedSets);
+    const scoreboard = parseScoreboard(
+      parseFormData(req.fields) as unknown as ScoreboardForm,
+      unfinishedSets);
     updatePeople(state.commentators);
     Object.assign(state, scoreboard);
     res.sendStatus(200);
@@ -67,7 +110,9 @@ export default function start(port: number): void {
       return;
     }
     const { unfinishedSets } = await getBracketState();
-    const scoreboard = fillBracketSet(req.fields, unfinishedSets);
+    const scoreboard = fillBracketSet(
+      parseFormData(req.fields) as unknown as FillBracketForm,
+      unfinishedSets);
     Object.assign(state, scoreboard);
     res.sendStatus(200);
     broadcastState(state);
@@ -79,7 +124,7 @@ export default function start(port: number): void {
       res.sendStatus(400);
       return;
     }
-    const lowerThird = parseLowerThird(req.fields);
+    const lowerThird = parseLowerThird(parseFormData(req.fields) as unknown as LowerThirdForm);
     updatePeople(state.players);
     Object.assign(state, lowerThird);
     res.sendStatus(200);
@@ -179,39 +224,40 @@ function updatePeople(list: { person: Person }[]): void {
 }
 
 function parseScoreboard(
-  fields: Record<string, unknown>,
+  form: ScoreboardForm,
   unfinishedSets: TournamentSet[],
 ): Scoreboard {
   const players = [];
   for (let i = 0; i < 2; i++) {
-    const fieldPrefix = `players[${i}]`;
-    const person = parsePerson(fields, fieldPrefix);
+    const player = form.players[i];
+    const person = parsePerson(player);
 
-    const scoreStr = parseOptionalString(fields, `${fieldPrefix}[score]`);
-    const score: number = (scoreStr && parseInt(scoreStr)) || 0;
-    const inLosers = parseBool(fields, `${fieldPrefix}[inLosers]`);
-    const comment = parseString(fields, `${fieldPrefix}[comment]`);
+    const score = parseNumber(player.score);
+    const inLosers = parseBool(player.inLosers);
+    const comment = parseString(player.comment);
     players.push({ person, score, inLosers, comment });
   }
 
-  const match = parseMatch(fields);
-  const game = parseGame(fields);
-  const set = parseSet(fields, unfinishedSets);
+  const match = parseMatch(form.match);
+  const game = parseGame(form.game);
+  const set = parseSet(form.set, unfinishedSets);
   // TODO: Reload people from datastore?
 
   return {
     players,
-    game,
     match,
+    game,
     set,
   };
 }
 
 function fillBracketSet(
-  fields: Record<string, unknown>,
+  form: FillBracketForm,
   unfinishedSets: TournamentSet[],
 ): Partial<Scoreboard> {
-  const set = parseSet(fields, unfinishedSets);
+  console.log(form);
+  const set = parseSet(form.set, unfinishedSets);
+  console.log(set);
   if (!set) {
     return {};
   }
@@ -234,12 +280,13 @@ function fillBracketSet(
 
 function playersFromSet(set: TournamentSet): Player[] {
   // TODO: Handle discrepancies between numbers of players and entrants?
+  const serviceName = set.serviceInfo.serviceName;
   return set.entrants.map(entrant => {
     const soloParticipant = entrant.participants.length == 1;
     if (soloParticipant) {
       const participant = entrant.participants[0];
 
-      const foundById = People.getBySmashggId(participant.smashggId);
+      const foundById = People.getByServiceId(serviceName, participant.serviceId);
       if (foundById) {
         return {
           person: mergeSetParticipant(foundById, participant),
@@ -252,7 +299,9 @@ function playersFromSet(set: TournamentSet): Player[] {
       if (foundPeople.length == 1) {
         const foundByName = People.save({
           id: foundPeople[0].id,
-          smashggId: participant.smashggId,
+          serviceIds: {
+            [serviceName]: participant.serviceId,
+          },
         });
         return {
           person: foundByName,
@@ -264,8 +313,10 @@ function playersFromSet(set: TournamentSet): Player[] {
       const newPerson = People.save({
         handle: participant.handle,
         prefix: participant.prefix,
-        smashggId: participant.smashggId,
-        twitter: participant.twitter,
+        serviceIds: {
+          [serviceName]: participant.serviceId,
+          'twitter': participant.twitter,
+        },
       });
       return {
         person: newPerson,
@@ -301,7 +352,7 @@ function mergeSetParticipant(orig: Person, participant: TournamentParticipant): 
     let person = Object.assign({}, orig, {
       prefix: participant.prefix,
       twitter: participant.twitter,
-      smashggId: participant.smashggId,
+      smashggId: participant.serviceId,
     });
     if (participant.handle !== orig.handle) {
       person = Object.assign({}, person, {
@@ -313,26 +364,24 @@ function mergeSetParticipant(orig: Person, participant: TournamentParticipant): 
   }
 }
 
-function parseLowerThird(fields: Record<string, unknown>): LowerThird {
+function parseLowerThird(form: LowerThirdForm): LowerThird {
   const commentators = [];
   for (let i = 0; i < 2; i++) {
-    const fieldPrefix = `players[${i}]`;
-    const person = parsePerson(fields, fieldPrefix);
+    const person = parsePerson(form.players[i]);
     commentators.push({ person });
   }
   // TODO: Reload people from datastore?
   return {
     commentators,
-    tournament: parseString(fields, 'tournament'),
-    event: parseString(fields, 'event'),
+    tournament: parseString(form.tournament),
+    event: parseString(form.event),
   };
 }
 
 function parseBreak(fields: Record<string, unknown>): Break {
   const messages = [];
   for (let i = 0; i < 4; i++) {
-    const field = `messages[${i}]`;
-    const msg = parseOptionalString(fields, field);
+    const msg = parseOptionalString(fields[`messages[${i}]`]);
     if (msg != null) {
       messages[i] = msg;
     }
@@ -342,106 +391,77 @@ function parseBreak(fields: Record<string, unknown>): Break {
   };
 }
 
-function parsePerson(fields: Record<string, unknown>, fieldPrefix: string): Person {
-  const id = parseId(fields[`${fieldPrefix}[id]`]);
-  const update: PersonUpdate = { id };
-  const handleOrAlias = fields[`${fieldPrefix}[handleOrAlias]`] as string | undefined;
-  if (handleOrAlias != null) {
-    update.handle = handleOrAlias.trim();
-  }
-  const handle = fields[`${fieldPrefix}[handle]`] as string | undefined;
-  if (handle != null) {
-    update.handle = handle.trim();
-  }
-  const alias = fields[`${fieldPrefix}[alias]`] as string | undefined;
-  if (alias != null) {
-    update.alias = alias.trim() || undefined;
-  }
-  const prefix = fields[`${fieldPrefix}[prefix]`] as string | undefined;
-  if (prefix != null) {
-    update.prefix = prefix.trim() || null;
-  }
-  const twitter = fields[`${fieldPrefix}[twitter]`] as string | undefined;
-  if (twitter != null) {
-    update.twitter = twitter.trim() || undefined;
-  }
-  return People.save(update);
+function parsePerson(form: PersonForm): Person {
+  const id = parseString(form.id);
+  const handle = parseString(form.handle);
+  const alias = parseOptionalString(form.alias);
+  const prefix = parseOptionalString(form.prefix) || null;
+  const serviceIds = filterValues(form.serviceIds, value => !!value);
+  return People.save(filterValues({
+    id,
+    handle,
+    alias,
+    prefix,
+    serviceIds,
+  }, value => value !== undefined));
 }
 
-function parseGame(fields: Record<string, unknown>): Game {
-  const id = fields['game[id]'];
-  if (!(typeof id === 'string')) {
-    return nullGame;
+function parseGame(locator: GameLocator): Game {
+  const id = parseOptionalString(locator.id);
+  if (id) {
+    const found = gameList.find(m => m.id === id);
+    if (found) {
+      return found;
+    }
   }
-  const found = gameList.find(g => g.id === id);
-  if (found) {
-    return found;
-  }
-  const name = fields['game[name]'];
-  if (!(typeof name === 'string')) {
+  const name = parseOptionalString(locator.name);
+  if (!name) {
     return nullGame;
   }
   return Object.assign({}, nullGame, {
-    id,
     name,
   });
 }
 
-function parseMatch(fields: Record<string, unknown>): Match {
-  const id = fields['match[id]'];
-  if (!(typeof id === 'string')) {
+function parseMatch(locator: MatchLocator): Match {
+  const id = parseOptionalString(locator.id);
+  if (id) {
+    const found = matchList.find(m => m.id === id);
+    if (found) {
+      return found;
+    }
+  }
+  const name = parseOptionalString(locator.name);
+  if (!name) {
     return nullMatch;
   }
-  const found = matchList.find(m => m.id === id);
-  if (found) {
-    return found;
-  }
-  const name = fields['match[name]'];
-  if (!(typeof name === 'string')) {
-    return nullMatch;
-  }
-  return {
-    id,
+  return Object.assign({}, nullMatch, {
     name,
-    smashggId: null,
-  };
+  });
 }
 
 function parseSet(
-  fields: Record<string, unknown>,
+  locator: SetLocator,
   unfinishedSets: TournamentSet[],
 ): TournamentSet | undefined {
-  const serviceName = fields['set[serviceName]'];
-  const id = fields['set[id]'];
-  const phaseId = fields['set[phaseId]'];
-  if (!serviceName || !id || !phaseId) {
-    return;
-  }
-  const serviceInfo = {
-    serviceName,
-    id,
-    phaseId,
-  };
-  return unfinishedSets.find(s => isEqual(s.serviceInfo, serviceInfo));
+  return unfinishedSets.find(s => isEqual(s.serviceInfo, locator));
 }
 
-function parseId(idStr: unknown): string | undefined {
-  if (!(typeof idStr === 'string')) {
-    return undefined;
-  }
-  return idStr || undefined;
+function parseOptionalString(value: unknown): string | undefined {
+  return (typeof value === 'string' && value.trim()) || undefined;
 }
 
-function parseOptionalString(fields: Record<string, unknown>, name: string): string | undefined {
-  return fields[name] as string | undefined;
+function parseString(value: unknown): string {
+  return parseOptionalString(value) || '';
 }
 
-function parseString(fields: Record<string, unknown>, name: string): string {
-  return parseOptionalString(fields, name) || '';
+function parseNumber(value: unknown): number {
+  const str = parseString(value);
+  return parseInt(str) || 0;
 }
 
-function parseBool(fields: Record<string, unknown>, name: string): boolean {
-  return !!fields[name];
+function parseBool(value: string | undefined): boolean {
+  return !!value;
 }
 
 function getBracketState(): Promise<BracketState> {

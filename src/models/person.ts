@@ -1,11 +1,14 @@
+import _isEqual from 'lodash.isequal';
+
 export default interface Person {
   id: string;
   handle: string;
   alias?: string;
   prefix: string | null;
-  twitter?: string;
-  smashggId?: string;
-};
+  serviceIds: {
+    [serviceName: string]: string | undefined;
+  }
+}
 
 export type PersonUpdate = Partial<Person>;
 
@@ -13,14 +16,11 @@ export const nullPerson: Person = Object.freeze({
   id: '',
   handle: '',
   prefix: null,
+  serviceIds: {},
 });
 
 export function isEqual(p1: Person, p2: Person): boolean {
-  return p1.id === p2.id &&
-    p1.handle === p2.handle &&
-    p1.prefix === p2.prefix &&
-    p1.twitter === p2.twitter &&
-    p1.smashggId === p2.smashggId;
+  return _isEqual(p1, p2);
 }
 
 export function getPrefixedName(p: Person | PersonUpdate): string {

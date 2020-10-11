@@ -1,26 +1,24 @@
-import { getLogger } from '@util/logger';
+import merge from 'lodash.merge';
 
 import { readFileSync, renameSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { dirname } from 'path';
 
 import { getConfig } from '@util/configuration/config';
+import { getId } from '@util/id';
+import { getLogger } from '@util/logger';
 import { getVersion } from '@util/meta';
+import { filterValues } from '@util/object';
 import { nonNull } from '@util/predicates';
 
 import Person, { isEqual, PersonUpdate, nullPerson, getPrefixedAlias } from './person';
-import { getId } from '@util/id';
 
-const CURRENT_DB_FORMAT = "1";
+const CURRENT_DB_FORMAT = '2';
 const logger = getLogger('people');
 
 interface Database {
   format: string;
   version: string; // App version
   people: Person[];
-}
-
-interface LoadedDatabase extends Omit<Database, 'people'> {
-  people: Partial<Person>[];
 }
 
 const DEFAULTS = nullPerson;
@@ -46,9 +44,30 @@ export function loadDatabase(): void {
 format: ${db.format}
 version: ${db.version}
 person count: ${db.people.length}`);
+  upgradeDb(db);
   database.people = db.people.map(parsePerson)
     .filter(nonNull);
   backedUp = false;
+}
+
+function upgradeDb(db: Database): Database {
+  if (!db.format || db.format === '1') {
+    const targetFormat = '2';
+    logger.warn(`Upgrading database from format version ${db.format} to ${targetFormat}`);
+    db.people.forEach((person: Person & { twitter?: string; smashggId?: string }) => {
+      person.serviceIds = {
+        twitter: person.twitter,
+        smashgg: person.smashggId,
+      };
+      delete person.twitter;
+      delete person.smashggId;
+    });
+    db.format = targetFormat;
+  }
+  if (!(db.format === CURRENT_DB_FORMAT)) {
+    throw new Error(`Unable to upgrade database to current format (${CURRENT_DB_FORMAT})`);
+  }
+  return db;
 }
 
 function parsePerson(p: Partial<Person>): Person | null {
@@ -67,7 +86,7 @@ function parsePerson(p: Partial<Person>): Person | null {
     id,
     handle,
     prefix: p.prefix || null,
-    twitter: p.twitter || undefined,
+    serviceIds: filterValues(p.serviceIds, value => !!value),
   };
 }
 
@@ -91,13 +110,13 @@ export function getById(id?: string): Person | null {
   return database.people.find(p => p.id === id) || null;
 }
 
-export function getBySmashggId(id: string): Person | null {
+export function getByServiceId(serviceName: string, id: string): Person | null {
   // TODO: Choose latest person if multiple have same ID?
-  return database.people.find(p => p.smashggId === id) || null;
+  return database.people.find(p => p.serviceIds[serviceName] === id) || null;
 }
 
 export function save(upd: PersonUpdate): Person {
-  let existingPerson = getById(upd.id);
+  const existingPerson = getById(upd.id);
   if (existingPerson) {
     return update(existingPerson, upd);
   } else {
@@ -120,7 +139,7 @@ function add(update: PersonUpdate): Person {
 }
 
 function update(old: Person, upd: PersonUpdate): Person {
-  const updated: Person = Object.assign({}, old, upd);
+  const updated: Person = merge({}, old, upd);
   database.people.forEach((p, i) => {
     if (p.id === old.id && !isEqual(p, updated)) {
       logger.info('update person:', old, updated);

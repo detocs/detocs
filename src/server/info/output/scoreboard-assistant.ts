@@ -2,13 +2,11 @@ import { getLogger } from '@util/logger';
 
 import * as WebSocket from 'ws';
 
-import LowerThird from '@models/lower-third';
-import Scoreboard from '@models/scoreboard';
 import { sendData, broadcastData } from '@util/websocket';
 
 import State from '@server/info/state';
 
-import Output from './output';
+import Output, { OutputState, toOutputState } from './output';
 
 const logger = getLogger('output/scorebaord-assistant');
 const PORT = 58341;
@@ -31,6 +29,7 @@ interface ScoreboardAssistantText {
   'text4': string;
 }
 
+// TODO: Replace with Default output (file/websocket)
 export default class ScoreboardAssistant implements Output {
   private server: WebSocket.Server | undefined;
   private lastScoreboard?: ScoreboardAssistantScoreboard;
@@ -51,15 +50,17 @@ User Agent: ${req.headers['user-agent']}`);
   }
 
   public update(state: State): void {
-    const convertedScoreboard = convertToScoreboard(state);
+    const outputState = toOutputState(state);
+
+    const convertedScoreboard = convertToScoreboard(outputState);
     this.lastScoreboard = convertedScoreboard;
     this.broadcast(convertedScoreboard);
 
-    const convertedLowerThird = convertToLowerThird(state);
+    const convertedLowerThird = convertToLowerThird(outputState);
     this.lastLowerThird = convertedLowerThird;
     this.broadcast(convertedLowerThird);
 
-    const convertedBreak = convertToBreak(state);
+    const convertedBreak = convertToBreak(outputState);
     this.lastBreak = convertedBreak;
     this.broadcast(convertedBreak);
   }
@@ -73,7 +74,7 @@ User Agent: ${req.headers['user-agent']}`);
   }
 }
 
-function convertToScoreboard(state: State): ScoreboardAssistantScoreboard {
+function convertToScoreboard(state: OutputState): ScoreboardAssistantScoreboard {
   const players = getPlayerStrings(state.players);
   return {
     'tabID': mapTabId(state.game.id),
@@ -86,7 +87,7 @@ function convertToScoreboard(state: State): ScoreboardAssistantScoreboard {
   };
 }
 
-function convertToLowerThird(state: State): ScoreboardAssistantScoreboard {
+function convertToLowerThird(state: OutputState): ScoreboardAssistantScoreboard {
   const players = getCommentatorStrings(state.commentators);
   return {
     'tabID': 'commentators',
@@ -99,7 +100,7 @@ function convertToLowerThird(state: State): ScoreboardAssistantScoreboard {
   };
 }
 
-function convertToBreak(state: State): ScoreboardAssistantText {
+function convertToBreak(state: OutputState): ScoreboardAssistantText {
   return {
     'tabID': 'break',
     'text1': state.messages[0],
@@ -109,7 +110,7 @@ function convertToBreak(state: State): ScoreboardAssistantText {
   };
 }
 
-function getPlayerStrings(list: Scoreboard['players']): string[] {
+function getPlayerStrings(list: OutputState['players']): string[] {
   const players = [];
   for (let i = 0; i < 2; i++) {
     const player = list[i];
@@ -123,7 +124,7 @@ function getPlayerStrings(list: Scoreboard['players']): string[] {
   return players;
 }
 
-function getCommentatorStrings(list: LowerThird['commentators']): string[] {
+function getCommentatorStrings(list: OutputState['commentators']): string[] {
   const players = [];
   for (let i = 0; i < 2; i++) {
     const player = list[i];
