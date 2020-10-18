@@ -48,6 +48,7 @@ export default class ChallongeClient implements BracketService {
   }
 
   public async upcomingSetsByPhase(tournamentId: string): Promise<TournamentSet[]> {
+    const serviceName = this.name();
     const url = `${BASE_URL}/tournaments/${tournamentId}/matches.json?api_key=${this.apiKey}`;
     const resp = await fetch(url)
       .then(checkResponseStatus)
@@ -66,9 +67,11 @@ export default class ChallongeClient implements BracketService {
       return {
         name: p.name,
         participants: [{
+          serviceName,
           serviceId: p.id,
           handle: p.name,
           prefix: null, // TODO: split on pipe?
+          serviceIds: {},
         }],
         inLosers: inLosers,
       };
@@ -89,7 +92,7 @@ export default class ChallongeClient implements BracketService {
         ];
         return ({
           serviceInfo: {
-            serviceName: this.name(),
+            serviceName,
             id: m.id.toString(),
             phaseId: m.tournament_id.toString(),
           },

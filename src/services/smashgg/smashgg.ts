@@ -108,9 +108,10 @@ export default class SmashggClient implements BracketService {
     }
     const videogame = getGameBySmashggId(s.event.videogame.id.toString());
     const matchName = origMatch ? origMatch.id : s.fullRoundText;
+    const serviceName = this.name();
     return {
       serviceInfo: {
-        serviceName: this.name(),
+        serviceName,
         id: s.id.toString(),
         phaseId,
       },
@@ -128,10 +129,13 @@ export default class SmashggClient implements BracketService {
         .map((entrant, index) => ({
           name: entrant.name,
           participants: entrant.participants.map(p => ({
+            serviceName,
             serviceId: p.player.id.toString(),
             handle: p.player.gamerTag,
             prefix: p.prefix || (p.player.prefix || null),
-            twitter: p.user?.authorizations?.[0].externalUsername || undefined,
+            serviceIds: {
+              'twitter': p.user?.authorizations?.[0].externalUsername || undefined,
+            },
           })),
           inLosers: isTrueFinals(match) || (isGrandFinals(match) && index === 1),
         })),

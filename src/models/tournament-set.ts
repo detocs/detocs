@@ -1,11 +1,10 @@
-import Match from "./match";
-import Game from "./game";
+import Game from './game';
+import Match from './match';
+import Person from './person';
 
-export interface TournamentParticipant {
+export interface TournamentParticipant extends Omit<Person, 'id' | 'alias'> {
+  serviceName: string;
   serviceId: string;
-  handle: string;
-  prefix: string | null;
-  twitter?: string; // TODO: Generify
 }
 
 export default interface TournamentSet {

@@ -5,6 +5,7 @@ import express from 'express';
 import formidable from 'express-formidable';
 import { createServer } from 'http';
 import isEqual from 'lodash.isequal';
+import merge from 'lodash.merge';
 import ws from 'ws';
 
 import Break from '@models/break';
@@ -280,88 +281,91 @@ function fillBracketSet(
 
 function playersFromSet(set: TournamentSet): Player[] {
   // TODO: Handle discrepancies between numbers of players and entrants?
-  const serviceName = set.serviceInfo.serviceName;
   return set.entrants.map(entrant => {
     const soloParticipant = entrant.participants.length == 1;
     if (soloParticipant) {
-      const participant = entrant.participants[0];
-
-      const foundById = People.getByServiceId(serviceName, participant.serviceId);
-      if (foundById) {
-        return {
-          person: mergeSetParticipant(foundById, participant),
-          score: 0,
-          inLosers: entrant.inLosers,
-        };
-      }
-
-      const foundPeople = People.findByFullName(getPrefixedName(participant));
-      if (foundPeople.length == 1) {
-        const foundByName = People.save({
-          id: foundPeople[0].id,
-          serviceIds: {
-            [serviceName]: participant.serviceId,
-          },
-        });
-        return {
-          person: foundByName,
-          score: 0,
-          inLosers: entrant.inLosers,
-        };
-      }
-
-      const newPerson = People.save({
-        handle: participant.handle,
-        prefix: participant.prefix,
-        serviceIds: {
-          [serviceName]: participant.serviceId,
-          'twitter': participant.twitter,
-        },
-      });
-      return {
-        person: newPerson,
-        score: 0,
-        inLosers: entrant.inLosers,
-      };
+      return getOrCreatePlayer(entrant);
     } else {
-      const foundPeople = People.findByFullName(entrant.name);
-      if (foundPeople.length == 1) {
-        return {
-          person: foundPeople[0],
-          score: 0,
-          inLosers: entrant.inLosers,
-        };
-      }
-
-      const newPerson = People.save({ handle: entrant.name });
-      return {
-        person: newPerson,
-        score: 0,
-        inLosers: entrant.inLosers,
-      };
+      return getOrCreateTeam(entrant);
     }
   });
 }
 
-function mergeSetParticipant(orig: Person, participant: TournamentParticipant): Person {
-  if ((orig.handle === participant.handle || orig.alias === participant.handle) &&
-    orig.prefix === participant.prefix)
-  {
-    return orig;
-  } else {
-    let person = Object.assign({}, orig, {
-      prefix: participant.prefix,
-      twitter: participant.twitter,
-      smashggId: participant.serviceId,
-    });
-    if (participant.handle !== orig.handle) {
-      person = Object.assign({}, person, {
-        alias: participant.handle,
-      });
-    }
-    People.save(person);
-    return person;
+function getOrCreatePlayer(entrant: TournamentSet['entrants'][0]): Player {
+  const participant = entrant.participants[0];
+
+  const foundById = People.getByServiceId(participant.serviceName, participant.serviceId);
+  if (foundById) {
+    return {
+      person: mergeSetParticipant(foundById, participant),
+      score: 0,
+      inLosers: entrant.inLosers,
+    };
   }
+
+  const foundPeople = People.findByFullName(getPrefixedName(participant));
+  if (foundPeople.length == 1) {
+    return {
+      person: mergeSetParticipant(foundPeople[0], participant),
+      score: 0,
+      inLosers: entrant.inLosers,
+    };
+  }
+
+  return {
+    person: newPersonFromParticipant(participant),
+    score: 0,
+    inLosers: entrant.inLosers,
+  };
+}
+
+function mergeSetParticipant(orig: Person, {
+  serviceName,
+  serviceId,
+  ...incoming
+}: TournamentParticipant): Person {
+  const extra: Partial<Person> = {
+    serviceIds: {
+      [serviceName]: serviceId,
+    },
+  };
+  if (incoming.handle !== orig.handle) {
+    extra.alias = incoming.handle;
+  }
+  delete incoming.handle;
+  const merged = merge({}, orig, incoming, extra);
+  return People.save(merged);
+}
+
+function newPersonFromParticipant({
+  serviceName,
+  serviceId,
+  ...person
+}: TournamentParticipant): Person {
+  const withServiceId = merge({}, person, {
+    serviceIds: {
+      [serviceName]: serviceId,
+    },
+  });
+  return People.save(withServiceId);
+}
+
+function getOrCreateTeam(entrant: TournamentSet['entrants'][0]): Player {
+  const foundPeople = People.findByFullName(entrant.name);
+  if (foundPeople.length == 1) {
+    return {
+      person: foundPeople[0],
+      score: 0,
+      inLosers: entrant.inLosers,
+    };
+  }
+
+  const newPerson = People.save({ handle: entrant.name });
+  return {
+    person: newPerson,
+    score: 0,
+    inLosers: entrant.inLosers,
+  };
 }
 
 function parseLowerThird(form: LowerThirdForm): LowerThird {
