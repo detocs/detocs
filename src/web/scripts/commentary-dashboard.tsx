@@ -26,13 +26,13 @@ const CommentaryDashboard: FunctionalComponent<Props> = ({
   const commentators = [
     <Commentator
       index={0}
-      prefix="players[]"
+      prefix="players[0]"
       person={com1}
       onUpdatePerson={updateCom1}
     />,
     <Commentator
       index={1}
-      prefix="players[]"
+      prefix="players[1]"
       person={com2}
       onUpdatePerson={updateCom2}
     />
