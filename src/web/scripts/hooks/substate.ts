@@ -10,13 +10,13 @@ export function useSubstate<Full, Subset>(
   return (state, updateState) => [
     getter(state),
     valueOrUpdater => {
-      let v: Subset;
       if (typeof valueOrUpdater === 'function') {
-        v = (valueOrUpdater as (prevState: Subset) => Subset)(getter(state));
+        const updater = valueOrUpdater as (prevState: Subset) => Subset;
+        updateState(origState => setter(origState, updater(getter(origState))));
       } else {
-        v = valueOrUpdater;
+        const value = valueOrUpdater as Subset;
+        updateState(origState => setter(origState, value));
       }
-      updateState(setter(state, v));
     },
   ];
 }
