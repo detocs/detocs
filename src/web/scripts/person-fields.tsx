@@ -1,3 +1,4 @@
+import updateImmutable from 'immutability-helper';
 import { h, Fragment, RenderableProps, VNode, FunctionalComponent } from 'preact';
 import { forwardRef } from 'preact/compat';
 import { useState, useRef, StateUpdater } from 'preact/hooks';
@@ -33,30 +34,40 @@ const fieldMappings: Record<string, FieldMapping> = {
   'handle': {
     formName: '[handle]',
     getValue: p => p.handle,
-    updatedWithValue: (p, val) => {
-      return Object.assign({}, p, { handle: val });
-    },
+    updatedWithValue: (p, val) => updateImmutable(p, {
+      handle: {
+        $set: val,
+      },
+    }),
   },
   'alias': {
     formName: '[alias]',
     getValue: p => p.alias,
-    updatedWithValue: (p, val) => {
-      return Object.assign({}, p, { alias: val });
-    },
+    updatedWithValue: (p, val) => updateImmutable(p, {
+      alias: {
+        $set: val,
+      },
+    }),
   },
   'prefix': {
     formName: '[prefix]',
     getValue: p => p.prefix,
-    updatedWithValue: (p, val) => {
-      return Object.assign({}, p, { prefix: val });
-    },
+    updatedWithValue: (p, val) => updateImmutable(p, {
+      prefix: {
+        $set: val,
+      },
+    }),
   },
   'twitter': {
     formName: '[serviceIds][twitter]',
     getValue: p => p.serviceIds?.twitter,
-    updatedWithValue: (p, val) => {
-      return Object.assign({}, p, { twitter: val });
-    },
+    updatedWithValue: (p, val) => updateImmutable(p, {
+      serviceIds: {
+        'twitter': {
+          $set: val,
+        },
+      },
+    }),
   },
 };
 
