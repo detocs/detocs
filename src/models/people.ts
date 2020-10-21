@@ -51,7 +51,13 @@ person count: ${db.people.length}`);
 }
 
 function upgradeDb(db: Database): Database {
-  if (!db.format || db.format === '1') {
+  if (db.format == null) {
+    db.format = '1';
+  }
+  if (isNaN(+db.format) || +db.format > +CURRENT_DB_FORMAT) {
+    throw new Error(`Unknown database format: ${db.format}`);
+  }
+  if (db.format === '1') {
     const targetFormat = '2';
     logger.warn(`Upgrading database from format version ${db.format} to ${targetFormat}`);
     db.people.forEach((person: Person & { twitter?: string; smashggId?: string }) => {
