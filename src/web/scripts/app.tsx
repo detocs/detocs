@@ -88,9 +88,6 @@ const App: FunctionalComponent<{}> = (): VNode => {
         <Tab id="recording">
           <RecordingDashboard state={recordingState} updateState={updateRecordingState}/>
         </Tab>
-        <Tab id="bracket">
-          <BracketDashboard state={bracketState} updateState={updateBracketState}/>
-        </Tab>
         <Tab id="twitter">
           <TwitterDashboard
             twitterState={twitterState}
@@ -99,6 +96,9 @@ const App: FunctionalComponent<{}> = (): VNode => {
         </Tab>
         <Tab id="clips">
           <ClipDashboard state={clipState} updateState={updateClipState}/>
+        </Tab>
+        <Tab id="bracket">
+          <BracketDashboard state={bracketState} updateState={updateBracketState}/>
         </Tab>
         <Tab id="break">
           <BreakDashboard state={infoState} updateState={updateInfoState}/>

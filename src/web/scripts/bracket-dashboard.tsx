@@ -1,5 +1,5 @@
 import { h, FunctionalComponent, VNode, Fragment } from 'preact';
-import { StateUpdater } from 'preact/hooks';
+import { StateUpdater, useRef, useEffect } from 'preact/hooks';
 
 import BracketState, { nullState } from '@server/bracket/state';
 import { keyHandler, Key } from '@util/dom';
@@ -24,6 +24,22 @@ const BracketDashboard: FunctionalComponent<Props> = ({ state, updateState }): V
   const phaseGroups = state.phaseId ?
     state.phaseGroups.filter(pg => pg.phaseId === state.phaseId) :
     [];
+  const tournamentRef = useRef<HTMLInputElement>();
+  const eventRef = useRef<HTMLSelectElement>();
+  const phaseRef = useRef<HTMLSelectElement>();
+  useEffect(() => {
+    if (!state.tournamentId) {
+      tournamentRef.current?.focus();
+    } else {
+      eventRef.current?.focus();
+    }
+  }, [ state.tournamentId ]);
+  useEffect(() => {
+    if (state.eventId) {
+      phaseRef.current?.focus();
+    }
+  }, [ state.eventId ]);
+
   return(
     <form
       action={bracketEndpoint('/update').href}
@@ -42,6 +58,7 @@ const BracketDashboard: FunctionalComponent<Props> = ({ state, updateState }): V
         </div> :
         <label>
           Tournament URL or slug: <input
+            ref={tournamentRef}
             name="tournamentUrl"
           />
         </label>
@@ -51,6 +68,7 @@ const BracketDashboard: FunctionalComponent<Props> = ({ state, updateState }): V
           Event: {event && <a href={event.url}>{event.name}</a>}
           {' '}
           <select
+            ref={eventRef}
             name="eventId"
             value={state.eventId || undefined}
             onKeyDown={submitOnEnter}
@@ -69,6 +87,7 @@ const BracketDashboard: FunctionalComponent<Props> = ({ state, updateState }): V
           }
           {' '}
           <select
+            ref={phaseRef}
             name="phaseId"
             value={state.phaseId || undefined}
             onKeyDown={submitOnEnter}
