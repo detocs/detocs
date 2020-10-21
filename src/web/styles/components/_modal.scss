@@ -1,3 +1,5 @@
+@use 'tools/focus';
+
 .modal__wrapper {
   position: fixed;
   z-index: 1000;
@@ -32,21 +34,22 @@
 }
 
 .modal__close-button {
-  display: inline-block;
   position: absolute;
-  width: 0.75em;
-  height: 0.75em;
   top: 0;
   right: 0;
   transform: translate(50%, -50%);
 
+  display: flex;
   padding: 0;
-  line-height: 0.75em;
-  text-align: center;
 
   border: none;
   border-radius: 50%;
-  font-size: 2rem;
+  font-size: 1.5rem;
+
+  &:focus {
+    @include focus.focus-border;
+    outline: none;
+  }
 }
 
 .modal__scroll-box {

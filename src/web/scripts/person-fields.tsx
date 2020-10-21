@@ -10,6 +10,7 @@ import { capitalize } from '@util/string';
 
 import { infoEndpoint } from './api';
 import Autocomplete, { useAutocompleteId, isAutocompleteValue } from './autocomplete';
+import Icon from './icon';
 import { logError } from './log';
 import TextInput from './text-input';
 
@@ -175,3 +176,20 @@ export const PersonSelector: FunctionalComponent<PersonFieldProps> = ({
     </Fragment>
   );
 };
+
+export function PersonAdditionalFields({ children }: RenderableProps<unknown>): VNode {
+  return (
+    <details class="person__additional-fields">
+      <summary>
+        <span class="details--closed"><Icon name="more" label="More Fields" /></span>
+        <span class="details--open">
+          Additional Fields
+          <Icon name="close" label="Hide Additional Fields" />
+        </span>
+      </summary>
+      <div class="input-row">
+        {children}
+      </div>
+    </details>
+  );
+}

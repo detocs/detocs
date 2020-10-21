@@ -1,8 +1,13 @@
 import { h, VNode } from 'preact';
 import { JSXInternal } from 'preact/src/jsx';
 
+const ICON_NAME_MAPPING = Object.freeze({
+  'more': 'dots-circle-horizontal',
+  'close': 'x-circle',
+});
+
 export type Props = JSXInternal.HTMLAttributes & {
-  name: string;
+  name: keyof typeof ICON_NAME_MAPPING;
   label: string;
 };
 
@@ -16,10 +21,11 @@ export default function Icon({
     <svg
       {...additionalProps}
       class={`icon icon-${name} ${className || ''}`}
-      title={label}
+      role="img"
       aria-label={label}
     >
-      <use href={`/icons/symbol/icons.svg#${name}`}></use>
+      <title>{label}</title>
+      <use href={`/icons/symbol/icons.svg#${ICON_NAME_MAPPING[name]}`}></use>
     </svg>
   );
 }

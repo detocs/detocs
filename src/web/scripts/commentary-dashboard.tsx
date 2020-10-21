@@ -7,8 +7,12 @@ import { INTERACTIVE_SELECTOR } from '@util/dom';
 
 import { infoEndpoint } from './api';
 import { useCommentator1, useCommentator2 } from './hooks/info';
-import Icon from './icon';
-import { PersonFieldInput, PersonSelector, PersonFieldProps } from './person-fields';
+import {
+  PersonFieldInput,
+  PersonSelector,
+  PersonFieldProps,
+  PersonAdditionalFields,
+} from './person-fields';
 
 interface Props {
   state: InfoState;
@@ -122,22 +126,16 @@ function Commentator({ index, prefix, person, onUpdatePerson }: CommentatorProps
           person={person}
           onUpdatePerson={onUpdatePerson}
         />
-        <details>
-          <summary>
-            <span class="details--closed"><Icon name="more" label="More" /></span>
-            <span class="details--open"> Additional Fields</span>
-          </summary>
-          <div class="input-row">
-            {[ 'handle', 'alias' ].map(fieldName =>
-              <PersonFieldInput
-                fieldName={fieldName}
-                prefix={prefix}
-                person={person}
-                onUpdatePerson={onUpdatePerson}
-              />
-            )}
-          </div>
-        </details>
+        <PersonAdditionalFields>
+          {[ 'handle', 'alias' ].map(fieldName =>
+            <PersonFieldInput
+              fieldName={fieldName}
+              prefix={prefix}
+              person={person}
+              onUpdatePerson={onUpdatePerson}
+            />
+          )}
+        </PersonAdditionalFields>
       </div>
     </fieldset>
   );

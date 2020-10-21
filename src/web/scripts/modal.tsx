@@ -10,6 +10,7 @@ import { keyHandler, Key, INTERACTIVE_SELECTOR } from '@util/dom';
 
 import FocusTrap from './focus-trap';
 export { default as useModalState } from './hooks/modal-state';
+import Icon from './icon';
 
 type ModalProps = RenderableProps<{
   isOpen: boolean;
@@ -44,11 +45,9 @@ export const Modal: FunctionalComponent<ModalProps> = ({
         <button
           type="button"
           class="modal__close-button"
-          title="Close"
-          aria-label="Close Modal"
           onClick={onClose}
         >
-          &times;
+          <Icon name="close" label="Close Modal" />
         </button>
         <div className="modal__scroll-box">
           <div className="modal__content">{children}</div>

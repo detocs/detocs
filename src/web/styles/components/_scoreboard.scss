@@ -32,6 +32,11 @@
   inline-size: 7em;
 }
 
+.person__additional-fields .details--open {
+  display: flex;
+  justify-content: space-between;
+}
+
 .comment {
   inline-size: 5em;
 }
