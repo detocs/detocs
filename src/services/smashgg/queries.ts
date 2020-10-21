@@ -59,23 +59,27 @@ export interface ApiSet {
     };
   };
   slots: {
-    entrant: {
-      name: string;
-      participants: {
-        prefix: string | null;
-        player: {
-          id: number;
-          gamerTag: string;
-          prefix: string | null;
-        };
-        user: {
-          authorizations: {
-            externalUsername: string;
-          }[] | null;
-        } | null;
-      }[];
-    } | null;
+    entrant: ApiEntrant | null;
   }[];
+}
+
+export interface ApiEntrant {
+  name: string;
+  participants: ApiParticipant[];
+}
+
+export interface ApiParticipant {
+  prefix: string | null;
+  player: {
+    id: number;
+    gamerTag: string;
+    prefix: string | null;
+  };
+  user: {
+    authorizations: {
+      externalUsername: string;
+    }[] | null;
+  } | null;
 }
 
 // Complexity: ~17 per set

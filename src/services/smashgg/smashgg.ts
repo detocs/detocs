@@ -19,6 +19,8 @@ import {
 } from "./constants";
 import {
   ApiSet,
+  ApiEntrant,
+  ApiParticipant,
   PHASE_SET_QUERY,
   PhaseSetQueryResponse,
   PHASE_EVENT_QUERY,
@@ -120,19 +122,19 @@ export default class SmashggClient implements BracketService {
       shortIdentifier: s.identifier,
       displayName: `${phaseGroupPrefix}${s.identifier} - ${matchName}: ${
         s.slots
-          .map(slot => slot.entrant ? slot.entrant.name : '???')
+          .map(slot => slot.entrant ? getEntrantName(slot.entrant) : '???')
           .join(' vs ')
       }`,
       completedAt: s.completedAt,
       entrants: s.slots.map(slot => slot.entrant)
         .filter(nonNull)
         .map((entrant, index) => ({
-          name: entrant.name,
+          name: getEntrantName(entrant),
           participants: entrant.participants.map(p => ({
             serviceName,
             serviceId: p.player.id.toString(),
             handle: p.player.gamerTag,
-            prefix: p.prefix || (p.player.prefix || null),
+            prefix: getParticipantPrefix(p),
             serviceIds: {
               'twitter': p.user?.authorizations?.[0].externalUsername || undefined,
             },
@@ -263,6 +265,20 @@ export default class SmashggClient implements BracketService {
       url: getPhaseUrl(phase.event, phase),
     };
   }
+}
+
+function getEntrantName(entrant: ApiEntrant): string {
+  if (entrant?.participants.length == 1) {
+    const p = entrant.participants[0];
+    const prefix = getParticipantPrefix(p);
+    return prefix ? `${prefix} | ${p.player.gamerTag}` : p.player.gamerTag;
+  } else {
+    return entrant.name;
+  }
+}
+
+function getParticipantPrefix(p: ApiParticipant): string | null {
+  return p.prefix || (p.player.prefix || null);
 }
 
 function getPhaseUrl(
