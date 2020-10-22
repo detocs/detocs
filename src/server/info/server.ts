@@ -256,9 +256,7 @@ function fillBracketSet(
   form: FillBracketForm,
   unfinishedSets: TournamentSet[],
 ): Partial<Scoreboard> {
-  console.log(form);
   const set = parseSet(form.set, unfinishedSets);
-  console.log(set);
   if (!set) {
     return {};
   }
