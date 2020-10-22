@@ -28,8 +28,10 @@ import {
   titleSize,
   MAX_TITLE_SIZE
 } from '@services/youtube';
+import { getConfig } from '@util/configuration/config';
 import { getLogger } from '@util/logger';
 
+import { KeyframeSource } from './keyframe-source';
 import { loadLog } from './loader';
 import { Log, VodTournament, VodVideogame } from './types';
 
@@ -82,7 +84,6 @@ interface VodUploaderParams {
 const GAMING_CATEGORY_ID = '20';
 const pExecFile = util.promisify(childProcess.execFile);
 const nonEmpty = (str?: string | null): str is string => !!str;
-let keyframeInterval = 3;
 
 export class VodUploader {
   private readonly bracketProvider: BracketServiceProvider;
@@ -126,7 +127,7 @@ export class VodUploader {
       bracketService,
       setList.phaseId,
     );
-    keyframeInterval = setList.keyframeInterval || keyframeInterval;
+    const keyframeSource = await getKeyframeSource(setList);
 
     let metadata: Metadata[] = [];
     if (this.command >= Command.Metadata) {
@@ -142,6 +143,7 @@ export class VodUploader {
       } else {
         metadata = [await this.writeSingleVideoMetadata(
           bracketService,
+          keyframeSource,
           setList,
           tournament,
           videogame,
@@ -161,9 +163,11 @@ export class VodUploader {
         const filepath = path.join(this.dirName, m.filename);
         try {
           await fs.access(filepath);
+          logger.info(`${filepath} already exists, skipping cut`);
         } catch {
           // File does not exist
           await trimClip(
+            keyframeSource,
             m.sourcePath,
             m.start,
             m.end,
@@ -182,6 +186,7 @@ export class VodUploader {
 
   private async writeSingleVideoMetadata(
     bracketService: BracketService | null,
+    keyframeSource: KeyframeSource,
     setList: Log,
     tournament: VodTournament,
     videogame: VodVideogame,
@@ -190,6 +195,7 @@ export class VodUploader {
   ): Promise<Metadata> {
     const metadata = await this.singleVideoMetadata(
       bracketService,
+      keyframeSource,
       setList,
       tournament,
       videogame,
@@ -228,6 +234,7 @@ export class VodUploader {
 
   private async singleVideoMetadata(
     bracketService: BracketService | null,
+    keyframeSource: KeyframeSource,
     setList: Log,
     tournament: VodTournament,
     videogame: VodVideogame,
@@ -258,9 +265,9 @@ export class VodUploader {
     }
 
     // Make timestamps relative to the start of the video
-    const phaseStart = nearestKeyframe(setList.start);
+    const phaseStart = keyframeSource.closestPrecedingKeyframe(setList.start);
     const offsetTimestamp = (t: Timestamp): Timestamp => {
-      return subtractTimestamp(nearestKeyframe(t), phaseStart);
+      return subtractTimestamp(keyframeSource.closestPrecedingKeyframe(t), phaseStart);
     };
     sets.forEach(set => set.start = set.start ? offsetTimestamp(set.start) : '0:00:00');
 
@@ -413,6 +420,17 @@ export class VodUploader {
       await fs.writeFile(uploadFile, JSON.stringify(video, null, 2));
     }
   }
+}
+
+async function getKeyframeSource(setList: Log): Promise<KeyframeSource> {
+  const keyframeIntervalSeconds = setList.keyframeInterval ||
+    getConfig().keyframeIntervalSeconds ||
+    undefined;
+  const keyframeSource = new KeyframeSource(keyframeIntervalSeconds
+    ? { intervalMs: keyframeIntervalSeconds * 1000 }
+    : { file: setList.file });
+  await keyframeSource.init();
+  return keyframeSource;
 }
 
 function checkMetadataSize(m: Metadata): void {
@@ -602,7 +620,7 @@ function videoTags(
     ...groupTags(),
   ].filter(nonEmpty).map(sanitizeTag).filter(nonEmpty);
 
-  let tagsSet = new Set(tags);
+  const tagsSet = new Set(tags);
   excludedTags.forEach(tagsSet.delete.bind(tagsSet));
   return Array.from(tagsSet);
 }
@@ -658,18 +676,22 @@ function getSetData(
 }
 
 async function trimClip(
+  keyframeSource: KeyframeSource,
   sourceFile: string,
   start: Timestamp,
   end: Timestamp,
   outFile: string,
 ): Promise<void> {
-  const keyframe = nearestKeyframe(start);
-  logger.debug(`Choosing keyframe ${keyframe} for timestamp ${start}`);
-  logger.info(`Cutting ${keyframe} to ${end} from ${sourceFile}, saving to ${outFile}`);
+  const startKeyframe = keyframeSource.closestPrecedingKeyframe(start);
+  const endKeyframe = keyframeSource.closestSubsequentKeyframe(end);
+  logger.debug(`Choosing keyframe ${startKeyframe} for timestamp ${start}`);
+  logger.debug(`Choosing keyframe ${endKeyframe} for timestamp ${end}`);
+  logger.info(
+    `Cutting ${startKeyframe} to ${endKeyframe} from ${sourceFile}, saving to ${outFile}`);
   const args = [
     '--verbose',
     '--output', outFile,
-    '--split', `parts:${keyframe}-${end}`,
+    '--split', `parts:${startKeyframe}-${endKeyframe}`,
     sourceFile,
   ];
   const { stdout, stderr } = await pExecFile('mkvmerge', args);
@@ -681,16 +703,9 @@ async function trimClip(
   }
 }
 
-function nearestKeyframe(timestamp: Timestamp): Timestamp {
-  const duration = moment.duration(timestamp);
-  let seconds = duration.asSeconds();
-  seconds = seconds - seconds % keyframeInterval;
-  return moment.utc(seconds * 1000).format('H:mm:ss.SSS');
-}
-
 function subtractTimestamp(a: Timestamp, b: Timestamp): Timestamp {
   const duration = moment.duration(a).subtract(moment.duration(b));
-  let seconds = duration.asSeconds();
+  const seconds = duration.asSeconds();
   return moment.utc(seconds * 1000).format('H:mm:ss');
 }
 

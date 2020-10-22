@@ -14,6 +14,7 @@ export interface Config {
   logDirectory: string | null;
   clipDirectory: string;
   tempFileExpirationDays: number;
+  keyframeIntervalSeconds?: number;
   outputs: (WebSocketOutputConfig | FileOutputConfig)[];
   ports: {
     web: number;

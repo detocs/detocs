@@ -1,10 +1,10 @@
-import { getLogger } from '@util/logger';
-
 import { execFile } from 'child_process';
 import path from 'path';
 import { promisify } from 'util';
 
-import * as pathUtil from './path';
+import { Timestamp } from '@models/timestamp';
+import { getLogger } from '@util/logger';
+import * as pathUtil from '@util/path';
 
 export interface VideoStats {
   durationMs?: number;
@@ -66,8 +66,8 @@ export async function lossyCut(
 }
 
 /**
- * @param file 
- * @param timestamp 
+ * @param file
+ * @param timestamp
  * @param dimensions One of width or height must be set (for now)
  */
 export async function getVideoFrame(
@@ -125,7 +125,7 @@ export async function getVideoStats(file: string): Promise<VideoStats> {
 
 /**
  * Browsers won't play MKVs, because that would make life too easy
- * 
+ *
  * @param sourceFile The source file path
  * @param outDir The output directory
  * @returns A promise that resolves to the path of the output file
@@ -179,4 +179,33 @@ export async function getWaveform(
   if (stderr) {
     logger.debug(stderr);
   }
+}
+
+export async function getKeyframes(file: string): Promise<Timestamp[]> {
+  const args = [
+    '-v', 'error',
+    '-select_streams', 'v',
+    '-skip_frame', 'nokey',
+    '-show_entries', 'frame=pkt_pts_time',
+    '-sexagesimal',
+    '-print_format', 'csv=p=0',
+    file,
+  ];
+  logger.debug(FFPROBE_COMMAND, args.join(' '));
+  const { stdout, stderr } = await pExecFile(FFPROBE_COMMAND, args, { encoding: 'utf8' });
+  if (stderr.length) {
+    throw new Error(stderr);
+  }
+  // TODO: Sort keyframes? They should be monotonic, but you never know...
+  return parseKeyframes(stdout);
+}
+
+export function parseKeyframes(stdout: string): Timestamp[] {
+  return stdout.trim()
+    .split('\n')
+    .map(t => {
+      const padded = t + '000';
+      const dotIndex = padded.indexOf('.');
+      return padded.substring(0, dotIndex + 4);
+    });
 }
