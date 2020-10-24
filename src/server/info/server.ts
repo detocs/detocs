@@ -10,7 +10,7 @@ import ws from 'ws';
 
 import Break from '@models/break';
 import Game, { nullGame } from '@models/game';
-import gameList from '@models/games';
+import * as Games from '@models/games';
 import LowerThird from '@models/lower-third';
 import Match, { nullMatch } from '@models/match';
 import matchList from '@models/matches';
@@ -74,8 +74,8 @@ interface FillBracketForm {
   set: SetLocator;
 }
 
-export default function start(port: number): void {
-  loadDatabases();
+export default async function start(port: number): Promise<void> {
+  await loadDatabases();
 
   const outputs = loadOutputs();
   Promise.all(outputs.map(o => o.init()));
@@ -157,7 +157,7 @@ export default function start(port: number): void {
     res.send(People.getById(id));
   });
   app.get('/games', (_, res) => {
-    res.send(gameList);
+    res.send(Games.getGames());
   });
   app.get('/matches', (_, res) => {
     res.send(matchList);
@@ -187,8 +187,9 @@ function broadcastState(state: State): void {
   });
 }
 
-function loadDatabases(): void {
-  People.loadDatabase();
+async function loadDatabases(): Promise<void> {
+  await People.loadDatabase();
+  await Games.loadGameDatabase();
 }
 
 function loadOutputs(): Output[] {
@@ -411,7 +412,7 @@ function parsePerson(form: PersonForm): Person {
 function parseGame(locator: GameLocator): Game {
   const id = parseOptionalString(locator.id);
   if (id) {
-    const found = gameList.find(m => m.id === id);
+    const found = Games.getGameById(id);
     if (found) {
       return found;
     }

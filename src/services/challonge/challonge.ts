@@ -2,7 +2,7 @@ import memoize from 'micro-memoize';
 import moment from 'moment';
 
 import Game, { nullGame } from '@models/game';
-import { getGameByChallongeId } from '@models/games';
+import { getGameByServiceId } from '@models/games';
 import Match from '@models/match';
 import { getMatchById, isGrandFinals, isTrueFinals } from '@models/matches';
 import Tournament from '@models/tournament';
@@ -149,7 +149,7 @@ export default class ChallongeClient implements BracketService {
 
   public async eventInfo(eventId: string): Promise<{ tournament: Tournament; videogame: Game }> {
     const t = await this.getTournament(eventId);
-    const videogame = parseGame(t);
+    const videogame = this.parseGame(t);
     const tournament = convertTournament(t);
     return { tournament, videogame };
   }
@@ -187,7 +187,12 @@ export default class ChallongeClient implements BracketService {
 
   private async getGame(tournamentId: string): Promise<Game> {
     const t = await this.getTournament(tournamentId);
-    return parseGame(t);
+    return this.parseGame(t);
+  }
+
+  private parseGame(t: ApiTournament): Game {
+    return getGameByServiceId(this.name(), t.game_id.toString()) ||
+      Object.assign({}, nullGame, { name: t.game_name });
   }
 
   private async getTournament(tournamentId: string): Promise<ApiTournament> {
@@ -197,11 +202,6 @@ export default class ChallongeClient implements BracketService {
       .then(resp => resp.json() as Promise<TournamentResponse>);
     return resp.tournament;
   }
-}
-
-function parseGame(t: ApiTournament): Game {
-  return getGameByChallongeId(t.game_id.toString()) ||
-    Object.assign({}, nullGame, { name: t.game_name });
 }
 
 function convertTournament(t: ApiTournament): Tournament {

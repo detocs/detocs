@@ -1,6 +1,6 @@
 import { GraphQLClient } from 'graphql-request';
 
-import { getGameBySmashggId, getGameByServiceId } from '@models/games';
+import { getGameByServiceId } from '@models/games';
 import { getMatchBySmashggId, isGrandFinals, isTrueFinals } from '@models/matches';
 import Tournament from '@models/tournament';
 import TournamentEvent from '@models/tournament-event';
@@ -108,7 +108,7 @@ export default class SmashggClient implements BracketService {
         name: phaseGroupPrefix + match?.name,
       };
     }
-    const videogame = getGameBySmashggId(s.event.videogame.id.toString());
+    const videogame = this.getGame(s.event.videogame.id.toString(), s.event.videogame.name);
     const matchName = origMatch ? origMatch.id : s.fullRoundText;
     const serviceName = this.name();
     return {
@@ -234,20 +234,24 @@ export default class SmashggClient implements BracketService {
     if (!event) {
       throw new Error(`No event found with id ${eventId}`);
     }
-    const videogame = getGameByServiceId(this.name(), event.videogame.id.toString()) ||
-      Object.assign({}, nullGame, {
-        name: event.videogame.name,
-        serviceInfo: {
-          smashgg: {
-            id: event.videogame.id.toString(),
-          }
-        }
-      });
+    const videogame = this.getGame(event.videogame.id.toString(), event.videogame.name);
     const tournament: Required<Tournament> = {
       ...event.tournament,
       id: event.tournament.id.toString(),
     };
     return { tournament, videogame };
+  }
+
+  private getGame(id: string, name: string): Game {
+    return getGameByServiceId(this.name(), id) ||
+      Object.assign({}, nullGame, {
+        name,
+        serviceInfo: {
+          smashgg: {
+            id,
+          }
+        }
+      });
   }
 
   public async phase(phaseId: string): Promise<TournamentPhase> {

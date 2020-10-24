@@ -22,6 +22,7 @@ phaseGroup {
 event {
   videogame {
     id
+    name
   }
 }
 slots {
@@ -56,6 +57,7 @@ export interface ApiSet {
   event: {
     videogame: {
       id: number;
+      name: string;
     };
   };
   slots: {

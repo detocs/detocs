@@ -9,7 +9,7 @@ export default interface Game {
       id: string;
     } | undefined;
   };
-};
+}
 
 export const nullGame: Game = {
   id: '',

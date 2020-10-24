@@ -1,6 +1,6 @@
 import merge from 'lodash.merge';
 
-import { readFileSync, renameSync, writeFileSync, mkdirSync, existsSync } from 'fs';
+import { promises as fs, existsSync } from 'fs';
 import { dirname } from 'path';
 
 import { getConfig } from '@util/configuration/config';
@@ -31,13 +31,13 @@ const database: Database = {
 };
 let backedUp = false;
 
-export function loadDatabase(): void {
+export async function loadDatabase(): Promise<void> {
   const filePath = getConfig().peopleDatabaseFile;
   let db: Database;
   try {
-    db = JSON.parse(readFileSync(filePath).toString());
+    db = JSON.parse(await fs.readFile(filePath, { encoding: 'utf8' }));
   } catch (error) {
-    logger.warn(`Unable to load database from ${filePath}: ${error}`);
+    logger.error(`Unable to load database from ${filePath}: ${error}`);
     return;
   }
   logger.info(`Loading person database from ${filePath}.
@@ -101,12 +101,12 @@ export async function saveDatabase(): Promise<void> {
   if (!backedUp && existsSync(filePath)) {
     const backupPath = filePath + '.bak';
     logger.info(`Backing-up previous person database to ${backupPath}`);
-    renameSync(filePath, backupPath);
+    await fs.rename(filePath, backupPath);
     backedUp = true;
   }
   logger.debug(`Saving ${database.people.length} person records`);
-  mkdirSync(dirname(filePath), { recursive: true });
-  writeFileSync(filePath, JSON.stringify(database, null, 2));
+  await fs.mkdir(dirname(filePath), { recursive: true });
+  await fs.writeFile(filePath, JSON.stringify(database, null, 2));
 }
 
 export function getById(id?: string): Person | null {

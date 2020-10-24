@@ -4,6 +4,7 @@ import { tmpDir } from '@util/fs';
 import { getLogger } from '@util/logger';
 
 import { loadConfigData, findConfigData, emptyConfigData, parseConfig } from './common';
+import cloneDeep from 'lodash.clonedeep';
 
 const logger = getLogger('config');
 
@@ -11,6 +12,7 @@ export interface Config {
   credentialsFile?: string;
   databaseDirectory: string;
   peopleDatabaseFile: string;
+  gameDatabaseFile?: string;
   logDirectory: string | null;
   clipDirectory: string;
   tempFileExpirationDays: number;
@@ -42,7 +44,7 @@ export type FileOutputConfig = OutputConfig & {
 };
 
 const DEFAULTS: Config = {
-  databaseDirectory: './databases',
+  databaseDirectory: '.',
   peopleDatabaseFile: 'people.json',
   logDirectory: null,
   clipDirectory: tmpDir('clips'),
@@ -78,21 +80,24 @@ export async function loadConfig(configPath?: string): Promise<void> {
 }
 
 function resolveConfigDirectories(config: Config, fileDir: string): Config {
+  const resolvedConfig = cloneDeep(config);
+
   const configRelative = <T extends string | null | undefined>(path: T): string | T =>
     path &&
     resolve(fileDir, path ?? '');
-  const resolvedConfig = Object.assign({}, config);
   resolvedConfig.credentialsFile = configRelative(resolvedConfig.credentialsFile);
-  resolvedConfig.databaseDirectory = configRelative(resolvedConfig.databaseDirectory);
-  if (resolvedConfig.peopleDatabaseFile) {
-    resolvedConfig.peopleDatabaseFile = resolve(
-      resolvedConfig.databaseDirectory,
-      resolvedConfig.peopleDatabaseFile);
-  }
   resolvedConfig.logDirectory = configRelative(resolvedConfig.logDirectory);
   resolvedConfig.clipDirectory = configRelative(resolvedConfig.clipDirectory);
   resolvedConfig.vodSingleVideoTemplate = configRelative(resolvedConfig.vodSingleVideoTemplate);
   resolvedConfig.vodPerSetTemplate = configRelative(resolvedConfig.vodPerSetTemplate);
+  resolvedConfig.databaseDirectory = configRelative(resolvedConfig.databaseDirectory);
+
+  const databaseRelative = <T extends string | null | undefined>(path: T): string | T =>
+    path &&
+    resolve(resolvedConfig.databaseDirectory, path ?? '');
+  resolvedConfig.peopleDatabaseFile = databaseRelative(resolvedConfig.peopleDatabaseFile);
+  resolvedConfig.gameDatabaseFile = databaseRelative(resolvedConfig.gameDatabaseFile);
+
   for (const output of resolvedConfig.outputs) {
     if (output.type == 'file') {
       output.path = configRelative(output.path);
