@@ -1,4 +1,4 @@
-import { resolve } from "path";
+import { resolve } from 'path';
 
 import { tmpDir } from '@util/fs';
 import { getLogger } from '@util/logger';
@@ -14,7 +14,9 @@ export interface Config {
   logDirectory: string | null;
   clipDirectory: string;
   tempFileExpirationDays: number;
-  keyframeIntervalSeconds?: number;
+  vodKeyframeIntervalSeconds?: number;
+  vodSingleVideoTemplate?: string;
+  vodPerSetTemplate?: string;
   outputs: (WebSocketOutputConfig | FileOutputConfig)[];
   ports: {
     web: number;
@@ -76,20 +78,21 @@ export async function loadConfig(configPath?: string): Promise<void> {
 }
 
 function resolveConfigDirectories(config: Config, fileDir: string): Config {
-  const configRelative = (path: string): string => resolve(fileDir, path);
+  const configRelative = <T extends string | null | undefined>(path: T): string | T =>
+    path &&
+    resolve(fileDir, path ?? '');
   const resolvedConfig = Object.assign({}, config);
-  resolvedConfig.credentialsFile = resolvedConfig.credentialsFile &&
-    configRelative(resolvedConfig.credentialsFile);
+  resolvedConfig.credentialsFile = configRelative(resolvedConfig.credentialsFile);
   resolvedConfig.databaseDirectory = configRelative(resolvedConfig.databaseDirectory);
   if (resolvedConfig.peopleDatabaseFile) {
     resolvedConfig.peopleDatabaseFile = resolve(
       resolvedConfig.databaseDirectory,
       resolvedConfig.peopleDatabaseFile);
   }
-  if (resolvedConfig.logDirectory) {
-    resolvedConfig.logDirectory = configRelative(resolvedConfig.logDirectory);
-  }
+  resolvedConfig.logDirectory = configRelative(resolvedConfig.logDirectory);
   resolvedConfig.clipDirectory = configRelative(resolvedConfig.clipDirectory);
+  resolvedConfig.vodSingleVideoTemplate = configRelative(resolvedConfig.vodSingleVideoTemplate);
+  resolvedConfig.vodPerSetTemplate = configRelative(resolvedConfig.vodPerSetTemplate);
   for (const output of resolvedConfig.outputs) {
     if (output.type == 'file') {
       output.path = configRelative(output.path);

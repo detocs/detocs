@@ -14,7 +14,6 @@ import Game from '@models/game';
 import { getGameById, getGameByServiceId } from '@models/games';
 import { Timestamp } from '@models/timestamp';
 import Tournament from '@models/tournament';
-import TournamentPhase from '@models/tournament-phase';
 import TournamentPhaseGroup from '@models/tournament-phase-group';
 import TournamentSet from '@models/tournament-set';
 import BracketService from '@services/bracket-service';
@@ -30,14 +29,14 @@ import {
 } from '@services/youtube';
 import { getConfig } from '@util/configuration/config';
 import { getLogger } from '@util/logger';
+import { nonEmpty } from '@util/predicates';
 
 import { KeyframeSource } from './keyframe-source';
 import { loadLog } from './loader';
-import { Log, VodTournament, VodVideogame } from './types';
+import { videoDescription, getSingleVideoTemplate, getPerSetTemplate } from './templating';
+import { Log, VodTournament, VodVideogame, VodPhase } from './types';
 
 const logger = getLogger('upload');
-
-type VodPhase = Pick<TournamentPhase, 'name' | 'startAt'>;
 
 interface Set {
   id: string | number;
@@ -83,7 +82,6 @@ interface VodUploaderParams {
 
 const GAMING_CATEGORY_ID = '20';
 const pExecFile = util.promisify(childProcess.execFile);
-const nonEmpty = (str?: string | null): str is string => !!str;
 
 export class VodUploader {
   private readonly bracketProvider: BracketServiceProvider;
@@ -277,14 +275,16 @@ export class VodUploader {
       phase.name,
     ].filter(nonEmpty).join(' ');
 
-    const matchDescs = '0:00:00 - Intro\n' + sets.map(set => {
+    const matchDescs = sets.map(set => {
       const players = set.players;
       const groupId = setToPhaseGroupId[set.id] ? `${setToPhaseGroupId[set.id]} ` : '';
       const p1 = players[0].name;
       const p2 = players[1].name;
       return `${set.start} - ${p1} vs ${p2} (${groupId}${set.fullRoundText})`;
     }).join('\n');
+    const template = await getSingleVideoTemplate();
     const description = videoDescription(
+      template,
       tournament,
       videogame,
       phase,
@@ -328,6 +328,7 @@ export class VodUploader {
     const bracketSets = isValidPhase(setList.phaseId) &&
       await bracketService?.upcomingSetsByPhase(setList.phaseId) ||
       [];
+    const template = await getPerSetTemplate();
     const promises = setList.sets.map(async (timestampedSet, index) => {
       if (!timestampedSet.start || !timestampedSet.end) {
         throw new Error(`set ${index} is missing timestamps`);
@@ -355,7 +356,13 @@ export class VodUploader {
         `${set.fullRoundText}:`,
         `${players[0].name} vs ${players[1].name}`,
       ].filter(nonEmpty).join(' ');
-      const description = videoDescription(tournament, videogame, phase, matchDesc);
+      const description = videoDescription(
+        template,
+        tournament,
+        videogame,
+        phase,
+        matchDesc,
+      );
 
       const tags = videoTags(
         tournament,
@@ -424,7 +431,7 @@ export class VodUploader {
 
 async function getKeyframeSource(setList: Log): Promise<KeyframeSource> {
   const keyframeIntervalSeconds = setList.keyframeInterval ||
-    getConfig().keyframeIntervalSeconds ||
+    getConfig().vodKeyframeIntervalSeconds ||
     undefined;
   const keyframeSource = new KeyframeSource(keyframeIntervalSeconds
     ? { intervalMs: keyframeIntervalSeconds * 1000 }
@@ -542,54 +549,6 @@ async function getPhaseGroupMapping(
   phaseId: string | undefined,
 ): Promise<SetPhaseGroupMapping> {
   return isValidPhase(phaseId) && bracketService?.setIdToPhaseGroup(phaseId) || {};
-}
-
-function videoDescription(
-  tournament: VodTournament,
-  videogame: VodVideogame,
-  phase: VodPhase,
-  matchDesc: string,
-): string {
-  const date = formatDate(
-    phase.startAt != null ? phase.startAt : tournament.startAt,
-    phase.startAt != null ? null : tournament.endAt,
-    tournament.timezone,
-  );
-
-  const hashtags = [
-    tournament.hashtag,
-    videogame.hashtag,
-  ];
-
-  return `${matchDesc}
-
-${tournament.name}
-${date}
-${[tournament.venueName, tournament.venueAddress].filter(nonEmpty).join(' - ')}
-${tournament.url}
-
-Follow us for more!
-Twitch ► https://twitch.tv/lunarphaselive
-Twitter ► https://twitter.com/LunarPhaseProd
-Store ► https://store.lunarphase.nyc
-
-${hashtags.filter(nonEmpty).map(str => "#" + str).join(' ')}`;
-}
-
-function formatDate(start?: number | null, end?: number | null, timezone?: string | null): string {
-  const format = (n: number): string => timezone ?
-    moment.unix(n).tz(timezone).format('LL') :
-    moment.unix(n).format('LL');
-
-  if (start == null) {
-    return '';
-  }
-
-  if (end == null) {
-    return format(start);
-  }
-
-  return `${format(start)} – ${format(end)}`;
 }
 
 function videoTags(
