@@ -17,8 +17,8 @@ export interface Config {
   clipDirectory: string;
   tempFileExpirationDays: number;
   vodKeyframeIntervalSeconds?: number;
-  vodSingleVideoTemplate?: string;
-  vodPerSetTemplate?: string;
+  vodSingleVideoTemplate: string;
+  vodPerSetTemplate: string;
   outputs: (WebSocketOutputConfig | FileOutputConfig)[];
   ports: {
     web: number;
@@ -29,8 +29,13 @@ export interface Config {
   };
 }
 
+export type OutputTemplateConfig = string | {
+  template: string;
+  outputName: string;
+};
+
 export interface OutputConfig {
-  templates: string[];
+  templates: OutputTemplateConfig[];
 }
 
 export type WebSocketOutputConfig = OutputConfig & {
@@ -49,7 +54,17 @@ const DEFAULTS: Config = {
   logDirectory: null,
   clipDirectory: tmpDir('clips'),
   tempFileExpirationDays: 5,
-  outputs: [],
+  vodSingleVideoTemplate: '$builtin/single-video.hbs',
+  vodPerSetTemplate: '$builtin/per-set.hbs',
+  outputs: [
+    {
+      type: 'file',
+      path: '.',
+      templates: [
+        '$builtin/detocs-output.xml.hbs'
+      ],
+    },
+  ],
   ports: {
     web: 8080,
   },
@@ -102,7 +117,14 @@ function resolveConfigDirectories(config: Config, fileDir: string): Config {
     if (output.type == 'file') {
       output.path = configRelative(output.path);
     }
-    output.templates = output.templates.map(configRelative);
+    output.templates = output.templates.map(tmpl => {
+      if (typeof tmpl === 'string') {
+        return configRelative(tmpl);
+      } else {
+        tmpl.template = configRelative(tmpl.template);
+        return tmpl;
+      }
+    });
   }
   return resolvedConfig;
 }

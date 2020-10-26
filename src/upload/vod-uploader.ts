@@ -11,7 +11,7 @@ import path from 'path';
 import util from 'util';
 
 import Game from '@models/game';
-import { getGameById, getGameByServiceId } from '@models/games';
+import { getGameById, getGameByServiceId, loadGameDatabase } from '@models/games';
 import { Timestamp } from '@models/timestamp';
 import Tournament from '@models/tournament';
 import TournamentPhaseGroup from '@models/tournament-phase-group';
@@ -102,6 +102,8 @@ export class VodUploader {
   }
 
   public async run(): Promise<void> {
+    await loadDatabases();
+
     let youtubeOauthClient: OAuth2Client | null = null;
     if (this.command == Command.Upload) {
       // Get YouTube credentials first, so that the rest can be done unattended
@@ -427,6 +429,10 @@ export class VodUploader {
       await fs.writeFile(uploadFile, JSON.stringify(video, null, 2));
     }
   }
+}
+
+async function loadDatabases(): Promise<void> {
+  await loadGameDatabase();
 }
 
 async function getKeyframeSource(setList: Log): Promise<KeyframeSource> {

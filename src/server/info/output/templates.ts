@@ -9,8 +9,11 @@ import { basename } from 'path';
 import State, { sampleState } from '@server/info/state';
 import { escapeJson, escapeCsv, escapeString } from '@util/escaping';
 import { watchFile, Watcher } from '@util/fs';
+import { handleBuiltin } from '@util/path';
 
 import { OutputState, toOutputState } from './output';
+import { OutputTemplateConfig } from '@util/configuration/config';
+import { template } from '@babel/core';
 
 export interface OutputTemplate {
   name: string;
@@ -32,8 +35,19 @@ hb.registerHelper({
   'escapeString': escapeString,
 });
 
-export async function parseTemplateFile(path: string): Promise<OutputTemplate> {
-  const templ = new OutputTemplateImpl(path);
+export async function parseTemplateFile(
+  templateConfig: OutputTemplateConfig,
+): Promise<OutputTemplate> {
+  const template = typeof templateConfig === 'string'
+    ? templateConfig
+    : templateConfig.template;
+  const outputName = typeof templateConfig === 'string'
+    ? basename(templateConfig).replace(/(\.hbs|\.handlebars)$/, '')
+    : templateConfig.outputName;
+  const templ = new OutputTemplateImpl(
+    handleBuiltin('templates/output', template),
+    outputName,
+  );
   await templ.parseAndWatch();
   return templ;
 }
@@ -45,9 +59,9 @@ class OutputTemplateImpl implements OutputTemplate {
   private readonly path: string;
   private watcher: Watcher = { close: () => {/* ignore */} };
 
-  public constructor(path: string) {
+  public constructor(path: string, name: string) {
     this.path = path;
-    this.name = basename(this.path).replace(/(\.hbs|\.handlebars)$/, '');
+    this.name = name;
   }
 
   public async parseAndWatch(): Promise<void> {
@@ -68,7 +82,11 @@ function loadTemplateFile(path: string): Promise<string> {
 
 function parseTemplate(contents: string, name: string): OutputTemplate | null {
   const { userData, templateStr } = extractFrontMatter(contents);
-  const renderTemplate = hb.compile<OutputTemplateData>(templateStr, { noEscape: true });
+  const isXml = name.endsWith('.xml') || name.endsWith('.html');
+  const renderTemplate = hb.compile<OutputTemplateData>(
+    templateStr,
+    { noEscape: !isXml },
+  );
   const render: OutputTemplate['render'] = state => {
     const templateData: OutputTemplateData = {
       state: toOutputState(state),

@@ -1,0 +1,30 @@
+{{#*inline "playerName"}}
+{{~#if person.prefix}}{{person.prefix}} | {{/if}}
+{{~#if person.alias}}{{person.alias}}{{else}}{{person.handle}}{{/if}}
+{{~#if comment}} ({{comment}}){{/if}}
+{{~#if inLosers}} [L]{{/if}}
+{{~/inline}}
+{{#*inline "commentatorName"}}
+{{~#if person.prefix}}{{person.prefix}} | {{/if}}
+{{~person.handle}}
+{{~/inline}}
+<!DOCTYPE DETOCS>
+<items>
+  <timestamp>{{timestamp}}</timestamp>
+  <pName1>{{> playerName state.players.[0]}}</pName1>
+  <pName2>{{> playerName state.players.[1]}}</pName2>
+  <pScore1>{{state.players.[0].score}}</pScore1>
+  <pScore2>{{state.players.[1].score}}</pScore2>
+  <comName1>{{> commentatorName state.commentators.[0]}}</comName1>
+  <comName2>{{> commentatorName state.commentators.[1]}}</comName2>
+  <comTwit1>{{state.commentators.[0].person.twitter}}</comTwit1>
+  <comTwit2>{{state.commentators.[1].person.twitter}}</comTwit2>
+  <round>{{state.match.name}}</round>
+  <title>{{state.tournament}}</title>
+  <subtitle>{{#if state.event}}{{state.event}}{{else}}{{state.game.name}}{{/if}}</subtitle>
+  <msg1>{{state.messages.[0]}}</msg1>
+  <msg2>{{state.messages.[1]}}</msg2>
+  <msg3>{{state.messages.[2]}}</msg3>
+  <msg4>{{state.messages.[3]}}</msg4>
+</items>
+

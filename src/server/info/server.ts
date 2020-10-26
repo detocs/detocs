@@ -27,7 +27,6 @@ import { BRACKETS_PORT } from '@server/ports';
 
 import FileOutput from './output/file/output';
 import Output from './output/output';
-import ScoreboardAssistant from './output/scoreboard-assistant';
 import WebSocketOutput from './output/websocket/output';
 import State, { nullState } from './state';
 
@@ -194,9 +193,6 @@ async function loadDatabases(): Promise<void> {
 
 function loadOutputs(): Output[] {
   const outputs = getConfig().outputs;
-  if (outputs.length === 0) {
-    return [ new ScoreboardAssistant() ];
-  }
   return outputs.map((conf): Output => {
     switch (conf.type) {
       case 'websocket':

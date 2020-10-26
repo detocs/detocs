@@ -3,11 +3,11 @@ import { promises as fs } from 'fs';
 import Handlebars from 'handlebars';
 import moment from 'moment-timezone';
 
-import { getLogger } from '@util/logger';
 import { nonEmpty } from '@util/predicates';
 
 import { VodTournament, VodVideogame, VodPhase } from './types';
 import { getConfig } from '@util/configuration/config';
+import { handleBuiltin } from '@util/path';
 
 // TODO: Make description configurable
 interface TemplateData {
@@ -20,15 +20,6 @@ interface TemplateData {
 }
 type VodTemplate = (data: TemplateData) => string;
 
-const DEFAULT_PER_SET_TEMPLATE = `{{description}}
-
-{{tournamentName}}
-{{date}}
-{{tournamentVenue}}
-{{tournamentUrl}}
-
-{{hashtags}}`;
-const DEFAULT_SINGLE_VIDEO_TEMPLATE = '0:00:00 - Intro\n' + DEFAULT_PER_SET_TEMPLATE;
 const TEST_DATA: TemplateData = {
   'description': 'multi\nline\ndescription',
   'tournamentName': 'Test Tournament',
@@ -38,7 +29,6 @@ const TEST_DATA: TemplateData = {
   'hashtags': '#DETOCS #test',
 };
 
-const logger = getLogger('upload/templating');
 const hb = Handlebars.create();
 
 export function videoDescription(
@@ -69,28 +59,22 @@ export function videoDescription(
 }
 
 export async function getSingleVideoTemplate(): Promise<VodTemplate> {
-  return getTemplate(DEFAULT_SINGLE_VIDEO_TEMPLATE, getConfig().vodSingleVideoTemplate);
+  return getTemplate(handleBuiltin('templates/vod', getConfig().vodSingleVideoTemplate));
 }
 
 export async function getPerSetTemplate(): Promise<VodTemplate> {
-  return getTemplate(DEFAULT_PER_SET_TEMPLATE, getConfig().vodPerSetTemplate);
+  return getTemplate(handleBuiltin('templates/vod', getConfig().vodPerSetTemplate));
 }
 
-async function getTemplate(
-  fallback: string,
-  file?: string,
-): Promise<VodTemplate>  {
-  if (file) {
-    try {
-      const templateStr = await fs.readFile(file, { encoding: 'utf8' });
-      const renderTemplate = hb.compile<TemplateData>(templateStr, { noEscape: true });
-      renderTemplate(TEST_DATA);
-      return renderTemplate;
-    } catch (e) {
-      logger.error(new Error('Template unable to render sample output', e));
-    }
+async function getTemplate(file: string): Promise<VodTemplate>  {
+  try {
+    const templateStr = await fs.readFile(file, { encoding: 'utf8' });
+    const renderTemplate = hb.compile<TemplateData>(templateStr, { noEscape: true });
+    renderTemplate(TEST_DATA);
+    return renderTemplate;
+  } catch (e) {
+    throw new Error('Template unable to render sample output', e);
   }
-  return hb.compile<TemplateData>(fallback, { noEscape: true });
 }
 
 function formatDate(start?: number | null, end?: number | null, timezone?: string | null): string {

@@ -2,7 +2,7 @@ import { getLogger } from '@util/logger';
 
 import * as WebSocket from 'ws';
 
-import { WebSocketOutputConfig } from '@util/configuration/config';
+import { WebSocketOutputConfig, OutputTemplateConfig } from '@util/configuration/config';
 import { broadcastAllData, sendAllData } from '@util/websocket';
 import State from '@server/info/state';
 import Output from '@server/info/output/output';
@@ -12,7 +12,7 @@ const logger = getLogger('output/websocket');
 
 export default class WebSocketOutput implements Output {
   private readonly port: number;
-  private readonly templateFiles: string[];
+  private readonly templateFiles: OutputTemplateConfig[];
   private templates: OutputTemplate[] = [];
   private server: WebSocket.Server | undefined;
   private currentData: string[] = [];
