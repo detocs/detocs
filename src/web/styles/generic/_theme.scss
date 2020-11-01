@@ -7,8 +7,13 @@
   --color-bg-active: #ddd;
   --color-bg-error: hsl(0, 100%, 90%);
   --color-bg-warning: hsl(30, 100%, 90%);
+  --color-bg-control: rgb(240, 240, 240); // Match browser default
+  --color-bg-control-active: hsl(180, 100%, 15%);
+  --color-border-control: rgb(120, 120, 120); // Match browser default
+  --color-border-control-active: hsl(180, 100%, 15%);
   --color-text: #ddd;
   --color-text-focus: #ddd;
+  --color-text-inverted: black;
   --color-text-input: black;
   --color-text-placeholder: #444;
   --color-text-active: hsl(180, 13%, 8%);

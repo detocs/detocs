@@ -1,16 +1,16 @@
 const ERROR = 2;
 
 module.exports = {
-  parser: '@typescript-eslint/parser', // Specifies the ESLint parser
+  parser: '@typescript-eslint/parser',
   extends: [
-    'plugin:@typescript-eslint/recommended', // Uses the recommended rules from the @typescript-eslint/eslint-plugin
+    'plugin:@typescript-eslint/recommended',
   ],
   plugins: [
     'react',
   ],
   parserOptions: {
-    ecmaVersion: 2018, // Allows for the parsing of modern ECMAScript features
-    sourceType: 'module', // Allows for the use of imports
+    ecmaVersion: 2018,
+    sourceType: 'module',
   },
   settings: {
     'react': {
@@ -28,7 +28,7 @@ module.exports = {
     ],
     '@typescript-eslint/no-use-before-define': [
       'error',
-      { functions: false, classes: false, variables: true },
+      { functions: false, classes: false, variables: false },
     ],
     'react/jsx-filename-extension': [1, {
       'extensions': ['.ts', '.tsx', '.js', '.jsx']

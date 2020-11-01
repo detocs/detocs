@@ -6,8 +6,10 @@ $thumbnailMinWidth: 12rem;
   flex-flow: column nowrap;
 
   > header {
+    margin-block: var(--margin-small);
     display: flex;
     justify-content: space-between;
+    align-items: baseline;
   }
 
   > fieldset {
@@ -57,5 +59,9 @@ $thumbnailMinWidth: 12rem;
 
 .twitter__tweet-media-actions.twitter__tweet-media-actions > * {
   inline-size: auto;
+  flex-basis: auto;
+}
+
+.twitter__tweet-controls.twitter__tweet-controls button {
   flex-basis: auto;
 }

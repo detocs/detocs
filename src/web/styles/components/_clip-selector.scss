@@ -1,5 +1,5 @@
-@use 'tools/fill';
 @use 'tools/focus';
+@use 'tools/hiding';
 
 .clip-selector__list {
   display: flex;
@@ -27,12 +27,7 @@
   background: var(--bg-alt);
 
   input {
-    // Make scrolling during keyboard navigation bring as much of the option
-    // into view as possible
-    @include fill.fill-parent;
-
-    z-index: -1;
-    opacity: 0;
+    @include hiding.hide-checkbox;
   }
 
   &:focus-within {

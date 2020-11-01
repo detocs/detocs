@@ -1,8 +1,18 @@
 import { StateUpdater, useState, useEffect } from 'preact/hooks';
 
-export function useLocalStorage<T>(key: string, defaultValue: T): [ T, StateUpdater<T> ] {
+export const useLocalStorage: <T>(key: string, defaultValue: T) => [ T, StateUpdater<T> ] =
+  (...args) => useStorage(window.localStorage, ...args);
+
+export const useSessionStorage: <T>(key: string, defaultValue: T) => [ T, StateUpdater<T> ] =
+  (...args) => useStorage(window.sessionStorage, ...args);
+
+function useStorage<T>(
+  storage: Storage,
+  key: string,
+  defaultValue: T,
+): [ T, StateUpdater<T> ] {
   const [ val, stateUpdater ] = useState(
-    parseValue(window.localStorage.getItem(key)) ?? defaultValue
+    parseValue(storage.getItem(key)) ?? defaultValue
   );
   const storageUpdater: StateUpdater<T> = (valueOrUpdater): void => {
     let v: T;
@@ -12,7 +22,7 @@ export function useLocalStorage<T>(key: string, defaultValue: T): [ T, StateUpda
       v = valueOrUpdater;
     }
     stateUpdater(v);
-    window.localStorage.setItem(key, JSON.stringify(v));
+    storage.setItem(key, JSON.stringify(v));
   };
   useEffect(() => {
     const handleEvent = (event: StorageEvent): void => {

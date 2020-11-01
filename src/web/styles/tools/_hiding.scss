@@ -1,0 +1,10 @@
+@use 'tools/fill';
+
+@mixin hide-checkbox {
+  // Make scrolling during keyboard navigation bring as much of the option
+  // into view as possible
+  @include fill.fill-parent;
+
+  z-index: -1;
+  opacity: 0;
+}

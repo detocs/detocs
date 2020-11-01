@@ -12,19 +12,11 @@ import { nullState } from './client-state';
 
 const logger = getLogger('server/twitter');
 
-interface InternalState {
-  apiKey: string | null;
-  apiKeySecret: string | null;
-  accessToken: {
-    key: string;
-    secret: string;
-  } | null;
-}
-
 interface TweetRequest {
   body?: string;
   media?: string;
-  thread?: 'on' | '';
+  thread?: 'yes' | '';
+  forget?: 'yes' | '';
 }
 
 type WebSocketClient = ws;
@@ -55,7 +47,7 @@ export default async function start(port: number, mediaServer: MediaServer): Pro
   );
 
   new TwitterServer(appServer, socketServer, twitterClient, mediaServer, port);
-};
+}
 
 class TwitterServer {
   private readonly appServer: Express;
@@ -129,7 +121,7 @@ class TwitterServer {
       return;
     }
 
-    const { body, media: mediaUrl, thread } = req.fields as TweetRequest;
+    const { body, media: mediaUrl, thread, forget } = req.fields as TweetRequest;
     if (!body && !mediaUrl) {
       sendUserError(res, 'Body or media is required');
       return;
@@ -142,10 +134,12 @@ class TwitterServer {
     try {
       const tweetId = await this.twitterClient.tweet(body || '', replyTo, mediaPath);
       logger.info(`Created tweet ${tweetId}${replyTo ? ` as a reply to ${replyTo}` : ''}`);
-      this.state = updateImmutable(
-        this.state,
-        { lastTweetId: { $set: tweetId } }
-      );
+      if (!forget) {
+        this.state = updateImmutable(
+          this.state,
+          { lastTweetId: { $set: tweetId } }
+        );
+      }
       res.sendStatus(200);
       this.broadcastState();
     } catch (err) {

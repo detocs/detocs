@@ -3,6 +3,7 @@ import { User } from '@services/twitter/types';
 export default interface ClientState {
   hasCredentials: boolean;
   user: User | null;
+  // TODO: Store multiple threads, improve collaboration support
   lastTweetId: string | null;
 }
 

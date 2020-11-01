@@ -1,0 +1,37 @@
+@use 'tools/hiding';
+
+.toggle__container {
+  display: inline-flex;
+  flex-flow: row wrap;
+  isolation: isolate;
+
+  box-sizing: border-box;
+
+  background: var(--color-bg-control);
+  color: var(--color-text-inverted);
+  border: var(--width-border) solid var(--color-border-control-active);
+  border-radius: calc(0.5ex + 1.1 * var(--width-border));
+}
+
+.toggle__option {
+  position: relative;
+  flex: 1 0 auto;
+
+  padding: 0 0.5em;
+
+  border-radius: 0.5ex;
+
+  &.toggle__option--selected {
+    background: var(--color-bg-control-active);
+    color: var(--color-text);
+    box-shadow: 0 0 0.2em var(--color-shadow);
+  }
+
+  &.toggle__option--disabled {
+    opacity: 0.5;
+  }
+
+  input {
+    @include hiding.hide-checkbox;
+  }
+}
