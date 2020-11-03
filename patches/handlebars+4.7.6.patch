@@ -1,0 +1,26 @@
+diff --git a/node_modules/handlebars/dist/cjs/handlebars/runtime.js b/node_modules/handlebars/dist/cjs/handlebars/runtime.js
+index 7503ded..43fbe10 100644
+--- a/node_modules/handlebars/dist/cjs/handlebars/runtime.js
++++ b/node_modules/handlebars/dist/cjs/handlebars/runtime.js
+@@ -142,7 +142,7 @@ function template(templateSpec, env) {
+       return typeof current === 'function' ? current.call(context) : current;
+     },
+ 
+-    escapeExpression: Utils.escapeExpression,
++    escapeExpression: env.escapeExpression,
+     invokePartial: invokePartialWrapper,
+ 
+     fn: function fn(i) {
+diff --git a/node_modules/handlebars/types/index.d.ts b/node_modules/handlebars/types/index.d.ts
+index 3f2f8b7..1653f23 100644
+--- a/node_modules/handlebars/types/index.d.ts
++++ b/node_modules/handlebars/types/index.d.ts
+@@ -79,7 +79,7 @@ declare namespace Handlebars {
+ 
+   export function create(): typeof Handlebars;
+ 
+-  export const escapeExpression: typeof Utils.escapeExpression;
++  export let escapeExpression: typeof Utils.escapeExpression;
+   //export const Utils: typeof hbs.Utils;
+   export const logger: Logger;
+   export const templates: HandlebarsTemplates;

@@ -1,5 +1,7 @@
 import escapeRegExp from 'lodash.escaperegexp';
 
+export type EscapeFunction = (value: unknown) => unknown;
+
 export function escapeString(value: unknown, escape: string, escapeWith: string): unknown {
   if (!(typeof value === 'string')) {
     return value;
