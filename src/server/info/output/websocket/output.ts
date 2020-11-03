@@ -7,6 +7,8 @@ import { broadcastAllData, sendAllData } from '@util/websocket';
 import State from '@server/info/state';
 import Output from '@server/info/output/output';
 import { OutputTemplate, parseTemplateFile } from '@server/info/output/templates';
+import { Ok } from 'neverthrow';
+import { string } from 'yargs';
 
 const logger = getLogger('output/websocket');
 
@@ -38,7 +40,13 @@ User Agent: ${req.headers['user-agent']}`);
     if (!this.server) {
       throw new Error('Server not initialized');
     }
-    this.currentData = this.templates.map(t => t.render(state));
+    const files = this.templates.map(t => t.render(state));
+    files.forEach(data => data.match(
+      () => {/* noop */},
+      logger.error,
+    ));
+    this.currentData = files.filter(data => data.isOk())
+      .map(data => (data as Ok<string, Error>).value);
     logger.debug(`Sending update:\n`, this.currentData.join('\n'));
     broadcastAllData(this.server, this.currentData);
   }

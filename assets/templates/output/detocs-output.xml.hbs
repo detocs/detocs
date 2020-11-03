@@ -1,3 +1,10 @@
+---
+{
+  "roundMappings": {
+    "tf": "Grand Finals Reset"
+  }
+}
+---
 {{#*inline "playerName"}}
 {{~#if person.prefix}}{{person.prefix}} | {{/if}}
 {{~#if person.alias}}{{person.alias}}{{else}}{{person.handle}}{{/if}}
@@ -8,7 +15,7 @@
 {{~#if person.prefix}}{{person.prefix}} | {{/if}}
 {{~person.handle}}
 {{~/inline}}
-<!DOCTYPE DETOCS>
+<?xml version="1.0" encoding="UTF-8"?>
 <items>
   <timestamp>{{timestamp}}</timestamp>
   <pName1>{{> playerName state.players.[0]}}</pName1>
@@ -19,7 +26,11 @@
   <comName2>{{> commentatorName state.commentators.[1]}}</comName2>
   <comTwit1>{{state.commentators.[0].person.twitter}}</comTwit1>
   <comTwit2>{{state.commentators.[1].person.twitter}}</comTwit2>
+  {{#with (lookup userData.roundMappings state.match.id) as | mapping |}}
+  <round>{{mapping}}</round>
+  {{else}}
   <round>{{state.match.name}}</round>
+  {{/with}}
   <title>{{state.tournament}}</title>
   <subtitle>{{#if state.event}}{{state.event}}{{else}}{{state.game.name}}{{/if}}</subtitle>
   <msg1>{{state.messages.[0]}}</msg1>
@@ -27,4 +38,3 @@
   <msg3>{{state.messages.[2]}}</msg3>
   <msg4>{{state.messages.[3]}}</msg4>
 </items>
-

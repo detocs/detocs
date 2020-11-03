@@ -1,0 +1,15 @@
+{
+  "timestamp": "{{timestamp}}",
+  "pName1": "{{state.players.[0].prefixedNameAndStatus}}",
+  "pName2": "{{state.players.[1].prefixedNameAndStatus}}",
+  "pScore1": "{{state.players.[0].score}}",
+  "pScore2": "{{state.players.[1].score}}",
+  "cTitle1": "{{state.commentators.[0].prefixedName}}",
+  "cTitle2": "{{state.commentators.[1].prefixedName}}",
+  "cTwit1": "{{state.commentators.[0].person.twitter}}",
+  "cTwit2": "{{state.commentators.[1].person.twitter}}",
+  "mText1": "{{state.tournament}}",
+  "mText2": "{{#if state.event}}{{state.event}}{{else}}{{state.game.name}}{{/if}}",
+  "mText3": "{{state.match.name}}",
+  "mText4": "{{state.messages.[0]}}"
+}

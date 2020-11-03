@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<items>
+  <timestamp>{{timestamp}}</timestamp>
+	<pName1>{{state.players.[0].prefixedNameAndStatus}}</pName1>
+	<pName2>{{state.players.[1].prefixedNameAndStatus}}</pName2>
+  <pScore1>{{state.players.[0].score}}</pScore1>
+  <pScore2>{{state.players.[1].score}}</pScore2>
+  <cTitle1>{{state.commentators.[0].prefixedName}}</cTitle1>
+  <cTitle2>{{state.commentators.[1].prefixedName}}</cTitle2>
+  <cTwit1>{{state.commentators.[0].person.twitter}}</cTwit1>
+  <cTwit2>{{state.commentators.[1].person.twitter}}</cTwit2>
+  <mText1>{{state.tournament}}</mText1>
+  <mText2>{{#if state.event}}{{state.event}}{{else}}{{state.game.name}}{{/if}}</mText2>
+  <mText3>{{state.match.name}}</mText3>
+  <mText4>{{state.messages.[0]}}</mText4>
+</items>

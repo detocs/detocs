@@ -61,7 +61,7 @@ const DEFAULTS: Config = {
       type: 'file',
       path: '.',
       templates: [
-        '$builtin/detocs-output.xml.hbs'
+        '$builtin/detocs-output.json.hbs'
       ],
     },
   ],

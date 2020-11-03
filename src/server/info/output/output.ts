@@ -4,6 +4,7 @@ import Person from '@models/person';
 import Player from '@models/player';
 import State, { sampleState as origSample } from '@server/info/state';
 import LowerThird from '@models/lower-third';
+import { nonEmpty } from '@util/predicates';
 
 export default interface Output {
   init(): Promise<void>;
@@ -19,11 +20,14 @@ export type OutputState = Omit<State, 'players' | 'commentators'> & {
     person: Person & {
       twitter?: string;
     };
+    nameAndStatus: string;
+    prefixedNameAndStatus: string;
   })[];
   commentators: (LowerThird['commentators'][0] & {
     person: Person & {
       twitter?: string;
     };
+    prefixedName: string;
   })[];
 } & {
   readonly __tag: unique symbol; // Newtype pattern to avoid mixing with State
@@ -39,6 +43,25 @@ export function toOutputState(state: State): OutputState {
     .forEach(person => {
       person.twitter = person.serviceIds.twitter;
     });
+
+  out.players.forEach(player => {
+    player.nameAndStatus = [
+      player.person.alias || player.person.handle,
+      player.comment && `(${player.comment})`,
+      player.inLosers ? '[L]' : '',
+    ].filter(nonEmpty).join(' ');
+    player.prefixedNameAndStatus = [
+      player.person.prefix && `${player.person.prefix} |`,
+      player.nameAndStatus,
+    ].filter(nonEmpty).join(' ');
+  });
+  out.commentators.forEach(player => {
+    player.prefixedName = [
+      player.person.prefix && `${player.person.prefix} |`,
+      player.person.alias || player.person.handle,
+    ].filter(nonEmpty).join(' ');
+  });
+
   return out;
 }
 

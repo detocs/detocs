@@ -32,10 +32,13 @@ export default class FileOutput implements Output {
       filePath: join(this.path, t.name),
       data: t.render(state),
     }));
-    logger.debug(`Sending update:\n`, files);
 
-    for (const f of files) {
-      fs.writeFile(f.filePath, f.data);
-    }
+    files.forEach(f => f.data.match(
+      str => {
+        logger.debug(`Writing update to ${f.filePath}:\n${str}`);
+        fs.writeFile(f.filePath, str);
+      },
+      logger.error,
+    ));
   }
 }

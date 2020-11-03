@@ -5,3 +5,12 @@ export function sortedKeys(obj: Object): string[] {
   allKeys.sort();
   return allKeys;
 }
+
+export function validateJson(str: string): Error | null {
+  try {
+    JSON.parse(str);
+  } catch (error) {
+    return error;
+  }
+  return null;
+}

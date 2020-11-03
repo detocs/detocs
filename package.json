@@ -58,6 +58,7 @@
     "csv-parse": "^4.8.8",
     "express": "^4.17.1",
     "express-formidable": "^1.2.0",
+    "fast-xml-parser": "^3.17.4",
     "filenamify": "^4.1.0",
     "find-process": "^1.4.2",
     "front-matter": "^3.0.2",
