@@ -128,7 +128,7 @@ export class VodUploader {
       bracketService,
       setList.phaseId,
     );
-    const keyframeSource = await getKeyframeSource(setList);
+    const keyframeSource = await getKeyframeSource(path.dirname(this.logFile), setList);
 
     let metadata: Metadata[] = [];
     if (this.command >= Command.Metadata) {
@@ -436,13 +436,13 @@ async function loadDatabases(): Promise<void> {
   await loadGameDatabase();
 }
 
-async function getKeyframeSource(setList: Log): Promise<KeyframeSource> {
+async function getKeyframeSource(workignDir: string, setList: Log): Promise<KeyframeSource> {
   const keyframeIntervalSeconds = setList.keyframeInterval ||
     getConfig().vodKeyframeIntervalSeconds ||
     undefined;
   const keyframeSource = new KeyframeSource(keyframeIntervalSeconds
     ? { intervalMs: keyframeIntervalSeconds * 1000 }
-    : { file: setList.file });
+    : { file: setList.file, outputDir: workignDir });
   await keyframeSource.init();
   return keyframeSource;
 }
