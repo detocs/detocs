@@ -27,6 +27,7 @@ import {
   titleSize,
   MAX_TITLE_SIZE
 } from '@services/youtube';
+import { mode } from '@util/array';
 import { getConfig } from '@util/configuration/config';
 import { getLogger } from '@util/logger';
 import { nonEmpty } from '@util/predicates';
@@ -511,6 +512,8 @@ async function getEventInfo(
     { tournament: {}, videogame: null };
 
   const tournament: Partial<VodTournament> & Tournament = merge(
+    { name: 'Unknown Tournament' },
+    getTournamentFromState(setList),
     apiTournament,
     setList.event?.tournament,
   ) as VodTournament;
@@ -526,6 +529,9 @@ async function getEventInfo(
     } else {
       videogame = getGameById(gameId.toString());
     }
+  } else {
+    videogame = getGameFromState(setList);
+    console.log(videogame);
   }
   if (!videogame) {
     throw new Error('Cannot find videogame');
@@ -548,6 +554,18 @@ async function getEventInfo(
     videogame: videogame as VodVideogame,
     phase,
   };
+}
+
+function getTournamentFromState(setList: Log): Pick<Tournament, 'name'> | null {
+  const names = setList.sets.map(s => s.state?.tournament).filter(nonEmpty);
+  const mostFrequent = mode(names);
+  return mostFrequent ? { name: mostFrequent } : null;
+}
+
+function getGameFromState(setList: Log): Game | null {
+  const ids = setList.sets.map(s => s.state?.game.id).filter(nonEmpty);
+  const mostFrequent = mode(ids);
+  return mostFrequent ? getGameById(mostFrequent) : null;
 }
 
 async function getPhaseGroupMapping(
