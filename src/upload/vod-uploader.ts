@@ -531,7 +531,6 @@ async function getEventInfo(
     }
   } else {
     videogame = getGameFromState(setList);
-    console.log(videogame);
   }
   if (!videogame) {
     throw new Error('Cannot find videogame');

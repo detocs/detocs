@@ -179,7 +179,6 @@ function getEscapedHandlebars(
   hb.registerHelper({
     'escapeString': escapeString,
   });
-  console.log(escaper);
   if (!escaper) {
     return {
       hb,
