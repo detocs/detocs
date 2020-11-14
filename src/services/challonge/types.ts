@@ -134,6 +134,7 @@ export interface ApiParticipant {
   checked_in: boolean;
   reactivatable: boolean;
   display_name: string;
+  group_player_ids: number[];
 }
 export interface ParticipantResponse {
   participant: ApiParticipant;

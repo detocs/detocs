@@ -11,7 +11,7 @@ import TournamentPhase from '@models/tournament-phase';
 import TournamentPhaseGroup from '@models/tournament-phase-group';
 import TournamentSet from '@models/tournament-set';
 import BracketService from '@services/bracket-service';
-import { ApiKey, Timestamp, ApiTournament, ApiMatch } from '@services/challonge/types';
+import { ApiKey, Timestamp, ApiTournament, ApiMatch, ApiParticipant } from '@services/challonge/types';
 import { checkResponseStatus, checkServerError } from '@util/ajax';
 import { getCredentials } from '@util/configuration/credentials';
 import { nonNull } from '@util/predicates';
@@ -33,7 +33,7 @@ export default class ChallongeClient implements BracketService {
     this.memoizedGetPlayer = memoize(
       this.getPlayer.bind(this),
       {
-        maxSize: 128, // Enough to hold one pool
+        maxSize: 256, // Enough for the max non-premium size
         isPromise: true,
       },
     );
@@ -49,6 +49,7 @@ export default class ChallongeClient implements BracketService {
 
   public async upcomingSetsByPhase(tournamentId: string): Promise<TournamentSet[]> {
     const serviceName = this.name();
+    const players = await this.getPlayers(tournamentId);
     const url = `${BASE_URL}/tournaments/${tournamentId}/matches.json?api_key=${this.apiKey}`;
     const resp = await fetch(url)
       .then(checkResponseStatus)
@@ -60,7 +61,7 @@ export default class ChallongeClient implements BracketService {
       if (playerId == null) {
         return null;
       }
-      const p = await this.memoizedGetPlayer(tournamentId, playerId.toString());
+      const p = players[playerId.toString()];
       if (!p) {
         return null;
       }
@@ -73,7 +74,7 @@ export default class ChallongeClient implements BracketService {
           prefix: null, // TODO: split on pipe?
           serviceIds: {},
         }],
-        inLosers: inLosers,
+        inLosers,
       };
     };
     const videogame = await this.memoizedGetGame(tournamentId);
@@ -183,6 +184,23 @@ export default class ChallongeClient implements BracketService {
     }
     const p = resp.participant;
     return { id: p.id.toString(), name: p.display_name };
+  }
+
+  private async getPlayers(
+    tournamentId: string,
+  ): Promise<Record<string, { id: string, name: string }>> {
+    const url = `${BASE_URL}/tournaments/${tournamentId}/participants.json?api_key=${this.apiKey}`;
+    const resp = await fetch(url)
+      .then(checkResponseStatus)
+      .then(resp => resp.json() as Promise<{ participant: ApiParticipant }[]>);
+    return Object.fromEntries(resp.flatMap(obj => {
+      const p = obj.participant;
+      const player = { id: p.id.toString(), name: p.display_name };
+      return [
+        [ player.id, player ],
+        ...p.group_player_ids.map(id => [ id.toString(), player ]),
+      ];
+    }));
   }
 
   private async getGame(tournamentId: string): Promise<Game> {
