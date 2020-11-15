@@ -653,8 +653,10 @@ function getSetData(
 
   // Match
   // TODO: Only using smashgg IDs match names because they're singular
-  set.fullRoundText = bracketSet.match?.smashggId ||
+  set.fullRoundText = logSet.state?.match.smashggId ||
     logSet.state?.match.name ||
+    bracketSet.match?.smashggId ||
+    bracketSet.match?.name ||
     undefined;
   // TODO: Is this even necessary?
   if (set.fullRoundText == 'Grand Final Reset' || set.fullRoundText == 'True Finals') {
