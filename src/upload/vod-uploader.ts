@@ -529,7 +529,7 @@ async function getEventInfo(
     } else {
       videogame = getGameById(gameId.toString());
     }
-  } else {
+  } else if (videogame == null) {
     videogame = getGameFromState(setList);
   }
   if (!videogame) {
@@ -563,8 +563,18 @@ function getTournamentFromState(setList: Log): Pick<Tournament, 'name'> | null {
 
 function getGameFromState(setList: Log): Game | null {
   const ids = setList.sets.map(s => s.state?.game.id).filter(nonEmpty);
-  const mostFrequent = mode(ids);
-  return mostFrequent ? getGameById(mostFrequent) : null;
+  const mostFrequentId = mode(ids);
+  if (mostFrequentId) {
+    return getGameById(mostFrequentId);
+  }
+  const names = setList.sets.map(s => s.state?.game.name).filter(nonEmpty);
+  const mostFrequentName = mode(names);
+  if (mostFrequentName) {
+    return setList.sets.map(s => s.state?.game)
+      .find(g => g?.name == mostFrequentName) ||
+      null;
+  }
+  return null;
 }
 
 async function getPhaseGroupMapping(
