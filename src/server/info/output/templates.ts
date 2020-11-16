@@ -10,7 +10,7 @@ import { basename, extname } from 'path';
 import State, { sampleState } from '@server/info/state';
 import { OutputTemplateConfig } from '@util/configuration/config';
 import { validateCsv } from '@util/csv';
-import { escapeJson, escapeCsv, escapeString, EscapeFunction } from '@util/escaping';
+import { escapeJson, escapeCsv, escapeString, EscapeFunction, escapeRegex } from '@util/escaping';
 import { watchFile, Watcher } from '@util/fs';
 import { setDefaultEscapingFunction } from '@util/handlebars';
 import { validateJson } from '@util/json';
@@ -178,6 +178,7 @@ function getEscapedHandlebars(
   const hb = Handlebars.create();
   hb.registerHelper({
     'escapeString': escapeString,
+    'escapeRegex': escapeRegex,
   });
   if (!escaper) {
     return {

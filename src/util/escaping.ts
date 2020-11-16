@@ -9,6 +9,13 @@ export function escapeString(value: unknown, escape: string, escapeWith: string)
   return value.replace(new RegExp(escapeRegExp(escape), 'g'), escapeWith);
 }
 
+export function escapeRegex(value: unknown, escape: string, escapeWith: string): unknown {
+  if (!(typeof value === 'string')) {
+    return value;
+  }
+  return value.replace(new RegExp(escape, 'g'), escapeWith);
+}
+
 export function escapeCsv(value: unknown): unknown {
   if (!(typeof value === 'string')) {
     return value;
