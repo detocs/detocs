@@ -63,11 +63,11 @@ const fieldMappings: Record<string, FieldMapping> = {
     formName: '[serviceIds][twitter]',
     getValue: p => p.serviceIds?.twitter,
     updatedWithValue: (p, val) => updateImmutable(p, {
-      serviceIds: {
+      serviceIds: serviceIds => updateImmutable(serviceIds || {}, {
         'twitter': {
           $set: val,
         },
-      },
+      }),
     }),
   },
 };
