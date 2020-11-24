@@ -58,7 +58,7 @@ describe(toOutputState, () => {
       messages: [],
     };
 
-    const output = {
+    const output2 = {
       players: [
         {
           person: {
@@ -116,6 +116,13 @@ describe(toOutputState, () => {
       messages: [],
     };
 
-    expect(toOutputState(input)).toEqual(output);
+    const output = toOutputState(input);
+    const people = [
+      ...output.players.map(p => p.person),
+      ...output.commentators.map(p => p.person),
+    ];
+    for (const person of people) {
+      expect(person.twitter).toBe(person.serviceIds.twitter);
+    }
   });
 });
