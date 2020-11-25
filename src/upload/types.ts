@@ -3,7 +3,8 @@ import Tournament from '@models/tournament';
 import TournamentPhase from '@models/tournament-phase';
 import { Log as RecordingLog } from '@server/recording/log';
 
-export type VodTournament = Tournament & {
+export type VodTournament = Partial<Tournament> &
+Pick<Tournament, 'name'> & {
   shortName: string;
   additionalTags: string[];
 };

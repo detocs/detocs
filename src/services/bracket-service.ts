@@ -22,5 +22,4 @@ export default interface BracketService {
     videogame: Game;
   }>;
   phase(phaseId: string): Promise<TournamentPhase>;
-  setIdToPhaseGroup(phaseId: string): Promise<Record<string, TournamentPhaseGroup>>;
 }

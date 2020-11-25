@@ -1,5 +1,6 @@
 import { GraphQLClient } from 'graphql-request';
 
+import Game, { nullGame } from '@models/game';
 import { getGameByServiceId } from '@models/games';
 import { getMatchBySmashggId, isGrandFinals, isTrueFinals } from '@models/matches';
 import Tournament from '@models/tournament';
@@ -16,19 +17,20 @@ import {
   SMASHGG_BASE_URL,
   ENDPOINT,
   SMASHGG_SERVICE_NAME,
-} from "./constants";
+} from './constants';
+import { paginatedQuery } from './pagination';
 import {
   ApiSet,
   ApiEntrant,
   ApiParticipant,
+  PHASE_PHASEGROUP_QUERY,
+  PhasePhaseGroupQueryResponse,
   PHASE_SET_QUERY,
   PhaseSetQueryResponse,
   PHASE_EVENT_QUERY,
   PhaseEventQueryResponse,
   TOURNAMENT_PHASES_QUERY,
   TournamentPhasesQueryResponse,
-  PHASE_GROUP_SET_QUERY,
-  PhaseGroupSetQueryResponse,
   SET_QUERY,
   SetQueryResponse,
   EVENT_QUERY,
@@ -37,7 +39,6 @@ import {
   PhaseQueryResponse,
 } from './queries';
 import { SmashggSlug } from './types';
-import Game, { nullGame } from '@models/game';
 
 export default class SmashggClient implements BracketService {
   private client: GraphQLClient;
@@ -61,44 +62,47 @@ export default class SmashggClient implements BracketService {
   }
 
   public async upcomingSetsByPhase(phaseId: string): Promise<TournamentSet[]> {
-    let sets: PhaseSetQueryResponse['phase']['sets']['nodes'] = [];
-    let pg: PhaseSetQueryResponse['phase']['phaseGroups']['nodes'] = [];
-    let page = 1;
-    let totalPages = 1;
-    while (page <= totalPages) {
-      const resp: PhaseSetQueryResponse = await this.client.request(
-        PHASE_SET_QUERY,
-        { phaseId, page: page++ },
-      );
-      sets = sets.concat(resp.phase.sets.nodes);
-      pg = resp.phase.phaseGroups.nodes;
-      totalPages = resp.phase.sets.pageInfo.totalPages;
-    }
-    const phaseGroups = new Map(pg.map(
+    const phaseGroups = await paginatedQuery({
+      client: this.client,
+      query: PHASE_PHASEGROUP_QUERY,
+      params: { phaseId },
+      extractor: (resp: PhasePhaseGroupQueryResponse) => resp.phase.phaseGroups,
+      defaultPageSize: 1024,
+    });
+    const phaseGroupNameMaping = new Map(phaseGroups.map(
       ({ id, displayIdentifier }) => [ id, displayIdentifier ]
     ));
-    return sets.map(s => this.convertSet(phaseId, phaseGroups, s));
+    const sets = await paginatedQuery({
+      client: this.client,
+      query: PHASE_SET_QUERY,
+      params: { phaseId },
+      extractor: (resp: PhaseSetQueryResponse) => resp.phase.sets,
+    });
+    return sets.map(s => this.convertSet(
+      phaseId,
+      s,
+      phaseGroupNameMaping.get(s.phaseGroup.id) as string,
+      phaseGroupNameMaping.size > 1,
+    ));
   }
 
   public async set(setId: string): Promise<TournamentSet> {
     const resp: SetQueryResponse = await this.client.request(SET_QUERY, { setId });
-    const phaseGroups = new Map(resp.set.phaseGroup.phase.phaseGroups.nodes.map(
-      ({ id, displayIdentifier }) => [ id, displayIdentifier ]
-    ));
     return this.convertSet(
       resp.set.phaseGroup.phase.id.toString(),
-      phaseGroups,
       resp.set,
+      resp.set.phaseGroup.displayIdentifier.toString(),
+      resp.set.phaseGroup.phase.groupCount > 1,
     );
   }
 
   private convertSet(
     phaseId: string,
-    phaseGroupsToName: Map<number, string>,
     s: ApiSet,
+    phaseGroupName: string,
+    multiGroup: boolean,
   ): TournamentSet {
-    const multiGroup = phaseGroupsToName.size > 1;
-    const phaseGroupPrefix = multiGroup ? `${phaseGroupsToName.get(s.phaseGroup.id)} ` : '';
+    const phaseGroupPrefix = multiGroup ? `${phaseGroupName} ` : '';
     const origMatch = getMatchBySmashggId(s.fullRoundText);
     let match = origMatch;
     if (match && multiGroup) {
@@ -116,6 +120,7 @@ export default class SmashggClient implements BracketService {
         serviceName,
         id: s.id.toString(),
         phaseId,
+        phaseGroupId: s.phaseGroup.id.toString(),
       },
       match,
       videogame,
@@ -136,7 +141,7 @@ export default class SmashggClient implements BracketService {
             handle: p.player.gamerTag,
             prefix: getParticipantPrefix(p),
             serviceIds: {
-              'twitter': p.user?.authorizations?.[0].externalUsername || undefined,
+              'twitter': p.user?.authorizations?.[0]?.externalUsername || undefined,
             },
           })),
           inLosers: isTrueFinals(match) || (isGrandFinals(match) && index === 1),
@@ -146,7 +151,7 @@ export default class SmashggClient implements BracketService {
 
   public async eventIdForPhase(phaseId: string): Promise<string> {
     const resp: PhaseEventQueryResponse = await this.client.request(PHASE_EVENT_QUERY, { phaseId });
-    return `${resp.phase.sets.nodes[0].event.id}`;
+    return resp.phase.event.id.toString();
   }
 
   public async phasesForTournament(
@@ -201,30 +206,6 @@ export default class SmashggClient implements BracketService {
         )
       ),
     };
-  }
-
-  public async setIdToPhaseGroup(phaseId: string): Promise<Record<string, TournamentPhaseGroup>> {
-    const phase = (await this.client.request(PHASE_GROUP_SET_QUERY, {
-      phaseId,
-    }) as PhaseGroupSetQueryResponse).phase;
-    const phaseGroups = phase ? phase.phaseGroups.nodes : [];
-    if (phaseGroups.length < 2) {
-      return {};
-    }
-    const mapping: Record<string, TournamentPhaseGroup> = {};
-    for (const group of phaseGroups) {
-      for (const set of group.sets.nodes) {
-        // TODO: Get complete data?
-        mapping[set.id.toString()] = {
-          id: group.id.toString(),
-          name: group.displayIdentifier,
-          phaseId: phaseId,
-          eventId: '',
-          url: '',
-        };
-      }
-    }
-    return mapping;
   }
 
   public async eventInfo(eventId: string): Promise<{ tournament: Tournament; videogame: Game }> {

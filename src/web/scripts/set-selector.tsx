@@ -10,6 +10,13 @@ export interface Props {
   unfinishedSets?: TournamentSet[];
 }
 
+const serviceInfoFields: (keyof TournamentSet['serviceInfo'])[] = [
+  'serviceName',
+  'id',
+  'phaseId',
+  'phaseGroupId',
+];
+
 const SetSelector: FunctionalComponent<Props> = (props: RenderableProps<Props>): VNode => {
   const sets = props.unfinishedSets || [];
   const inputRef = createRef<HTMLInputElement>();
@@ -17,21 +24,25 @@ const SetSelector: FunctionalComponent<Props> = (props: RenderableProps<Props>):
   // TODO: Implement a way to clear this field
   return(
     <Fragment>
-      <input
-        type="hidden"
-        name="set[serviceName]"
-        value={props.set?.serviceInfo.serviceName}
-      />
-      <input
-        type="hidden"
-        name="set[id]"
-        value={props.set?.serviceInfo.id}
-      />
-      <input
-        type="hidden"
-        name="set[phaseId]"
-        value={props.set?.serviceInfo.phaseId}
-      />
+      {serviceInfoFields.map((field): VNode => {
+        // NOTE: The switch statement here is to ensure that this won't compile
+        // if it doesn't handle all serviceInfo fields
+        // TODO: Can we rely on the assumption that serviceName + id is a unique
+        // identifier?
+        switch (field) {
+          case 'serviceName':
+          case 'id':
+          case 'phaseId':
+          case 'phaseGroupId':
+            return (
+              <input
+                type="hidden"
+                name={`set[${field}]`}
+                value={props.set?.serviceInfo[field]}
+              />
+            );
+        }
+      })}
       <input
         ref={inputRef}
         list={autocompleteId}

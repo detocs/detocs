@@ -14,7 +14,6 @@ import Game from '@models/game';
 import { getGameById, getGameByServiceId, loadGameDatabase } from '@models/games';
 import { Timestamp } from '@models/timestamp';
 import Tournament from '@models/tournament';
-import TournamentPhaseGroup from '@models/tournament-phase-group';
 import TournamentSet from '@models/tournament-set';
 import BracketService from '@services/bracket-service';
 import BracketServiceProvider from '@services/bracket-service-provider';
@@ -40,18 +39,17 @@ import { Log, VodTournament, VodVideogame, VodPhase } from './types';
 const logger = getLogger('upload');
 
 interface Set {
-  id: string | number;
+  id: string | null;
+  phaseGroupId: string | null;
   players: {
     name: string;
     prefix: string | null;
     handle: string;
   }[];
   fullRoundText: string;
-  start: Timestamp;
-  end: Timestamp;
+  start: Timestamp | null;
+  end: Timestamp | null;
 }
-
-type SetPhaseGroupMapping = Record<string, TournamentPhaseGroup>;
 
 interface Metadata {
   sourcePath: string;
@@ -124,10 +122,6 @@ export class VodUploader {
       bracketService,
       setList,
     );
-    const setToPhaseGroupId = await getPhaseGroupMapping(
-      bracketService,
-      setList.phaseId,
-    );
     const keyframeSource = await getKeyframeSource(path.dirname(this.logFile), setList);
 
     let metadata: Metadata[] = [];
@@ -139,7 +133,6 @@ export class VodUploader {
           tournament,
           videogame,
           phase,
-          setToPhaseGroupId,
         );
       } else {
         metadata = [await this.writeSingleVideoMetadata(
@@ -149,7 +142,6 @@ export class VodUploader {
           tournament,
           videogame,
           phase,
-          setToPhaseGroupId,
         )];
       }
     }
@@ -192,7 +184,6 @@ export class VodUploader {
     tournament: VodTournament,
     videogame: VodVideogame,
     phase: VodPhase,
-    setToPhaseGroupId: SetPhaseGroupMapping,
   ): Promise<Metadata> {
     const metadata = await this.singleVideoMetadata(
       bracketService,
@@ -201,7 +192,6 @@ export class VodUploader {
       tournament,
       videogame,
       phase,
-      setToPhaseGroupId,
     );
     const file = path.join(this.dirName, 'full.yml');
     const data = yaml.safeDump(metadata);
@@ -215,7 +205,6 @@ export class VodUploader {
     tournament: VodTournament,
     videogame: VodVideogame,
     phase: VodPhase,
-    setToPhaseGroupId: SetPhaseGroupMapping,
   ): Promise<Metadata[]> {
     const metadata = await this.perSetMetadata(
       bracketService,
@@ -223,7 +212,6 @@ export class VodUploader {
       tournament,
       videogame,
       phase,
-      setToPhaseGroupId,
     );
     Promise.all(metadata.map((m, i) => {
       const file = path.join(this.dirName, `set-${i.toString().padStart(2, '0')}.yml`);
@@ -240,7 +228,6 @@ export class VodUploader {
     tournament: VodTournament,
     videogame: VodVideogame,
     phase: VodPhase,
-    setToPhaseGroupId: SetPhaseGroupMapping,
   ): Promise<Metadata> {
     if (!setList.start) {
       throw new Error('No start timestamp on log');
@@ -252,6 +239,7 @@ export class VodUploader {
     const backetsSets = isValidPhase(setList.phaseId) &&
       await bracketService?.upcomingSetsByPhase(setList.phaseId) ||
       [];
+    const phaseGroupNames = await getPhaseGroupNameMapping(tournament, bracketService);
 
     let sets;
     if (setList.sets) {
@@ -280,7 +268,7 @@ export class VodUploader {
 
     const matchDescs = sets.map(set => {
       const players = set.players;
-      const groupId = setToPhaseGroupId[set.id] ? `${setToPhaseGroupId[set.id]} ` : '';
+      const groupId = makePrefix(phaseGroupNames.get(set));
       const p1 = players[0].name;
       const p2 = players[1].name;
       return `${set.start} - ${p1} vs ${p2} (${groupId}${set.fullRoundText})`;
@@ -326,11 +314,11 @@ export class VodUploader {
     tournament: VodTournament,
     videogame: VodVideogame,
     phase: VodPhase,
-    setToPhaseGroupId: SetPhaseGroupMapping,
   ): Promise<Metadata[]> {
     const bracketSets = isValidPhase(setList.phaseId) &&
       await bracketService?.upcomingSetsByPhase(setList.phaseId) ||
       [];
+    const phaseGroupNames = await getPhaseGroupNameMapping(tournament, bracketService);
     const template = await getPerSetTemplate();
     const promises = setList.sets.map(async (timestampedSet, index) => {
       if (!timestampedSet.start || !timestampedSet.end) {
@@ -341,13 +329,14 @@ export class VodUploader {
       const set = getSetData(timestampedSet, bracketSet);
       logger.debug(set);
       const players = set.players;
+      const phaseGroupName = phaseGroupNames.get(set);
 
       const title = [
         `${tournament.shortName}:`,
         `${players[0].name} vs ${players[1].name}`,
         '-',
         videogame.shortName,
-        setToPhaseGroupId[set.id]?.name,
+        phaseGroupName,
         phase.name,
         set.fullRoundText,
       ].filter(nonEmpty).join(' ');
@@ -355,7 +344,7 @@ export class VodUploader {
       const matchDesc = [
         videogame.name,
         phase.name,
-        setToPhaseGroupId[set.id]?.name,
+        phaseGroupName,
         `${set.fullRoundText}:`,
         `${players[0].name} vs ${players[1].name}`,
       ].filter(nonEmpty).join(' ');
@@ -511,7 +500,7 @@ async function getEventInfo(
     await bracketService.eventInfo(setList.eventId) :
     { tournament: {}, videogame: null };
 
-  const tournament: Partial<VodTournament> & Tournament = merge(
+  const tournament: Partial<VodTournament> & Pick<Tournament, 'name'> = merge(
     { name: 'Unknown Tournament' },
     getTournamentFromState(setList),
     apiTournament,
@@ -577,11 +566,29 @@ function getGameFromState(setList: Log): Game | null {
   return null;
 }
 
-async function getPhaseGroupMapping(
+async function getPhaseGroupNameMapping(
+  tournament: VodTournament,
   bracketService: BracketService | null,
-  phaseId: string | undefined,
-): Promise<SetPhaseGroupMapping> {
-  return isValidPhase(phaseId) && bracketService?.setIdToPhaseGroup(phaseId) || {};
+): Promise<{ get: (set: Set) => string | undefined }> {
+  const tournamentPhaseGroups = isValidTournament(tournament.id) &&
+    await bracketService?.phasesForTournament(tournament.id).then(t => t.phaseGroups) ||
+    [];
+  return {
+    get(set) {
+      if (!set.phaseGroupId) {
+        return undefined;
+      }
+      const phaseGroup = tournamentPhaseGroups.find(pg => pg.id === set.phaseGroupId);
+      if (!phaseGroup) {
+        return undefined;
+      }
+      const phases = tournamentPhaseGroups.filter(pg => pg.phaseId === phaseGroup.phaseId);
+      if (phases.length < 2) {
+        return undefined;
+      }
+      return phaseGroup.name;
+    },
+  };
 }
 
 function videoTags(
@@ -618,23 +625,23 @@ function videoTags(
 }
 
 function getSetData(
-  logSet: Partial<Log['sets'][0]> = {},
-  bracketSet: Partial<TournamentSet> = {},
+  logSet?: Log['sets'][0],
+  bracketSet?: TournamentSet,
 ): Set {
-  const set: Partial<Set> = {};
-
   // ID
-  set.id = logSet.id || bracketSet.serviceInfo?.id;
+  const id = logSet?.id || bracketSet?.serviceInfo?.id || null;
+  const phaseGroupId = bracketSet?.serviceInfo?.phaseGroupId || null;
 
   // Players
-  if (logSet.state && logSet.state.players) {
-    set.players = logSet.state.players.map(p => p.person).map(p => ({
+  let players: Set['players'] = [];
+  if (logSet?.state?.players) {
+    players = logSet.state.players.map(p => p.person).map(p => ({
       name: p.prefix ? `${p.prefix} | ${p.handle}` : p.handle,
       handle: p.handle,
       prefix: p.prefix,
     }));
-  } else if (bracketSet.entrants) {
-    set.players = bracketSet.entrants.map(entrant => {
+  } else if (bracketSet?.entrants) {
+    players = bracketSet.entrants.map(entrant => {
       let name;
       let handle;
       let prefix = null;
@@ -653,20 +660,27 @@ function getSetData(
 
   // Match
   // TODO: Only using smashgg IDs match names because they're singular
-  set.fullRoundText = logSet.state?.match.smashggId ||
-    logSet.state?.match.name ||
-    bracketSet.match?.smashggId ||
-    bracketSet.match?.name ||
-    undefined;
+  let fullRoundText = logSet?.state?.match.smashggId ||
+    logSet?.state?.match.name ||
+    bracketSet?.match?.smashggId ||
+    bracketSet?.match?.name ||
+    'Unknown';
   // TODO: Is this even necessary?
-  if (set.fullRoundText == 'Grand Final Reset' || set.fullRoundText == 'True Finals') {
-    set.fullRoundText = 'Grand Final';
+  if (fullRoundText == 'Grand Final Reset' || fullRoundText == 'True Finals') {
+    fullRoundText = 'Grand Final';
   }
 
   // Timestamps
-  set.start = logSet.start;
-  set.end = logSet.end || undefined;
-  return set as Set;
+  const start = logSet?.start || null;
+  const end = logSet?.end || null;
+  return {
+    id,
+    phaseGroupId,
+    players,
+    fullRoundText,
+    start,
+    end,
+  };
 }
 
 async function trimClip(
@@ -745,4 +759,12 @@ function sanitizeTag(str: string): string {
 
 function isValidPhase(phaseId: string | null | undefined): phaseId is string {
   return !!phaseId && phaseId !== 'unknown';
+}
+
+function isValidTournament(tournamentId: string | null | undefined): tournamentId is string {
+  return tournamentId != null;
+}
+
+function makePrefix(str?: string): string {
+  return str && str + ' ' || '';
 }

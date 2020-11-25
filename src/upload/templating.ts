@@ -14,7 +14,7 @@ interface TemplateData {
   'description': string;
   'tournamentName': string;
   'tournamentVenue': string;
-  'tournamentUrl': string;
+  'tournamentUrl'?: string;
   'date': string;
   'hashtags': string;
 }

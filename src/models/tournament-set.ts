@@ -12,6 +12,7 @@ export default interface TournamentSet {
     serviceName: string;
     id: string;
     phaseId: string;
+    phaseGroupId: string;
   };
   match: Match | null;
   videogame: Game | null;

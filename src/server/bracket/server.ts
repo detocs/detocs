@@ -226,7 +226,7 @@ class BracketServer {
 
   private startSetRefresh = (): void => {
     this.stopSetRefresh();
-    this.refreshTimer = setInterval(this.refreshSets, 60 * 1000);
+    this.refreshTimer = setInterval(this.refreshSets, 2 * 60 * 1000);
   };
 
   private stopSetRefresh = (): void => {

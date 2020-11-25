@@ -32,7 +32,9 @@
     "electron-release": "electron-builder && npm run electron-archive",
     "license-check": "license-checker --summary --failOn 'UNKNOWN; UNLICENSED'",
     "postinstall": "patch-package && npm run license-check",
-    "test": "jest"
+    "test": "jest --testPathIgnorePatterns='\\.it\\.'",
+    "test-integration": "jest \\.it\\.",
+    "test-all": "npx jest"
   },
   "build": {
     "appId": "com.datagram.detocs",
@@ -74,6 +76,7 @@
     "lodash.escaperegexp": "^4.1.2",
     "lodash.isequal": "^4.5.0",
     "lodash.merge": "^4.6.2",
+    "lodash.range": "^3.2.0",
     "lodash.set": "^4.3.2",
     "lodash.sortedindex": "^4.1.0",
     "log4js": "^4.5.1",
@@ -109,6 +112,7 @@
     "@types/lodash.escaperegexp": "^4.1.6",
     "@types/lodash.isequal": "^4.5.5",
     "@types/lodash.merge": "^4.6.6",
+    "@types/lodash.range": "^3.2.6",
     "@types/lodash.set": "^4.3.6",
     "@types/lodash.sortedindex": "^4.1.6",
     "@types/node": "^12.12.54",

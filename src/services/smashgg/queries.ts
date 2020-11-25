@@ -1,6 +1,6 @@
 import { SmashggSlug } from './types';
 
-interface PageInfo {
+export interface PageInfo {
   total: number;
   totalPages: number;
   page: number;
@@ -84,23 +84,48 @@ export interface ApiParticipant {
   } | null;
 }
 
-// Complexity: ~17 per set
-export const PHASE_SET_QUERY = `
-query PhaseQuery($phaseId: ID!, $page: Int) {
+export const PHASE_PHASEGROUP_QUERY = `
+query PhaseQuery($phaseId: ID!, $page: Int, $perPage: Int) {
   phase(id: $phaseId) {
-    phaseGroups(query: { perPage: 64 }) {
+    phaseGroups(query: {
+      page: $page,
+      perPage: $perPage,
+    }) {
       nodes {
         id
         displayIdentifier
       }
+      pageInfo {
+        total
+        totalPages
+      }
     }
+  }
+}
+`;
+export interface PhasePhaseGroupQueryResponse {
+  phase: {
+    phaseGroups: {
+      nodes: {
+        id: number;
+        displayIdentifier: string;
+      }[];
+      pageInfo: Pick<PageInfo, 'total'|'totalPages'>;
+    };
+  };
+}
+
+export const PHASE_SET_QUERY = `
+query PhaseQuery($phaseId: ID!, $page: Int, $perPage: Int) {
+  phase(id: $phaseId) {
     sets(
       sortType: MAGIC,
-      perPage: 48,
-      page: $page
+      page: $page,
+      perPage: $perPage,
     ) {
       nodes {${SET_SUBQUERY}}
       pageInfo {
+        total
         totalPages
       }
     }
@@ -109,15 +134,9 @@ query PhaseQuery($phaseId: ID!, $page: Int) {
 `;
 export interface PhaseSetQueryResponse {
   phase: {
-    phaseGroups: {
-      nodes: {
-        id: number;
-        displayIdentifier: string;
-      }[];
-    };
     sets: {
       nodes: ApiSet[];
-      pageInfo: Pick<PageInfo, 'totalPages'>;
+      pageInfo: Pick<PageInfo, 'total'|'totalPages'>;
     };
   };
 }
@@ -126,14 +145,10 @@ export const SET_QUERY = `
 query SetQuery($setId: ID!) {
   set(id: $setId) {${SET_SUBQUERY}
     phaseGroup {
+      displayIdentifier
       phase {
         id
-        phaseGroups {
-          nodes {
-            id
-            displayIdentifier
-          }
-        }
+        groupCount
       }
     }
   }
@@ -142,14 +157,10 @@ query SetQuery($setId: ID!) {
 export interface SetQueryResponse {
   set: ApiSet & {
     phaseGroup: {
+      displayIdentifier: string;
       phase: {
         id: number;
-        phaseGroups: {
-          nodes: {
-            id: number;
-            displayIdentifier: string;
-          }[];
-        };
+        groupCount: number;
       };
     };
   };
@@ -158,24 +169,16 @@ export interface SetQueryResponse {
 export const PHASE_EVENT_QUERY = `
 query PhaseEventQuery($phaseId: ID!) {
   phase(id: $phaseId) {
-    sets(perPage: 1) {
-      nodes {
-        event {
-          id
-        }
-      }
+    event {
+      id
     }
   }
 }
 `;
 export interface PhaseEventQueryResponse {
   phase: {
-    sets: {
-      nodes: {
-        event: {
-          id: number;
-        };
-      }[];
+    event: {
+      id: number;
     };
   };
 }
@@ -193,7 +196,7 @@ query TournamentPhasesQuery($slug: String) {
       phases {
         id
         name
-        phaseGroups {
+        phaseGroups(query: {perPage: 1024}) {
           nodes {
             id
             displayIdentifier
@@ -274,45 +277,6 @@ export interface EventQueryResponse {
       timezone: string | null;
     };
   } | null;
-}
-
-export const PHASE_GROUP_SET_QUERY = `
-query PhaseGroupSets($phaseId: ID!) {
-  phase(id: $phaseId) {
-    phaseGroups {
-      nodes {
-        id
-        wave {
-          identifier
-        }
-        displayIdentifier
-        sets(perPage: 64) {
-          nodes {
-            id
-          }
-        }
-      }
-    }
-  }
-}
-`;
-export interface PhaseGroupSetQueryResponse {
-  phase: {
-    phaseGroups: {
-      nodes: {
-        id: number;
-        wave: {
-          identifier: string;
-        };
-        displayIdentifier: string;
-        sets: {
-          nodes: {
-            id: number;
-          }[];
-        };
-      }[];
-    };
-  };
 }
 
 export const PHASE_QUERY = `

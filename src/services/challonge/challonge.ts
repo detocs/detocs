@@ -96,6 +96,7 @@ export default class ChallongeClient implements BracketService {
             serviceName,
             id: m.id.toString(),
             phaseId: m.tournament_id.toString(),
+            phaseGroupId: m.tournament_id.toString(),
           },
           match: match || null,
           videogame,
@@ -162,10 +163,6 @@ export default class ChallongeClient implements BracketService {
       name: 'Bracket',
       eventId: tournament.id,
     };
-  }
-
-  public async setIdToPhaseGroup(): Promise<Record<string, TournamentPhaseGroup>> {
-    return {};
   }
 
   // NOTE: Apparently Challonge has no problem with giving us participant IDs
