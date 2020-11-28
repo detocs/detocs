@@ -29,7 +29,8 @@ import {
   PhaseSetQueryResponse,
   PHASE_EVENT_QUERY,
   PhaseEventQueryResponse,
-  TOURNAMENT_PHASES_QUERY,
+  TOURNAMENT_PHASES_BY_ID_QUERY,
+  TOURNAMENT_PHASES_BY_SLUG_QUERY,
   TournamentPhasesQueryResponse,
   SET_QUERY,
   SetQueryResponse,
@@ -155,19 +156,18 @@ export default class SmashggClient implements BracketService {
   }
 
   public async phasesForTournament(
-    slug: SmashggSlug,
+    slugOrId: string,
   ): Promise<{
       tournament: Tournament;
       events: TournamentEvent[];
       phases: TournamentPhase[];
       phaseGroups: TournamentPhaseGroup[];
     }> {
-    const resp: TournamentPhasesQueryResponse = await this.client.request(
-      TOURNAMENT_PHASES_QUERY,
-      { slug },
-    );
+    const resp: TournamentPhasesQueryResponse = +slugOrId
+      ? await this.client.request(TOURNAMENT_PHASES_BY_ID_QUERY, { id: +slugOrId })
+      : await this.client.request(TOURNAMENT_PHASES_BY_SLUG_QUERY, { slug: slugOrId });
     if (!resp.tournament) {
-      throw new Error(`tournament "${slug}" not found`);
+      throw new Error(`tournament "${slugOrId}" not found`);
     }
     const t = resp.tournament;
     return {

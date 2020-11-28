@@ -183,9 +183,7 @@ export interface PhaseEventQueryResponse {
   };
 }
 
-export const TOURNAMENT_PHASES_QUERY = `
-query TournamentPhasesQuery($slug: String) {
-  tournament(slug: $slug) {
+const TOURNAMENT_PHASES_BASE_QUERY = `
     id
     name
     url(tab: "events")
@@ -207,6 +205,18 @@ query TournamentPhasesQuery($slug: String) {
         }
       }
     }
+`;
+export const TOURNAMENT_PHASES_BY_SLUG_QUERY = `
+query TournamentPhasesQuery($slug: String) {
+  tournament(slug: $slug) {
+    ${TOURNAMENT_PHASES_BASE_QUERY}
+  }
+}
+`;
+export const TOURNAMENT_PHASES_BY_ID_QUERY = `
+query TournamentPhasesQuery($id: ID!) {
+  tournament(id: $id) {
+    ${TOURNAMENT_PHASES_BASE_QUERY}
   }
 }
 `;

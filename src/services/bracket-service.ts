@@ -10,7 +10,7 @@ export default interface BracketService {
   upcomingSetsByPhase(phaseId: string): Promise<TournamentSet[]>;
   eventIdForPhase(phaseId: string): Promise<string>;
   phasesForTournament(
-    slug: string,
+    id: string,
   ): Promise<{
     tournament: Tournament;
     events: TournamentEvent[];

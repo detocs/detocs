@@ -29,7 +29,7 @@ import {
 import { mode } from '@util/array';
 import { getConfig } from '@util/configuration/config';
 import { getLogger } from '@util/logger';
-import { nonEmpty } from '@util/predicates';
+import { nonEmpty, nonNull } from '@util/predicates';
 
 import { KeyframeSource } from './keyframe-source';
 import { loadLog } from './loader';
@@ -77,6 +77,10 @@ interface VodUploaderParams {
   logFile: string;
   command: Command;
   style: Style;
+}
+
+interface PhaseGroupNameMapping {
+  get: (phaseGroupId?: string | null) => string | undefined;
 }
 
 const GAMING_CATEGORY_ID = '20';
@@ -245,12 +249,12 @@ export class VodUploader {
     if (setList.sets) {
       sets = setList.sets.map(logSet => {
         const bracketSet = backetsSets.find(s => s.serviceInfo.id == logSet.id);
-        return getSetData(logSet, bracketSet);
+        return getSetData(logSet, bracketSet, phaseGroupNames);
       });
     } else {
       backetsSets.sort((a, b) =>
         (a.completedAt || Number.MAX_SAFE_INTEGER) - (b.completedAt || Number.MAX_SAFE_INTEGER));
-      sets = backetsSets.map(s => getSetData(undefined, s));
+      sets = backetsSets.map(s => getSetData(undefined, s, phaseGroupNames));
     }
 
     // Make timestamps relative to the start of the video
@@ -268,10 +272,9 @@ export class VodUploader {
 
     const matchDescs = sets.map(set => {
       const players = set.players;
-      const groupId = makePrefix(phaseGroupNames.get(set));
       const p1 = players[0].name;
       const p2 = players[1].name;
-      return `${set.start} - ${p1} vs ${p2} (${groupId}${set.fullRoundText})`;
+      return `${set.start} - ${p1} vs ${p2} (${set.fullRoundText})`;
     }).join('\n');
     const template = await getSingleVideoTemplate();
     const description = videoDescription(
@@ -326,17 +329,15 @@ export class VodUploader {
       }
 
       const bracketSet = bracketSets.find(s => s.serviceInfo.id === timestampedSet.id);
-      const set = getSetData(timestampedSet, bracketSet);
+      const set = getSetData(timestampedSet, bracketSet, phaseGroupNames);
       logger.debug(set);
       const players = set.players;
-      const phaseGroupName = phaseGroupNames.get(set);
 
       const title = [
         `${tournament.shortName}:`,
         `${players[0].name} vs ${players[1].name}`,
         '-',
         videogame.shortName,
-        phaseGroupName,
         phase.name,
         set.fullRoundText,
       ].filter(nonEmpty).join(' ');
@@ -344,7 +345,6 @@ export class VodUploader {
       const matchDesc = [
         videogame.name,
         phase.name,
-        phaseGroupName,
         `${set.fullRoundText}:`,
         `${players[0].name} vs ${players[1].name}`,
       ].filter(nonEmpty).join(' ');
@@ -569,16 +569,16 @@ function getGameFromState(setList: Log): Game | null {
 async function getPhaseGroupNameMapping(
   tournament: VodTournament,
   bracketService: BracketService | null,
-): Promise<{ get: (set: Set) => string | undefined }> {
+): Promise<PhaseGroupNameMapping> {
   const tournamentPhaseGroups = isValidTournament(tournament.id) &&
     await bracketService?.phasesForTournament(tournament.id).then(t => t.phaseGroups) ||
     [];
   return {
-    get(set) {
-      if (!set.phaseGroupId) {
+    get(phaseGroupId) {
+      if (!phaseGroupId) {
         return undefined;
       }
-      const phaseGroup = tournamentPhaseGroups.find(pg => pg.id === set.phaseGroupId);
+      const phaseGroup = tournamentPhaseGroups.find(pg => pg.id === phaseGroupId);
       if (!phaseGroup) {
         return undefined;
       }
@@ -586,6 +586,11 @@ async function getPhaseGroupNameMapping(
       if (phases.length < 2) {
         return undefined;
       }
+
+      if (phaseGroup.name.match(/^[A-Z]?\d+$/)) {
+        return `Pool ${phaseGroup.name}`;
+      }
+
       return phaseGroup.name;
     },
   };
@@ -625,8 +630,9 @@ function videoTags(
 }
 
 function getSetData(
-  logSet?: Log['sets'][0],
-  bracketSet?: TournamentSet,
+  logSet: Log['sets'][0] | undefined,
+  bracketSet: TournamentSet | undefined,
+  phaseGroupNames: PhaseGroupNameMapping,
 ): Set {
   // ID
   const id = logSet?.id || bracketSet?.serviceInfo?.id || null;
@@ -660,10 +666,11 @@ function getSetData(
 
   // Match
   // TODO: Only using smashgg IDs match names because they're singular
-  let fullRoundText = logSet?.state?.match.smashggId ||
+  const groupId = makePrefix(phaseGroupNames.get(phaseGroupId));
+  let fullRoundText = (logSet?.state?.match.smashggId && groupId + logSet.state.match.smashggId) ||
     logSet?.state?.match.name ||
-    bracketSet?.match?.smashggId ||
-    bracketSet?.match?.name ||
+    (bracketSet?.match?.smashggId && groupId + bracketSet.match.smashggId) ||
+    (bracketSet?.match?.name && groupId + bracketSet.match.name) ||
     'Unknown';
   // TODO: Is this even necessary?
   if (fullRoundText == 'Grand Final Reset' || fullRoundText == 'True Finals') {
@@ -735,8 +742,8 @@ function tournamentTags(tournament: VodTournament): string[] {
 }
 
 function* interpolate(arr1: string[], arr2: string[]): Generator<string> {
-  for (const s1 of arr1) {
-    for (const s2 of arr2) {
+  for (const s1 of arr1.filter(nonNull)) {
+    for (const s2 of arr2.filter(nonNull)) {
       yield `${s1} ${s2}`;
     }
   }

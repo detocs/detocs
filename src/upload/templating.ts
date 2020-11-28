@@ -90,5 +90,12 @@ function formatDate(start?: number | null, end?: number | null, timezone?: strin
     return format(start);
   }
 
-  return `${format(start)} – ${format(end)}`;
+  const startDate = format(start);
+  const endDate = format(end);
+
+  if (startDate == endDate) {
+    return startDate;
+  }
+
+  return `${startDate} – ${endDate}`;
 }
