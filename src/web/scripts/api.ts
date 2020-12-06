@@ -3,7 +3,8 @@ import {
   RECORDING_PORT,
   TWITTER_PORT,
   BRACKETS_PORT,
-  MEDIA_DASHBOARD_PORT
+  MEDIA_DASHBOARD_PORT,
+  ERROR_REPORTING_PORT,
 } from "../../server/ports";
 
 function endpoint(port: string, path: string, protocol?: string): URL {
@@ -34,4 +35,8 @@ export function bracketEndpoint(path: string, protocol?: string): URL {
 
 export function clipEndpoint(path: string, protocol?: string): URL {
   return endpoint(MEDIA_DASHBOARD_PORT.toString(), path, protocol);
+}
+
+export function errorEndpoint(path: string, protocol?: string): URL {
+  return endpoint(ERROR_REPORTING_PORT.toString(), path, protocol);
 }

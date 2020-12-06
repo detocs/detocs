@@ -6,6 +6,7 @@ import { getProductName } from '@util/meta';
 import startBracketServer from './bracket/server';
 import startClipServer from './clip/server';
 import startControlServer from './control/server';
+import startErrorServer from './errors/server';
 import startInfoServer from './info/server';
 import { MediaServer } from './media/server';
 import {
@@ -15,6 +16,7 @@ import {
   TWITTER_PORT,
   BRACKETS_PORT,
   MEDIA_DASHBOARD_PORT,
+  ERROR_REPORTING_PORT,
 } from './ports';
 import startRecordingServer from './recording/server';
 import startTwitterServer from './twitter/server';
@@ -35,4 +37,5 @@ export default function start({ bracketProvider, mediaServer, obsClient }: Serve
   startTwitterServer(TWITTER_PORT, mediaServer);
   startBracketServer({ port: BRACKETS_PORT, bracketProvider });
   startClipServer(MEDIA_DASHBOARD_PORT, mediaServer);
-};
+  startErrorServer({ port: ERROR_REPORTING_PORT });
+}

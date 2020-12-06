@@ -40,3 +40,13 @@ export function fieldSetFormData(fieldSet: HTMLFieldSetElement): FormData {
   }
   return data;
 }
+
+// export function objectFormData(obj: Record<string, unknown>): FormData {
+// eslint-disable-next-line @typescript-eslint/ban-types
+export function objectFormData(obj: Object): FormData {
+  return Object.entries(obj)
+    .reduce((formData, [ key, value ]) => {
+      formData.append(key, `${value}`);
+      return formData;
+    }, new FormData());
+}

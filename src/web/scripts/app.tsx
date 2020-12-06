@@ -145,5 +145,5 @@ function bindSubmitHandler(): void {
 }
 
 function bindErrorHandler(): void {
-  window.addEventListener('error', logError);
+  window.addEventListener('error', evt => logError(evt, false));
 }
