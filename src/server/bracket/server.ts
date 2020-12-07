@@ -1,8 +1,7 @@
-import { getLogger } from '@util/logger';
-
 import { Error as ChainableError } from 'chainable-error';
 import express, { Request, Response } from 'express';
 import updateImmutable from 'immutability-helper';
+import { ResultAsync } from 'neverthrow';
 import * as ws from 'ws';
 
 import BracketService from '@services/bracket-service';
@@ -12,10 +11,13 @@ import { CHALLONGE_SERVICE_NAME } from '@services/challonge/constants';
 import { SMASHGG_SERVICE_NAME } from '@services/smashgg/constants';
 import { parseTournamentSlug as parseSmashggSlug } from '@services/smashgg/smashgg';
 import * as httpUtil from '@util/http-server';
+import { getLogger } from '@util/logger';
 
 import State, { nullState } from './state';
 
 type WebSocketClient = ws;
+
+type StateWithUnsettableFields = Omit<State, 'eventId' | 'phaseId'> & Partial<State>;
 
 interface UpdateRequest {
   tournamentUrl?: string;
@@ -26,7 +28,6 @@ interface UpdateRequest {
 
 const logger = getLogger('server/bracket');
 const sendUserError = httpUtil.sendUserError.bind(null, logger);
-const sendServerError = httpUtil.sendServerError.bind(null, logger);
 
 export default function start({ port, bracketProvider }: {
   port: number;
@@ -41,7 +42,7 @@ export default function start({ port, bracketProvider }: {
 
   const server = new BracketServer(appServer, socketServer, bracketProvider);
   server.registerHandlers();
-};
+}
 
 class BracketServer {
   private readonly appServer: express.Express;
@@ -96,35 +97,24 @@ class BracketServer {
     const tourneyId = fields.tournamentId || null;
     const [ parsedTournamentId, bracketService ] = this.parseUrlOrSlug(tourneyUrlOrSlug);
     this.bracketService = bracketService;
-    const update: Partial<State> = {
+    const parsedIds = {
       tournamentId: parsedTournamentId || tourneyId,
       eventId: emptyToNull(fields.eventId),
       phaseId: emptyToNull(fields.phaseId),
     };
+    const update: StateWithUnsettableFields = Object.assign(
+      {},
+      this.state,
+      parsedIds,
+    );
 
-    // If an ID is unset/changed, then clear the fields that depend on it
-    let tournamentChanged = update.tournamentId != this.state.tournamentId;
-    let eventChanged = update.eventId != this.state.eventId;
-    let phaseChanged = update.phaseId != this.state.phaseId;
-    if (!update.tournamentId || tournamentChanged) {
-      update.tournament = null;
-      update.eventId = undefined;
-      update.events = [];
-      update.phases = [];
-    }
-    if (!update.eventId || eventChanged) {
-      update.phaseId = undefined;
-    }
-    if (!update.phaseId || phaseChanged) {
-      update.unfinishedSets = [];
-      this.stopSetRefresh();
-    }
+    this.clearDependentFields(update);
 
-    this.selectSingletonPhase(update);
+    selectSingletonPhase(update);
 
-    tournamentChanged = update.tournamentId != this.state.tournamentId;
-    eventChanged = update.eventId != this.state.eventId;
-    phaseChanged = update.phaseId != this.state.phaseId;
+    const tournamentChanged = update.tournamentId != this.state.tournamentId;
+    const eventChanged = update.eventId != this.state.eventId;
+    const phaseChanged = update.phaseId != this.state.phaseId;
 
     // Validate options
     if (
@@ -148,24 +138,27 @@ class BracketServer {
 
     update.eventId = update.eventId || null;
     update.phaseId = update.phaseId || null;
-    this.state = updateImmutable(this.state, { $merge: update });
+    this.state = update as State;
     this.broadcastState();
 
     if (update.tournamentId && tournamentChanged && this.bracketService) {
-      try {
-        const updates = await this.bracketService.phasesForTournament(update.tournamentId);
-        this.selectSingletonEvent(updates);
-        this.selectSingletonPhase(updates);
-        this.state = updateImmutable(this.state, { $merge: updates });
-        this.broadcastState();
-      } catch (err) {
-        // TODO: Distinguish between 404 and other errors
-        err = new ChainableError(`Unable to find tournament ${update.tournamentId}`, err);
-        this.state = nullState;
-        this.broadcastState();
-        sendUserError(res, err);
-        return;
-      }
+      this.state = await fetchTournament(this.bracketService, update.tournamentId)
+        .match(
+          update => {
+            if (update.phaseId) {
+              this.fetchSets(update.phaseId)
+                .then(this.startSetRefresh);
+            }
+            res.sendStatus(200);
+            return updateImmutable(this.state, { $merge: update });
+          },
+          err => {
+            sendUserError(res, err);
+            return nullState;
+          }
+        );
+      this.broadcastState();
+      return;
     }
 
     // Asynchronous operations
@@ -194,20 +187,23 @@ class BracketServer {
     return [ tourneyUrlOrSlug, this.bracketProvider.get(SMASHGG_SERVICE_NAME)];
   }
 
-  private selectSingletonPhase(update: Partial<State>): void {
-    if (update.eventId && update.phaseId === undefined) {
-      const eventPhases = this.state.phases.filter(p => p.eventId === update.eventId);
-      if (eventPhases.length === 1) {
-        update.phaseId = eventPhases[0].id;
-      }
+  // If an ID is unset/changed, then clear the fields that depend on it
+  private clearDependentFields(update: Partial<State>): void {
+    const tournamentChanged = update.tournamentId != this.state.tournamentId;
+    const eventChanged = update.eventId != this.state.eventId;
+    const phaseChanged = update.phaseId != this.state.phaseId;
+    if (!update.tournamentId || tournamentChanged) {
+      update.tournament = null;
+      update.eventId = undefined;
+      update.events = [];
+      update.phases = [];
     }
-  }
-
-  private selectSingletonEvent(update: Partial<State>): void {
-    if (update.tournamentId && update.eventId === undefined) {
-      if (this.state.events.length === 1) {
-        update.eventId = this.state.events[0].id;
-      }
+    if (!update.eventId || eventChanged) {
+      update.phaseId = undefined;
+    }
+    if (!update.phaseId || phaseChanged) {
+      update.unfinishedSets = [];
+      this.stopSetRefresh();
     }
   }
 
@@ -242,6 +238,40 @@ class BracketServer {
     }
     await this.fetchSets(this.state.phaseId);
   };
+}
+
+function fetchTournament(
+  bracketService: BracketService,
+  tournamentId: string,
+): ResultAsync<Partial<State>, Error> {
+  return ResultAsync.fromPromise(
+    bracketService.phasesForTournament(tournamentId)
+      .then((update: Partial<State>) => {
+        update.tournamentId = update.tournament?.id;
+        selectSingletonEvent(update);
+        selectSingletonPhase(update);
+        return update;
+      }),
+    // TODO: Distinguish between 404 and other errors
+    e => new ChainableError(`Unable to find tournament ${tournamentId}`, e as Error)
+  );
+}
+
+function selectSingletonPhase(update: Partial<State>): void {
+  if (update.eventId && update.phaseId === undefined && update.phases) {
+    const eventPhases = update.phases.filter(p => p.eventId === update.eventId);
+    if (eventPhases.length === 1) {
+      update.phaseId = eventPhases[0].id;
+    }
+  }
+}
+
+function selectSingletonEvent(update: Partial<State>): void {
+  if (update.tournamentId && update.eventId === undefined) {
+    if (update.events?.length === 1) {
+      update.eventId = update.events[0].id;
+    }
+  }
 }
 
 function emptyToNull(str: string | undefined): string | null | undefined {

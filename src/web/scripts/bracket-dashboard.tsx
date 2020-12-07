@@ -2,10 +2,12 @@ import { h, FunctionalComponent, VNode, Fragment } from 'preact';
 import { StateUpdater, useRef, useEffect } from 'preact/hooks';
 
 import BracketState, { nullState } from '@server/bracket/state';
+import { checkResponseStatus } from '@util/ajax';
 import { keyHandler, Key } from '@util/dom';
 import { submitForm } from '@util/forms';
 
 import { bracketEndpoint } from './api';
+import { logError } from './log';
 
 interface Props {
   state: BracketState;
@@ -16,15 +18,25 @@ const submitOnEnter = keyHandler({
   [Key.Enter]: submitForm,
 });
 
-async function updateAjax(state: BracketState): Promise<void> {
-
+async function ajaxReset(): Promise<void> {
+  fetch(updateEndpoint,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: 'tournamentUrl=',
+    }
+  )
+    .then(checkResponseStatus)
+    .catch(logError);
 }
 
 const updateEndpoint = bracketEndpoint('/update').href;
 const BracketDashboard: FunctionalComponent<Props> = ({ state, updateState }): VNode => {
   const clearTournament = (): void => {
     updateState(nullState);
-
+    ajaxReset();
   };
   const tournament = state.tournament;
   const event = state.eventId ? state.events.find(e => e.id === state.eventId) : null;
