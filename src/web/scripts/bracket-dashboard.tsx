@@ -16,8 +16,16 @@ const submitOnEnter = keyHandler({
   [Key.Enter]: submitForm,
 });
 
+async function updateAjax(state: BracketState): Promise<void> {
+
+}
+
+const updateEndpoint = bracketEndpoint('/update').href;
 const BracketDashboard: FunctionalComponent<Props> = ({ state, updateState }): VNode => {
-  const clearTournament = (): void => updateState(nullState);
+  const clearTournament = (): void => {
+    updateState(nullState);
+
+  };
   const tournament = state.tournament;
   const event = state.eventId ? state.events.find(e => e.id === state.eventId) : null;
   const phase = state.phaseId ? state.phases.find(p => p.id === state.phaseId) : null;
@@ -42,7 +50,7 @@ const BracketDashboard: FunctionalComponent<Props> = ({ state, updateState }): V
 
   return(
     <form
-      action={bracketEndpoint('/update').href}
+      action={updateEndpoint}
       method="post"
       autocomplete="off"
       class="bracket__container"
