@@ -3,3 +3,7 @@
 .Toastify__toast {
   font: inherit !important;
 }
+
+.Toastify__toast--warning {
+  color: var(--color-text-inverted);
+}
