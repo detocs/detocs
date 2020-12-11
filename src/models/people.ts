@@ -30,6 +30,7 @@ const database: Database = {
   people: [],
 };
 let backedUp = false;
+const recentPersonUsages = new Map<string, number>();
 
 export async function loadDatabase(): Promise<void> {
   const filePath = getConfig().peopleDatabaseFile;
@@ -123,11 +124,11 @@ export function getByServiceId(serviceName: string, id: string): Person | null {
 
 export function save(upd: PersonUpdate): Person {
   const existingPerson = getById(upd.id);
-  if (existingPerson) {
-    return update(existingPerson, upd);
-  } else {
-    return add(upd);
-  }
+  const ret = existingPerson
+    ? update(existingPerson, upd)
+    : add(upd);
+  addRecentPerson(ret);
+  return ret;
 }
 
 function add(update: PersonUpdate): Person {
@@ -157,17 +158,33 @@ function update(old: Person, upd: PersonUpdate): Person {
   return updated;
 }
 
+function addRecentPerson(person: Person): void {
+  recentPersonUsages.set(person.id, Date.now());
+}
+
 export function all(): Person[] {
   return database.people;
 }
 
 export function search(query: string): Person[] {
+  if (!query) {
+    const recents = new Set(recentPersonUsages.keys());
+    return database.people.filter(p => recents.has(p.id))
+      .sort(sortByRecency);
+  }
   query = query.toLowerCase();
   return database.people.filter(p =>
     p.handle.toLowerCase().includes(query) ||
     p.alias?.toLowerCase().includes(query) ||
     p.prefix?.toLowerCase().includes(query)
-  );
+  )
+    .sort(sortByRecency);
+}
+
+function sortByRecency(a: Person, b: Person): number {
+  const aTime = recentPersonUsages.get(a.id) || 0;
+  const bTime = recentPersonUsages.get(b.id) || 0;
+  return bTime - aTime;
 }
 
 export function findByFullName(query: string): Person[] {

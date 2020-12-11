@@ -145,8 +145,8 @@ export default async function start(port: number): Promise<void> {
   });
   app.get('/people', (req, res) => {
     const query = req.query['q'];
-    if (query == null || typeof query !== 'string' || !query.length) {
-      res.sendStatus(400);
+    if (query == null || typeof query !== 'string') {
+      res.status(400).send('Query is required');
       return;
     }
     res.send(People.search(query));

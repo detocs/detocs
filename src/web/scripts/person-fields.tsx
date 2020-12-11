@@ -1,7 +1,8 @@
 import updateImmutable from 'immutability-helper';
+import debounce from 'lodash.debounce';
 import { h, Fragment, RenderableProps, VNode, FunctionalComponent } from 'preact';
 import { forwardRef } from 'preact/compat';
-import { useState, useRef, StateUpdater } from 'preact/hooks';
+import { useState, useRef, StateUpdater, useCallback, useEffect } from 'preact/hooks';
 import { JSXInternal } from 'preact/src/jsx';
 
 import Person, { PersonUpdate, getPrefixedNameWithAlias, getNameWithAlias } from '@models/person';
@@ -117,21 +118,32 @@ export const PersonSelector: FunctionalComponent<PersonFieldProps> = ({
   const inputRef = useRef<HTMLInputElement>();
   const autocompleteId = useAutocompleteId();
 
+  const updateAutocomplete = useCallback(
+    debounce(
+      (val: string): Promise<void> => {
+        const url = infoEndpoint('/people');
+        url.search = `q=${encodeURIComponent(val)}`;
+        return fetch(url.href)
+          .then(checkResponseStatus)
+          .then(resp => resp.json())
+          .then(updateOptions)
+          .catch(logError);
+      },
+      300,
+    ),
+    [],
+  );
+
+  useEffect(() => {
+    updateAutocomplete(person.handle || '');
+  }, [ person.handle ]);
+
   const handleHandleInput = (updater: PersonUpdater, event: Event): void => {
     const val = (event.target as HTMLInputElement).value;
     if (isAutocompleteValue(val)) {
       return;
     }
     onUpdatePerson(updater(person, val));
-    if (val.length > 0) {
-      const url = infoEndpoint('/people');
-      url.search = `q=${encodeURIComponent(val)}`;
-      fetch(url.href)
-        .then(checkResponseStatus)
-        .then(resp => resp.json())
-        .then(updateOptions)
-        .catch(logError);
-    }
   };
 
   // Handles the race condition where someone else updates a person's
