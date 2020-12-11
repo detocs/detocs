@@ -34,6 +34,8 @@ interface ImageViewerProps {
 
 interface VideoEditorProps {
   clipView: ClipView<VideoClip>;
+  description: string;
+  updateDescription: (value: string) => void;
   autoplay: boolean;
 }
 
@@ -107,7 +109,12 @@ const ImageViewer: FunctionalComponent<ImageViewerProps> = ({ clipView }) => {
   );
 };
 
-const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay }) => {
+const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({
+  clipView,
+  description,
+  updateDescription,
+  autoplay,
+}) => {
   const { clip, status } = clipView;
   const durationMs = clip.media.durationMs;
   const isRendering = status === ClipStatus.Rendering;
@@ -122,7 +129,6 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({ clipView, autoplay
     clip.clipEndMs,
     t => quantizedCeilFromEnd(t, durationMs, CLIP_RANGE_STEP_MS),
   );
-  const [ description, updateDescription ] = useLocalState(clip.description);
   const [ currentTime, updateCurrentTime ] = useState(0);
   const startMaximum = endMs;
   const startRangePercentage = `${startMaximum / durationMs * 100}%`;
@@ -343,6 +349,7 @@ const ClipDashboard: FunctionalComponent<Props> = ({ state }) => {
   const [ currentClipId, updateCurrentId ] = useState<Id | null>(null);
   const clipView = !currentClipId ? state.clips[state.clips.length - 1] :
     state.clips.find(cv => cv.clip.id === currentClipId);
+  const localDescriptions = useLocalDescriptions(state.clips);
   return (
     <div class="clips">
       <div class="clips__actions action-row">
@@ -356,7 +363,12 @@ const ClipDashboard: FunctionalComponent<Props> = ({ state }) => {
         )}
       </div>
       { clipView && isImageClipView(clipView) && ImageViewer({ clipView })}
-      { clipView && isVideoClipView(clipView) && VideoEdtior({ clipView, autoplay: false })}
+      { clipView && isVideoClipView(clipView) && VideoEdtior({
+        clipView,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        ...localDescriptions.get(clipView.clip.id)!,
+        autoplay: false,
+      })}
       <div class="clips__clip-selector">
         <ClipSelector
           clips={state.clips}
@@ -369,6 +381,40 @@ const ClipDashboard: FunctionalComponent<Props> = ({ state }) => {
   );
 };
 export default ClipDashboard;
+
+type ClipDescriptionMap = Map<string, {
+  description: string;
+  updateDescription: (value: string) => void;
+}>;
+
+function useLocalDescriptions(
+  clips: ClipView<Clip>[],
+): ClipDescriptionMap {
+  const [ map, updateMap ] = useState<ClipDescriptionMap>(new Map());
+  const clipIds = clips.map(clipView => clipView.clip.id);
+  const signature = clipIds
+    .sort((a, b) => a.localeCompare(b))
+    .join('');
+  // TODO: Update if clip description changes?
+  useEffect(() => {
+    const toAdd = clipIds.filter(id => !map.has(id));
+    // Normally we would also have a toRemove list, but in practice we're never
+    // going to remove clips from the list anyway
+    if (toAdd.length > 0) {
+      toAdd.forEach(id => {
+        map.set(id, { description: '', updateDescription: value => {
+          updateMap(map => {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const { updateDescription } = map.get(id)!;
+            map.set(id, { description: value, updateDescription });
+            return map;
+          });
+        }});
+      });
+    }
+  }, [ signature ]);
+  return map;
+}
 
 function quantizedFloorFromBeginning(time: number, step: number): number {
   return time - time % step;
