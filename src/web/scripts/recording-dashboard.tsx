@@ -2,13 +2,14 @@ import { h, FunctionalComponent, VNode, Fragment } from 'preact';
 import { useEffect, useRef, StateUpdater } from 'preact/hooks';
 
 import ServerState, { Recording } from '@server/recording/state';
+import { checkResponseStatus } from '@util/ajax';
 
 import { recordingEndpoint } from './api';
+import { useLocalState } from './hooks/local-state';
 import { useStartTimestamp, useStopTimestamp, useRecording } from './hooks/recording';
 import { logError } from './log';
 import { Thumbnail } from './thumbnail';
 import { TimestampInput } from './timestamp';
-import { checkResponseStatus } from '@util/ajax';
 
 interface Props {
   state: ServerState;
@@ -69,8 +70,10 @@ interface RecordingProps {
 }
 
 const Recording: FunctionalComponent<RecordingProps> = ({ recording, updateRecording }): VNode => {
-  const [ startTimestamp, updateStart ] = useStartTimestamp(recording, updateRecording);
-  const [ stopTimestamp, updateStop ] = useStopTimestamp(recording, updateRecording);
+  const [ startTimestamp, updateStart ] = useLocalState(
+    useStartTimestamp(recording, updateRecording)[0]);
+  const [ stopTimestamp, updateStop ] = useLocalState(
+    useStopTimestamp(recording, updateRecording)[0]);
   const canCut = startTimestamp && stopTimestamp && !recording.recordingFile;
   // TODO: Prevent saving if start > stop
   // TODO: Recut recordings
