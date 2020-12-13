@@ -3,7 +3,7 @@ import { StateUpdater } from 'preact/hooks';
 
 import { nullPerson, PersonUpdate } from '@models/person';
 import InfoState from '@server/info/state';
-import { INTERACTIVE_SELECTOR } from '@util/dom';
+import { INTERACTIVE_SELECTOR, inputHandler } from '@util/dom';
 
 import { infoEndpoint } from './api';
 import { useCommentator1, useCommentator2 } from './hooks/info';
@@ -13,6 +13,7 @@ import {
   PersonFieldProps,
   PersonAdditionalFields,
 } from './person-fields';
+import { useLocalState } from './hooks/local-state';
 
 interface Props {
   state: InfoState;
@@ -27,6 +28,8 @@ const CommentaryDashboard: FunctionalComponent<Props> = ({
 }): VNode => {
   const [ com1, updateCom1 ] = useCommentator1(state, updateState);
   const [ com2, updateCom2 ] = useCommentator2(state, updateState);
+  const [ tournament, updateTournament ] = useLocalState(state.tournament);
+  const [ event, updateEvent ] = useLocalState(state.event);
   const commentators = [
     <Commentator
       index={0}
@@ -61,7 +64,8 @@ const CommentaryDashboard: FunctionalComponent<Props> = ({
             <input
               name="tournament"
               placeholder="Tournament"
-              value={state.tournament}
+              value={tournament}
+              onInput={inputHandler(updateTournament)}
             />
           </div>
         </fieldset>
@@ -71,7 +75,8 @@ const CommentaryDashboard: FunctionalComponent<Props> = ({
             <input
               name="event"
               placeholder="Event"
-              value={state.event}
+              value={event}
+              onInput={inputHandler(updateEvent)}
             />
           </div>
         </fieldset>
