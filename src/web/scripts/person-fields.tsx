@@ -18,6 +18,8 @@ import TextInput from './text-input';
 type PersonUpdater = (p: PersonUpdate, val: string) => PersonUpdate;
 interface FieldMapping {
   formName: string | null;
+  label?: string;
+  pattern?: { regex: string; description: string; };
   getValue: (p: PersonUpdate) => string | null | undefined;
   updatedWithValue: PersonUpdater;
 }
@@ -35,6 +37,7 @@ const fieldMappings: Record<string, FieldMapping> = {
   },
   'handle': {
     formName: '[handle]',
+    label: 'Handle',
     getValue: p => p.handle,
     updatedWithValue: (p, val) => updateImmutable(p, {
       handle: {
@@ -44,6 +47,7 @@ const fieldMappings: Record<string, FieldMapping> = {
   },
   'alias': {
     formName: '[alias]',
+    label: 'Alias',
     getValue: p => p.alias,
     updatedWithValue: (p, val) => updateImmutable(p, {
       alias: {
@@ -53,6 +57,7 @@ const fieldMappings: Record<string, FieldMapping> = {
   },
   'prefix': {
     formName: '[prefix]',
+    label: 'Prefix',
     getValue: p => p.prefix,
     updatedWithValue: (p, val) => updateImmutable(p, {
       prefix: {
@@ -62,6 +67,8 @@ const fieldMappings: Record<string, FieldMapping> = {
   },
   'twitter': {
     formName: '[serviceIds][twitter]',
+    label: 'Twitter',
+    pattern: { regex: '[a-zA-Z0-9_]*', description: 'Letters, numbers, or underscores' },
     getValue: p => p.serviceIds?.twitter,
     updatedWithValue: (p, val) => updateImmutable(p, {
       serviceIds: serviceIds => updateImmutable(serviceIds || {}, {
@@ -79,11 +86,15 @@ export interface PersonFieldProps {
   onUpdatePerson: StateUpdater<PersonUpdate>;
 }
 
-export type PersonFieldInputProps = RenderableProps<PersonFieldProps & { fieldName: string }> &
+export type PersonFieldInputProps = RenderableProps<PersonFieldProps & {
+  fieldName: string;
+  label?: string;
+}> &
 JSXInternal.HTMLAttributes;
 
 export const PersonFieldInput: FunctionalComponent<PersonFieldInputProps> = forwardRef(({
   fieldName,
+  label,
   prefix,
   person,
   onUpdatePerson,
@@ -102,7 +113,11 @@ export const PersonFieldInput: FunctionalComponent<PersonFieldInputProps> = forw
     name={mapping.formName ? `${prefix}${mapping.formName}` : undefined}
     value={mapping.getValue(person) || ''}
     onInput={handler}
-    label={capitalize(fieldName)}
+    label={label ?? mapping.label ?? capitalize(fieldName)}
+    {...mapping.pattern && {
+      pattern: mapping.pattern.regex,
+      title: mapping.pattern.description,
+    }}
     class={fieldName}
     ref={ref}
     {...additionalAttributes}
