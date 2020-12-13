@@ -11,13 +11,21 @@ import TournamentPhase from '@models/tournament-phase';
 import TournamentPhaseGroup from '@models/tournament-phase-group';
 import TournamentSet from '@models/tournament-set';
 import BracketService from '@services/bracket-service';
-import { ApiKey, Timestamp, ApiTournament, ApiMatch, ApiParticipant } from '@services/challonge/types';
+import {
+  ApiKey,
+  Timestamp,
+  ApiTournament,
+  ApiMatch,
+  ApiParticipant,
+} from '@services/challonge/types';
 import { checkResponseStatus, checkServerError } from '@util/ajax';
 import { getCredentials } from '@util/configuration/credentials';
 import { nonNull } from '@util/predicates';
 
 import { BASE_URL, TOURNAMENT_URL_REGEX, CHALLONGE_SERVICE_NAME } from './constants';
 import { TournamentResponse, MatchResponse, ParticipantResponse } from './types';
+
+const ENTRANT_PREFIX_REGEX = /^(?:(.+?)\s*\|+\s*)?([^|]+)$/;
 
 export default class ChallongeClient implements BracketService {
   private readonly apiKey: ApiKey;
@@ -70,8 +78,7 @@ export default class ChallongeClient implements BracketService {
         participants: [{
           serviceName,
           serviceId: p.id,
-          handle: p.name,
-          prefix: null, // TODO: split on pipe?
+          ...parseEntrantName(p.name),
           serviceIds: {},
         }],
         inLosers,
@@ -314,4 +321,19 @@ export function parseTournamentId(url: string): string | null {
     return `${subdomain}-${identifier}`;
   }
   return identifier;
+}
+
+// Visible for testing
+export function parseEntrantName(name: string): { handle: string; prefix: string | null; } {
+  const match = ENTRANT_PREFIX_REGEX.exec(name);
+  if (!match) {
+    return {
+      prefix: null,
+      handle: '',
+    };
+  }
+  return {
+    prefix: match[1] || null,
+    handle: match[2],
+  };
 }

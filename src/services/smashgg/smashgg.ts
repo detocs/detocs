@@ -263,7 +263,8 @@ function getEntrantName(entrant: ApiEntrant): string {
 }
 
 function getParticipantPrefix(p: ApiParticipant): string | null {
-  return p.prefix || (p.player.prefix || null);
+  const prefix = p.prefix || (p.player.prefix || null);
+  return prefix && prefix.replace(/\s*\|+$/, '');
 }
 
 function getPhaseUrl(
