@@ -25,3 +25,18 @@ export default interface TournamentSet {
     inLosers?: boolean;
   }[];
 }
+
+export const nullSet: TournamentSet = Object.freeze({
+  serviceInfo: {
+    serviceName: '',
+    id: '',
+    phaseId: '',
+    phaseGroupId: '',
+  },
+  match: null,
+  videogame: null,
+  shortIdentifier: '',
+  displayName: '',
+  completedAt: null,
+  entrants: [],
+});

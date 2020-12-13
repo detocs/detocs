@@ -123,11 +123,11 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({
   const videoRef = useRef<HTMLVideoElement>();
   const [ startMs, updateStartMs ] = useLocalState(
     clip.clipStartMs,
-    t => quantizedFloorFromBeginning(t, CLIP_RANGE_STEP_MS),
+    { transform: t => quantizedFloorFromBeginning(t, CLIP_RANGE_STEP_MS) },
   );
   const [ endMs, updateEndMs ] = useLocalState(
     clip.clipEndMs,
-    t => quantizedCeilFromEnd(t, durationMs, CLIP_RANGE_STEP_MS),
+    { transform: t => quantizedCeilFromEnd(t, durationMs, CLIP_RANGE_STEP_MS) },
   );
   const [ currentTime, updateCurrentTime ] = useState(0);
   const startMaximum = endMs;

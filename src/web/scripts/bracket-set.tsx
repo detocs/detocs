@@ -20,7 +20,9 @@ const BracketSet: FunctionalComponent<Props> = ({
   unfinishedSets,
 }): VNode => {
   // Prevent updates of unfinishedSets from clearing unsaved changes
-  const [ localSet, updateSet ] = useLocalState(set);
+  const [ localSet, updateSet ] = useLocalState(set, {
+    keyGenerator: set => `${set?.serviceInfo.serviceName}_${set?.serviceInfo.id}`,
+  });
   const ref = useRef<HTMLFieldSetElement>();
   const submit = (): void => {
     const form = ref.current?.form;

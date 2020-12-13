@@ -1,8 +1,10 @@
+import updateImmutable from 'immutability-helper';
 import { h, FunctionalComponent, RenderableProps, VNode, Fragment, createRef } from 'preact';
 
-import TournamentSet from '@models/tournament-set';
+import TournamentSet, { nullSet } from '@models/tournament-set';
+import { inputHandler } from '@util/dom';
 
-import Autocomplete, { useAutocompleteId } from './autocomplete';
+import Autocomplete, { useAutocompleteId, isAutocompleteValue } from './autocomplete';
 
 export interface Props {
   set?: TournamentSet;
@@ -17,11 +19,16 @@ const serviceInfoFields: (keyof TournamentSet['serviceInfo'])[] = [
   'phaseGroupId',
 ];
 
-const SetSelector: FunctionalComponent<Props> = (props: RenderableProps<Props>): VNode => {
-  const sets = props.unfinishedSets || [];
+const SetSelector: FunctionalComponent<Props> = ({
+  set,
+  updateSet,
+  unfinishedSets,
+}: RenderableProps<Props>): VNode => {
+  const sets = unfinishedSets || [];
   const inputRef = createRef<HTMLInputElement>();
   const autocompleteId = useAutocompleteId();
   // TODO: Implement a way to clear this field
+
   return(
     <Fragment>
       {serviceInfoFields.map((field): VNode => {
@@ -38,7 +45,7 @@ const SetSelector: FunctionalComponent<Props> = (props: RenderableProps<Props>):
               <input
                 type="hidden"
                 name={`set[${field}]`}
-                value={props.set?.serviceInfo[field]}
+                value={set?.serviceInfo[field]}
               />
             );
         }
@@ -46,7 +53,17 @@ const SetSelector: FunctionalComponent<Props> = (props: RenderableProps<Props>):
       <input
         ref={inputRef}
         list={autocompleteId}
-        value={props.set?.displayName}
+        value={set?.displayName}
+        onInput={inputHandler(val => {
+          if (isAutocompleteValue(val)) {
+            return;
+          }
+          updateSet(updateImmutable(nullSet, {
+            $merge: {
+              displayName: val,
+            },
+          }));
+        })}
         class="set-selector"
         placeholder="Select Set"
       />
@@ -56,7 +73,7 @@ const SetSelector: FunctionalComponent<Props> = (props: RenderableProps<Props>):
         options={sets}
         idMapper={s => `${s.serviceInfo.serviceName}_${s.serviceInfo.id}`}
         nameMapper={s => s.displayName}
-        setValue={props.updateSet}
+        setValue={updateSet}
       />
     </Fragment>
   );
