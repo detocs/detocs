@@ -24,7 +24,7 @@
   flex-flow: column nowrap;
   align-items: center;
 
-  background: var(--bg-alt);
+  background: var(--bg-area);
 
   input {
     @include hiding.hide-checkbox;
