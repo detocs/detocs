@@ -1,4 +1,5 @@
 import { h, render, FunctionalComponent, VNode, Fragment } from 'preact';
+import { useEffect } from 'preact/hooks';
 import { ToastContainer as ReactToastContainer } from 'react-toastify';
 
 import BracketState, { nullState as nullBracketState } from '@server/bracket/state';

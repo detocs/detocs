@@ -6,14 +6,13 @@ import InfoState from '@server/info/state';
 import { INTERACTIVE_SELECTOR, inputHandler } from '@util/dom';
 
 import { infoEndpoint } from './api';
-import { useCommentator1, useCommentator2 } from './hooks/info';
+import { useCommentator1, useCommentator2, useTournament, useEvent } from './hooks/info';
 import {
   PersonFieldInput,
   PersonSelector,
   PersonFieldProps,
   PersonAdditionalFields,
 } from './person-fields';
-import { useLocalState } from './hooks/local-state';
 
 interface Props {
   state: InfoState;
@@ -28,8 +27,8 @@ const CommentaryDashboard: FunctionalComponent<Props> = ({
 }): VNode => {
   const [ com1, updateCom1 ] = useCommentator1(state, updateState);
   const [ com2, updateCom2 ] = useCommentator2(state, updateState);
-  const [ tournament, updateTournament ] = useLocalState(state.tournament);
-  const [ event, updateEvent ] = useLocalState(state.event);
+  const [ tournament, updateTournament ] = useTournament(state, updateState);
+  const [ event, updateEvent ] = useEvent(state, updateState);
   const commentators = [
     <Commentator
       index={0}

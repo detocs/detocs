@@ -3,6 +3,7 @@ import { StateUpdater } from 'preact/hooks/src';
 
 import RecordingState, { Recording } from '@server/recording/state';
 
+import { useLocalState } from './local-state';
 import { useSubstate } from './substate';
 
 export const useRecording = (
@@ -18,17 +19,29 @@ export const useRecording = (
     ),
   )(value, updater);
 
-export const useStartTimestamp = useSubstate<Recording, string>(
+
+const useStartTimestampSubstate = useSubstate<Recording, string>(
   recording => recording.startTimestamp,
   (recording, value) => updateImmutable(
     recording,
     { startTimestamp: { $set: value } },
   ),
 );
-export const useStopTimestamp = useSubstate<Recording, string | null>(
+export const useStartTimestamp: typeof useStartTimestampSubstate = (state, updateState) => {
+  return useLocalState(
+    useStartTimestampSubstate(state, updateState)[0],
+  );
+};
+
+const useStopTimestampSubstate = useSubstate<Recording, string | null>(
   recording => recording.stopTimestamp,
   (recording, value) => updateImmutable(
     recording,
     { stopTimestamp: { $set: value } },
   ),
 );
+export const useStopTimestamp: typeof useStopTimestampSubstate = (state, updateState) => {
+  return useLocalState(
+    useStopTimestampSubstate(state, updateState)[0],
+  );
+};

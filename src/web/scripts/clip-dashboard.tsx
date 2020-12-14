@@ -32,12 +32,12 @@ interface ImageViewerProps {
   clipView: ClipView<ImageClip>;
 }
 
-interface VideoEditorProps {
-  clipView: ClipView<VideoClip>;
-  description: string;
-  updateDescription: (value: string) => void;
+type VideoEditorProps = VideoClip & Omit<ClipView, 'clip'> & {
+  updateStartMs: StateUpdater<number>;
+  updateEndMs: StateUpdater<number>;
+  updateDescription: StateUpdater<string>;
   autoplay: boolean;
-}
+};
 
 /**
  * When changing the end timestamp of a clip, this determines how much earlier
@@ -86,7 +86,7 @@ function screenshot(): Promise<string> {
     .then(resp => resp.id);
 }
 
-const ClipMetadata: FunctionalComponent<ClipView> = ({ clip }) => {
+const ClipMetadata: FunctionalComponent<Clip> = (clip) => {
   const recTs = formatTimestampRange(clip, clip.recordingTimestampMs);
   const streamTs = formatTimestampRange(clip, clip.streamTimestampMs);
   return (
@@ -104,31 +104,30 @@ const ImageViewer: FunctionalComponent<ImageViewerProps> = ({ clipView }) => {
       <div class="image-viewer__image">
         <img src={clipView.clip.media.url} />
       </div>
-      <ClipMetadata {...clipView}/>
+      <ClipMetadata {...clipView.clip}/>
     </div>
   );
 };
 
-const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({
-  clipView,
-  description,
-  updateDescription,
-  autoplay,
-}) => {
-  const { clip, status } = clipView;
-  const durationMs = clip.media.durationMs;
+const VideoEditor: FunctionalComponent<VideoEditorProps> = (props) => {
+  const {
+    id,
+    media,
+    waveform,
+    status,
+    clipStartMs: startMs,
+    updateStartMs,
+    clipEndMs: endMs,
+    updateEndMs,
+    description,
+    updateDescription,
+    autoplay,
+  } = props;
   const isRendering = status === ClipStatus.Rendering;
   const isRendered = status === ClipStatus.Rendered;
+  const durationMs = media.durationMs;
 
   const videoRef = useRef<HTMLVideoElement>();
-  const [ startMs, updateStartMs ] = useLocalState(
-    clip.clipStartMs,
-    { transform: t => quantizedFloorFromBeginning(t, CLIP_RANGE_STEP_MS) },
-  );
-  const [ endMs, updateEndMs ] = useLocalState(
-    clip.clipEndMs,
-    { transform: t => quantizedCeilFromEnd(t, durationMs, CLIP_RANGE_STEP_MS) },
-  );
   const [ currentTime, updateCurrentTime ] = useState(0);
   const startMaximum = endMs;
   const startRangePercentage = `${startMaximum / durationMs * 100}%`;
@@ -141,7 +140,7 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({
     }
   }, [ status ]);
 
-  const prevTimestamp = useRef(clip.clipStartMs);
+  const prevTimestamp = useRef(startMs);
   const handleTimeUpdate = (e: Event): void => {
     const video = e.target as HTMLVideoElement;
     const timestamp = video.currentTime * 1000;
@@ -158,9 +157,9 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({
   };
   useEffect(() => {
     if (videoRef.current) {
-      videoRef.current.currentTime = clip.clipStartMs / 1000;
+      videoRef.current.currentTime = startMs / 1000;
     }
-  }, [ clip ]);
+  }, []);
 
   const playbackUpdater = (timestampMs: number): void => {
     if (!videoRef.current) {
@@ -202,7 +201,7 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({
         <video
           class="video-editor__video"
           ref={videoRef}
-          src={clip.media.url}
+          src={media.url}
           onTimeUpdate={handleTimeUpdate}
           autoPlay={autoplay && !isRendering}
           preload={'metadata'}
@@ -212,7 +211,7 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({
         >
         </video>
         <div class="video-editor__range">
-          <img class="video-editor__waveform" src={clip.waveform.url} />
+          <img class="video-editor__waveform" src={waveform.url} />
           <progress
             class="video-editor__progress"
             max={durationMs}
@@ -265,8 +264,8 @@ const VideoEdtior: FunctionalComponent<VideoEditorProps> = ({
         </div>
       </div>
       <div class="video-editor__buttons">
-        <input type="hidden" name="id" value={clip.id} />
-        <ClipMetadata {...clipView}/>
+        <input type="hidden" name="id" value={id} />
+        <ClipMetadata {...props}/>
         <label class="video-editor__description">
           Description:
           <textarea
@@ -345,11 +344,54 @@ function removeMs(timestamp: Timestamp): string {
   return timestamp.slice(0, -4);
 }
 
+interface ClipEditorProps<T extends Clip> {
+  clipView: ClipView<T>;
+  selected: boolean;
+}
+
+const ImageClipEditor: FunctionalComponent<ClipEditorProps<ImageClip>> = ({
+  clipView,
+  selected,
+}) => {
+  return selected ? <ImageViewer clipView={clipView} /> : null;
+};
+
+const VideoClipEditor: FunctionalComponent<ClipEditorProps<VideoClip>> = ({
+  clipView: { clip, status },
+  selected,
+}) => {
+  const durationMs = clip.media.durationMs;
+  const [ startMs, updateStartMs ] = useLocalState(
+    clip.clipStartMs,
+    { transform: t => quantizedFloorFromBeginning(t, CLIP_RANGE_STEP_MS) },
+  );
+  const [ endMs, updateEndMs ] = useLocalState(
+    clip.clipEndMs,
+    { transform: t => quantizedCeilFromEnd(t, durationMs, CLIP_RANGE_STEP_MS) },
+  );
+  const [ description, updateDescription ] = useLocalState(clip.description);
+  if (!selected) {
+    return null;
+  }
+  return <VideoEditor
+    id={clip.id}
+    media={clip.media}
+    waveform={clip.waveform}
+    recordingTimestampMs={clip.recordingTimestampMs}
+    streamTimestampMs={clip.streamTimestampMs}
+    status={status}
+    clipStartMs={startMs}
+    updateStartMs={updateStartMs}
+    clipEndMs={endMs}
+    updateEndMs={updateEndMs}
+    description={description}
+    updateDescription={updateDescription}
+    autoplay={false}
+  />;
+};
+
 const ClipDashboard: FunctionalComponent<Props> = ({ state }) => {
   const [ currentClipId, updateCurrentId ] = useState<Id | null>(null);
-  const clipView = !currentClipId ? state.clips[state.clips.length - 1] :
-    state.clips.find(cv => cv.clip.id === currentClipId);
-  const localDescriptions = useLocalDescriptions(state.clips);
   return (
     <div class="clips">
       <div class="clips__actions action-row">
@@ -362,13 +404,26 @@ const ClipDashboard: FunctionalComponent<Props> = ({ state }) => {
           </button>
         )}
       </div>
-      { clipView && isImageClipView(clipView) && ImageViewer({ clipView })}
-      { clipView && isVideoClipView(clipView) && VideoEdtior({
-        clipView,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        ...localDescriptions.get(clipView.clip.id)!,
-        autoplay: false,
-      })}
+      { state.clips
+        .filter(isImageClipView)
+        .map(clipView =>
+          <ImageClipEditor
+            key={clipView.clip.id}
+            clipView={clipView}
+            selected={clipView.clip.id === currentClipId}
+          />
+        )
+      }
+      { state.clips
+        .filter(isVideoClipView)
+        .map(clipView =>
+          <VideoClipEditor
+            key={clipView.clip.id}
+            clipView={clipView}
+            selected={clipView.clip.id === currentClipId}
+          />
+        )
+      }
       <div class="clips__clip-selector">
         <ClipSelector
           clips={state.clips}
@@ -381,40 +436,6 @@ const ClipDashboard: FunctionalComponent<Props> = ({ state }) => {
   );
 };
 export default ClipDashboard;
-
-type ClipDescriptionMap = Map<string, {
-  description: string;
-  updateDescription: (value: string) => void;
-}>;
-
-function useLocalDescriptions(
-  clips: ClipView<Clip>[],
-): ClipDescriptionMap {
-  const [ map, updateMap ] = useState<ClipDescriptionMap>(new Map());
-  const clipIds = clips.map(clipView => clipView.clip.id);
-  const signature = clipIds
-    .sort((a, b) => a.localeCompare(b))
-    .join('');
-  // TODO: Update if clip description changes?
-  useEffect(() => {
-    const toAdd = clipIds.filter(id => !map.has(id));
-    // Normally we would also have a toRemove list, but in practice we're never
-    // going to remove clips from the list anyway
-    if (toAdd.length > 0) {
-      toAdd.forEach(id => {
-        map.set(id, { description: '', updateDescription: value => {
-          updateMap(map => {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const { updateDescription } = map.get(id)!;
-            map.set(id, { description: value, updateDescription });
-            return map;
-          });
-        }});
-      });
-    }
-  }, [ signature ]);
-  return map;
-}
 
 function quantizedFloorFromBeginning(time: number, step: number): number {
   return time - time % step;

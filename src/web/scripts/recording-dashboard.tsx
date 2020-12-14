@@ -70,10 +70,8 @@ interface RecordingProps {
 }
 
 const Recording: FunctionalComponent<RecordingProps> = ({ recording, updateRecording }): VNode => {
-  const [ startTimestamp, updateStart ] = useLocalState(
-    useStartTimestamp(recording, updateRecording)[0]);
-  const [ stopTimestamp, updateStop ] = useLocalState(
-    useStopTimestamp(recording, updateRecording)[0]);
+  const [ startTimestamp, updateStart ] = useStartTimestamp(recording, updateRecording);
+  const [ stopTimestamp, updateStop ] = useStopTimestamp(recording, updateRecording);
   const canCut = startTimestamp && stopTimestamp && !recording.recordingFile;
   // TODO: Prevent saving if start > stop
   // TODO: Recut recordings

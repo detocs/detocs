@@ -2,11 +2,11 @@ import { h, FunctionalComponent, VNode } from 'preact';
 import { StateUpdater } from 'preact/hooks';
 
 import InfoState from '@server/info/state';
-
-import { useBreakMessages } from './hooks/info';
+import { inputHandler } from '@util/dom';
 
 import { infoEndpoint } from './api';
-import { inputHandler } from '@util/dom';
+import { useBreakMessages } from './hooks/info';
+import { useLocalState } from './hooks/local-state';
 
 interface Props {
   state: InfoState;
@@ -14,8 +14,13 @@ interface Props {
 }
 
 const BreakDashboard: FunctionalComponent<Props> = ({ state, updateState }): VNode => {
-  let [ messages, updateMessages ] = useBreakMessages(state, updateState);
-  messages = messages.length ? messages : [''];
+  const [ messages, updateMessages ] = useLocalState(
+    useBreakMessages(state, updateState)[0],
+    {
+      transform: messages => messages.length ? messages : [''],
+      keyGenerator: JSON.stringify,
+    }
+  );
   const appendMsg = (): void => updateMessages(messages.concat(['']));
   const removeLastMsg = (): void => updateMessages(m => m.slice(0, -1));
   return(

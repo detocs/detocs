@@ -16,6 +16,7 @@ export function useServerState<T>(endpoint: URL, initialState: T): [ T, StateUpd
       maxRetries: 40,
     });
     ws.onmessage = (ev: MessageEvent) => {
+      // TODO: Compare JSON to previous state as a simple optimization
       const newState = JSON.parse(ev.data) as T;
       updateState(newState);
     };
