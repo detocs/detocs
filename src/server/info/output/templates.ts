@@ -15,7 +15,7 @@ import { watchFile, Watcher } from '@util/fs';
 import { setDefaultEscapingFunction } from '@util/handlebars';
 import { validateJson } from '@util/json';
 import { getLogger } from '@util/logger';
-import { handleBuiltin } from '@util/path';
+import { handleBuiltin, isBuiltin } from '@util/path';
 import { validateXml } from '@util/xml';
 
 import { OutputState, toOutputState } from './output';
@@ -72,7 +72,11 @@ export async function parseTemplateFile(
     handleBuiltin('templates/output', template),
     outputName,
   );
-  await templ.parseAndWatch();
+  if (isBuiltin(template)) {
+    await templ.parse();
+  } else {
+    await templ.parseAndWatch();
+  }
   return templ;
 }
 

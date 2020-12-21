@@ -1,7 +1,7 @@
 import { normalize } from 'path';
 
 import { setAppRoot } from '@util/meta';
-import { withoutExtension, handleBuiltin } from '@util/path';
+import { withoutExtension, handleBuiltin, isBuiltin } from '@util/path';
 
 describe(withoutExtension, () => {
   it('handles bare filenames', () => {
@@ -34,5 +34,34 @@ describe(handleBuiltin, () => {
   it('handles windows paths', () => {
     expect(handleBuiltin('some/path', 'C:\\foo\\bar\\$builtin\\asdf'))
       .toBe(normalize('/root/some/path/asdf'));
+  });
+});
+
+describe(isBuiltin, () => {
+  setAppRoot('/root/root');
+
+  it('doesn\'t flag regular paths', () => {
+    expect(isBuiltin('notbuiltin/asdf'))
+      .toBe(false);
+  });
+
+  it('handles bare linux filenames', () => {
+    expect(isBuiltin('$builtin/asdf'))
+      .toBe(true);
+  });
+
+  it('handles linux paths', () => {
+    expect(isBuiltin('/foo/bar/$builtin/asdf'))
+      .toBe(true);
+  });
+
+  it('handles bare windows filenames', () => {
+    expect(isBuiltin('$builtin\\asdf'))
+      .toBe(true);
+  });
+
+  it('handles windows paths', () => {
+    expect(isBuiltin('C:\\foo\\bar\\$builtin\\asdf'))
+      .toBe(true);
   });
 });
