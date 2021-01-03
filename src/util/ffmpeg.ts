@@ -99,28 +99,36 @@ export async function getVideoFrame(
 }
 
 export async function getVideoStats(file: string): Promise<VideoStats> {
+  const durationRegex = /duration=([\d.]+|N\/A)/;
   const args = [
     '-v', 'error',
     '-show_entries', 'format=duration',
-    '-of', 'default=noprint_wrappers=1:nokey=1',
+    '-of', 'default=noprint_wrappers=1',
     file,
   ];
   logger.debug(FFPROBE_COMMAND, args.join(' '));
   const { stdout, stderr } = await pExecFile(FFPROBE_COMMAND, args, { encoding: 'utf8' });
-  if (stderr.length) {
+  const match = durationRegex.exec(stdout.trim());
+  if (stderr.length && !match) {
     throw new Error(stderr);
+  } else if (!match) {
+    throw new Error(`Unexpected output when getting stats for ${file}: ${stdout}`);
+  } else if (stderr.length) {
+    // Some errors, like "co located POCs unavailable" don't seem to affect our
+    // stats, so if the output looks fine ignore them
+    logger.warn(`Non-fatal error when getting stats for ${file}: ${stderr}`);
   }
-  const durationStr = stdout.trim();
-  const seconds = +durationStr;
-  if (isNaN(seconds)) {
+
+  if (match[1] === 'N/A') {
     return {
       durationMs: undefined,
     };
-  } else {
-    return {
-      durationMs: Math.trunc(seconds * 1000),
-    };
   }
+
+  const seconds = +match[1];
+  return {
+    durationMs: Math.trunc(seconds * 1000),
+  };
 }
 
 /**

@@ -158,7 +158,7 @@ export default class ObsClient {
     const glob = join(folder, OBS_REPLAY_PREFIX) + '*';
     let watcher: Watcher | undefined;
     return new Promise<string>((resolve, reject) => {
-      watcher = waitForFile(glob, resolve);
+      watcher = waitForFile(glob, resolve, reject);
       setTimeout(() => reject(new Error('Timed out while waiting for replay file')), 10 * 1000);
     })
       .finally(() => watcher && watcher.close());

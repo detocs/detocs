@@ -93,7 +93,7 @@ class OutputTemplateImpl implements OutputTemplate {
   }
 
   public async parseAndWatch(): Promise<void> {
-    this.watcher = watchFile(this.path, this.parse);
+    this.watcher = watchFile(this.path, this.parse, err => { throw err; });
     await this.parse();
   }
 
