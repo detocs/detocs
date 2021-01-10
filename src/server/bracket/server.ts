@@ -6,6 +6,8 @@ import * as ws from 'ws';
 
 import BracketService from '@services/bracket-service';
 import BracketServiceProvider from '@services/bracket-service-provider';
+import { parseTournamentId as parseBattlefyId } from '@services/battlefy/battlefy';
+import { BATTLEFY_SERVICE_NAME } from '@services/battlefy/constants';
 import { parseTournamentId as parseChallongeId } from '@services/challonge/challonge';
 import { CHALLONGE_SERVICE_NAME } from '@services/challonge/constants';
 import { SMASHGG_SERVICE_NAME } from '@services/smashgg/constants';
@@ -184,6 +186,10 @@ class BracketServer {
     if (challonge) {
       return [ challonge, this.bracketProvider.get(CHALLONGE_SERVICE_NAME)];
     }
+    const battlefy = parseBattlefyId(tourneyUrlOrSlug);
+    if (battlefy) {
+      return [ battlefy, this.bracketProvider.get(BATTLEFY_SERVICE_NAME)];
+    }
     return [ tourneyUrlOrSlug, this.bracketProvider.get(SMASHGG_SERVICE_NAME)];
   }
 
@@ -222,7 +228,7 @@ class BracketServer {
 
   private startSetRefresh = (): void => {
     this.stopSetRefresh();
-    this.refreshTimer = setInterval(this.refreshSets, 2 * 5 * 1000);
+    this.refreshTimer = setInterval(this.refreshSets, 2 * 60 * 1000);
   };
 
   private stopSetRefresh = (): void => {

@@ -20,6 +20,8 @@ import importPeopleDatabase from '@import/import-people';
 import { MediaServer } from '@server/media/server';
 import server from '@server/server';
 import BracketServiceProvider from '@services/bracket-service-provider';
+import BattlefyClient from '@services/battlefy/battlefy';
+import { BATTLEFY_SERVICE_NAME } from '@services/battlefy/constants';
 import ChallongeClient from '@services/challonge/challonge';
 import { CHALLONGE_SERVICE_NAME } from '@services/challonge/constants';
 import { ObsConnectionImpl } from '@services/obs/connection';
@@ -285,5 +287,6 @@ function getBracketProvider(): BracketServiceProvider {
   const bracketProvider = new BracketServiceProvider();
   bracketProvider.register(SMASHGG_SERVICE_NAME, () => new SmashggClient());
   bracketProvider.register(CHALLONGE_SERVICE_NAME, () => new ChallongeClient());
+  bracketProvider.register(BATTLEFY_SERVICE_NAME, () => new BattlefyClient());
   return bracketProvider;
 }
