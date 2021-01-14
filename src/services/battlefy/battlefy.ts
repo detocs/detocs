@@ -36,14 +36,18 @@ export default class BattlefyClient implements BracketService {
     const resp = await fetch(url)
       .then(checkResponseStatus)
       .then(resp => resp.json() as Promise<MatchResponse>);
-    const maxRoundNum = resp.map(m => m.roundNumber)
+    const maxWinnersRoundNum = resp.filter(m => m.matchType === 'winner')
+      .map(m => m.roundNumber)
+      .reduce((a, b) => Math.max(a, b));
+    const maxLosersRoundNum = resp.filter(m => m.matchType === 'loser')
+      .map(m => m.roundNumber)
       .reduce((a, b) => Math.max(a, b));
     return resp
       .filter(m => !m.isBye)
       .map(m => {
         const shortIdentifier = (m.matchType === 'winner' ? 'C' : 'L')
           + m.matchNumber.toString();
-        const match = getMatch(maxRoundNum, m);
+        const match = getMatch(maxWinnersRoundNum, maxLosersRoundNum, m);
         const matchName = match ? match.id : m.roundNumber.toString();
         const videogame = getGameById('uni'); // TODO: Implement
         const entrants = [ m.top, m.bottom ].map((e: ApiMatchSlot | ApiEmptySlot, index) => {
@@ -137,40 +141,37 @@ export function parseTournamentId(url: string): string | null {
   return match[1];
 }
 
-function getMatch(maxRoundNum: number, m: ApiMatch): Match | null {
-  switch (maxRoundNum - m.roundNumber) {
-    case 0:
-      return getMatchById('tf');
-    case 1:
-      if (m.matchType === 'winner') {
+function getMatch(
+  maxWinnersRoundNum: number,
+  maxLosersRoundNum: number,
+  m: ApiMatch,
+): Match | null {
+  if (m.matchType === 'winner') {
+    switch (maxWinnersRoundNum - m.roundNumber) {
+      case 0:
+        return getMatchById('tf');
+      case 1:
         return getMatchById('gf');
-      } else {
-        return getMatchById('lf');
-      }
-    case 2:
-      if (m.matchType === 'winner') {
+      case 2:
         return getMatchById('wf');
-      } else {
-        return getMatchById('ls');
-      }
-    case 3:
-      if (m.matchType === 'winner') {
+      case 3:
         return getMatchById('ws');
-      } else {
-        return getMatchById('lq');
-      }
-    case 4:
-      if (m.matchType === 'winner') {
+      case 4:
         return getMatchById('wq');
-      } else {
-        return getMatchById(`l${m.roundNumber}`);
-      }
-    default:
-      if (m.matchType === 'winner') {
+      default:
         return getMatchById(`w${m.roundNumber}`);
-      } else {
+    }
+  } else {
+    switch (maxLosersRoundNum - m.roundNumber) {
+      case 0:
+        return getMatchById('lf');
+      case 1:
+        return getMatchById('ls');
+      case 2:
+        return getMatchById('lq');
+      default:
         return getMatchById(`l${m.roundNumber}`);
-      }
+    }
   }
 }
 
