@@ -115,7 +115,7 @@ export default class RecordingLogger {
       byPath[logOutputPath] = {
         format: CURRENT_LOG_FORMAT,
         version: getVersion(),
-        file: data.recordingFile,
+        file: path.relative(logFolder, data.recordingFile), // TODO: Control via setting?
         bracketService: serviceName,
         phaseId: phaseId,
         eventId: phaseId === 'unknown' ?

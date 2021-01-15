@@ -425,13 +425,13 @@ async function loadDatabases(): Promise<void> {
   await loadGameDatabase();
 }
 
-async function getKeyframeSource(workignDir: string, setList: Log): Promise<KeyframeSource> {
+async function getKeyframeSource(workingDir: string, setList: Log): Promise<KeyframeSource> {
   const keyframeIntervalSeconds = setList.keyframeInterval ||
     getConfig().vodKeyframeIntervalSeconds ||
     undefined;
   const keyframeSource = new KeyframeSource(keyframeIntervalSeconds
     ? { intervalMs: keyframeIntervalSeconds * 1000 }
-    : { file: setList.file, outputDir: workignDir });
+    : { file: setList.file, outputDir: workingDir });
   await keyframeSource.init();
   return keyframeSource;
 }
