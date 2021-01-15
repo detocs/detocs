@@ -51,6 +51,40 @@ export interface ApiMatch {
 
 export type MatchResponse = ApiMatch[];
 
+export interface ApiStage {
+  _id: string;
+  name: string;
+  startTime: Timestamp;
+  hasMatchCheckin: boolean;
+  hasCheckinTimer: boolean;
+  hasConfirmScore: boolean;
+  bracket: {
+    type: string;
+    seriesStyle: string;
+    series: {
+      round: number;
+      roundType: 'championship' | 'consolation' | 'final';
+      numGames: number;
+    }[];
+    style: string;
+    teamsCount: number;
+    hasThirdPlaceMatch: boolean;
+    roundsCount: number;
+  };
+  matchCheckinDuration: number;
+  confirmScoreDuration: number;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+  hasStarted: boolean;
+  teamIDs: string[];
+  groupIDs: string[];
+  standingIDs: string[];
+  matchIDs: string[];
+  startedAt: Timestamp;
+}
+
+export type StageResponse = ApiStage;
+
 export interface ApiTournament {
   _id: Id;
   startTime: Timestamp;
@@ -108,4 +142,4 @@ export interface ApiTournament {
   }[];
 }
 
-export type TournamentResponse = ApiTournament[];
+export type TournamentsResponse = ApiTournament[];

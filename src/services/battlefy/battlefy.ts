@@ -1,7 +1,7 @@
 import moment from 'moment';
 
-import Game from '@models/game';
-import { getGameById } from '@models/games';
+import Game, { nullGame } from '@models/game';
+import { getGameById, getGameByServiceId } from '@models/games';
 import Match from '@models/match';
 import { getMatchById, isGrandFinals, isTrueFinals } from '@models/matches';
 import Tournament from '@models/tournament';
@@ -19,10 +19,11 @@ import {
   ApiEmptySlot,
   ApiMatch,
   ApiMatchSlot,
-  ApiTournament,
   MatchResponse,
+  StageResponse,
+  ApiTournament,
+  TournamentsResponse,
   Timestamp,
-  TournamentResponse,
 } from './types';
 
 export default class BattlefyClient implements BracketService {
@@ -87,7 +88,6 @@ export default class BattlefyClient implements BracketService {
   }
 
   public async eventIdForPhase(stageId: string): Promise<string> {
-    // TODO: Implement
     return stageId;
   }
 
@@ -99,11 +99,9 @@ export default class BattlefyClient implements BracketService {
       phases: TournamentPhase[];
       phaseGroups: TournamentPhaseGroup[];
     }> {
-    const url = `${BASE_URL}/tournaments/${tournamentId}` +
-      '?extend[organization][%24opts][slug]=1&extend[stages][%24opts][name]=1';
-    const resp = await fetch(url)
+    const resp = await fetch(apiTournamentUrl(tournamentId))
       .then(checkResponseStatus)
-      .then(resp => resp.json() as Promise<TournamentResponse>);
+      .then(resp => resp.json() as Promise<TournamentsResponse>);
     const apiTournament = resp[0];
     const tournament = convertTournament(apiTournament);
     const stages = apiTournament.stages.map(s => convertStage(apiTournament, s));
@@ -124,13 +122,58 @@ export default class BattlefyClient implements BracketService {
     };
   }
 
-  public async eventInfo(eventId: string): Promise<{ tournament: Tournament; videogame: Game; }> {
-    throw new Error("Method not implemented.");
+  public async eventInfo(stageId: string): Promise<{ tournament: Tournament; videogame: Game; }> {
+    const matches = await fetch(`${BASE_URL}/stages/${stageId}/matches`)
+      .then(checkResponseStatus)
+      .then(resp => resp.json() as Promise<MatchResponse>);
+    const nonEmptyMatch = matches.find(m => isNonEmptySlot(m.top) || isNonEmptySlot(m.bottom));
+    if (!nonEmptyMatch) {
+      throw new Error(`Unable to find tournament ID for stage ${stageId}`);
+    }
+    const tournamentId = [ nonEmptyMatch.top, nonEmptyMatch.bottom ]
+      .filter(isNonEmptySlot)
+      [0].team.tournamentID;
+    const tournament = (await fetch(apiTournamentUrl(tournamentId))
+      .then(checkResponseStatus)
+      .then(resp => resp.json() as Promise<TournamentsResponse>))
+      [0];
+    const videogame = this.getGame(tournament.gameID, tournament.gameName);
+    return {
+      tournament: convertTournament(tournament),
+      videogame,
+    };
   }
 
   public async phase(stageId: string): Promise<TournamentPhase> {
-    throw new Error("Method not implemented.");
+    const url = `${BASE_URL}/stages/${stageId}`;
+    const stage = await fetch(url)
+      .then(checkResponseStatus)
+      .then(resp => resp.json() as Promise<StageResponse>);
+    return {
+      id: stage._id,
+      eventId: stage._id,
+      name: stage.name,
+      url: 'uhhh', // TODO: Implement
+      startAt: null, // TODO: Implement
+    };
   }
+
+  private getGame(id: string, name: string): Game {
+    return getGameByServiceId(this.name(), id) ||
+      Object.assign({}, nullGame, {
+        name,
+        serviceInfo: {
+          smashgg: {
+            id,
+          }
+        }
+      });
+  }
+}
+
+function apiTournamentUrl(tournamentId: string): string {
+  return `${BASE_URL}/tournaments/${tournamentId}` +
+    '?extend[organization][%24opts][slug]=1&extend[stages][%24opts][name]=1';
 }
 
 export function parseTournamentId(url: string): string | null {
@@ -179,6 +222,12 @@ function isEmptySlot(
   slot: ApiMatchSlot | ApiEmptySlot
 ): slot is ApiEmptySlot {
   return slot.teamID == null;
+}
+
+function isNonEmptySlot(
+  slot: ApiMatchSlot | ApiEmptySlot
+): slot is ApiMatchSlot {
+  return !isEmptySlot(slot);
 }
 
 function convertStage(t: ApiTournament, s: ApiTournament['stages'][0]): TournamentEvent {
