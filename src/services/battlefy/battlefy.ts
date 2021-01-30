@@ -1,7 +1,5 @@
-import moment from 'moment';
-
 import Game, { nullGame } from '@models/game';
-import { getGameById, getGameByServiceId } from '@models/games';
+import { getGameByServiceId } from '@models/games';
 import Match from '@models/match';
 import { getMatchById, isGrandFinals, isTrueFinals } from '@models/matches';
 import Tournament from '@models/tournament';
@@ -12,6 +10,7 @@ import TournamentSet from '@models/tournament-set';
 import BracketService from '@services/bracket-service';
 import { parseEntrantName } from '@services/challonge/challonge';
 import { checkResponseStatus } from '@util/ajax';
+import { getLogger } from '@util/logger';
 import { nonNull } from '@util/predicates';
 
 import { BASE_URL, BATTLEFY_SERVICE_NAME, TOURNAMENT_URL_REGEX } from './constants';
@@ -25,6 +24,8 @@ import {
   TournamentsResponse,
   Timestamp,
 } from './types';
+
+const logger = getLogger('services/battlefy');
 
 export default class BattlefyClient implements BracketService {
   public name(): string {
@@ -43,6 +44,13 @@ export default class BattlefyClient implements BracketService {
     const maxLosersRoundNum = resp.filter(m => m.matchType === 'loser')
       .map(m => m.roundNumber)
       .reduce((a, b) => Math.max(a, b));
+    let videogame: Game | null = null;
+    try {
+      const eventInfo = await this.eventInfo(stageId);
+      videogame = eventInfo.videogame;
+    } catch (e) {
+      logger.warn(e);
+    }
     return resp
       .filter(m => !m.isBye)
       .map(m => {
@@ -50,7 +58,6 @@ export default class BattlefyClient implements BracketService {
           + m.matchNumber.toString();
         const match = getMatch(maxWinnersRoundNum, maxLosersRoundNum, m);
         const matchName = match ? match.id : m.roundNumber.toString();
-        const videogame = getGameById('uni'); // TODO: Implement
         const entrants = [ m.top, m.bottom ].map((e: ApiMatchSlot | ApiEmptySlot, index) => {
           if (isEmptySlot(e)) {
             return null;
@@ -81,7 +88,7 @@ export default class BattlefyClient implements BracketService {
               .map(e => e ? e.name : '???')
               .join(' vs ')
           }`,
-          completedAt: null, // TODO: Parse timestamp
+          completedAt: m.isComplete ? parseTimestamp(m.updatedAt) : null,
           entrants: entrants.filter(nonNull),
         };
       });
@@ -123,16 +130,10 @@ export default class BattlefyClient implements BracketService {
   }
 
   public async eventInfo(stageId: string): Promise<{ tournament: Tournament; videogame: Game; }> {
-    const matches = await fetch(`${BASE_URL}/stages/${stageId}/matches`)
-      .then(checkResponseStatus)
-      .then(resp => resp.json() as Promise<MatchResponse>);
-    const nonEmptyMatch = matches.find(m => isNonEmptySlot(m.top) || isNonEmptySlot(m.bottom));
-    if (!nonEmptyMatch) {
+    const tournamentId = await getTournamentIdForStage(stageId);
+    if (!tournamentId) {
       throw new Error(`Unable to find tournament ID for stage ${stageId}`);
     }
-    const tournamentId = [ nonEmptyMatch.top, nonEmptyMatch.bottom ]
-      .filter(isNonEmptySlot)
-      [0].team.tournamentID;
     const tournament = (await fetch(apiTournamentUrl(tournamentId))
       .then(checkResponseStatus)
       .then(resp => resp.json() as Promise<TournamentsResponse>))
@@ -149,12 +150,21 @@ export default class BattlefyClient implements BracketService {
     const stage = await fetch(url)
       .then(checkResponseStatus)
       .then(resp => resp.json() as Promise<StageResponse>);
+    let webUrl = '';
+    const tournamentId = await getTournamentIdForStage(stageId);
+    if (tournamentId) {
+      const apiTournament = await fetch(apiTournamentUrl(tournamentId))
+        .then(checkResponseStatus)
+        .then(resp => resp.json() as Promise<TournamentsResponse>)
+        .then(resp => resp[0]);
+      webUrl = convertStage(apiTournament, stage).url;
+    }
     return {
       id: stage._id,
       eventId: stage._id,
       name: stage.name,
-      url: 'uhhh', // TODO: Implement
-      startAt: null, // TODO: Implement
+      url: webUrl,
+      startAt: parseTimestamp(stage.startTime),
     };
   }
 
@@ -169,6 +179,19 @@ export default class BattlefyClient implements BracketService {
         }
       });
   }
+}
+
+async function getTournamentIdForStage(stageId: string): Promise<string | null> {
+  const matches = await fetch(`${BASE_URL}/stages/${stageId}/matches`)
+    .then(checkResponseStatus)
+    .then(resp => resp.json() as Promise<MatchResponse>);
+  const nonEmptyMatch = matches.find(m => isNonEmptySlot(m.top) || isNonEmptySlot(m.bottom));
+  if (!nonEmptyMatch) {
+    return null;
+  }
+  const tournamentId = [nonEmptyMatch.top, nonEmptyMatch.bottom]
+    .filter(isNonEmptySlot)[0].team.tournamentID;
+  return tournamentId;
 }
 
 function apiTournamentUrl(tournamentId: string): string {
@@ -248,5 +271,5 @@ function convertTournament(t: ApiTournament): Tournament {
 }
 
 function parseTimestamp(timestamp: Timestamp | null): number | null {
-  return timestamp != null ? moment(timestamp).unix() : null;
+  return timestamp != null ? Math.floor(new Date(timestamp).getTime() / 1000) : null;
 }
