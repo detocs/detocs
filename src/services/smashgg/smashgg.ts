@@ -17,6 +17,7 @@ import {
   SMASHGG_BASE_URL,
   ENDPOINT,
   SMASHGG_SERVICE_NAME,
+  MAX_PAGE_SIZE,
 } from './constants';
 import { paginatedQuery } from './pagination';
 import {
@@ -68,7 +69,7 @@ export default class SmashggClient implements BracketService {
       query: PHASE_PHASEGROUP_QUERY,
       params: { phaseId },
       extractor: (resp: PhasePhaseGroupQueryResponse) => resp.phase.phaseGroups,
-      defaultPageSize: 1024,
+      defaultPageSize: MAX_PAGE_SIZE,
     });
     const phaseGroupNameMaping = new Map(phaseGroups.map(
       ({ id, displayIdentifier }) => [ id, displayIdentifier ]

@@ -1,8 +1,8 @@
 import { GraphQLClient } from 'graphql-request';
-
-import { PageInfo } from './queries';
-import { MAX_COMPLEXITY, RATE_LIMIT } from './constants';
 import range from 'lodash.range';
+
+import { MAX_COMPLEXITY, RATE_LIMIT, MAX_PAGE_SIZE } from './constants';
+import { PageInfo } from './queries';
 
 export async function paginatedQuery<ResponseType, DataType>({
   client,
@@ -38,7 +38,10 @@ export async function paginatedQuery<ResponseType, DataType>({
   }
 
   const defaultComplexity = extensions.queryComplexity;
-  const optimalPerPage = Math.floor(MAX_COMPLEXITY / Math.ceil(defaultComplexity / defaultPerPage));
+  const optimalPerPage = Math.min(
+    MAX_PAGE_SIZE,
+    Math.floor(MAX_COMPLEXITY / Math.ceil(defaultComplexity / defaultPerPage)),
+  );
   const optimalTotalPages = Math.ceil(total / optimalPerPage);
 
   const remainingDefaultPages = defaultTotalPages - 1;

@@ -1,4 +1,5 @@
 import { SmashggSlug } from './types';
+import { MAX_PAGE_SIZE } from './constants';
 
 export interface PageInfo {
   total: number;
@@ -194,7 +195,7 @@ const TOURNAMENT_PHASES_BASE_QUERY = `
       phases {
         id
         name
-        phaseGroups(query: {perPage: 1024}) {
+        phaseGroups(query: {perPage: ${MAX_PAGE_SIZE}}) {
           nodes {
             id
             displayIdentifier
