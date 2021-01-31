@@ -7,6 +7,7 @@ import { keyHandler, Key } from '@util/dom';
 import { submitForm } from '@util/forms';
 
 import { bracketEndpoint } from './api';
+import ExternalLink from './external-link';
 import { logError } from './log';
 
 interface Props {
@@ -71,7 +72,7 @@ const BracketDashboard: FunctionalComponent<Props> = ({ state, updateState }): V
         <div>
           <input type="hidden" name="tournamentId" value={state.tournamentId}/>
           Tournament: {tournament ?
-            <a href={tournament.url}>{tournament.name}</a> :
+            <ExternalLink href={tournament.url}>{tournament.name}</ExternalLink> :
             <code>{state.tournamentId} </code>}
           {' '}
           <button type="button" onClick={clearTournament}>Clear</button>
@@ -85,7 +86,7 @@ const BracketDashboard: FunctionalComponent<Props> = ({ state, updateState }): V
       }
       {state.tournamentId &&
         <label>
-          Event: {event && <a href={event.url}>{event.name}</a>}
+          Event: {event && <ExternalLink href={event.url}>{event.name}</ExternalLink>}
           {' '}
           <select
             ref={eventRef}
@@ -103,7 +104,9 @@ const BracketDashboard: FunctionalComponent<Props> = ({ state, updateState }): V
       {state.eventId &&
         <label>
           Phase: {phase &&
-            <a href={phaseGroups.length == 1 ? phaseGroups[0].url : phase.url}>{phase.name}</a>
+            <ExternalLink href={phaseGroups.length == 1 ? phaseGroups[0].url : phase.url}>
+              {phase.name}
+            </ExternalLink>
           }
           {' '}
           <select
@@ -123,7 +126,12 @@ const BracketDashboard: FunctionalComponent<Props> = ({ state, updateState }): V
       {phaseGroups.length > 1 &&
         <div>
           Pools:
-          {phaseGroups.map(pg => <Fragment>{' '}<a href={pg.url}>{pg.name}</a></Fragment>)}
+          {phaseGroups.map(pg =>
+            <Fragment>
+              {' '}
+              <ExternalLink href={pg.url}>{pg.name}</ExternalLink>
+            </Fragment>
+          )}
         </div>
       }
       {state.unfinishedSets.length > 0 && <div class="bracket__sets">
