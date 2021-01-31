@@ -4,6 +4,7 @@ import formidable from 'express-formidable';
 import filenamify from 'filenamify';
 import fs from 'fs';
 import { createServer } from 'http';
+import { combine } from 'neverthrow';
 import path from 'path';
 import { promisify } from 'util';
 import * as ws from 'ws';
@@ -39,8 +40,6 @@ let media: MediaServer | null = null;
 let socketServer: ws.Server | null = null;
 let recordingLogger: RecordingLogger | null = null;
 const state: State = {
-  streamRecordingFolder: null,
-  streamRecordingFile: null,
   recordings: [],
 };
 
@@ -56,18 +55,7 @@ export default function start({ port, mediaServer, bracketProvider, obsClient }:
   obs = obsClient;
   media = mediaServer;
 
-  // The recording file doesn't appear immediately
-  obs.on('RecordingStarted', () => setTimeout(getRecordingFile, 2000));
   obs.on('RecordingStopping', stopInProgressRecording);
-  obs.on('ConnectionOpened', async () => {
-    logger.info('Connected to OBS');
-    obsClient.isRecording()
-      .map(isRecording => {
-        if (isRecording) {
-          getRecordingFile();
-        }
-      });
-  });
 
   recordingLogger = new RecordingLogger(bracketProvider);
 
@@ -106,15 +94,17 @@ function broadcastState(state: State): void {
   });
 }
 
-function saveLogs(state: State): void {
-  if (!recordingLogger) {
-    return;
-  }
-  recordingLogger.saveLogs(state);
+async function saveLogs(state: State): Promise<void> {
+  return obs?.getRecordingFolder()
+    .match(
+      async folder => recordingLogger?.saveLogs(folder, state),
+      logger.error,
+    );
 }
 
 async function startRecording(_req: Request, res: Response): Promise<void> {
-  if (!state.streamRecordingFile || !state.streamRecordingFolder) {
+  const { folder, file } = await getRecordingFile();
+  if (!file || !folder) {
     sendUserError(res, 'Attempted to start recording before starting stream recording');
     return;
   }
@@ -136,7 +126,7 @@ async function startRecording(_req: Request, res: Response): Promise<void> {
 
   let recording = state.recordings[0];
   if (!recording || recording.stopTimestamp) {
-    recording = newRecording(state.streamRecordingFile, timestamp);
+    recording = newRecording(file, timestamp);
     state.recordings.unshift(recording);
   } else {
     recording.startTimestamp = timestamp;
@@ -149,7 +139,8 @@ async function startRecording(_req: Request, res: Response): Promise<void> {
 }
 
 async function stopRecordingHandler(_: Request, res: Response): Promise<void> {
-  if (!state.streamRecordingFile || !state.streamRecordingFolder) {
+  const { folder, file } = await getRecordingFile();
+  if (!file || !folder) {
     sendUserError(res, 'Attempted to stop recording before starting stream recording');
     return;
   }
@@ -262,7 +253,8 @@ async function updateRecording(req: Request, res: Response): Promise<void> {
 }
 
 async function cutRecording(req: Request, res: Response): Promise<void> {
-  if (!state.streamRecordingFile || !state.streamRecordingFolder) {
+  const { folder, file } = await getRecordingFile();
+  if (!file || !folder) {
     sendUserError(res, 'Attempted to cut recording before starting stream recording');
     return;
   }
@@ -286,7 +278,7 @@ async function cutRecording(req: Request, res: Response): Promise<void> {
   }
 
   saveRecording(
-    state.streamRecordingFolder,
+    folder,
     recording.streamRecordingFile,
     recording.startTimestamp,
     recording.stopTimestamp,
@@ -301,19 +293,17 @@ async function cutRecording(req: Request, res: Response): Promise<void> {
   }).catch(logger.error);
 }
 
-async function getRecordingFile(): Promise<void> {
+async function getRecordingFile(): Promise<{ folder: string | null, file: string | null }> {
   if (!obs) {
-    return;
+    return { folder: null, file: null };
   }
-  const { file, folder } = await obs.getRecordingFile()
-    .match(
-      t => t,
-      e => { throw e; },
-    );
-  state.streamRecordingFile = file;
-  state.streamRecordingFolder = folder;
-  logger.info(`Recording file: ${state.streamRecordingFile}`);
-  logger.info(`Recording folder: ${state.streamRecordingFolder}`);
+  return combine([
+    obs.getRecordingFolder(),
+    obs.getRecordingFile(),
+  ])
+    .map(([ folder, file ]) => ({ folder, file }))
+    .mapErr(logger.error)
+    .unwrapOr({ folder: null, file: null });
 }
 
 async function saveRecording(
@@ -365,18 +355,19 @@ async function getThumbnailForTimestamp(
     logger.warn('Recording missing stream recording file or timestamp');
     return;
   }
-  const screenshot = await media?.getThumbnail(timestamp)
-    .catch(logger.error);
-  if (!screenshot) {
-    return;
-  }
-  recording = getRecordingById(recordingId);
-  if (recording == null) {
-    logger.error(`Recording with id ${recordingId} no longer present`);
-    return;
-  }
-  recording[thumbnailProp] = screenshot.image;
-  broadcastState(state);
+  return media?.getThumbnail(timestamp)
+    .match(
+      screenshot => {
+        recording = getRecordingById(recordingId);
+        if (recording == null) {
+          logger.error(`Recording with id ${recordingId} no longer present`);
+          return;
+        }
+        recording[thumbnailProp] = screenshot.image;
+        broadcastState(state);
+      },
+      logger.error,
+    );
 }
 
 function getInfo(): Promise<InfoState> {

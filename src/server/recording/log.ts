@@ -54,8 +54,8 @@ export default class RecordingLogger {
     );
   }
 
-  public async saveLogs(state: State): Promise<void> {
-    const logs = await this.convertToLogs(state);
+  public async saveLogs(folder: string, state: State): Promise<void> {
+    const logs = await this.convertToLogs(folder, state);
     for (const [filePath, log] of Object.entries(logs)) {
       const serialized = JSON.stringify(log, null, 2);
       if (this.lastSaved[filePath] === serialized) {
@@ -67,11 +67,7 @@ export default class RecordingLogger {
     }
   }
 
-  private async convertToLogs(state: State): Promise<Record<FilePath, Log>> {
-    if (!state.streamRecordingFolder) {
-      return {};
-    }
-
+  private async convertToLogs(folder: string, state: State): Promise<Record<FilePath, Log>> {
     // TODO: This probably isn't how we actually want this to work. Matches from
     // one phase could potentially get split into two groups if the stream
     // switches to another game in the middle, in which case we would want to
@@ -110,7 +106,7 @@ export default class RecordingLogger {
       const phaseEnd = data.sets[data.sets.length - 1].end;
       const logFilename = `${data.gameId}-${phaseIdentifier}-${process.pid}`;
       const logSubfolder = path.basename(data.recordingFile, path.extname(data.recordingFile));
-      const logFolder = path.join(state.streamRecordingFolder, logSubfolder);
+      const logFolder = path.join(folder, logSubfolder);
       const logOutputPath = path.join(logFolder, logFilename + '.json');
       byPath[logOutputPath] = {
         format: CURRENT_LOG_FORMAT,

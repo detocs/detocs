@@ -4,14 +4,10 @@ import { Id } from '@util/id';
 import InfoState from '@server/info/state';
 
 export default interface State {
-  streamRecordingFolder: string | null;
-  streamRecordingFile: string | null;
   recordings: Recording[];
 }
 
 export const nullState: State = Object.freeze({
-  streamRecordingFolder: null,
-  streamRecordingFile: null,
   recordings: [],
 });
 

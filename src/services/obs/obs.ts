@@ -1,7 +1,7 @@
 import { Error as ChainableError } from 'chainable-error';
 import find from 'find-process';
 import { promises as fs, statSync } from 'fs';
-import { ResultAsync } from 'neverthrow';
+import { ResultAsync, okAsync } from 'neverthrow';
 import { dirname, extname, isAbsolute, join, basename } from 'path';
 
 import { Timestamp } from '@models/timestamp';
@@ -30,7 +30,8 @@ const VIDEO_FILE_EXTENSIONS = ['.flv', '.mp4', '.mov', '.mkv', '.ts', '.m3u8'];
 export default class ObsClient {
   private readonly obs: ObsConnection;
   private readonly recordingFolderQueue = pLimit(1);
-  private currentRecordingFolder: string | null = null;
+  private currentRecordingFolder?: string = undefined;
+  private currentRecordingFile?: string | null = undefined;
   public readonly on: ObsConnection['on'];
   public readonly off: ObsConnection['off'];
   public readonly once: ObsConnection['once'];
@@ -41,7 +42,17 @@ export default class ObsClient {
     this.off = obs.off.bind(obs);
     this.once = obs.once.bind(obs);
 
-    this.on('ConnectionOpened', () => this.getRecordingFolder().mapErr(logger.error));
+    const updateRecordingFolder = (): ResultAsync<string, void> =>
+      this.getRecordingFolder().mapErr(logger.error);
+    const updateRecordingFile = (): ResultAsync<void, void> =>
+      this.updateRecordingFile().mapErr(logger.error);
+    this.on('ConnectionOpened', () => {
+      logger.info('Connected to OBS');
+      updateRecordingFolder().andThen(updateRecordingFile);
+    });
+    // The recording file doesn't appear immediately
+    this.on('RecordingStarted', () => setTimeout(updateRecordingFile, 2000));
+    this.on('RecordingStopped', updateRecordingFile);
   }
 
   public isConnected(): boolean {
@@ -121,25 +132,20 @@ export default class ObsClient {
       .map(resp => ({ width: resp.outputWidth, height: resp.outputHeight }));
   }
 
-  public getRecordingFile(): ResultAsync<{ file: string; folder: string }, Error> {
-    return this.getRecordingFolder()
-      .andThen(folder => ResultAsync.fromPromise(
-        fs.readdir(folder)
-          .then(files => ({ folder, files })),
-        e => new ChainableError(`Unable to read files from ${folder}`, e as Error),
-      ))
-      .map(async ({ folder, files }) => {
-        files = files.filter(f => VIDEO_FILE_EXTENSIONS.includes(extname(f)))
-          .filter(f => !basename(f).startsWith(OBS_REPLAY_PREFIX));
-        const timestamps = files.reduce((map: Map<string, number>, file: string) => {
-          const stat = statSync(join(folder, file));
-          map.set(file, stat.birthtimeMs);
-          return map;
-        }, new Map());
-        files.sort((a: string, b: string) => (timestamps.get(a) || 0) - (timestamps.get(b) || 0));
-        const file = join(folder, files.pop() || '');
-
-        return { file, folder };
+  public getRecordingFile(): ResultAsync<string | null, Error> {
+    if (this.currentRecordingFile !== undefined) {
+      return okAsync(this.currentRecordingFile);
+    }
+    return this.isRecording()
+      .andThen(isRecording =>
+        isRecording
+          ? this.getRecordingFolder().andThen(getLatestRecordingFileFromFolder)
+          : okAsync(null)
+      )
+      .map(file => {
+        this.currentRecordingFile = file;
+        logger.info(`Recording file: ${this.currentRecordingFile}`);
+        return file;
       });
   }
 
@@ -163,4 +169,29 @@ export default class ObsClient {
     })
       .finally(() => watcher && watcher.close());
   };
+
+  private updateRecordingFile(): ResultAsync<void, Error> {
+    this.currentRecordingFile = undefined;
+    return this.getRecordingFile().map(() => { /* noop */ });
+  }
+}
+
+function getLatestRecordingFileFromFolder(folder: string): ResultAsync<string | null, Error> {
+  return ResultAsync.fromPromise(
+    fs.readdir(folder)
+      .then(files => ({ folder, files })),
+    e => new ChainableError(`Unable to read files from ${folder}`, e as Error))
+    .map(async ({ folder, files }) => {
+      files = files.filter(f => VIDEO_FILE_EXTENSIONS.includes(extname(f)))
+        .filter(f => !basename(f).startsWith(OBS_REPLAY_PREFIX));
+      const timestamps = files.reduce((map: Map<string, number>, file: string) => {
+        const stat = statSync(join(folder, file));
+        map.set(file, stat.birthtimeMs);
+        return map;
+      }, new Map());
+      files.sort((a: string, b: string) => (timestamps.get(a) || 0) - (timestamps.get(b) || 0));
+      const file = join(folder, files.pop() || '');
+
+      return file;
+    });
 }

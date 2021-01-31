@@ -1,3 +1,4 @@
+import { Error as ChainableError } from 'chainable-error';
 import { promises as fs } from 'fs';
 import path from 'path';
 
@@ -14,6 +15,7 @@ import { sanitizeTimestamp, toMillis, fromMillis } from '@util/timestamp';
 
 import { ReplayCache } from './replayCache';
 import { ScreenshotCache } from './screenshot-cache';
+import { err, ResultAsync, ok, okAsync } from 'neverthrow';
 
 const logger = getLogger('server/media');
 const THUMBNAIL_SIZE = 135;
@@ -28,8 +30,6 @@ export class MediaServer {
   private dir: string | undefined;
   private streamWidth = 0;
   private streamHeight = 0;
-  private recordingFile?: string;
-  private recordingFolder?: string;
   // TODO: Cache per recording file
   private fullScreenshotCache = new ScreenshotCache(SCREENSHOT_CACHE_LENIENCY_MS);
   private thumbnailCache = new ScreenshotCache(SCREENSHOT_CACHE_LENIENCY_MS);
@@ -62,18 +62,9 @@ export class MediaServer {
   }
 
   private initObs(): void {
-    // The recording file doesn't appear immediately
-    this.obs.on('RecordingStarted', () => setTimeout(this.getRecordingFile.bind(this), 2000));
+    this.obs.on('RecordingStarted', () => this.resetCaches());
     this.obs.on('ConnectionOpened', async () => {
       logger.info('Connected to OBS');
-      this.obs.isRecording()
-        .map(isRecording => {
-          if (isRecording) {
-            this.getRecordingFile();
-          } else {
-            this.getRecordingFolder();
-          }
-        });
       this.obs.getOutputDimensions()
         .map(dims => {
           this.streamWidth = dims.width;
@@ -97,31 +88,10 @@ export class MediaServer {
     return this.dirName;
   }
 
-  private async getRecordingFile(): Promise<void> {
-    const { file, folder } = await this.obs.getRecordingFile()
-      .match(
-        t => t,
-        e => { throw e; },
-      );
-    // TODO: FFmpeg cannot operate on certain file types while they're still being written (e.g.
-    // mp4). We should handle this somehow.
-    this.recordingFile = file;
-    this.recordingFolder = folder;
-    logger.info(`Recording file: ${this.recordingFile}`);
-    logger.info(`Recording folder: ${this.recordingFolder}`);
+  private async resetCaches(): Promise<void> {
     this.fullScreenshotCache = new ScreenshotCache(SCREENSHOT_CACHE_LENIENCY_MS);
     this.thumbnailCache = new ScreenshotCache(SCREENSHOT_CACHE_LENIENCY_MS);
     this.replayCache = new ReplayCache(REPLAY_CACHE_LENIENCY_MS);
-  }
-
-  private async getRecordingFolder(): Promise<void> {
-    const folder = await this.obs.getRecordingFolder()
-      .match(
-        t => t,
-        e => { throw e; },
-      );
-    this.recordingFolder = folder;
-    logger.info(`Recording folder: ${this.recordingFolder}`);
   }
 
   private async getCurrentScreenshot(height: number): Promise<Screenshot> {
@@ -156,21 +126,26 @@ export class MediaServer {
     };
   }
 
-  private async getVideoFrameFromMainRecording(
+  private getVideoFrameFromMainRecording(
     timestamp: Timestamp,
     height: number,
-  ): Promise<Buffer> {
-    if (!this.recordingFile) {
-      throw new Error('Recording not started');
-    }
-    return this.getVideoFrame(this.recordingFile, timestamp, height);
+  ): ResultAsync<Buffer, Error> {
+    // TODO: FFmpeg cannot operate on certain file types while they're still being written (e.g.
+    // mp4). We should handle this somehow.
+    return this.obs.getRecordingFile()
+      .andThen<string>(file =>
+      file
+        ? ok(file)
+        : err(new Error('Recording not started')))
+      .andThen(file =>
+        this.getVideoFrame(file, timestamp, height));
   }
 
-  private async getVideoFrameFromReplay(
+  private getVideoFrameFromReplay(
     replay: Replay & { recordingTimestampMs: number },
     millis: number,
     height: number,
-  ): Promise<Buffer> {
+  ): ResultAsync<Buffer, Error> {
     return this.getVideoFrame(
       this.getFullPath(replay.video),
       fromMillis(millis - replay.recordingTimestampMs),
@@ -178,17 +153,15 @@ export class MediaServer {
     );
   }
 
-  private async getVideoFrame(
+  private getVideoFrame(
     videoFile: string,
     timestamp: Timestamp,
     height: number,
-  ): Promise<Buffer> {
-    const img = await ffmpeg.getVideoFrame(videoFile, timestamp, { height })
-      .catch(logger.error);
-    if (!img) {
-      throw new Error('Unable to get video thumbnail');
-    }
-    return img;
+  ): ResultAsync<Buffer, Error> {
+    return ResultAsync.fromPromise(
+      ffmpeg.getVideoFrame(videoFile, timestamp, { height }),
+      e => new ChainableError('Unable to get video thumbnail', e as Error)
+    );
   }
 
   public async getCurrentFullScreenshot(): Promise<Screenshot> {
@@ -209,7 +182,7 @@ export class MediaServer {
       });
   }
 
-  public async getFullScreenshot(timestamp: Timestamp): Promise<Screenshot> {
+  public getFullScreenshot(timestamp: Timestamp): ResultAsync<Screenshot, Error> {
     return this.getScreenshot(
       timestamp,
       [ this.fullScreenshotCache ],
@@ -218,7 +191,7 @@ export class MediaServer {
     );
   }
 
-  public async getThumbnail(timestamp: Timestamp): Promise<Screenshot> {
+  public getThumbnail(timestamp: Timestamp): ResultAsync<Screenshot, Error> {
     return this.getScreenshot(
       timestamp,
       [ this.thumbnailCache, this.fullScreenshotCache ],
@@ -227,35 +200,36 @@ export class MediaServer {
     );
   }
 
-  private async getScreenshot(
+  private getScreenshot(
     timestamp: Timestamp,
     readCaches: ScreenshotCache[],
     writeCaches: ScreenshotCache[],
     height: number,
-  ): Promise<Screenshot> {
+  ): ResultAsync<Screenshot, Error> {
     const millis = toMillis(timestamp);
     for (const cache of readCaches) {
       const cachedScreenshot = cache.get(millis);
       if (cachedScreenshot) {
-        return cachedScreenshot;
+        return okAsync(cachedScreenshot);
       }
     }
-    let asyncImage: Promise<Buffer> | undefined;
+    let asyncImage: ResultAsync<Buffer, Error> | undefined;
     const cachedReplay = this.replayCache.get(millis);
     if (cachedReplay) {
       asyncImage = this.getVideoFrameFromReplay(cachedReplay, millis, height);
     } else {
       asyncImage = this.getVideoFrameFromMainRecording(timestamp, height);
     }
-    const img = await asyncImage;
-    const filename = await this.saveImageFile(timestamp, height, img);
-    const screenshot: Screenshot = {
-      image: { filename, url: this.getUrl(filename), type: 'image', height },
-      recordingTimestampMs: millis,
-      // TODO: streamTimestampMs?
-    };
-    writeCaches.forEach(cache => cache.add(screenshot));
-    return screenshot;
+    return asyncImage.map(async img => {
+      const filename = await this.saveImageFile(timestamp, height, img);
+      const screenshot: Screenshot = {
+        image: { filename, url: this.getUrl(filename), type: 'image', height },
+        recordingTimestampMs: millis,
+        // TODO: streamTimestampMs?
+      };
+      writeCaches.forEach(cache => cache.add(screenshot));
+      return screenshot;
+    });
   }
 
   private async saveImageFile(
