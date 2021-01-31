@@ -42,12 +42,15 @@ export default class ObsClient {
     this.off = obs.off.bind(obs);
     this.once = obs.once.bind(obs);
 
-    const updateRecordingFolder = (): ResultAsync<string, void> =>
-      this.getRecordingFolder().mapErr(logger.error);
-    const updateRecordingFile = (): ResultAsync<void, void> =>
-      this.updateRecordingFile().mapErr(logger.error);
+    const updateRecordingFolder = (): ResultAsync<string, void> => {
+      this.currentRecordingFolder = undefined;
+      return this.getRecordingFolder().mapErr(logger.error);
+    };
+    const updateRecordingFile = (): ResultAsync<string | null, void> => {
+      this.currentRecordingFile = undefined;
+      return this.getRecordingFile().mapErr(logger.error);
+    };
     this.on('ConnectionOpened', () => {
-      logger.info('Connected to OBS');
       updateRecordingFolder().andThen(updateRecordingFile);
     });
     // The recording file doesn't appear immediately
@@ -150,12 +153,14 @@ export default class ObsClient {
   }
 
   public saveReplayBuffer(): ResultAsync<string, Error> {
-    return this.obs.send('SaveReplayBuffer')
-      .andThen(() => this.getRecordingFolder())
-      .andThen(folder => ResultAsync.fromPromise(
-        this.waitForReplayFile(folder),
-        e => new ChainableError('Unable to save replay', e as Error),
-      ));
+    return this.getRecordingFolder()
+      .andThen(folder =>
+        this.obs.send('SaveReplayBuffer')
+          .andThen(() => ResultAsync.fromPromise(
+            this.waitForReplayFile(folder),
+            e => new ChainableError('Unable to save replay', e as Error),
+          ))
+      );
   }
 
   // 'SaveReplayBuffer' doesn't wait until the file written to resolve, so we
@@ -169,11 +174,6 @@ export default class ObsClient {
     })
       .finally(() => watcher && watcher.close());
   };
-
-  private updateRecordingFile(): ResultAsync<void, Error> {
-    this.currentRecordingFile = undefined;
-    return this.getRecordingFile().map(() => { /* noop */ });
-  }
 }
 
 function getLatestRecordingFileFromFolder(folder: string): ResultAsync<string | null, Error> {

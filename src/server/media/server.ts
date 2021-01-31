@@ -64,7 +64,6 @@ export class MediaServer {
   private initObs(): void {
     this.obs.on('RecordingStarted', () => this.resetCaches());
     this.obs.on('ConnectionOpened', async () => {
-      logger.info('Connected to OBS');
       this.obs.getOutputDimensions()
         .map(dims => {
           this.streamWidth = dims.width;
