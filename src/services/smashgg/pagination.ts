@@ -20,7 +20,7 @@ export async function paginatedQuery<ResponseType, DataType>({
   },
   defaultPageSize?: number,
 }): Promise<DataType[]> {
-  // initial quey to get asdfasdfsddf
+  // Initial query to get query complexity
   const { data, extensions } = await client.rawRequest(
     query,
     Object.assign({}, params, {
