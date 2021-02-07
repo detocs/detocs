@@ -5,7 +5,6 @@ import express from 'express';
 import formidable from 'express-formidable';
 import { createServer } from 'http';
 import isEqual from 'lodash.isequal';
-import merge from 'lodash.merge';
 import ws from 'ws';
 
 import Break from '@models/break';
@@ -15,11 +14,12 @@ import LowerThird from '@models/lower-third';
 import Match, { nullMatch } from '@models/match';
 import matchList from '@models/matches';
 import * as People from '@models/people';
-import Person, { getPrefixedName } from '@models/person';
+import Person from '@models/person';
 import Player, { nullPlayer } from '@models/player';
 import Scoreboard from '@models/scoreboard';
-import TournamentSet, { TournamentParticipant } from '@models/tournament-set';
+import TournamentSet from '@models/tournament-set';
 import { getConfig } from '@util/configuration/config';
+import { entrantToPerson } from '@util/entrant';
 import { filterValues } from '@util/object';
 import { parseFormData } from '@util/parsing';
 import BracketState from '@server/bracket/state';
@@ -225,16 +225,15 @@ function parseScoreboard(
   form: ScoreboardForm,
   unfinishedSets: TournamentSet[],
 ): Scoreboard {
-  const players = [];
-  for (let i = 0; i < 2; i++) {
-    const player = form.players[i];
-    const person = parsePerson(player);
-
+  const formPlayers = [0, 1].map(i => form.players[i]);
+  const people = People.saveAll(formPlayers.map(parsePerson));
+  const players = formPlayers.map((player, i) => {
+    const person = people[i];
     const score = parseNumber(player.score);
     const inLosers = parseBool(player.inLosers);
     const comment = parseString(player.comment);
-    players.push({ person, score, inLosers, comment });
-  }
+    return { person, score, inLosers, comment };
+  });
 
   const match = parseMatch(form.match);
   const game = parseGame(form.game);
@@ -276,99 +275,19 @@ function fillBracketSet(
 
 function playersFromSet(set: TournamentSet): Player[] {
   // TODO: Handle discrepancies between numbers of players and entrants?
-  return set.entrants.map(entrant => {
-    const soloParticipant = entrant.participants.length == 1;
-    if (soloParticipant) {
-      return getOrCreatePlayer(entrant);
-    } else {
-      return getOrCreateTeam(entrant);
-    }
-  });
-}
-
-function getOrCreatePlayer(entrant: TournamentSet['entrants'][0]): Player {
-  const participant = entrant.participants[0];
-
-  const foundById = People.getByServiceId(participant.serviceName, participant.serviceId);
-  if (foundById) {
-    return {
-      person: mergeSetParticipant(foundById, participant),
-      score: 0,
-      inLosers: entrant.inLosers,
-    };
-  }
-
-  const foundPeople = People.findByFullName(getPrefixedName(participant));
-  if (foundPeople.length == 1) {
-    return {
-      person: mergeSetParticipant(foundPeople[0], participant),
-      score: 0,
-      inLosers: entrant.inLosers,
-    };
-  }
-
-  return {
-    person: newPersonFromParticipant(participant),
+  const updates = set.entrants.map(entrantToPerson);
+  const people = People.saveAll(updates);
+  return people.map((person, idx)  => ({
+    person,
     score: 0,
-    inLosers: entrant.inLosers,
-  };
-}
-
-function mergeSetParticipant(orig: Person, {
-  serviceName,
-  serviceId,
-  ...incoming
-}: TournamentParticipant): Person {
-  const extra: Partial<Person> = {
-    serviceIds: {
-      [serviceName]: serviceId,
-    },
-  };
-  if (incoming.handle !== orig.handle) {
-    extra.alias = incoming.handle;
-  }
-  delete incoming.handle;
-  const merged = merge({}, orig, incoming, extra);
-  return People.save(merged);
-}
-
-function newPersonFromParticipant({
-  serviceName,
-  serviceId,
-  ...person
-}: TournamentParticipant): Person {
-  const withServiceId = merge({}, person, {
-    serviceIds: {
-      [serviceName]: serviceId,
-    },
-  });
-  return People.save(withServiceId);
-}
-
-function getOrCreateTeam(entrant: TournamentSet['entrants'][0]): Player {
-  const foundPeople = People.findByFullName(entrant.name);
-  if (foundPeople.length == 1) {
-    return {
-      person: foundPeople[0],
-      score: 0,
-      inLosers: entrant.inLosers,
-    };
-  }
-
-  const newPerson = People.save({ handle: entrant.name });
-  return {
-    person: newPerson,
-    score: 0,
-    inLosers: entrant.inLosers,
-  };
+    inLossers: set.entrants[idx].inLosers,
+  }));
 }
 
 function parseLowerThird(form: LowerThirdForm): LowerThird {
-  const commentators = [];
-  for (let i = 0; i < 2; i++) {
-    const person = parsePerson(form.players[i]);
-    commentators.push({ person });
-  }
+  const formPlayers = [0, 1].map(i => form.players[i]);
+  const people = People.saveAll(formPlayers.map(parsePerson));
+  const commentators = people.map(person => ({ person }));
   // TODO: Reload people from datastore?
   return {
     commentators,
@@ -390,19 +309,19 @@ function parseBreak(fields: Record<string, unknown>): Break {
   };
 }
 
-function parsePerson(form: PersonForm): Person {
+function parsePerson(form: PersonForm): Partial<Person> {
   const id = parseString(form.id);
   const handle = parseString(form.handle);
   const alias = parseOptionalString(form.alias);
   const prefix = parseOptionalString(form.prefix) || null;
   const serviceIds = filterValues(form.serviceIds, value => !!value);
-  return People.save(filterValues({
+  return filterValues({
     id,
     handle,
     alias,
     prefix,
     serviceIds,
-  }, value => value !== undefined));
+  }, value => value !== undefined);
 }
 
 function parseGame(locator: GameLocator): Game {

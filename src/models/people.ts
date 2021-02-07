@@ -21,6 +21,11 @@ interface Database {
   people: Person[];
 }
 
+interface DatabaseUpdateResult {
+  person: Person;
+  databaseUpdated: boolean;
+}
+
 const DEFAULTS = nullPerson;
 
 // TODO: Make PersonDatabase class
@@ -122,40 +127,62 @@ export function getByServiceId(serviceName: string, id: string): Person | null {
   return database.people.find(p => p.serviceIds[serviceName] === id) || null;
 }
 
-export function save(upd: PersonUpdate): Person {
+export function save(update: PersonUpdate): Person {
+  const { person, databaseUpdated } = saveInternal(update);
+  if (databaseUpdated) {
+    saveDatabase()
+      .catch(logger.error);
+  }
+  return person;
+}
+
+export function saveAll(updates: PersonUpdate[]): Person[] {
+  const results = updates.map(saveInternal);
+  const people = results.map(result => result.person);
+  const shouldSave = results.some(result => result.databaseUpdated);
+  if (shouldSave) {
+    saveDatabase()
+      .catch(logger.error);
+  }
+  return people;
+}
+
+function saveInternal(upd: PersonUpdate): DatabaseUpdateResult {
   const existingPerson = getById(upd.id);
   const ret = existingPerson
     ? update(existingPerson, upd)
     : add(upd);
-  addRecentPerson(ret);
+  addRecentPerson(ret.person);
   return ret;
 }
 
-function add(update: PersonUpdate): Person {
+function add(update: PersonUpdate): DatabaseUpdateResult {
   const person: Person = Object.assign({}, DEFAULTS, update);
   if (!person.handle) {
-    return person;
+    return { person, databaseUpdated: false };
   }
 
   logger.info('New person:', update);
   person.id = getId();
   database.people.push(person);
-  saveDatabase();
-  logger.debug('People:', database.people.slice(-10));
-  return person;
+  logger.debug('People:', database.people.slice(-4));
+  return { person, databaseUpdated: true };
 }
 
-function update(old: Person, upd: PersonUpdate): Person {
+function update(old: Person, upd: PersonUpdate): DatabaseUpdateResult {
   const updated: Person = merge({}, old, upd);
-  database.people.forEach((p, i) => {
-    if (p.id === old.id && !isEqual(p, updated)) {
-      logger.info('update person:', old, updated);
-      database.people[i] = updated;
-      saveDatabase();
-      logger.debug('People:', database.people.slice(Math.max(0, i - 5), i + 5));
-    }
-  });
-  return updated;
+  const i = database.people.findIndex(p => p.id === old.id);
+  if (i == -1) {
+    // This shouldn't really happen
+    return { person: updated, databaseUpdated: false };
+  }
+  if (isEqual(database.people[i], updated)) {
+    return { person: updated, databaseUpdated: false };
+  }
+  logger.info('update person:', database.people[i], updated);
+  database.people[i] = updated;
+  logger.debug('People:', database.people.slice(Math.max(0, i - 2), i + 2));
+  return { person: updated, databaseUpdated: true };
 }
 
 function addRecentPerson(person: Person): void {

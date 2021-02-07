@@ -7,6 +7,12 @@ export interface TournamentParticipant extends Omit<Person, 'id' | 'alias'> {
   serviceId: string;
 }
 
+export interface TournamentEntrant {
+  name: string;
+  participants: TournamentParticipant[];
+  inLosers?: boolean;
+}
+
 export default interface TournamentSet {
   serviceInfo: {
     serviceName: string;
@@ -19,11 +25,7 @@ export default interface TournamentSet {
   shortIdentifier: string;
   displayName: string;
   completedAt: number | null;
-  entrants: {
-    name: string;
-    participants: TournamentParticipant[];
-    inLosers?: boolean;
-  }[];
+  entrants: TournamentEntrant[];
 }
 
 export const nullSet: TournamentSet = Object.freeze({
