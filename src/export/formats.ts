@@ -6,7 +6,7 @@ export const ScoreboardAssistantPeople: ExportFormat = `{{#each .}}
 `;
 
 export const ScoreboardAssistantPeopleWithTwitter: ExportFormat = `{{#each .}}
-{{escapeDoublePipe handle}}{{#if prefix}} || {{escapeDoublePipe prefix}}{{/if}}{{#if twitter}} @{{escapeDoublePipe twitter}}{{/if}}
+{{escapeDoublePipe handle}}{{#if prefix}} || {{escapeDoublePipe prefix}}{{/if}}{{#if serviceIds.twitter}} @{{serviceIds.twitter}}{{/if}}
 {{/each}}
 `;
 
@@ -16,6 +16,6 @@ export const StreamControlPeople: ExportFormat = `{{#each .}}
 `;
 
 export const StreamControlPeopleWithTwitter: ExportFormat = `{{#each .}}
-{{escapeCsv handle}},{{#if prefix}}{{escapeCsv prefix}}{{/if}},{{#if twitter}}{{escapeCsv twitter}}{{/if}}
+{{escapeCsv handle}},{{#if prefix}}{{escapeCsv prefix}}{{/if}},{{#if serviceIds.twitter}}{{serviceIds.twitter}}{{/if}}
 {{/each}}
 `;
