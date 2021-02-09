@@ -23,6 +23,7 @@ import {
   ApiTournament,
   TournamentsResponse,
   Timestamp,
+  ParticipantsResponse,
 } from './types';
 
 const logger = getLogger('services/battlefy');
@@ -62,14 +63,15 @@ export default class BattlefyClient implements BracketService {
           if (isEmptySlot(e)) {
             return null;
           }
+          // TODO: Support teams
           return {
             name: e.team.name,
-            participants: e.team.playerIDs.map(id => ({
+            participants: [{
               serviceName,
-              serviceId: id,
+              serviceId: e.team.userID || e.team._id,
               ...parseEntrantName(e.team.name),
               serviceIds: {},
-            })),
+            }],
             inLosers: isTrueFinals(match) || (isGrandFinals(match) && index === 1),
           };
         });
@@ -180,8 +182,22 @@ export default class BattlefyClient implements BracketService {
       });
   }
 
-  public entrantsForTournament(id: string): Promise<TournamentEntrant[]> {
-    throw new Error('Method not implemented.');
+  public entrantsForTournament(tournamentId: string): Promise<TournamentEntrant[]> {
+    const serviceName = this.name();
+    const url = `${BASE_URL}/tournaments/${tournamentId}/participants`;
+    // TODO: Support teams
+    return fetch(url)
+      .then(checkResponseStatus)
+      .then(resp => resp.json() as Promise<ParticipantsResponse>)
+      .then(participants => participants.map(p => ({
+        name: p.inGameName,
+        participants: [{
+          serviceName,
+          serviceId: p.userID || p._id,
+          ...parseEntrantName(p.inGameName),
+          serviceIds: {},
+        }],
+      })));
   }
 }
 

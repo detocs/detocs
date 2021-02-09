@@ -2,6 +2,22 @@ export type Id = string;
 
 export type Timestamp = string;
 
+export interface ApiParticipant {
+  _id: Id,
+  inGameName: string,
+  gameID: Id,
+  userID: Id;
+  ownerID: Id,
+  isFreeAgent: boolean,
+  createdAt: Timestamp,
+  updatedAt: Timestamp,
+  customFields: unknown[],
+  organizationID: Id,
+  tournamentID: Id,
+}
+
+export type ParticipantsResponse = ApiParticipant[];
+
 export interface ApiMatchSlot {
   seedNumber: number;
   winner: boolean;
@@ -10,6 +26,7 @@ export interface ApiMatchSlot {
   team: {
     _id: Id;
     name: string;
+    userID: Id;
     tournamentID: Id;
     ownerID: Id;
     createdAt: Timestamp;
