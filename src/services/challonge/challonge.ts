@@ -74,13 +74,7 @@ export default class ChallongeClient implements BracketService {
         return null;
       }
       return {
-        name: p.name,
-        participants: [{
-          serviceName,
-          serviceId: p.id,
-          ...parseEntrantName(p.name),
-          serviceIds: {},
-        }],
+        ...convertPlayer(serviceName, p),
         inLosers,
       };
     };
@@ -225,8 +219,9 @@ export default class ChallongeClient implements BracketService {
     return resp.tournament;
   }
 
-  public entrantsForTournament(id: string): Promise<TournamentEntrant[]> {
-    throw new Error('Method not implemented.');
+  public entrantsForTournament(tournamentId: string): Promise<TournamentEntrant[]> {
+    return this.getPlayers(tournamentId)
+      .then(players => Object.values(players).map(convertPlayer.bind(null, this.name())));
   }
 }
 
@@ -325,6 +320,18 @@ export function parseTournamentId(url: string): string | null {
     return `${subdomain}-${identifier}`;
   }
   return identifier;
+}
+
+function convertPlayer(serviceName: string, p: { id: string; name: string; }): TournamentEntrant {
+  return {
+    name: p.name,
+    participants: [{
+      serviceName,
+      serviceId: p.id,
+      ...parseEntrantName(p.name),
+      serviceIds: {},
+    }],
+  };
 }
 
 // Visible for testing
