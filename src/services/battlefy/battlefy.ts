@@ -6,7 +6,7 @@ import Tournament from '@models/tournament';
 import TournamentEvent from '@models/tournament-event';
 import TournamentPhase from '@models/tournament-phase';
 import TournamentPhaseGroup from '@models/tournament-phase-group';
-import TournamentSet from '@models/tournament-set';
+import TournamentSet, { TournamentEntrant } from '@models/tournament-set';
 import BracketService from '@services/bracket-service';
 import { parseEntrantName } from '@services/challonge/challonge';
 import { checkResponseStatus } from '@util/ajax';
@@ -178,6 +178,10 @@ export default class BattlefyClient implements BracketService {
           }
         }
       });
+  }
+
+  public entrantsForTournament(id: string): Promise<TournamentEntrant[]> {
+    throw new Error('Method not implemented.');
   }
 }
 

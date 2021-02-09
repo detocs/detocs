@@ -7,7 +7,7 @@ import Tournament from '@models/tournament';
 import TournamentEvent from '@models/tournament-event';
 import TournamentPhase from '@models/tournament-phase';
 import TournamentPhaseGroup from '@models/tournament-phase-group';
-import TournamentSet from '@models/tournament-set';
+import TournamentSet, { TournamentEntrant, TournamentParticipant } from '@models/tournament-set';
 import BracketService from '@services/bracket-service';
 import { getCredentials } from '@util/configuration/credentials';
 import { nonNull } from '@util/predicates';
@@ -39,9 +39,16 @@ import {
   EventQueryResponse,
   PHASE_QUERY,
   PhaseQueryResponse,
+  TOURNAMENT_PARTICIPANTS_BY_ID_QUERY,
+  TOURNAMENT_PARTICIPANTS_BY_SLUG_QUERY,
+  TournamentParticipantsQueryResponse,
+  TOURNAMENT_TEAMS_BY_ID_QUERY,
+  TOURNAMENT_TEAMS_BY_SLUG_QUERY,
+  TournamentTeamsQueryResponse,
 } from './queries';
 import { SmashggSlug } from './types';
 
+// TODO: Propagate smash.gg errors
 export default class SmashggClient implements BracketService {
   private client: GraphQLClient;
 
@@ -136,16 +143,7 @@ export default class SmashggClient implements BracketService {
       entrants: s.slots.map(slot => slot.entrant)
         .filter(nonNull)
         .map((entrant, index) => ({
-          name: getEntrantName(entrant),
-          participants: entrant.participants.map(p => ({
-            serviceName,
-            serviceId: p.player.id.toString(),
-            handle: p.player.gamerTag,
-            prefix: getParticipantPrefix(p),
-            serviceIds: {
-              'twitter': p.user?.authorizations?.[0]?.externalUsername || undefined,
-            },
-          })),
+          ...parseEntrant(serviceName, entrant),
           inLosers: isTrueFinals(match) || (isGrandFinals(match) && index === 1),
         })),
     };
@@ -251,6 +249,69 @@ export default class SmashggClient implements BracketService {
       url: getPhaseUrl(phase.event, phase),
     };
   }
+
+  public async entrantsForTournament(slugOrId: string): Promise<TournamentEntrant[]> {
+    const serviceName = this.name();
+    let entrants: TournamentEntrant[] = [];
+    let params, participantsQuery, teamsQuery;
+    if (+slugOrId) {
+      params = { id: +slugOrId };
+      participantsQuery = TOURNAMENT_PARTICIPANTS_BY_ID_QUERY;
+      teamsQuery = TOURNAMENT_TEAMS_BY_ID_QUERY;
+    } else {
+      params = { slug: slugOrId };
+      participantsQuery = TOURNAMENT_PARTICIPANTS_BY_SLUG_QUERY;
+      teamsQuery = TOURNAMENT_TEAMS_BY_SLUG_QUERY;
+    }
+
+    const apiParticipants = await paginatedQuery({
+      client: this.client,
+      query: participantsQuery,
+      params,
+      extractor: (resp: TournamentParticipantsQueryResponse) => resp.tournament?.participants,
+      defaultPageSize: MAX_PAGE_SIZE,
+    });
+    if (!apiParticipants) {
+      throw new Error(`Unable to get participants for tournament "${slugOrId}"`);
+    }
+    entrants = entrants.concat(apiParticipants.map(p => ({
+      name: p.player.gamerTag,
+      participants: [parseParticipant(serviceName, p)],
+    })));
+
+    const apiTeams = await paginatedQuery({
+      client: this.client,
+      query: teamsQuery,
+      params,
+      extractor: (resp: TournamentTeamsQueryResponse) => resp.tournament?.teams,
+      defaultPageSize: MAX_PAGE_SIZE,
+    });
+    if (!apiTeams) {
+      throw new Error(`Unable to get participants for tournament "${slugOrId}"`);
+    }
+    entrants = entrants.concat(apiTeams.map(t => parseEntrant(serviceName, t.entrant)));
+
+    return entrants;
+  }
+}
+
+function parseEntrant(serviceName: string, entrant: ApiEntrant): TournamentEntrant {
+  return {
+    name: getEntrantName(entrant),
+    participants: entrant.participants.map(parseParticipant.bind(null, serviceName)),
+  };
+}
+
+function parseParticipant(serviceName: string, participant: ApiParticipant): TournamentParticipant {
+  return {
+    serviceName,
+    serviceId: participant.player.id.toString(),
+    handle: participant.player.gamerTag,
+    prefix: getParticipantPrefix(participant),
+    serviceIds: {
+      'twitter': participant.user?.authorizations?.[0]?.externalUsername || undefined,
+    },
+  };
 }
 
 function getEntrantName(entrant: ApiEntrant): string {

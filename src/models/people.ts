@@ -1,9 +1,7 @@
-import merge from 'lodash.merge';
-
 import { promises as fs, existsSync } from 'fs';
+import merge from 'lodash.merge';
 import { dirname } from 'path';
 
-import { getConfig } from '@util/configuration/config';
 import { getId } from '@util/id';
 import { getLogger } from '@util/logger';
 import { getVersion } from '@util/meta';
@@ -28,32 +26,156 @@ interface DatabaseUpdateResult {
 
 const DEFAULTS = nullPerson;
 
-// TODO: Make PersonDatabase class
-const database: Database = {
-  format: CURRENT_DB_FORMAT,
-  version: getVersion(),
-  people: [],
-};
-let backedUp = false;
-const recentPersonUsages = new Map<string, number>();
+export default class PersonDatabase {
+  private readonly database: Database = {
+    format: CURRENT_DB_FORMAT,
+    version: getVersion(),
+    people: [],
+  };
+  private readonly recentPersonUsages = new Map<string, number>();
+  private readonly filePath: string;
+  private backedUp = false;
 
-export async function loadDatabase(): Promise<void> {
-  const filePath = getConfig().peopleDatabaseFile;
-  let db: Database;
-  try {
-    db = JSON.parse(await fs.readFile(filePath, { encoding: 'utf8' }));
-  } catch (error) {
-    logger.error(`Unable to load database from ${filePath}: ${error}`);
-    return;
+  constructor(filePath: string) {
+    this.filePath = filePath;
   }
-  logger.info(`Loading person database from ${filePath}.
-format: ${db.format}
-version: ${db.version}
-person count: ${db.people.length}`);
-  upgradeDb(db);
-  database.people = db.people.map(parsePerson)
-    .filter(nonNull);
-  backedUp = false;
+
+  public async loadDatabase(): Promise<void> {
+    let db: Database;
+    try {
+      db = JSON.parse(await fs.readFile(this.filePath, { encoding: 'utf8' }));
+    } catch (error) {
+      logger.warn(`Unable to load database from ${this.filePath}: ${error}`);
+      return;
+    }
+    logger.info(`Loading person database from ${this.filePath}.
+  format: ${db.format}
+  version: ${db.version}
+  person count: ${db.people.length}`);
+    upgradeDb(db);
+    this.database.people = db.people.map(parsePerson)
+      .filter(nonNull);
+    this.backedUp = false;
+  }
+
+  public async saveDatabase(): Promise<void> {
+    if (!this.backedUp && existsSync(this.filePath)) {
+      const backupPath = this.filePath + '.bak';
+      logger.info(`Backing-up previous person database to ${backupPath}`);
+      await fs.rename(this.filePath, backupPath);
+      this.backedUp = true;
+    }
+    logger.debug(`Saving ${this.database.people.length} person records`);
+    await fs.mkdir(dirname(this.filePath), { recursive: true });
+    await fs.writeFile(this.filePath, JSON.stringify(this.database, null, 2));
+  }
+
+  public getById(id?: string): Person | null {
+    if (id == null || id === '') {
+      return null;
+    }
+    return this.database.people.find(p => p.id === id) || null;
+  }
+
+  public getByServiceId(serviceName: string, id: string): Person | null {
+    // TODO: Choose latest person if multiple have same ID?
+    return this.database.people.find(p => p.serviceIds[serviceName] === id) || null;
+  }
+
+  // TODO: This interface is kinda...
+  public save(update: PersonUpdate): { person: Person, io: Promise<void> | null } {
+    const { person, databaseUpdated } = this.saveInternal(update);
+    let io = null;
+    if (databaseUpdated) {
+      io = this.saveDatabase()
+        .catch(logger.error);
+    }
+    return { person, io };
+  }
+
+  public saveAll(updates: PersonUpdate[]): { people: Person[], io: Promise<void> | null } {
+    const results = updates.map(this.saveInternal);
+    const people = results.map(result => result.person);
+    const shouldSave = results.some(result => result.databaseUpdated);
+    let io = null;
+    if (shouldSave) {
+      io = this.saveDatabase()
+        .catch(logger.error);
+    }
+    return { people, io };
+  }
+
+  saveInternal: (upd: PersonUpdate) => DatabaseUpdateResult = upd => {
+    const existingPerson = this.getById(upd.id);
+    const ret = existingPerson
+      ? this.update(existingPerson, upd)
+      : this.add(upd);
+    this.addRecentPerson(ret.person);
+    return ret;
+  };
+
+  add(update: PersonUpdate): DatabaseUpdateResult {
+    const person: Person = Object.assign({}, DEFAULTS, update);
+    if (!person.handle) {
+      return { person, databaseUpdated: false };
+    }
+
+    logger.info('New person:', update);
+    person.id = getId();
+    this.database.people.push(person);
+    logger.debug('People:', this.database.people.slice(-4));
+    return { person, databaseUpdated: true };
+  }
+
+  update(old: Person, upd: PersonUpdate): DatabaseUpdateResult {
+    const updated: Person = merge({}, old, upd);
+    const i = this.database.people.findIndex(p => p.id === old.id);
+    if (i == -1) {
+      // This shouldn't really happen
+      return { person: updated, databaseUpdated: false };
+    }
+    if (isEqual(this.database.people[i], updated)) {
+      return { person: updated, databaseUpdated: false };
+    }
+    logger.info('update person:', this.database.people[i], updated);
+    this.database.people[i] = updated;
+    logger.debug('People:', this.database.people.slice(Math.max(0, i - 2), i + 2));
+    return { person: updated, databaseUpdated: true };
+  }
+
+  public all(): Person[] {
+    return this.database.people;
+  }
+
+  public search(query: string): Person[] {
+    if (!query) {
+      const recents = new Set(this.recentPersonUsages.keys());
+      return this.database.people.filter(p => recents.has(p.id))
+        .sort(this.sortByRecency);
+    }
+    query = query.toLowerCase();
+    return this.database.people.filter(p =>
+      p.handle.toLowerCase().includes(query) ||
+      p.alias?.toLowerCase().includes(query) ||
+      p.prefix?.toLowerCase().includes(query)
+    )
+      .sort(this.sortByRecency);
+  }
+
+  public findByFullName(query: string): Person[] {
+    query = query.toLowerCase();
+    return this.database.people.filter(p => getPrefixedAlias(p).toLowerCase() === query);
+  }
+
+  addRecentPerson(person: Person): void {
+    this.recentPersonUsages.set(person.id, Date.now());
+  }
+
+  sortByRecency: (a: Person, b: Person) => number = (a, b) => {
+    const aTime = this.recentPersonUsages.get(a.id) || 0;
+    const bTime = this.recentPersonUsages.get(b.id) || 0;
+    return bTime - aTime;
+  };
 }
 
 function upgradeDb(db: Database): Database {
@@ -100,121 +222,4 @@ function parsePerson(p: Partial<Person>): Person | null {
     prefix: p.prefix || null,
     serviceIds: filterValues(p.serviceIds, value => !!value),
   };
-}
-
-export async function saveDatabase(): Promise<void> {
-  const filePath = getConfig().peopleDatabaseFile;
-  if (!backedUp && existsSync(filePath)) {
-    const backupPath = filePath + '.bak';
-    logger.info(`Backing-up previous person database to ${backupPath}`);
-    await fs.rename(filePath, backupPath);
-    backedUp = true;
-  }
-  logger.debug(`Saving ${database.people.length} person records`);
-  await fs.mkdir(dirname(filePath), { recursive: true });
-  await fs.writeFile(filePath, JSON.stringify(database, null, 2));
-}
-
-export function getById(id?: string): Person | null {
-  if (id == null || id === '') {
-    return null;
-  }
-  return database.people.find(p => p.id === id) || null;
-}
-
-export function getByServiceId(serviceName: string, id: string): Person | null {
-  // TODO: Choose latest person if multiple have same ID?
-  return database.people.find(p => p.serviceIds[serviceName] === id) || null;
-}
-
-export function save(update: PersonUpdate): Person {
-  const { person, databaseUpdated } = saveInternal(update);
-  if (databaseUpdated) {
-    saveDatabase()
-      .catch(logger.error);
-  }
-  return person;
-}
-
-export function saveAll(updates: PersonUpdate[]): Person[] {
-  const results = updates.map(saveInternal);
-  const people = results.map(result => result.person);
-  const shouldSave = results.some(result => result.databaseUpdated);
-  if (shouldSave) {
-    saveDatabase()
-      .catch(logger.error);
-  }
-  return people;
-}
-
-function saveInternal(upd: PersonUpdate): DatabaseUpdateResult {
-  const existingPerson = getById(upd.id);
-  const ret = existingPerson
-    ? update(existingPerson, upd)
-    : add(upd);
-  addRecentPerson(ret.person);
-  return ret;
-}
-
-function add(update: PersonUpdate): DatabaseUpdateResult {
-  const person: Person = Object.assign({}, DEFAULTS, update);
-  if (!person.handle) {
-    return { person, databaseUpdated: false };
-  }
-
-  logger.info('New person:', update);
-  person.id = getId();
-  database.people.push(person);
-  logger.debug('People:', database.people.slice(-4));
-  return { person, databaseUpdated: true };
-}
-
-function update(old: Person, upd: PersonUpdate): DatabaseUpdateResult {
-  const updated: Person = merge({}, old, upd);
-  const i = database.people.findIndex(p => p.id === old.id);
-  if (i == -1) {
-    // This shouldn't really happen
-    return { person: updated, databaseUpdated: false };
-  }
-  if (isEqual(database.people[i], updated)) {
-    return { person: updated, databaseUpdated: false };
-  }
-  logger.info('update person:', database.people[i], updated);
-  database.people[i] = updated;
-  logger.debug('People:', database.people.slice(Math.max(0, i - 2), i + 2));
-  return { person: updated, databaseUpdated: true };
-}
-
-function addRecentPerson(person: Person): void {
-  recentPersonUsages.set(person.id, Date.now());
-}
-
-export function all(): Person[] {
-  return database.people;
-}
-
-export function search(query: string): Person[] {
-  if (!query) {
-    const recents = new Set(recentPersonUsages.keys());
-    return database.people.filter(p => recents.has(p.id))
-      .sort(sortByRecency);
-  }
-  query = query.toLowerCase();
-  return database.people.filter(p =>
-    p.handle.toLowerCase().includes(query) ||
-    p.alias?.toLowerCase().includes(query) ||
-    p.prefix?.toLowerCase().includes(query)
-  )
-    .sort(sortByRecency);
-}
-
-function sortByRecency(a: Person, b: Person): number {
-  const aTime = recentPersonUsages.get(a.id) || 0;
-  const bTime = recentPersonUsages.get(b.id) || 0;
-  return bTime - aTime;
-}
-
-export function findByFullName(query: string): Person[] {
-  query = query.toLowerCase();
-  return database.people.filter(p => getPrefixedAlias(p).toLowerCase() === query);
 }

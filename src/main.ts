@@ -1,7 +1,6 @@
 #!/usr/bin/env node
-import log4js, { Configuration } from 'log4js';
-
 import 'isomorphic-fetch';
+import log4js, { Configuration } from 'log4js';
 import moment from 'moment';
 import ObsWebSocket from 'obs-websocket-js';
 import { join } from 'path';
@@ -16,18 +15,21 @@ import {
   StreamControlPeople,
   StreamControlPeopleWithTwitter,
 } from '@export/formats';
-import importPeopleDatabase from '@import/import-people';
+import { importPeopleDatabase, importTournamentEntrants } from '@import/import-people';
+import PersonDatabase from '@models/people';
 import { MediaServer } from '@server/media/server';
 import server from '@server/server';
 import BracketServiceProvider from '@services/bracket-service-provider';
-import BattlefyClient from '@services/battlefy/battlefy';
+import BattlefyClient, { parseTournamentId as parseBattlefyId } from '@services/battlefy/battlefy';
 import { BATTLEFY_SERVICE_NAME } from '@services/battlefy/constants';
-import ChallongeClient from '@services/challonge/challonge';
+import ChallongeClient, {
+  parseTournamentId as parseChallongeId,
+} from '@services/challonge/challonge';
 import { CHALLONGE_SERVICE_NAME } from '@services/challonge/constants';
 import { ObsConnectionImpl } from '@services/obs/connection';
 import ObsClient from '@services/obs/obs';
 import { SMASHGG_SERVICE_NAME } from '@services/smashgg/constants';
-import SmashggClient from '@services/smashgg/smashgg';
+import SmashggClient, { parseTournamentSlug as parseSmashggSlug } from '@services/smashgg/smashgg';
 import { VodUploader, Style, Command } from '@upload/vod-uploader';
 import { loadConfig, getConfig } from '@util/configuration/config';
 import { loadCredentials } from '@util/configuration/credentials';
@@ -50,7 +52,9 @@ interface PersonExportOptions {
 }
 
 interface PersonImportOptions {
-  source: string;
+  file?: string;
+  url?: string;
+  destination?: string;
 }
 
 interface VodOptions {
@@ -92,7 +96,7 @@ const parser = yargs
     command: 'export-people <destination>',
     describe: 'Export people from the database',
     handler: exportPeople,
-    builder: (y: yargs.Argv<{}>): yargs.Argv<PersonExportOptions> => y
+    builder: (y: yargs.Argv<unknown>): yargs.Argv<PersonExportOptions> => y
       .positional('destination', {
         describe: 'Output file path',
         type: 'string',
@@ -124,21 +128,30 @@ const parser = yargs
       }),
   })
   .command({
-    command: 'import-people <source>',
+    command: 'import-people [destination]',
     describe: 'Import people into the database',
     handler: importPeople,
-    builder: (y: yargs.Argv<{}>): yargs.Argv<PersonImportOptions> => y
-      .positional('source', {
+    builder: (y: yargs.Argv<unknown>): yargs.Argv<PersonImportOptions> => y
+      .option('url', {
+        describe: 'Input bracket service URL',
+        type: 'string',
+        group: 'Source',
+      })
+      .option('file', {
         describe: 'Input file path (CSV only)',
         type: 'string',
-        demandOption: 'you must provide a source path',
+        group: 'Source',
+      })
+      .positional('destination', {
+        describe: 'Output file path',
+        type: 'string',
       }),
   })
   .command({
     command: 'vod <logFile> [command]',
     describe: 'Cut vods and upload them to YouTube',
     handler: vods,
-    builder: (y: yargs.Argv<{}>): yargs.Argv<VodOptions> => y
+    builder: (y: yargs.Argv<unknown>): yargs.Argv<VodOptions> => y
       .positional('logFile', {
         describe: `${PRODUCT_NAME} recording log file`,
         type: 'string',
@@ -188,7 +201,10 @@ async function startServer(): Promise<void> {
 
   const bracketProvider = getBracketProvider();
 
-  server({ bracketProvider, mediaServer, obsClient });
+  const personDatabase = new PersonDatabase(getConfig().peopleDatabaseFile);
+  await personDatabase.loadDatabase();
+
+  server({ bracketProvider, mediaServer, obsClient, personDatabase });
   const port = getConfig().ports.web;
   web({ mediaServer, port });
   if (isPackagedApp()) {
@@ -215,22 +231,39 @@ async function exportPeople(opts: yargs.Arguments<PersonExportOptions>): Promise
       throw new Error('output format must be specified');
       break;
   }
-  await exportPeopleDatabase(format, opts.destination)
+  const database = new PersonDatabase(getConfig().peopleDatabaseFile);
+  await database.loadDatabase();
+  await exportPeopleDatabase(database, format, opts.destination)
     .catch(err => {
       logger.error(err);
       process.exit(1);
     });
   process.exit();
-};
+}
 
 async function importPeople(opts: yargs.Arguments<PersonImportOptions>): Promise<void> {
-  await importPeopleDatabase(opts.source)
-    .catch(err => {
-      logger.error(err);
-      process.exit(1);
-    });
+  if (!opts.file && !opts.url) {
+    throw new Error('file or url must be provided');
+  }
+  const database = new PersonDatabase(opts.destination || getConfig().peopleDatabaseFile);
+  await database.loadDatabase();
+  if (opts.file) {
+    await importPeopleDatabase(database, opts.file)
+      .catch((err: Error) => {
+        logger.error(err);
+        process.exit(1);
+      });
+  }
+  if (opts.url) {
+    const bracketProvider = getBracketProvider();
+    await importTournamentEntrants(database, bracketProvider, opts.url)
+      .catch((err: Error) => {
+        logger.error(err);
+        process.exit(1);
+      });
+  }
   process.exit();
-};
+}
 
 async function vods(opts: yargs.Arguments<VodOptions>): Promise<void> {
   let command = Command.Metadata;
@@ -254,7 +287,7 @@ async function vods(opts: yargs.Arguments<VodOptions>): Promise<void> {
       process.exit(1);
     });
   process.exit();
-};
+}
 
 function configureLogger(): void {
   const appenders: Configuration['appenders'] = {
@@ -285,8 +318,8 @@ function logConfig(): void {
 
 function getBracketProvider(): BracketServiceProvider {
   const bracketProvider = new BracketServiceProvider();
-  bracketProvider.register(SMASHGG_SERVICE_NAME, () => new SmashggClient());
-  bracketProvider.register(CHALLONGE_SERVICE_NAME, () => new ChallongeClient());
-  bracketProvider.register(BATTLEFY_SERVICE_NAME, () => new BattlefyClient());
+  bracketProvider.register(SMASHGG_SERVICE_NAME, parseSmashggSlug, () => new SmashggClient());
+  bracketProvider.register(CHALLONGE_SERVICE_NAME, parseChallongeId, () => new ChallongeClient());
+  bracketProvider.register(BATTLEFY_SERVICE_NAME, parseBattlefyId, () => new BattlefyClient());
   return bracketProvider;
 }

@@ -14,10 +14,10 @@ export async function paginatedQuery<ResponseType, DataType>({
   client: GraphQLClient,
   query: string,
   params: Record<string, unknown>,
-  extractor: (resp: ResponseType) => {
-    nodes: DataType[],
+  extractor: (resp: ResponseType) => ({
+    nodes: DataType[] | null,
     pageInfo: Pick<PageInfo, 'total'|'totalPages'>,
-  },
+  } | undefined),
   defaultPageSize?: number,
 }): Promise<DataType[]> {
   // Initial query to get query complexity
@@ -29,10 +29,16 @@ export async function paginatedQuery<ResponseType, DataType>({
     }),
   );
   const pagedData = extractor(data as ResponseType);
+  if (!pagedData) {
+    return []; // TODO: Return error?
+  }
+  if (pagedData.nodes == null) {
+    return [];
+  }
+
   const defaultPerPage = pagedData.nodes.length;
   const total = pagedData.pageInfo.total;
   const defaultTotalPages = pagedData.pageInfo.totalPages;
-
   if (defaultTotalPages <= 1) {
     return pagedData.nodes;
   }
@@ -65,7 +71,7 @@ export async function paginatedQuery<ResponseType, DataType>({
           page,
         }))))
       .then(responses => responses
-        .map(resp => extractor(resp).nodes)
+        .map(resp => extractor(resp)?.nodes ?? [])
         .reduce((arr1, arr2) => {
           Array.prototype.push.apply(arr1, arr2);
           return arr1;

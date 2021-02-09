@@ -10,6 +10,20 @@ export interface PageInfo {
   filter: unknown;
 }
 
+const PARTICIPANT_SUBQUERY = `
+  prefix
+  player {
+    id
+    gamerTag
+    prefix
+  }
+  user {
+    authorizations(types: [TWITTER]) {
+      externalUsername
+    }
+  }
+`;
+
 const SET_SUBQUERY = `
 id
 identifier
@@ -30,17 +44,7 @@ slots {
   entrant {
     name
     participants {
-      prefix
-      player {
-        id
-        gamerTag
-        prefix
-      }
-      user {
-        authorizations(types: [TWITTER]) {
-          externalUsername
-        }
-      }
+      ${PARTICIPANT_SUBQUERY}
     }
   }
 }
@@ -317,4 +321,85 @@ export interface PhaseQueryResponse {
       startAt: number;
     }[] | null;
   };
+}
+
+const TOURNAMENT_TEAMS_BASE_QUERY = `
+  teams(query: {
+    page: $page,
+    perPage: $perPage,
+  }) {
+    nodes {
+      entrant {
+        name
+        participants {
+          ${PARTICIPANT_SUBQUERY}
+        }
+      }
+    }
+    pageInfo {
+      total
+      totalPages
+    }
+  }
+`;
+export const TOURNAMENT_TEAMS_BY_SLUG_QUERY = `
+query TournamentTeamsQuery($slug: String, $page: Int, $perPage: Int) {
+  tournament(slug: $slug) {
+    ${TOURNAMENT_TEAMS_BASE_QUERY}
+  }
+}
+`;
+export const TOURNAMENT_TEAMS_BY_ID_QUERY = `
+query TournamentTeamsQuery($id: ID!, $page: Int, $perPage: Int) {
+  tournament(id: $id) {
+    ${TOURNAMENT_TEAMS_BASE_QUERY}
+  }
+}
+`;
+export interface TournamentTeamsQueryResponse {
+  tournament: {
+    teams: {
+      nodes: {
+        entrant: ApiEntrant;
+      }[] | null;
+      pageInfo: Pick<PageInfo, 'total'|'totalPages'>;
+    }
+  } | null;
+}
+
+const TOURNAMENT_PARTICIPANTS_BASE_QUERY = `
+  participants(query: {
+    page: $page,
+    perPage: $perPage,
+  }) {
+    nodes {
+      ${PARTICIPANT_SUBQUERY}
+    }
+    pageInfo {
+      total
+      totalPages
+    }
+  }
+`;
+export const TOURNAMENT_PARTICIPANTS_BY_SLUG_QUERY = `
+query TournamentParticipantsQuery($slug: String, $page: Int, $perPage: Int) {
+  tournament(slug: $slug) {
+    ${TOURNAMENT_PARTICIPANTS_BASE_QUERY}
+  }
+}
+`;
+export const TOURNAMENT_PARTICIPANTS_BY_ID_QUERY = `
+query TournamentParticipantsQuery($id: ID!, $page: Int, $perPage: Int) {
+  tournament(id: $id) {
+    ${TOURNAMENT_PARTICIPANTS_BASE_QUERY}
+  }
+}
+`;
+export interface TournamentParticipantsQueryResponse {
+  tournament: {
+    participants: {
+      nodes: ApiParticipant[] | null;
+      pageInfo: Pick<PageInfo, 'total'|'totalPages'>;
+    }
+  } | null;
 }

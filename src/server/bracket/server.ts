@@ -6,12 +6,7 @@ import * as ws from 'ws';
 
 import BracketService from '@services/bracket-service';
 import BracketServiceProvider from '@services/bracket-service-provider';
-import { parseTournamentId as parseBattlefyId } from '@services/battlefy/battlefy';
-import { BATTLEFY_SERVICE_NAME } from '@services/battlefy/constants';
-import { parseTournamentId as parseChallongeId } from '@services/challonge/challonge';
-import { CHALLONGE_SERVICE_NAME } from '@services/challonge/constants';
 import { SMASHGG_SERVICE_NAME } from '@services/smashgg/constants';
-import { parseTournamentSlug as parseSmashggSlug } from '@services/smashgg/smashgg';
 import * as httpUtil from '@util/http-server';
 import { getLogger } from '@util/logger';
 
@@ -178,18 +173,11 @@ class BracketServer {
     if (!tourneyUrlOrSlug) {
       return [ null, this.bracketService ];
     }
-    const smashgg = parseSmashggSlug(tourneyUrlOrSlug);
-    if (smashgg) {
-      return [ smashgg, this.bracketProvider.get(SMASHGG_SERVICE_NAME)];
+    const parsed = this.bracketProvider.parse(tourneyUrlOrSlug);
+    if (parsed) {
+      return [ parsed.serviceId, this.bracketProvider.get(parsed.serviceName) ];
     }
-    const challonge = parseChallongeId(tourneyUrlOrSlug);
-    if (challonge) {
-      return [ challonge, this.bracketProvider.get(CHALLONGE_SERVICE_NAME)];
-    }
-    const battlefy = parseBattlefyId(tourneyUrlOrSlug);
-    if (battlefy) {
-      return [ battlefy, this.bracketProvider.get(BATTLEFY_SERVICE_NAME)];
-    }
+    // Default to smash.gg for now
     return [ tourneyUrlOrSlug, this.bracketProvider.get(SMASHGG_SERVICE_NAME)];
   }
 

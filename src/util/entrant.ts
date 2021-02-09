@@ -1,28 +1,34 @@
 import merge from 'lodash.merge';
 
-import * as People from '@models/people';
+import PersonDatabase from '@models/people';
 import Person, { getPrefixedName } from '@models/person';
 import TournamentSet, { TournamentParticipant, TournamentEntrant } from '@models/tournament-set';
 
-export function entrantToPerson(entrant: TournamentEntrant): Partial<Person> {
+export function entrantToPerson(
+  personDatabase: PersonDatabase,
+  entrant: TournamentEntrant,
+): Partial<Person> {
   const soloParticipant = entrant.participants.length == 1;
   if (soloParticipant) {
-    return getOrCreatePlayer(entrant);
+    return getOrCreatePlayer(personDatabase, entrant);
   }
   else {
-    return getOrCreateTeam(entrant);
+    return getOrCreateTeam(personDatabase, entrant);
   }
 }
 
-function getOrCreatePlayer(entrant: TournamentSet['entrants'][0]): Partial<Person> {
+function getOrCreatePlayer(
+  personDatabase: PersonDatabase,
+  entrant: TournamentSet['entrants'][0],
+): Partial<Person> {
   const participant = entrant.participants[0];
 
-  const foundById = People.getByServiceId(participant.serviceName, participant.serviceId);
+  const foundById = personDatabase.getByServiceId(participant.serviceName, participant.serviceId);
   if (foundById) {
     return mergeSetParticipant(foundById, participant);
   }
 
-  const foundPeople = People.findByFullName(getPrefixedName(participant));
+  const foundPeople = personDatabase.findByFullName(getPrefixedName(participant));
   if (foundPeople.length == 1) {
     return mergeSetParticipant(foundPeople[0], participant);
   }
@@ -61,8 +67,11 @@ function newPersonFromParticipant({
   return withServiceId;
 }
 
-function getOrCreateTeam(entrant: TournamentSet['entrants'][0]): Partial<Person> {
-  const foundPeople = People.findByFullName(entrant.name);
+function getOrCreateTeam(
+  personDatabase: PersonDatabase,
+  entrant: TournamentSet['entrants'][0],
+): Partial<Person> {
+  const foundPeople = personDatabase.findByFullName(entrant.name);
   if (foundPeople.length == 1) {
     return foundPeople[0];
   }

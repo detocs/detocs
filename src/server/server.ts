@@ -1,3 +1,4 @@
+import PersonDatabase from '@models/people';
 import BracketServiceProvider from '@services/bracket-service-provider';
 import ObsClient from '@services/obs/obs';
 import { getLogger } from '@util/logger';
@@ -27,12 +28,18 @@ interface ServerParams {
   bracketProvider: BracketServiceProvider;
   mediaServer: MediaServer;
   obsClient: ObsClient;
+  personDatabase: PersonDatabase;
 }
 
-export default function start({ bracketProvider, mediaServer, obsClient }: ServerParams): void {
+export default function start({
+  bracketProvider,
+  mediaServer,
+  obsClient,
+  personDatabase,
+}: ServerParams): void {
   logger.info(`${getProductName()} server initializing...`);
   startControlServer(CONTROL_PORT);
-  startInfoServer(INFO_PORT);
+  startInfoServer({ port: INFO_PORT, personDatabase });
   startRecordingServer({ port: RECORDING_PORT, mediaServer, bracketProvider, obsClient });
   startTwitterServer(TWITTER_PORT, mediaServer);
   startBracketServer({ port: BRACKETS_PORT, bracketProvider });

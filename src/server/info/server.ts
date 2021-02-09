@@ -13,7 +13,7 @@ import * as Games from '@models/games';
 import LowerThird from '@models/lower-third';
 import Match, { nullMatch } from '@models/match';
 import matchList from '@models/matches';
-import * as People from '@models/people';
+import PersonDatabase from '@models/people';
 import Person from '@models/person';
 import Player, { nullPlayer } from '@models/player';
 import Scoreboard from '@models/scoreboard';
@@ -33,6 +33,7 @@ import State, { nullState } from './state';
 const logger = getLogger('server/info');
 const state: State = Object.assign({}, nullState);
 let socketServer: ws.Server | null = null;
+let personDb = null as unknown as PersonDatabase;
 
 interface PersonForm extends Partial<Person> {
   handleOrAlias?: string;
@@ -73,7 +74,12 @@ interface FillBracketForm {
   set: SetLocator;
 }
 
-export default async function start(port: number): Promise<void> {
+// TODO: InfoServer class
+export default async function start({ port, personDatabase }: {
+  port: number,
+  personDatabase: PersonDatabase,
+}): Promise<void> {
+  personDb = personDatabase;
   await loadDatabases();
 
   const outputs = loadOutputs();
@@ -149,11 +155,11 @@ export default async function start(port: number): Promise<void> {
       res.status(400).send('Query is required');
       return;
     }
-    res.send(People.search(query));
+    res.send(personDb.search(query));
   });
   app.get('/people/:id', (req, res) => {
     const id = req.params['id'];
-    res.send(People.getById(id));
+    res.send(personDb.getById(id));
   });
   app.get('/games', (_, res) => {
     res.send(Games.getGames());
@@ -187,7 +193,6 @@ function broadcastState(state: State): void {
 }
 
 async function loadDatabases(): Promise<void> {
-  await People.loadDatabase();
   await Games.loadGameDatabase();
 }
 
@@ -213,7 +218,7 @@ function updatePeople(list: { person: Person }[]): void {
     if (x.person.id == null || x.person.id === '') {
       return;
     }
-    const p = People.getById(x.person.id);
+    const p = personDb.getById(x.person.id);
     if (p == null) {
       return;
     }
@@ -226,7 +231,7 @@ function parseScoreboard(
   unfinishedSets: TournamentSet[],
 ): Scoreboard {
   const formPlayers = [0, 1].map(i => form.players[i]);
-  const people = People.saveAll(formPlayers.map(parsePerson));
+  const people = personDb.saveAll(formPlayers.map(parsePerson)).people;
   const players = formPlayers.map((player, i) => {
     const person = people[i];
     const score = parseNumber(player.score);
@@ -275,8 +280,8 @@ function fillBracketSet(
 
 function playersFromSet(set: TournamentSet): Player[] {
   // TODO: Handle discrepancies between numbers of players and entrants?
-  const updates = set.entrants.map(entrantToPerson);
-  const people = People.saveAll(updates);
+  const updates = set.entrants.map(entrantToPerson.bind(null, personDb));
+  const people = personDb.saveAll(updates).people;
   return people.map((person, idx)  => ({
     person,
     score: 0,
@@ -286,7 +291,7 @@ function playersFromSet(set: TournamentSet): Player[] {
 
 function parseLowerThird(form: LowerThirdForm): LowerThird {
   const formPlayers = [0, 1].map(i => form.players[i]);
-  const people = People.saveAll(formPlayers.map(parsePerson));
+  const people = personDb.saveAll(formPlayers.map(parsePerson)).people;
   const commentators = people.map(person => ({ person }));
   // TODO: Reload people from datastore?
   return {

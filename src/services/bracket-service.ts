@@ -3,8 +3,9 @@ import Tournament from '@models/tournament';
 import TournamentEvent from '@models/tournament-event';
 import TournamentPhase from '@models/tournament-phase';
 import TournamentPhaseGroup from '@models/tournament-phase-group';
-import TournamentSet from '@models/tournament-set';
+import TournamentSet, { TournamentEntrant } from '@models/tournament-set';
 
+// TODO: Settle on whether tournament methods should accept slugs
 export default interface BracketService {
   name(): string;
   upcomingSetsByPhase(phaseId: string): Promise<TournamentSet[]>;
@@ -22,4 +23,5 @@ export default interface BracketService {
     videogame: Game;
   }>;
   phase(phaseId: string): Promise<TournamentPhase>;
+  entrantsForTournament(id: string): Promise<TournamentEntrant[]>;
 }
