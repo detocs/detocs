@@ -1,7 +1,7 @@
 {
   "name": "detocs",
   "productName": "DETOCS",
-  "version": "0.5.0",
+  "version": "0.6.0-rc1",
   "description": "Datagram's Esports Tournament Overlay Control System",
   "author": "Adrian Mullings",
   "license": "AGPL-3.0",
@@ -57,7 +57,10 @@
     }
   },
   "pkg": {
-    "assets": [ "build/public/**/*", "build/templates/**/*"]
+    "assets": [
+      "build/public/**/*",
+      "build/templates/**/*"
+    ]
   },
   "dependencies": {
     "@google/youtube": "git+https://github.com/data-enabler/googleapis-youtube.git",
