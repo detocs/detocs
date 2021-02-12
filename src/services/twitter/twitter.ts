@@ -12,7 +12,18 @@ const logger = getLogger('services/twitter');
 
 export type LoginCallback = (user: User) => unknown;
 
-export default class TwitterClient {
+export default interface TwitterClient {
+  hasCredentials(): boolean;
+  isLoggedIn(): boolean;
+  onLogin(cb: LoginCallback): void;
+  offLogin(cb: LoginCallback): void;
+  getAuthorizeUrl(port: number): Promise<string>;
+  authorize(params: Record<string, string>): Promise<void>;
+  logIn(accessToken: AccessToken): Promise<void>;
+  tweet(body: string, replyTo: string | null, mediaPath?: string): Promise<string>;
+}
+
+export class ApiTwitterClient implements TwitterClient {
   private readonly oauth: TwitterOAuth;
   private readonly twitterKey: string;
   private readonly twitterSecret: string;
@@ -24,6 +35,10 @@ export default class TwitterClient {
     this.twitterKey = twitterKey;
     this.twitterSecret = twitterSecret;
     this.oauth = new TwitterOAuth(this.twitterKey, this.twitterSecret);
+  }
+
+  public hasCredentials(): boolean {
+    return true;
   }
 
   public isLoggedIn(): boolean {
@@ -52,7 +67,7 @@ export default class TwitterClient {
     getCredentials().twitterToken = accessToken;
     saveCredentials();
     await this.logIn(accessToken);
-  };
+  }
 
   public async logIn(accessToken: AccessToken): Promise<void> {
     try {
@@ -76,5 +91,39 @@ export default class TwitterClient {
       throw new Error('Twitter client not logged in');
     }
     return requests.tweet(this.twit, body, replyTo, mediaPath);
+  }
+}
+
+export class MockTwitterClient implements TwitterClient {
+  public hasCredentials(): boolean {
+    return false;
+  }
+
+  public isLoggedIn(): boolean {
+    return false;
+  }
+
+  public onLogin(): void {
+    return;
+  }
+
+  public offLogin(): void {
+    return;
+  }
+
+  public getAuthorizeUrl(): Promise<string> {
+    throw new Error('No Twitter credentials available');
+  }
+
+  public authorize(): Promise<void> {
+    throw new Error('No Twitter credentials available');
+  }
+
+  public logIn(): Promise<void> {
+    throw new Error('No Twitter credentials available');
+  }
+
+  public tweet(): Promise<string> {
+    throw new Error('No Twitter credentials available');
   }
 }

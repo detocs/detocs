@@ -3,12 +3,12 @@ import updateImmutable from 'immutability-helper';
 import * as ws from 'ws';
 
 import { MediaServer } from '@server/media/server';
-import TwitterClient from '@services/twitter/twitter';
+import TwitterClient, { ApiTwitterClient, MockTwitterClient } from '@services/twitter/twitter';
 import { getCredentials } from '@util/configuration/credentials';
 import * as httpUtil from '@util/http-server';
 import { getLogger } from '@util/logger';
 
-import { nullState } from './client-state';
+import ClientState, { nullState } from './client-state';
 
 const logger = getLogger('server/twitter');
 
@@ -27,18 +27,20 @@ const sendServerError = httpUtil.sendServerError.bind(null, logger);
 export default async function start(port: number, mediaServer: MediaServer): Promise<void> {
   logger.info('Initializing Twitter server');
 
+  let twitterClient;
   const { twitterKey, twitterSecret } = getCredentials();
   if (!twitterKey || !twitterSecret) {
     logger.warn('Twitter API keys not found');
-    return;
-  }
-  const twitterClient = new TwitterClient(twitterKey, twitterSecret);
-  const accessToken = getCredentials().twitterToken;
-  if (accessToken) {
-    // TODO: Handle revoked tokens
-    logger.info('Already logged in');
-    await twitterClient.logIn(accessToken)
-      .catch(logger.error);
+    twitterClient = new MockTwitterClient();
+  } else {
+    twitterClient = new ApiTwitterClient(twitterKey, twitterSecret);
+    const accessToken = getCredentials().twitterToken;
+    if (accessToken) {
+      // TODO: Handle revoked tokens
+      logger.info('Already logged in');
+      await twitterClient.logIn(accessToken)
+        .catch(logger.error);
+    }
   }
 
   const { appServer, socketServer } = httpUtil.appWebsocketServer(
@@ -55,9 +57,7 @@ class TwitterServer {
   private readonly twitterClient: TwitterClient;
   private readonly media: MediaServer;
   private readonly port: number;
-  private state = updateImmutable(nullState, {
-    hasCredentials: { $set: true },
-  });
+  private state: ClientState;
 
   public constructor(
     appServer: Express,
@@ -71,6 +71,9 @@ class TwitterServer {
     this.twitterClient = twitterClient;
     this.media = mediaServer;
     this.port = port;
+    this.state = updateImmutable(nullState, {
+      hasCredentials: { $set: this.twitterClient.hasCredentials() },
+    });
     this.registerHandlers();
     this.twitterClient.onLogin(user => {
       this.state = updateImmutable(
