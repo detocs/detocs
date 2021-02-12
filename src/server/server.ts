@@ -36,13 +36,15 @@ export default function start({
   mediaServer,
   obsClient,
   personDatabase,
-}: ServerParams): void {
+}: ServerParams): Promise<void> {
   logger.info(`${getProductName()} server initializing...`);
-  startControlServer(CONTROL_PORT);
-  startInfoServer({ port: INFO_PORT, personDatabase });
-  startRecordingServer({ port: RECORDING_PORT, mediaServer, bracketProvider, obsClient });
-  startTwitterServer(TWITTER_PORT, mediaServer);
-  startBracketServer({ port: BRACKETS_PORT, bracketProvider });
-  startClipServer(MEDIA_DASHBOARD_PORT, mediaServer);
-  startErrorServer({ port: ERROR_REPORTING_PORT });
+  return Promise.all([
+    startControlServer(CONTROL_PORT),
+    startInfoServer({ port: INFO_PORT, personDatabase }),
+    startRecordingServer({ port: RECORDING_PORT, mediaServer, bracketProvider, obsClient }),
+    startTwitterServer(TWITTER_PORT, mediaServer),
+    startBracketServer({ port: BRACKETS_PORT, bracketProvider }),
+    startClipServer(MEDIA_DASHBOARD_PORT, mediaServer),
+    startErrorServer({ port: ERROR_REPORTING_PORT }),
+  ]).then(() => { /* void */ });
 }

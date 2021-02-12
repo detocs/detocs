@@ -6,7 +6,8 @@ import ObsWebSocket from 'obs-websocket-js';
 import { join } from 'path';
 import yargs from 'yargs';
 
-import app from '@desktop/app';
+import startElectron from '@desktop/electron';
+import startLocalBrowser from '@desktop/local-browser';
 import ExportFormat from '@export/export-format';
 import exportPeopleDatabase from '@export/export-people';
 import {
@@ -35,7 +36,14 @@ import { loadConfig, getConfig } from '@util/configuration/config';
 import { loadCredentials } from '@util/configuration/credentials';
 import { sortedKeys } from '@util/json';
 import { getBasicLogger } from '@util/logger';
-import { getVersion, setAppRoot, isPackagedApp, getProductName } from '@util/meta';
+import {
+  getVersion,
+  setAppRoot,
+  isPackagedApp,
+  getProductName,
+  isElectron,
+  isPkg,
+} from '@util/meta';
 import web from '@web/server';
 
 interface ConfigOptions {
@@ -204,11 +212,15 @@ async function startServer(): Promise<void> {
   const personDatabase = new PersonDatabase(getConfig().peopleDatabaseFile);
   await personDatabase.loadDatabase();
 
-  server({ bracketProvider, mediaServer, obsClient, personDatabase });
   const port = getConfig().ports.web;
-  web({ mediaServer, port });
-  if (isPackagedApp()) {
-    app({ port });
+  await Promise.all([
+    server({ bracketProvider, mediaServer, obsClient, personDatabase }),
+    web({ mediaServer, port }),
+  ]);
+  if (isElectron()) {
+    startElectron({ port });
+  } else if (isPkg()) {
+    startLocalBrowser({ port });
   }
 }
 

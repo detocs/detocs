@@ -30,6 +30,7 @@
     "electron-debug": "electron-builder --dir",
     "electron-archive": "node archive-win.js",
     "electron-release": "electron-builder && npm run electron-archive",
+    "pkg": "pkg --out-path dist/server .",
     "license-check": "license-checker --summary --failOn 'UNKNOWN; UNLICENSED'",
     "postinstall": "patch-package && npm run license-check",
     "test": "jest --testPathIgnorePatterns='\\.it\\.'",
@@ -54,6 +55,9 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
     }
+  },
+  "pkg": {
+    "assets": [ "build/public/**/*", "build/templates/**/*"]
   },
   "dependencies": {
     "@google/youtube": "git+https://github.com/data-enabler/googleapis-youtube.git",
@@ -150,6 +154,7 @@
     "license-checker": "^25.0.1",
     "normalize.css": "^8.0.1",
     "patch-package": "^6.2.2",
+    "pkg": "^4.4.9",
     "postcss": "^7.0.32",
     "postcss-input-range": "^4.0.0",
     "postcss-preset-env": "^6.7.0",
