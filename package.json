@@ -41,6 +41,9 @@
     "files": [
       "build/**/*"
     ],
+    "directories": {
+      "output": "dist/full"
+    },
     "icon": "build/public/images/detocs.png",
     "win": {
       "artifactName": "${productName}-${version}.${ext}",
@@ -65,6 +68,7 @@
     "find-process": "^1.4.2",
     "front-matter": "^3.0.2",
     "google-auth-library": "^6.0.6",
+    "graphql": "^15.5.0",
     "graphql-request": "^3.4.0",
     "handlebars": "^4.7.6",
     "immutability-helper": "^3.0.1",
@@ -139,7 +143,6 @@
     "eslint": "^7.9.0",
     "eslint-plugin-react": "^7.20.6",
     "form-request-submit-polyfill": "^2.0.0",
-    "graphql": "^15.5.0",
     "gulp": "^4.0.2",
     "gulp-run": "^1.7.1",
     "heroicons": "^0.4.2",

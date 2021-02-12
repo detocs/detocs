@@ -4,7 +4,7 @@ const path = require('path');
 const { productName, version } = require('./package.json');
 
 const filename = `${productName}-${version}.zip`;
-const output = fs.createWriteStream(path.join('dist', filename));
+const output = fs.createWriteStream(path.join('dist/full', filename));
 const archive = archiver('zip', { zlib: { level: 9 } });
 
 output.on('close', function() {
@@ -20,5 +20,5 @@ archive.on('error', function(err) {
 });
 
 archive.pipe(output);
-archive.directory('dist/win-unpacked/', false);
+archive.directory('dist/full/win-unpacked/', false);
 archive.finalize();
