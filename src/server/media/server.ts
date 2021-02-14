@@ -173,7 +173,7 @@ export class MediaServer {
   }
 
   public async getCurrentThumbnail(): Promise<Screenshot> {
-    this.getReplay();
+    this.getReplay().mapErr(logger.warn);
     return this.getCurrentScreenshot(THUMBNAIL_SIZE)
       .then(s => {
         this.thumbnailCache.add(s);
@@ -262,12 +262,11 @@ export class MediaServer {
     return url.replace(`/${this.dirName}`, this.getDir());
   }
 
-  public async getReplay(): Promise<Replay> {
+  public getReplay(): ResultAsync<Replay, Error> {
     return this.obs.saveReplayBuffer()
-      .match(
-        file => this.fetchReplayFile(file),
-        e => { throw e; },
-      );
+      .andThen(file => ResultAsync.fromPromise(
+        this.fetchReplayFile(file),
+        e => e as Error));
   }
 
   private async fetchReplayFile(filePath: string): Promise<Replay> {

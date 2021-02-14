@@ -37,7 +37,7 @@ export interface GetClipParams {
 
 export interface GetClipResponse {
   id: string;
-};
+}
 
 type WebSocketClient = ws;
 
@@ -57,7 +57,7 @@ export default async function start(port: number, mediaServer: MediaServer): Pro
   await fs.mkdir(dir, { recursive: true });
 
   new ClipServer(appServer, socketServer, mediaServer, dir);
-};
+}
 
 class ClipServer {
   private readonly appServer: express.Express;
@@ -149,17 +149,12 @@ class ClipServer {
       return;
     }
 
-    let replay;
-    try {
-      replay = await this.media.getReplay();
-    } catch(err) {
-      sendServerError(res, 'Unable to get replay:', err);
+    const replayResult = await this.media.getReplay();
+    if (replayResult.isErr()) {
+      sendServerError(res, 'Unable to get replay:', replayResult.error);
       return;
     }
-    if (!replay) {
-      sendServerError(res, 'Unable to get replay');
-      return;
-    }
+    const replay = replayResult.value;
 
     const startOffset = Math.max(0, replay.video.durationMs - seconds * 1000);
     const clip: VideoClip = {
