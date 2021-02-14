@@ -73,6 +73,11 @@ interface VodOptions {
 
 setAppRoot(__dirname);
 const logger = getBasicLogger();
+
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
 const VERSION = getVersion();
 const PRODUCT_NAME = getProductName();
 process.title = `${PRODUCT_NAME} ${VERSION}`;
