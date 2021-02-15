@@ -39,7 +39,6 @@ import { getBasicLogger } from '@util/logger';
 import {
   getVersion,
   setAppRoot,
-  isPackagedApp,
   getProductName,
   isElectron,
   isPkg,
@@ -187,7 +186,7 @@ const parser = yargs
   .alias('h', 'help')
   .version(VERSION)
   .strict();
-if (isPackagedApp()) {
+if (isElectron()) {
   parser.parse(process.argv.slice(1));
 } else {
   parser.parse();
