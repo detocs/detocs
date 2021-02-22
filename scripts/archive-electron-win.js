@@ -1,9 +1,9 @@
 const archiver = require('archiver');
 const fs = require('fs');
 const path = require('path');
-const { productName, version } = require('./package.json');
+const { name, version } = require('../package.json');
 
-const filename = `${productName}-${version}.zip`;
+const filename = `${name}-${version}-win.zip`;
 const output = fs.createWriteStream(path.join('dist/full', filename));
 const archive = archiver('zip', { zlib: { level: 9 } });
 

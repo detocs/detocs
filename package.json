@@ -28,9 +28,9 @@
     "start": "node build/src/main.js",
     "electron": "electron .",
     "electron-debug": "electron-builder --dir",
-    "electron-archive": "node archive-win.js",
+    "electron-archive": "node scripts/archive-electron-win.js",
     "electron-release": "electron-builder && npm run electron-archive",
-    "pkg": "pkg --out-path dist/server .",
+    "pkg": "pkg --out-path dist/server . && node scripts/pkg-rename.js",
     "dist": "npm run pkg && npm run electron-release",
     "license-check": "license-checker --summary --failOn 'UNKNOWN; UNLICENSED'",
     "postinstall": "patch-package && npm run license-check",
@@ -48,11 +48,11 @@
     },
     "icon": "build/public/images/detocs.png",
     "win": {
-      "artifactName": "${productName}-${version}.${ext}",
+      "artifactName": "${name}-${version}.${ext}",
       "target": "nsis"
     },
     "nsis": {
-      "artifactName": "${productName}-${version}_Setup.${ext}",
+      "artifactName": "${name}-${version}_Setup.${ext}",
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
     }
