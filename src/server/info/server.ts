@@ -261,6 +261,7 @@ function fillBracketSet(
   if (!set) {
     return {};
   }
+  console.log(set);
   const scoreboard: Partial<Scoreboard> = {
     set,
     players: playersFromSet(set).concat([
@@ -268,6 +269,7 @@ function fillBracketSet(
       nullPlayer,
     ]).slice(0, 2),
   };
+  console.log(scoreboard.players);
   if (set.match) {
     scoreboard.match = set.match;
   }
@@ -278,14 +280,15 @@ function fillBracketSet(
   return scoreboard;
 }
 
-function playersFromSet(set: TournamentSet): Player[] {
+function playersFromSet(set: TournamentSet): Required<Player>[] {
   // TODO: Handle discrepancies between numbers of players and entrants?
   const updates = set.entrants.map(entrantToPerson.bind(null, personDb));
   const people = personDb.saveAll(updates).people;
   return people.map((person, idx)  => ({
     person,
     score: 0,
-    inLossers: set.entrants[idx].inLosers,
+    inLosers: set.entrants[idx].inLosers ?? false,
+    comment: '',
   }));
 }
 

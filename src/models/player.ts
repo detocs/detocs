@@ -11,4 +11,5 @@ export const nullPlayer = Object.freeze({
   person: nullPerson,
   score: 0,
   inLosers: false,
+  comment: '',
 });
