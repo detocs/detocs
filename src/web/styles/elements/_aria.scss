@@ -1,4 +1,6 @@
 [aria-busy="true"] {
+  --spinner-size: min(40%, 5rem);
+
   position: relative;
 
   &::before {
@@ -14,17 +16,15 @@
   }
 
   &::after {
-    $size: min(40%, 5rem);
-
     content: '';
     position: absolute;
     top: 50%;
     left: 50%;
-    width: $size;
+    width: var(--spinner-size);
     z-index: 10;
     transform: translate(-50%, -50%);
 
-    padding-top: $size;
+    padding-top: var(--spinner-size);
 
     // TODO: Make border size relative to $size?
     animation: spinner 1s linear 0s infinite;

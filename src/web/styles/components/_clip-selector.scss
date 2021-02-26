@@ -17,6 +17,8 @@
 }
 
 .clip-selector__option {
+  --spinner-size: 3rem;
+
   position: relative;
   display: flex;
   margin: var(--margin-small);
@@ -34,6 +36,7 @@
     @include focus.focus-outline;
   }
 
+  // Allow selection even when vignette is covering element
   &[aria-busy="true"]::before, &[aria-busy="true"]::after {
     pointer-events: none;
   }
