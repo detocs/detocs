@@ -197,10 +197,10 @@ export const useTournament: typeof useTournamentSubstate = (state, updateState) 
 };
 
 const useEventSubstate = useSubstate<InfoState, string>(
-  state => state.tournament,
+  state => state.event,
   (state, value) => updateImmutable(
     state,
-    { tournament: { $set: value } },
+    { event: { $set: value } },
   ),
 );
 export const useEvent: typeof useEventSubstate = (state, updateState) => {
