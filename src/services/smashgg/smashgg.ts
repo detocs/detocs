@@ -7,7 +7,11 @@ import Tournament from '@models/tournament';
 import TournamentEvent from '@models/tournament-event';
 import TournamentPhase from '@models/tournament-phase';
 import TournamentPhaseGroup from '@models/tournament-phase-group';
-import TournamentSet, { TournamentEntrant, TournamentParticipant } from '@models/tournament-set';
+import TournamentSet, {
+  TournamentEntrant,
+  TournamentParticipant,
+  nullEntrant,
+} from '@models/tournament-set';
 import BracketService from '@services/bracket-service';
 import { getCredentials } from '@util/configuration/credentials';
 import { nonNull } from '@util/predicates';
@@ -141,9 +145,8 @@ export default class SmashggClient implements BracketService {
       }`,
       completedAt: s.completedAt,
       entrants: s.slots.map(slot => slot.entrant)
-        .filter(nonNull)
         .map((entrant, index) => ({
-          ...parseEntrant(serviceName, entrant),
+          ...(entrant ? parseEntrant(serviceName, entrant) : nullEntrant),
           inLosers: isTrueFinals(match) || (isGrandFinals(match) && index === 1),
         })),
     };

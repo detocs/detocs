@@ -12,6 +12,10 @@ export interface TournamentEntrant {
   participants: TournamentParticipant[];
   inLosers?: boolean;
 }
+export const nullEntrant: Readonly<TournamentEntrant> = {
+  name: '',
+  participants: [],
+};
 
 export default interface TournamentSet {
   serviceInfo: {

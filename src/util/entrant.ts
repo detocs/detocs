@@ -1,13 +1,16 @@
 import merge from 'lodash.merge';
 
 import PersonDatabase from '@models/people';
-import Person, { getPrefixedName } from '@models/person';
+import Person, { getPrefixedName, nullPerson } from '@models/person';
 import TournamentSet, { TournamentParticipant, TournamentEntrant } from '@models/tournament-set';
 
 export function entrantToPerson(
   personDatabase: PersonDatabase,
   entrant: TournamentEntrant,
 ): Partial<Person> {
+  if (entrant.name === '' && entrant.participants.length == 0) {
+    return nullPerson;
+  }
   const soloParticipant = entrant.participants.length == 1;
   if (soloParticipant) {
     return getOrCreatePlayer(personDatabase, entrant);

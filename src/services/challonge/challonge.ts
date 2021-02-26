@@ -9,7 +9,7 @@ import Tournament from '@models/tournament';
 import TournamentEvent from '@models/tournament-event';
 import TournamentPhase from '@models/tournament-phase';
 import TournamentPhaseGroup from '@models/tournament-phase-group';
-import TournamentSet, { TournamentEntrant } from '@models/tournament-set';
+import TournamentSet, { TournamentEntrant, nullEntrant } from '@models/tournament-set';
 import BracketService from '@services/bracket-service';
 import {
   ApiKey,
@@ -65,16 +65,10 @@ export default class ChallongeClient implements BracketService {
     const getEntrant = async (
       playerId: number | null,
       inLosers: boolean,
-    ): Promise<TournamentSet['entrants'][0] | null> => {
-      if (playerId == null) {
-        return null;
-      }
-      const p = players[playerId.toString()];
-      if (!p) {
-        return null;
-      }
+    ): Promise<TournamentEntrant> => {
+      const p = playerId != null && players[playerId.toString()];
       return {
-        ...convertPlayer(serviceName, p),
+        ...(p ? convertPlayer(serviceName, p) : nullEntrant),
         inLosers,
       };
     };
@@ -104,11 +98,11 @@ export default class ChallongeClient implements BracketService {
           shortIdentifier,
           displayName: `${shortIdentifier} - ${matchName}: ${
             entrants
-              .map(e => e ? e.name : '???')
+              .map(e => e.name || '???')
               .join(' vs ')
           }`,
           completedAt: parseTimestamp(m.completed_at),
-          entrants: entrants.filter(nonNull),
+          entrants,
         });
       })
     );

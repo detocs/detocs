@@ -6,7 +6,7 @@ import Tournament from '@models/tournament';
 import TournamentEvent from '@models/tournament-event';
 import TournamentPhase from '@models/tournament-phase';
 import TournamentPhaseGroup from '@models/tournament-phase-group';
-import TournamentSet, { TournamentEntrant } from '@models/tournament-set';
+import TournamentSet, { TournamentEntrant, nullEntrant } from '@models/tournament-set';
 import BracketService from '@services/bracket-service';
 import { parseEntrantName } from '@services/challonge/challonge';
 import { checkResponseStatus } from '@util/ajax';
@@ -60,8 +60,12 @@ export default class BattlefyClient implements BracketService {
         const match = getMatch(maxWinnersRoundNum, maxLosersRoundNum, m);
         const matchName = match ? match.id : m.roundNumber.toString();
         const entrants = [ m.top, m.bottom ].map((e: ApiMatchSlot | ApiEmptySlot, index) => {
+          const inLosers = isTrueFinals(match) || (isGrandFinals(match) && index === 1);
           if (isEmptySlot(e)) {
-            return null;
+            return {
+              ...nullEntrant,
+              inLosers,
+            };
           }
           // TODO: Support teams
           return {
@@ -72,7 +76,7 @@ export default class BattlefyClient implements BracketService {
               ...parseEntrantName(e.team.name),
               serviceIds: {},
             }],
-            inLosers: isTrueFinals(match) || (isGrandFinals(match) && index === 1),
+            inLosers,
           };
         });
         return {
@@ -87,11 +91,11 @@ export default class BattlefyClient implements BracketService {
           shortIdentifier,
           displayName: `${shortIdentifier} - ${matchName}: ${
             entrants
-              .map(e => e ? e.name : '???')
+              .map(e => e.name || '???')
               .join(' vs ')
           }`,
           completedAt: m.isComplete ? parseTimestamp(m.updatedAt) : null,
-          entrants: entrants.filter(nonNull),
+          entrants,
         };
       });
   }
