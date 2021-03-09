@@ -35,3 +35,12 @@ export function keyHandler(
       .forEach(([, handler]) => handler(event));
   };
 }
+
+export function ancestors(elem: Element, selector: string): Element[] {
+  let current: Element | null | undefined = elem;
+  const arr = [];
+  while (current = current.parentElement?.closest(selector)) {
+    arr.push(current);
+  }
+  return arr;
+}

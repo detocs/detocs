@@ -1,5 +1,4 @@
 import { h, render, FunctionalComponent, VNode, Fragment } from 'preact';
-import { useEffect } from 'preact/hooks';
 import { ToastContainer as ReactToastContainer } from 'react-toastify';
 
 import BracketState, { nullState as nullBracketState } from '@server/bracket/state';
@@ -11,6 +10,7 @@ import InfoState, { nullState as nullInfoState } from '@server/info/state';
 import RecordingState, { nullState as nullRecordingState } from '@server/recording/state';
 import TwitterState, { nullState as nullTwitterState } from '@server/twitter/client-state';
 import { checkResponseStatus } from '@util/ajax';
+import { ancestors } from '@util/dom';
 import { massagedFormData } from '@util/forms';
 import { getVersion, getProductName } from '@util/meta';
 
@@ -37,6 +37,7 @@ import TwitterDashboard from './twitter-dashboard';
 
 document.addEventListener('DOMContentLoaded', () => {
   bindSubmitHandler();
+  bindInvalidHandler();
   bindErrorHandler();
   render(<App />, document.getElementById("app") as HTMLDivElement);
 });
@@ -44,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
 const VERSION = getVersion();
 const PRODUCT_NAME = getProductName();
 
-const App: FunctionalComponent<{}> = (): VNode => {
+const App: FunctionalComponent = (): VNode => {
   const [ infoState, updateInfoState ] = useServerState<InfoState>(
     infoEndpoint('', 'ws:'),
     nullInfoState,
@@ -124,18 +125,10 @@ const App: FunctionalComponent<{}> = (): VNode => {
 function bindSubmitHandler(): void {
   document.addEventListener('submit', (event: Event) => {
     const form = event.target as HTMLFormElement;
-    let action = form.action;
-    let method = form.method;
-    if (document.activeElement) {
-      const triggerAttributes = document.activeElement.attributes;
-      const actionAttr = triggerAttributes.getNamedItem('formaction');
-      const methodAttr = triggerAttributes.getNamedItem('formmethod');
-      action = (actionAttr && actionAttr.value) || action;
-      method = (methodAttr && methodAttr.value) || method;
-    }
     if (form.classList.contains('js-manual-form')) {
       return;
     }
+    const { action, method } = getFormRoute(form);
     const body = massagedFormData(new FormData(form));
     fetch(action, { method, body })
       .then(checkResponseStatus)
@@ -143,6 +136,30 @@ function bindSubmitHandler(): void {
 
     event.preventDefault();
   });
+}
+
+function getFormRoute(form: HTMLFormElement): { action: string, method: string } {
+  let action = form.action;
+  let method = form.method;
+  if (document.activeElement) {
+    const triggerAttributes = document.activeElement.attributes;
+    const actionAttr = triggerAttributes.getNamedItem('formaction');
+    const methodAttr = triggerAttributes.getNamedItem('formmethod');
+    action = (actionAttr && actionAttr.value) || action;
+    method = (methodAttr && methodAttr.value) || method;
+  }
+  return { action, method };
+}
+
+function bindInvalidHandler(): void {
+  document.addEventListener('invalid', (event: Event) => {
+    event.target && expandDetailsAncestors(event.target as Element);
+  }, { capture: true });
+}
+
+function expandDetailsAncestors(elem: Element): void {
+  const details = ancestors(elem, 'details:not([open])') as HTMLDetailsElement[];
+  details.forEach(details => details.open = true);
 }
 
 function bindErrorHandler(): void {
