@@ -1,7 +1,7 @@
 import updateImmutable from 'immutability-helper';
 import { h, FunctionalComponent, RenderableProps, VNode, Fragment, createRef } from 'preact';
 
-import TournamentSet, { nullSet } from '@models/tournament-set';
+import TournamentSet, { nullSet, getTournamentSetIdString } from '@models/tournament-set';
 import { inputHandler } from '@util/dom';
 
 import Autocomplete, { useAutocompleteId, isAutocompleteValue } from './autocomplete';
@@ -9,7 +9,7 @@ import Autocomplete, { useAutocompleteId, isAutocompleteValue } from './autocomp
 export interface Props {
   set?: TournamentSet;
   updateSet: (set: TournamentSet) => void;
-  unfinishedSets?: TournamentSet[];
+  unfinishedSets: TournamentSet[];
 }
 
 const serviceInfoFields: (keyof TournamentSet['serviceInfo'])[] = [
@@ -24,7 +24,6 @@ const SetSelector: FunctionalComponent<Props> = ({
   updateSet,
   unfinishedSets,
 }: RenderableProps<Props>): VNode => {
-  const sets = unfinishedSets || [];
   const inputRef = createRef<HTMLInputElement>();
   const autocompleteId = useAutocompleteId();
   // TODO: Implement a way to clear this field
@@ -34,8 +33,6 @@ const SetSelector: FunctionalComponent<Props> = ({
       {serviceInfoFields.map((field): VNode => {
         // NOTE: The switch statement here is to ensure that this won't compile
         // if it doesn't handle all serviceInfo fields
-        // TODO: Can we rely on the assumption that serviceName + id is a unique
-        // identifier?
         switch (field) {
           case 'serviceName':
           case 'id':
@@ -70,8 +67,8 @@ const SetSelector: FunctionalComponent<Props> = ({
       <Autocomplete<TournamentSet>
         id={autocompleteId}
         inputRef={inputRef}
-        options={sets}
-        idMapper={s => `${s.serviceInfo.serviceName}_${s.serviceInfo.id}`}
+        options={unfinishedSets}
+        idMapper={getTournamentSetIdString}
         nameMapper={s => s.displayName}
         setValue={updateSet}
       />

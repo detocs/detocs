@@ -1,7 +1,8 @@
+import isEqual from 'lodash.isequal';
 import { h, FunctionalComponent, VNode } from 'preact';
 import { useRef } from 'preact/hooks';
 
-import TournamentSet from '@models/tournament-set';
+import TournamentSet, { getTournamentSetIdString } from '@models/tournament-set';
 import { checkResponseStatus } from '@util/ajax';
 import { fieldSetFormData } from '@util/forms';
 
@@ -21,8 +22,12 @@ const BracketSet: FunctionalComponent<Props> = ({
 }): VNode => {
   // Prevent updates of unfinishedSets from clearing unsaved changes
   const [ localSet, updateSet ] = useLocalState(set, {
-    keyGenerator: set => `${set?.serviceInfo.serviceName}_${set?.serviceInfo.id}`,
+    keyGenerator: set => set ? getTournamentSetIdString(set) : set,
   });
+  const sets = unfinishedSets || [];
+  const currentSet = localSet?.serviceInfo.id
+    ? sets.find(s => isEqual(s.serviceInfo, localSet.serviceInfo)) || localSet
+    : localSet;
   const ref = useRef<HTMLFieldSetElement>();
   const submit = (): void => {
     const form = ref.current?.form;
@@ -43,8 +48,8 @@ const BracketSet: FunctionalComponent<Props> = ({
       <legend>Bracket Set</legend>
       <div class="input-row">
         <SetSelector
-          set={localSet}
-          unfinishedSets={unfinishedSets}
+          set={currentSet}
+          unfinishedSets={sets}
           updateSet={updateSet}
         />
         <button type="button" onClick={submit}>Fill</button>

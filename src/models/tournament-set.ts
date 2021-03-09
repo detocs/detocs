@@ -46,3 +46,9 @@ export const nullSet: TournamentSet = Object.freeze({
   completedAt: null,
   entrants: [],
 });
+
+// TODO: Can we rely on the assumption that serviceName + id is a unique
+// identifier?
+export function getTournamentSetIdString(s: TournamentSet): string {
+  return `${s.serviceInfo.serviceName}_${s.serviceInfo.id}`;
+}
