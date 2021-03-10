@@ -1,5 +1,5 @@
 import { promises as fs } from "fs";
-import merge from 'lodash.merge';
+import mergeWith from 'lodash.mergewith';
 import { dirname, join } from "path";
 
 export interface LoadedConfigData {
@@ -45,12 +45,20 @@ export function emptyConfigData(): LoadedConfigData {
 
 export function parseConfig<T>(data: string, defaults: T): T {
   let parsed: Partial<T> = JSON.parse(data);
-  const config = merge({}, defaults, parsed);
+  // TODO: This is fine for now, but will likely need to be revisited
+  const config = mergeWith({}, defaults, parsed, replaceArrays);
   return config;
 }
 
 export async function saveConfigFile<T>(filePath: string, config: T): Promise<void> {
   await fs.writeFile(filePath, JSON.stringify(config, null, 2));
+}
+
+function replaceArrays(objValue: unknown, srcValue: unknown): unknown {
+  if (!Array.isArray(objValue) || !Array.isArray(srcValue)) {
+    return undefined;
+  }
+  return srcValue;
 }
 
 function getParentDir(path: string | null): string | null {
