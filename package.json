@@ -1,7 +1,7 @@
 {
   "name": "detocs",
   "productName": "DETOCS",
-  "version": "0.6.0-rc2",
+  "version": "0.6.0-rc3",
   "description": "Datagram's Esports Tournament Overlay Control System",
   "author": "Adrian Mullings",
   "license": "AGPL-3.0",
