@@ -51,7 +51,7 @@ export type FileOutputConfig = OutputConfig & {
 const DEFAULTS: Config = {
   databaseDirectory: '.',
   peopleDatabaseFile: 'people.json',
-  logDirectory: null,
+  logDirectory: './detocs-logs',
   clipDirectory: tmpDir('clips'),
   tempFileExpirationDays: 5,
   vodSingleVideoTemplate: '$builtin/single-video.hbs',
