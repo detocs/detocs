@@ -12,6 +12,7 @@ import util from 'util';
 
 import Game from '@models/game';
 import { getGameById, getGameByServiceId, loadGameDatabase } from '@models/games';
+import { getPrefixedAlias } from '@models/person';
 import { Timestamp } from '@models/timestamp';
 import Tournament from '@models/tournament';
 import TournamentSet from '@models/tournament-set';
@@ -45,6 +46,7 @@ interface Set {
     name: string;
     prefix: string | null;
     handle: string;
+    alias: string | null;
   }[];
   fullRoundText: string;
   start: Timestamp | null;
@@ -607,6 +609,7 @@ function videoTags(
   const playerTags = players.flatMap(p => [
     p.prefix && `${p.prefix} ${p.handle}`,
     p.handle,
+    p.alias,
   ]);
 
   const tags = [
@@ -642,9 +645,10 @@ function getSetData(
   let players: Set['players'] = [];
   if (logSet?.state?.players) {
     players = logSet.state.players.map(p => p.person).map(p => ({
-      name: p.prefix ? `${p.prefix} | ${p.handle}` : p.handle,
+      name: getPrefixedAlias(p),
       handle: p.handle,
       prefix: p.prefix,
+      alias: p.alias || null,
     }));
   } else if (bracketSet?.entrants) {
     players = bracketSet.entrants.map(entrant => {
@@ -660,7 +664,7 @@ function getSetData(
         handle = entrant.name;
         name = entrant.name;
       }
-      return { name, handle, prefix };
+      return { name, handle, prefix, alias: null };
     });
   }
 
