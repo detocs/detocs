@@ -10,6 +10,7 @@ web/public/*.js.map
 *stats.html
 detocs-config.json
 detocs-credentials.json
+detocs-logs
 /detocs-output.*
 TWITTER_API_KEY
 TWITTER_API_KEY_SECRET
