@@ -30,6 +30,7 @@ export function waitForFile(
       persistent: false,
       ignoreInitial: true,
       ignorePermissionErrors: true,
+      useFsEvents: false,
     })
     .on('error', onError)
     .on('add', onAdd);
