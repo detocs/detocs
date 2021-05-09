@@ -78,7 +78,7 @@
     "google-auth-library": "^6.0.6",
     "graphql": "^15.5.0",
     "graphql-request": "^3.4.0",
-    "handlebars": "^4.7.6",
+    "handlebars": "^4.7.7",
     "immutability-helper": "^3.0.1",
     "isomorphic-fetch": "^3.0.0",
     "js-yaml": "^3.13.1",
