@@ -161,7 +161,7 @@
     "normalize.css": "^8.0.1",
     "patch-package": "^6.2.2",
     "pkg": "^4.4.9",
-    "postcss": "^7.0.32",
+    "postcss": "^8.2.10",
     "postcss-input-range": "^4.0.0",
     "postcss-preset-env": "^6.7.0",
     "preact": "^10.0.0-rc.2",
