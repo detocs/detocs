@@ -10,7 +10,7 @@ index ffaf1b9..1883424 100644
  var MAX_FILE_CHUNK_BYTES = 5 * 1024 * 1024;
 +var MAX_VIDEO_SIZE_BYTES = 512 * 1024 * 1024;
 +var MAX_VIDEO_CHUNK_BYTES =
-+  parseInt(process.env.MAX_VIDEO_CHUNK_BYTES) || 5 * 1024 * 1024;
++  parseInt(process.env.MAX_VIDEO_CHUNK_BYTES) || 1 * 1024 * 1024;
  
  /**
   * FileUploader class used to upload a file to twitter via the /media/upload (chunked) API.
