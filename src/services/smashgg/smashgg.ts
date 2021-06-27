@@ -90,6 +90,7 @@ export default class SmashggClient implements BracketService {
       query: PHASE_SET_QUERY,
       params: { phaseId },
       extractor: (resp: PhaseSetQueryResponse) => resp.phase.sets,
+      complexityAdjuster: setComplexityAdjuster,
     });
     return sets.map(s => this.convertSet(
       phaseId,
@@ -361,4 +362,14 @@ function fullSmashggUrl(relative: string): string {
   } else {
     return SMASHGG_BASE_URL + '/' + relative;
   }
+}
+
+// Whether of not Twitter accounts are present for each player unfortunately
+// affects the query complexity, so let's calculate the complexity as if
+// everyone had a Twitter account.
+function setComplexityAdjuster(nodes: ApiSet[]): number {
+  return nodes.flatMap(set => set.slots)
+    .flatMap(slot => slot.entrant?.participants)
+    .filter(participant => !(participant?.user?.authorizations?.length))
+    .length * 2;
 }
