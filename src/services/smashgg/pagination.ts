@@ -28,13 +28,15 @@ export async function paginatedQuery<ResponseType, DataType>({
   complexityAdjuster?: (nodes: DataType[]) => number,
 }): Promise<DataType[]> {
   // Initial query to get query complexity
-  const { data, extensions } = await client.rawRequest(
+  const rawResponse = await client.rawRequest(
     query,
     Object.assign({}, params, {
       perPage: defaultPageSize ?? null,
       page: 1,
     }),
   );
+  logger.debug('Initial paginated response:', JSON.stringify(rawResponse, null, 2));
+  const { data, extensions } = rawResponse;
   const pagedData = extractor(data as ResponseType);
   if (!pagedData) {
     logger.warn(`Unable to extract paged data from ${data}`);

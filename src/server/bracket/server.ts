@@ -208,6 +208,9 @@ class BracketServer {
     logger.debug(`Fetching sets for phase ${phaseId}`);
     return this.bracketService.upcomingSetsByPhase(phaseId)
       .then(unfinishedSets => {
+        if (unfinishedSets.length == 0) {
+          throw new Error('Fetched set list is empty');
+        }
         this.state = updateImmutable(this.state, { $merge: { unfinishedSets } });
         this.broadcastState();
       })
