@@ -20,7 +20,7 @@ import Scoreboard from '@models/scoreboard';
 import TournamentSet from '@models/tournament-set';
 import { getConfig } from '@util/configuration/config';
 import { entrantToPerson } from '@util/entrant';
-import { filterValues } from '@util/object';
+import { filterValues, mapValues } from '@util/object';
 import { parseFormData } from '@util/parsing';
 import BracketState from '@server/bracket/state';
 import { BRACKETS_PORT } from '@server/ports';
@@ -231,7 +231,8 @@ function parseScoreboard(
   unfinishedSets: TournamentSet[],
 ): Scoreboard {
   const formPlayers = [0, 1].map(i => form.players[i]);
-  const people = personDb.saveAll(formPlayers.map(parsePerson)).people;
+  const parsedPeople = formPlayers.map(parsePerson);
+  const people = personDb.saveAll(parsedPeople).people;
   const players = formPlayers.map((player, i) => {
     const person = people[i];
     const score = parseNumber(player.score);
@@ -322,14 +323,16 @@ function parsePerson(form: PersonForm): Partial<Person> {
   const handle = parseString(form.handle);
   const alias = parseOptionalString(form.alias);
   const prefix = parseOptionalString(form.prefix) || null;
-  const serviceIds = filterValues(form.serviceIds, value => !!value);
-  return filterValues({
+  const serviceIds = form.serviceIds
+    ? mapValues(form.serviceIds, id => id || undefined)
+    : {};
+  return {
     id,
     handle,
     alias,
     prefix,
     serviceIds,
-  }, value => value !== undefined);
+  };
 }
 
 function parseGame(locator: GameLocator): Game {
