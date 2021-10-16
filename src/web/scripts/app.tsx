@@ -26,7 +26,12 @@ import BreakDashboard from './break-dashboard';
 import ClipDashboard from './clip-dashboard';
 import CommentaryDashboard from './commentary-dashboard';
 import { useServerState } from './hooks/server-state';
-import { usePlayersReversed, useCommentatorsReversed } from './hooks/settings';
+import {
+  usePlayersReversed,
+  useCommentatorsReversed,
+  useThumbnailVideosEnabled,
+  ThumbnailSettingsContext,
+} from './hooks/settings';
 import { logError } from './log';
 import PlayerDashboard from './player-dashboard';
 import RecordingDashboard from './recording-dashboard';
@@ -68,9 +73,10 @@ const App: FunctionalComponent = (): VNode => {
   );
   const [ playersReversed, togglePlayersReversed ] = usePlayersReversed();
   const [ commentatorsReversed, toggleCommentatorsReversed ] = useCommentatorsReversed();
+  const [ thumbnailVideosEnabled, toggleThumbnailVideosEnabled ] = useThumbnailVideosEnabled();
   const ToastContainer = ReactToastContainer as FunctionalComponent;
   return (
-    <Fragment>
+    <ThumbnailSettingsContext.Provider value={thumbnailVideosEnabled}>
       <TabController>
         <Tab id="scoreboard">
           <PlayerDashboard
@@ -112,13 +118,15 @@ const App: FunctionalComponent = (): VNode => {
               togglePlayersReversed,
               commentatorsReversed,
               toggleCommentatorsReversed,
+              thumbnailVideosEnabled,
+              toggleThumbnailVideosEnabled,
             }}
           />
         </Tab>
       </TabController>
       <footer id="version">{PRODUCT_NAME} {VERSION}</footer>
       <ToastContainer />
-    </Fragment>
+    </ThumbnailSettingsContext.Provider>
   );
 };
 

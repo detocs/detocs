@@ -3,6 +3,7 @@ import { h, FunctionalComponent, VNode, createRef, Fragment, Ref } from 'preact'
 import { forwardRef } from 'preact/compat/src';
 import { JSXInternal } from 'preact/src/jsx';
 
+import { isVideoClip } from '@models/media';
 import { ClipView, ClipStatus } from '@server/clip/state';
 import { Id } from '@util/id';
 
@@ -66,7 +67,10 @@ export const ClipSelector: FunctionalComponent<ClipSelectorModalProps> = ({
               checked={currentClipId === clipView.clip.id}
             />
             <div class="clip-selector__clip-info" onClick={submitForm}>
-              <Thumbnail media={clipView.clip.media} />
+              <Thumbnail
+                media={clipView.clip.media}
+                thumbnail={isVideoClip(clipView.clip) ? clipView.clip.thumbnail : undefined}
+              />
               <div class="clip-selector__clip-description">
                 {clipView.clip.description || ''}
               </div>

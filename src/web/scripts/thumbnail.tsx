@@ -1,18 +1,20 @@
 import memoize from 'micro-memoize';
 import { h, VNode, FunctionalComponent as FC } from 'preact';
-import { useRef, useEffect } from 'preact/hooks';
+import { useRef, useEffect, useState, useContext } from 'preact/hooks';
 import { JSXInternal } from 'preact/src/jsx';
 
 import { MediaFile, VideoFile, ImageFile } from '@models/media';
 import { fromMillis } from '@util/timestamp';
-import e from 'express';
+import { ThumbnailSettingsContext } from './hooks/settings';
 
 interface ThumbnailProps extends Omit<JSXInternal.HTMLAttributes, 'media'> {
   media?: MediaFile | null;
+  thumbnail?: ImageFile;
 }
 
 interface VideoThumbnailProps extends ThumbnailProps {
   media: VideoFile;
+  thumbnail: ImageFile;
 }
 
 interface ImageThumbnailProps extends ThumbnailProps {
@@ -111,10 +113,36 @@ const getImageObserver = memoize(() => new IntersectionObserver(
   { rootMargin: '10%' },
 ));
 
-const VideoThumbnail: FC<VideoThumbnailProps> = ({ media, ...additionalProps }): VNode => {
+const VideoThumbnail: FC<VideoThumbnailProps> = ({
+  media,
+  thumbnail,
+  ...additionalProps
+}): VNode => {
+  const [ playVideo, setPlayVideo ] = useState(false);
+  const videoEnabled = useContext(ThumbnailSettingsContext);
+  const play = (): void => setPlayVideo(true);
+  const pause = (): void => setPlayVideo(false);
+  return (
+    <div className="thumbnail"
+      {...additionalProps}
+      onMouseEnter={play}
+      onFocus={play}
+      onMouseLeave={pause}
+      onBlur={pause}
+    >
+      {videoEnabled && playVideo
+        ? <ThumbVid media={media} />
+        : (thumbnail ? <ThumbImg media={thumbnail} /> : <div class="thumbnail__placeholder" />)
+      }
+      <div className="thumbnail__metadata">
+        {fromMillis(media.durationMs).slice(0, -4)}
+      </div>
+    </div>
+  );
+};
+
+const ThumbVid: FC<{ media: VideoFile }> = ({ media }): VNode => {
   const videoRef = useRef<HTMLVideoElement>();
-  const playVideo = (): void => { videoRef.current?.play(); };
-  const pauseVideo = (): void => { videoRef.current?.pause(); };
   useEffect(() => {
     if (!videoRef.current) {
       console.warn('Unable to observe <video> element for thumbnail');
@@ -130,27 +158,17 @@ const VideoThumbnail: FC<VideoThumbnailProps> = ({ media, ...additionalProps }):
   }, [ media.url ]);
   // TODO: Show current playback progress?
   return (
-    <div className="thumbnail" {...additionalProps}>
-      <video
-        ref={videoRef}
-        data-src={media.url}
-        class="thumbnail__media"
-        muted={true}
-        controls={false}
-        {...{'disablePictureInPicture': true}}
-        autoPlay={false}
-        preload={'metadata'}
-        loop={true}
-        onMouseEnter={playVideo}
-        onFocus={playVideo}
-        onMouseLeave={pauseVideo}
-        onBlur={pauseVideo}
-      >
-      </video>
-      <div className="thumbnail__metadata">
-        {fromMillis(media.durationMs).slice(0, -4)}
-      </div>
-    </div>
+    <video
+      ref={videoRef}
+      data-src={media.url}
+      class="thumbnail__media"
+      muted={true}
+      controls={false}
+      {...{'disablePictureInPicture': true}}
+      autoPlay={true}
+      loop={true}
+    >
+    </video>
   );
 };
 
@@ -171,12 +189,32 @@ const ImageThumbnail: FC<ImageThumbnailProps> = ({ media, ...additionalProps }):
   }, [ media.url ]);
   return (
     <div className="thumbnail" {...additionalProps}>
-      <img
-        ref={imageRef}
-        data-src={media.url}
-        class="thumbnail__media"
-      />
+      <ThumbImg media={media} />
     </div>
+  );
+};
+
+const ThumbImg: FC<{ media: ImageFile }> = ({ media }): VNode => {
+  const imageRef = useRef<HTMLImageElement>();
+  useEffect(() => {
+    if (!imageRef.current) {
+      console.warn('Unable to observe <object> element for thumbnail');
+      return;
+    }
+    getImageObserver().observe(imageRef.current);
+    return () => {
+      imageRef.current && getImageObserver().unobserve(imageRef.current);
+    };
+  }, []);
+  useEffect(() => {
+    imageRef.current && updateImage(imageRef.current);
+  }, [ media.url ]);
+  return (
+    <img
+      ref={imageRef}
+      data-src={media.url}
+      class="thumbnail__media"
+    />
   );
 };
 

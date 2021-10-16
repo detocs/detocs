@@ -300,9 +300,16 @@ export class MediaServer {
       durationMs: videoStats.durationMs,
     };
 
-    const waveform = await this.getVideoWaveform(video);
+    const [ waveform, thumbnail ] = await Promise.all([
+      this.getVideoWaveform(video),
+      this.getVideoThumbnail(video)
+        .match(
+          t => t,
+          e => { throw e; },
+        ),
+    ]);
 
-    const replay: Replay = { video, waveform };
+    const replay: Replay = { video, waveform, thumbnail };
     if (timestamps && fileStats) {
       const msSinceFileCreation = nowMs - Math.trunc(fileStats.birthtimeMs);
       if (timestamps.streamTimestamp) {
@@ -344,6 +351,27 @@ export class MediaServer {
       url: this.getUrl(waveformFilename),
       height: ffmpeg.WAVEFORM_HEIGHT,
     };
+  }
+
+  public getVideoThumbnail(video: VideoFile): ResultAsync<ImageFile, Error> {
+    const size = THUMBNAIL_SIZE;
+    return this.getVideoFrame(
+      this.getFullPath(video),
+      '0:00:00',
+      size,
+    ).andThen(img => {
+      const thumbnailFilename =
+        `${pathUtil.withoutExtension(video.filename)}_thumbnail_${size}.png`;
+      return ResultAsync.fromPromise(
+        this.saveFile(thumbnailFilename, img),
+        e => new ChainableError('Unable to save thumbnail', e as Error),
+      ).map(() => ({
+        type: 'image',
+        filename: thumbnailFilename,
+        url: this.getUrl(thumbnailFilename),
+        height: size,
+      }));
+    });
   }
 
   public async cutVideo(

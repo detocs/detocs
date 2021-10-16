@@ -5,6 +5,8 @@ export interface Props {
   togglePlayersReversed: VoidFunction;
   commentatorsReversed: boolean;
   toggleCommentatorsReversed: VoidFunction;
+  thumbnailVideosEnabled: boolean;
+  toggleThumbnailVideosEnabled: VoidFunction;
 }
 
 export default function SettingsDashboard({
@@ -12,6 +14,8 @@ export default function SettingsDashboard({
   togglePlayersReversed,
   commentatorsReversed,
   toggleCommentatorsReversed,
+  thumbnailVideosEnabled,
+  toggleThumbnailVideosEnabled,
 }: Props): VNode {
   return (
     <Fragment>
@@ -36,6 +40,16 @@ export default function SettingsDashboard({
             />
             {' '}
             Reverse commentator order
+          </label>
+          <br />
+          <label>
+            <input
+              type="checkbox"
+              checked={thumbnailVideosEnabled}
+              onChange={toggleThumbnailVideosEnabled}
+            />
+            {' '}
+            Enable video thumbnails
           </label>
         </div>
       </fieldset>

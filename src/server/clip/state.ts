@@ -2,7 +2,7 @@ import { Clip, ImageClip, isImageClip, VideoClip, isVideoClip } from '@models/me
 
 export interface State {
   readonly clips: ClipView[];
-};
+}
 
 export const nullState: State = {
   clips: [],

@@ -377,6 +377,7 @@ const VideoClipEditor: FunctionalComponent<ClipEditorProps<VideoClip>> = ({
     id={clip.id}
     media={clip.media}
     waveform={clip.waveform}
+    thumbnail={clip.thumbnail}
     recordingTimestampMs={clip.recordingTimestampMs}
     streamTimestampMs={clip.streamTimestampMs}
     status={status}

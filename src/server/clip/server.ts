@@ -161,6 +161,7 @@ class ClipServer {
       id: getId(),
       media: replay.video,
       waveform: replay.waveform,
+      thumbnail: replay.thumbnail,
       clipEndMs: replay.video.durationMs,
       clipStartMs: startOffset,
       description: '',
@@ -207,6 +208,11 @@ class ClipServer {
                 .then(waveform => this.setClipWaveform(clipId, waveform))
                 .then(err => err && logger.error(err))
                 .catch(logger.error);
+              this.media.getVideoThumbnail(video)
+                .match(
+                  thumbnail => this.setClipThumbnail(clipId, thumbnail),
+                  logger.error,
+                );
               this.copyClipToStorage(clipId)
                 .then(err => err && logger.error(err))
                 .catch(logger.error);
@@ -306,6 +312,19 @@ class ClipServer {
       this.state as { clips: ClipView<VideoClip>[]},
       { clips: { [index]: { clip: { $merge: {
         waveform
+      }}}}});
+    this.broadcastState();
+  }
+
+  private setClipThumbnail(id: string, thumbnail: ImageFile): Error | void {
+    const { index, clipView: cv } = this.getVideoClipById(id);
+    if (cv == null) {
+      return new Error(`Clip ${id} deleted while generating thumbnail`);
+    }
+    this.state = updateImmutable(
+      this.state as { clips: ClipView<VideoClip>[]},
+      { clips: { [index]: { clip: { $merge: {
+        thumbnail
       }}}}});
     this.broadcastState();
   }

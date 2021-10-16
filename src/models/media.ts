@@ -25,6 +25,7 @@ export interface Screenshot {
 export interface Replay {
   video: VideoFile;
   waveform: ImageFile;
+  thumbnail: ImageFile;
   recordingTimestampMs?: number;
   streamTimestampMs?: number;
 }
@@ -48,6 +49,7 @@ export function isImageClip(clip: Clip): clip is ImageClip {
 export interface VideoClip extends Clip {
   media: VideoFile;
   waveform: ImageFile;
+  thumbnail: ImageFile;
   clipStartMs: number;
   clipEndMs: number;
 }

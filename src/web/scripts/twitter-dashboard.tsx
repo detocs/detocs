@@ -6,6 +6,7 @@ import { GetClipResponse } from '@server/clip/server';
 import {
   State as ClipState,
   ClipStatus,
+  isVideoClipView,
 } from '@server/clip/state';
 import ClientState from '@server/twitter/client-state';
 import { checkResponseStatus } from '@util/ajax';
@@ -249,6 +250,10 @@ const TwitterMedia: FunctionalComponent<MediaProps> = ({
       >
         <Thumbnail
           media={clipView?.clip.media}
+          thumbnail={(clipView && isVideoClipView(clipView))
+            ? clipView.clip.thumbnail
+            : undefined
+          }
           aria-busy={clipView?.status === ClipStatus.Rendering}
         />
       </output>
