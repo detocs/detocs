@@ -3,6 +3,7 @@ import path from 'path';
 import { promisify } from 'util';
 
 import { Timestamp } from '@models/timestamp';
+import { getConfig } from '@util/configuration/config';
 import { getLogger } from '@util/logger';
 import * as pathUtil from '@util/path';
 
@@ -46,15 +47,18 @@ export async function lossyCut(
   end: string,
   outFile: string
 ): Promise<void> {
+  const {
+    transcodeVideoInputArgs,
+    transcodeVideoOutputArgs,
+  } = getConfig().ffmpeg;
   const args = [
     '-ss', start,
     '-to', end,
+    ...transcodeVideoInputArgs,
     '-i', sourceFile,
     '-ss', '0',
-    '-codec:v', 'libx264',
-    '-crf', '18',
     '-codec:a', 'copy',
-    '-threads', '2',
+    ...transcodeVideoOutputArgs,
     '-y',
     outFile,
   ];

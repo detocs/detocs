@@ -27,6 +27,10 @@ export interface Config {
     address: string;
     password?: string;
   };
+  ffmpeg: {
+    transcodeVideoInputArgs: string[];
+    transcodeVideoOutputArgs: string[];
+  };
 }
 
 export type OutputTemplateConfig = string | {
@@ -71,7 +75,15 @@ const DEFAULTS: Config = {
   obs: {
     address: 'localhost:4444',
     password: undefined,
-  }
+  },
+  ffmpeg: {
+    transcodeVideoInputArgs: [],
+    transcodeVideoOutputArgs: [
+      '-codec:v', 'libx264',
+      '-crf', '18',
+      '-threads', '2',
+    ],
+  },
 };
 let currentConfig = DEFAULTS;
 
