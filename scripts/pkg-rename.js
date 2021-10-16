@@ -1,7 +1,9 @@
 const fs = require('fs');
 const path = require('path');
-const { name, version } = require('../package.json');
+const { name } = require('../package.json');
+const { getVersion } = require('./versioning');
 
+const version = getVersion();
 const outputDir = 'dist/server';
 const originalFilesRegex = new RegExp(`${name}-([\\w.]+)$`);
 const files = fs.readdirSync(outputDir);
