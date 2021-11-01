@@ -1,7 +1,7 @@
 import { Error as ChainableError } from 'chainable-error';
-import find from 'find-process';
+import findProcess from 'find-process';
 import { promises as fs, statSync } from 'fs';
-import { ResultAsync, okAsync } from 'neverthrow';
+import { ResultAsync, okAsync, ok, err } from 'neverthrow';
 import { dirname, extname, isAbsolute, join, basename } from 'path';
 
 import { Timestamp } from '@models/timestamp';
@@ -85,23 +85,23 @@ export default class ObsClient {
           return this.currentRecordingFolder;
         }
         return this.obs.send('GetRecordingFolder')
-          .map(async resp => {
-            let folder = resp['rec-folder'];
+          .andThen(resp => {
+            const folder = resp['rec-folder'];
+            let asyncFolder = okAsync<string, Error>(folder);
             if (!isAbsolute(folder)) {
-              const obsAddress = getConfig().obs.address;
               // Some super cool guy is using relative paths with OBS
-              const obsPort = new URL(obsAddress.startsWith('http') ?
-                obsAddress :
-                'https://' + obsAddress
-              ).port;
-              const listeners = await find('port', obsPort);
-              if (listeners.length) {
-                folder = join(dirname((listeners[0] as ProcessInfo).bin), folder);
-              }
+              logger.debug(`Non-absolute path found: ${folder}\n` +
+                'Attempting to find OBS binary path.');
+              asyncFolder = this.getBinPath()
+                .map(obsBinPath => {
+                  return join(obsBinPath, folder);
+                });
             }
-            this.currentRecordingFolder = folder;
-            logger.info(`Recording folder: ${this.currentRecordingFolder}`);
-            return folder;
+            return asyncFolder.map(folder => {
+              this.currentRecordingFolder = folder;
+              logger.info(`Recording folder: ${this.currentRecordingFolder}`);
+              return folder;
+            });
           })
           .match(
             t => t,
@@ -110,6 +110,33 @@ export default class ObsClient {
       }),
       e => e as Error,
     );
+  }
+
+  private getBinPath(): ResultAsync<string, Error> {
+    const configBinPath = getConfig().obs.binPath;
+    if (configBinPath) {
+      return okAsync(configBinPath);
+    }
+    const obsAddress = getConfig().obs.address;
+    const obsPort = new URL(obsAddress.startsWith('http') ?
+      obsAddress :
+      'https://' + obsAddress
+    ).port;
+    return ResultAsync.fromPromise(
+      findProcess('port', obsPort),
+      e => e as Error,
+    ).andThen(listeners => {
+      if (!listeners.length) {
+        return err(new Error(`No process found listening on port ${obsPort}`));
+      }
+      const listener = listeners[0] as ProcessInfo;
+      if (!listener.bin) {
+        return err(new Error(`Unable to read file path for ${listener.name}. ` +
+          'Is the process running as a different user? ' +
+          'Consider using the obs.binPath config setting.'));
+      }
+      return ok(dirname(listener.bin));
+    });
   }
 
   public getCurrentThumbnail(

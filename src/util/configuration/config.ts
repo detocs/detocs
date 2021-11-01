@@ -26,6 +26,7 @@ export interface Config {
   obs: {
     address: string;
     password?: string;
+    binPath?: string;
   };
   ffmpeg: {
     transcodeVideoInputArgs: string[];
@@ -118,6 +119,7 @@ function resolveConfigDirectories(config: Config, fileDir: string): Config {
   resolvedConfig.vodSingleVideoTemplate = configRelative(resolvedConfig.vodSingleVideoTemplate);
   resolvedConfig.vodPerSetTemplate = configRelative(resolvedConfig.vodPerSetTemplate);
   resolvedConfig.databaseDirectory = configRelative(resolvedConfig.databaseDirectory);
+  resolvedConfig.obs.binPath = configRelative(resolvedConfig.obs.binPath);
 
   const databaseRelative = <T extends string | null | undefined>(path: T): string | T =>
     path &&
