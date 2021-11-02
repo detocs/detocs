@@ -181,26 +181,28 @@ export default class ObsClient {
 
   public saveReplayBuffer(): ResultAsync<string, Error> {
     return this.getRecordingFolder()
-      .andThen(folder =>
-        this.obs.send('SaveReplayBuffer')
-          .andThen(() => ResultAsync.fromPromise(
-            this.waitForReplayFile(folder),
-            e => new ChainableError('Unable to save replay', e as Error),
-          ))
-      );
+      .andThen(folder => {
+        return this.obs.send('SaveReplayBuffer')
+          .map(() => logger.info('Saving replay buffer'))
+          .andThen(() => this.waitForReplayFile(folder));
+      });
   }
 
   // 'SaveReplayBuffer' doesn't wait until the file written to resolve, so we
   // need to listen for file creation
-  private waitForReplayFile = async (folder: string): Promise<string> => {
+  private waitForReplayFile(folder: string): ResultAsync<string, Error> {
     const glob = join(folder, OBS_REPLAY_PREFIX) + '*';
     let watcher: Watcher | undefined;
-    return new Promise<string>((resolve, reject) => {
+    const promise = new Promise<string>((resolve, reject) => {
       watcher = waitForFile(glob, resolve, reject);
-      setTimeout(() => reject(new Error('Timed out while waiting for replay file')), 10 * 1000);
+      setTimeout(() => reject(new Error('Timed out while waiting for replay file')), 30 * 1000);
     })
       .finally(() => watcher && watcher.close());
-  };
+    return ResultAsync.fromPromise(
+      promise,
+      e => e as Error,
+    );
+  }
 }
 
 function getLatestRecordingFileFromFolder(folder: string): ResultAsync<string | null, Error> {
