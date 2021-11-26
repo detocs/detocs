@@ -1,5 +1,7 @@
+$size: 2.5ex;
+
 .icon {
-  width: 2.5ex;
-  height: 2.5ex;
-  vertical-align: -0.5ex;
+  width: $size;
+  height: $size;
+  vertical-align: 1.5ex/2 - $size/2;
 }
