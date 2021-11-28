@@ -5,7 +5,6 @@ import ServerState, { Recording } from '@server/recording/state';
 import { checkResponseStatus } from '@util/ajax';
 
 import { recordingEndpoint } from './api';
-import { useLocalState } from './hooks/local-state';
 import { useStartTimestamp, useStopTimestamp, useRecording } from './hooks/recording';
 import { logError } from './log';
 import { Thumbnail } from './thumbnail';
@@ -72,12 +71,14 @@ interface RecordingProps {
 const Recording: FunctionalComponent<RecordingProps> = ({ recording, updateRecording }): VNode => {
   const [ startTimestamp, updateStart ] = useStartTimestamp(recording, updateRecording);
   const [ stopTimestamp, updateStop ] = useStopTimestamp(recording, updateRecording);
-  const canCut = startTimestamp && stopTimestamp && !recording.recordingFile;
+  const isCut = !!recording.recordingFile;
+  const canCut = startTimestamp && stopTimestamp && !isCut;
   // TODO: Prevent saving if start > stop
   // TODO: Recut recordings
+  // TODO: Loading spinner
   return (
     <li key={recording.id} class="recording__list-item">
-      <fieldset class="recording__block">
+      <fieldset class="recording__block" disabled={isCut}>
         { recording.displayName && <legend>{recording.displayName}</legend>}
         <form
           method="post"

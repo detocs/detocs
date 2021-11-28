@@ -1,4 +1,4 @@
-import { h, render, FunctionalComponent, VNode, Fragment } from 'preact';
+import { h, render, FunctionalComponent, VNode } from 'preact';
 import { ToastContainer as ReactToastContainer } from 'react-toastify';
 
 import BracketState, { nullState as nullBracketState } from '@server/bracket/state';
@@ -9,9 +9,7 @@ import {
 import InfoState, { nullState as nullInfoState } from '@server/info/state';
 import RecordingState, { nullState as nullRecordingState } from '@server/recording/state';
 import TwitterState, { nullState as nullTwitterState } from '@server/twitter/client-state';
-import { checkResponseStatus } from '@util/ajax';
 import { ancestors } from '@util/dom';
-import { massagedFormData } from '@util/forms';
 import { getVersion, getProductName } from '@util/meta';
 
 import {
@@ -25,6 +23,7 @@ import BracketDashboard from './bracket-dashboard';
 import BreakDashboard from './break-dashboard';
 import ClipDashboard from './clip-dashboard';
 import CommentaryDashboard from './commentary-dashboard';
+import { bindSubmitHandler } from './form-ajax';
 import { useServerState } from './hooks/server-state';
 import {
   usePlayersReversed,
@@ -129,35 +128,6 @@ const App: FunctionalComponent = (): VNode => {
     </ThumbnailSettingsContext.Provider>
   );
 };
-
-function bindSubmitHandler(): void {
-  document.addEventListener('submit', (event: Event) => {
-    const form = event.target as HTMLFormElement;
-    if (form.classList.contains('js-manual-form')) {
-      return;
-    }
-    const { action, method } = getFormRoute(form);
-    const body = massagedFormData(new FormData(form));
-    fetch(action, { method, body })
-      .then(checkResponseStatus)
-      .catch(logError);
-
-    event.preventDefault();
-  });
-}
-
-function getFormRoute(form: HTMLFormElement): { action: string, method: string } {
-  let action = form.action;
-  let method = form.method;
-  if (document.activeElement) {
-    const triggerAttributes = document.activeElement.attributes;
-    const actionAttr = triggerAttributes.getNamedItem('formaction');
-    const methodAttr = triggerAttributes.getNamedItem('formmethod');
-    action = (actionAttr && actionAttr.value) || action;
-    method = (methodAttr && methodAttr.value) || method;
-  }
-  return { action, method };
-}
 
 function bindInvalidHandler(): void {
   document.addEventListener('invalid', (event: Event) => {

@@ -253,11 +253,6 @@ async function updateRecording(req: Request, res: Response): Promise<void> {
 }
 
 async function cutRecording(req: Request, res: Response): Promise<void> {
-  const { folder, file } = await getRecordingFile();
-  if (!file || !folder) {
-    sendUserError(res, 'Attempted to cut recording before starting stream recording');
-    return;
-  }
   const recordingId = req.fields && req.fields['id'];
   if (recordingId == null || typeof recordingId != 'string') {
     sendUserError(res, 'No recording ID provided');
@@ -278,7 +273,7 @@ async function cutRecording(req: Request, res: Response): Promise<void> {
   }
 
   saveRecording(
-    folder,
+    path.dirname(recording.streamRecordingFile),
     recording.streamRecordingFile,
     recording.startTimestamp,
     recording.stopTimestamp,
@@ -291,6 +286,8 @@ async function cutRecording(req: Request, res: Response): Promise<void> {
     recording.recordingFile = file;
     broadcastState(state);
   }).catch(logger.error);
+
+  res.sendStatus(200);
 }
 
 async function getRecordingFile(): Promise<{ folder: string | null, file: string | null }> {
