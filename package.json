@@ -22,6 +22,7 @@
     "tsc": "tsc && tsc-alias",
     "webjs": "rollup -c -m",
     "webjs-analyze": "rollup -c -m --environment ANALYZE",
+    "screenshotjs": "tsc --project ./screenshots && tsc-alias",
     "webicons": "svg-sprite --symbol --dest build/public/icons --symbol-sprite icons.svg node_modules/heroicons/outline/dots-circle-horizontal.svg node_modules/heroicons/outline/x-circle.svg",
     "build": "gulp",
     "prestart": "npm run build",
@@ -36,7 +37,8 @@
     "postinstall": "patch-package && npm run license-check",
     "test": "jest --testPathIgnorePatterns='\\.it\\.'",
     "test-integration": "jest \\.it\\.",
-    "test-all": "npx jest"
+    "test-all": "npx jest",
+    "screenshots": "npm run build screenshots && node build/screenshots/main.js"
   },
   "build": {
     "appId": "com.datagram.detocs",
@@ -165,6 +167,7 @@
     "postcss-input-range": "^4.0.0",
     "postcss-preset-env": "^6.7.0",
     "preact": "^10.0.0-rc.2",
+    "puppeteer": "^13.0.1",
     "react-toastify": "^6.0.6",
     "reconnecting-websocket": "^4.4.0",
     "rollup": "^2.18.0",

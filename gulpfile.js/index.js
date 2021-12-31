@@ -1,5 +1,10 @@
+const fs = require('fs').promises;
+
 const { series, parallel, src, dest } = require('gulp');
 const run = require('gulp-run');
+
+const clean = () =>
+  fs.rmdir('build', { recursive: true, force: true });
 
 const builtinAssets = () =>
   src('assets/templates/**/*')
@@ -24,13 +29,24 @@ const webImages = () =>
 const webJs = () =>
   run('npm run webjs').exec();
 
-const build = parallel(
-  builtinAssets,
-  webCss,
-  webHtml,
-  webIcons,
-  webImages,
-  series(tsc, webJs),
+const screenshotJs = () =>
+  run('npm run screenshotjs').exec();
+
+const build = series(
+  clean,
+  parallel(
+    builtinAssets,
+    webCss,
+    webHtml,
+    webIcons,
+    webImages,
+    series(tsc, webJs),
+  ),
+);
+
+const screenshots = series(
+  build,
+  screenshotJs,
 );
 
 module.exports = {
@@ -38,4 +54,5 @@ module.exports = {
   build,
   webCss,
   webHtml,
+  screenshots,
 };
