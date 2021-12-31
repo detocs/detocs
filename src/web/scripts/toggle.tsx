@@ -16,6 +16,7 @@ export interface ToggleProps<T extends string> {
 }
 
 export default function Toggle<T extends string>({
+  name,
   options,
   selected,
   onChange,

@@ -10,7 +10,7 @@ export function validateJson(str: string): Error | null {
   try {
     JSON.parse(str);
   } catch (error) {
-    return error;
+    return error as Error;
   }
   return null;
 }

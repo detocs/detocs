@@ -49,11 +49,12 @@ function mergeSetParticipant(orig: Person, {
       [serviceName]: serviceId,
     },
   };
-  if (incoming.handle !== orig.handle) {
-    extra.alias = incoming.handle;
+  const incomingPerson: Partial<Person> = incoming;
+  if (incomingPerson.handle !== orig.handle) {
+    extra.alias = incomingPerson.handle;
   }
-  delete incoming.handle;
-  const merged = merge({}, orig, incoming, extra);
+  delete incomingPerson.handle;
+  const merged = merge({}, orig, incomingPerson, extra);
   return merged;
 }
 

@@ -73,7 +73,7 @@ async function getTemplate(file: string): Promise<VodTemplate>  {
     renderTemplate(TEST_DATA);
     return renderTemplate;
   } catch (e) {
-    throw new Error('Template unable to render sample output', e);
+    throw new Error('Template unable to render sample output', e as Error);
   }
 }
 

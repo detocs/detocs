@@ -16,5 +16,5 @@ export function setDefaultEscapingFunction(
 }
 
 function isSafeString(value: unknown): value is Handlebars.SafeString {
-  return value && typeof value === 'object' && 'toHTML' in value;
+  return !!value && typeof value === 'object' && 'toHTML' in value;
 }

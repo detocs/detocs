@@ -4,7 +4,7 @@ export function validateCsv(str: string): Error | null {
   try {
     parse(str);
   } catch (error) {
-    return error;
+    return error as Error;
   }
   return null;
 }

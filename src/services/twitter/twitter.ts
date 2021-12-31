@@ -82,7 +82,7 @@ export class ApiTwitterClient implements TwitterClient {
       this.user = user;
       this.loginCallbacks.forEach(cb => cb(user));
     } catch (err) {
-      throw new ChainableError('Unable to log in', err);
+      throw new ChainableError('Unable to log in', err as Error);
     }
   }
 

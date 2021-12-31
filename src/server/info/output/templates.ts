@@ -136,7 +136,7 @@ function parseTemplate(contents: string, name: string): Result<OutputTemplate, E
     try {
       return ok(renderTemplate(templateData));
     } catch (error) {
-      return err(error);
+      return err(error as Error);
     }
   };
   return render(sampleState)

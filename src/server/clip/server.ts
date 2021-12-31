@@ -113,7 +113,7 @@ class ClipServer {
     try {
       screenshot = await this.media.getCurrentFullScreenshot();
     } catch(err) {
-      sendServerError(res, 'Unable to get screenshot:', err);
+      sendServerError(res, 'Unable to get screenshot:', err as Error);
       return;
     }
     if (!screenshot) {

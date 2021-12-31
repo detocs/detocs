@@ -298,7 +298,7 @@ function rangeUpdateHandler(
   playbackUpdater: (timestampMs: number) => void,
   offset = 0,
   minValue = 0,
-): EventHandlerNonNull {
+): (event: Event) => void {
   return (e) => {
     if (!videoRef.current) {
       return;
@@ -318,7 +318,7 @@ function rangeUpdateHandler(
 function playbackUpdateHandler(
   videoRef: PropRef<HTMLVideoElement>,
   playbackUpdater: (timestampMs: number) => void,
-): EventHandlerNonNull {
+): (event: Event) => void {
   return (e) => {
     if (!videoRef.current) {
       return;

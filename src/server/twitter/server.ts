@@ -146,7 +146,7 @@ class TwitterServer {
       res.sendStatus(200);
       this.broadcastState();
     } catch (err) {
-      sendServerError(res, err);
+      sendServerError(res, err as Error);
       return;
     }
   };
