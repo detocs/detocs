@@ -5,8 +5,8 @@
   "description": "Datagram's Esports Tournament Overlay Control System",
   "author": "Adrian Mullings",
   "license": "AGPL-3.0",
-  "repository": "github:data-enabler/detocs",
-  "homepage": "https://github.com/data-enabler/detocs",
+  "repository": "github:detocs/detocs",
+  "homepage": "https://github.com/detocs/detocs",
   "files": [
     "build/*"
   ],
