@@ -1,3 +1,4 @@
+import { promises as fs } from 'fs';
 import path from 'path';
 import { exit } from 'process';
 
@@ -79,7 +80,22 @@ async function takeScreenshots(): Promise<void> {
     {
       url: '/#scoreboard',
       viewport: { width: 1120, height: 250 },
-      outputPath: 'test.png',
+      outputPath: 'docs/images/tab_scoreboard.png',
+    },
+    {
+      url: '/#bracket',
+      viewport: { width: 1120, height: 400 },
+      outputPath: 'docs/images/tab_bracket.png',
+    },
+    {
+      url: '/#twitter',
+      viewport: { width: 1120, height: 360 },
+      outputPath: 'docs/images/tab_twitter.png',
+    },
+    {
+      url: '/#clips',
+      viewport: { width: 1120, height: 250 },
+      outputPath: 'docs/images/tab_clips.png',
     },
   ].map(takeScreenshot))
     .then(() => { /* void */ });
@@ -103,6 +119,7 @@ async function takeScreenshot({
   console.log(`Opening ${fullUrl}`);
   await page.goto(fullUrl);
   console.log(`Saving ${outputPath}`);
+  await fs.mkdir(path.dirname(outputPath), { recursive: true });
   await page.screenshot({ path: outputPath });
   await browser.close();
 }
