@@ -146,6 +146,7 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
               class="twitter__tweet-text"
               name="body"
               value={body}
+              aria-label="Tweet body"
               autofocus={true}
               ref={bodyRef}
               onInput={textHandler}
