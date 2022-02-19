@@ -1,0 +1,73 @@
+{
+  "clips": [
+    {
+      "clip": {
+        "id": "d202201170213331510000",
+        "media": {
+          "filename": "full2_2.jpg",
+          "url": "/media/full2_2.jpg",
+          "type": "image",
+          "height": 720
+        },
+        "description": "First Screenshot"
+      },
+      "status": "RENDERED"
+    },
+    {
+      "clip": {
+        "id": "d202201170213439040000",
+        "media": {
+          "type": "video",
+          "filename": "clip.webm",
+          "url": "/media/clip.webm",
+          "durationMs": 58000
+        },
+        "waveform": {
+          "type": "image",
+          "filename": "example_waveform.png",
+          "url": "/media/example_waveform.png",
+          "height": 80
+        },
+        "thumbnail": {
+          "type": "image",
+          "filename": "thumb2_1.png",
+          "url": "/media/thumb2_1.png",
+          "height": 135
+        },
+        "clipEndMs": 50884,
+        "clipStartMs": 35884,
+        "description": "First Clip"
+      },
+      "status": "UNCUT"
+    },
+    {
+      "clip": {
+        "id": "d202201170214061400000",
+        "media": {
+          "type": "video",
+          "filename": "clip.webm",
+          "url": "/media/clip.webm",
+          "durationMs": 58000
+        },
+        "waveform": {
+          "type": "image",
+          "filename": "example_waveform.png",
+          "url": "/media/example_waveform.png",
+          "height": 80
+        },
+        "thumbnail": {
+          "type": "image",
+          "filename": "thumb1_2.png",
+          "url": "/media/thumb1_2.png",
+          "height": 135
+        },
+        "clipEndMs": 43750,
+        "clipStartMs": 29250,
+        "description": "Second Clip",
+        "recordingTimestampMs": 4507135,
+        "streamTimestampMs": 5507135
+      },
+      "status": "UNCUT"
+    }
+  ]
+}
