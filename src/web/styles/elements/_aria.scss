@@ -32,6 +32,10 @@
     border-top-color: hsla(0, 0%, 100%, 1);
     border-radius: 50%;
 
+    @media (prefers-reduced-motion) {
+      animation-play-state: paused;
+    }
+
     @keyframes spinner {
       from {
         transform: translate(-50%, -50%) rotate(0);

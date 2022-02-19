@@ -51,13 +51,17 @@ export const ClipSelector: FunctionalComponent<ClipSelectorModalProps> = ({
           </div>
           <input type="radio" name="clipId" value="" checked={currentClipId == null}/>
         </label> }
-        {clips.slice().reverse().map(clipView => (
+        {clips.slice().reverse().map((clipView, index) => (
           <label
             key={clipView.clip.id}
             class={clsx(
               'clip-selector__option',
               currentClipId === clipView.clip.id && 'clip-selector__option--selected',
             )}
+            aria-label={
+              clipView.clip.description ||
+                (isVideoClip(clipView.clip) ? `Clip ${index+1}` : `Screenshot ${index+1}`)
+            }
             aria-busy={clipView.status === ClipStatus.Rendering}
           >
             <input

@@ -1,0 +1,46 @@
+{
+  "recordings": [
+    {
+      "id": "d202201170223094410000",
+      "streamRecordingFile": "",
+      "recordingFile": null,
+      "startTimestamp": "01:11:56.626",
+      "stopTimestamp": "01:20:03.961",
+      "startThumbnail": {
+        "filename": "thumb1_1.png",
+        "url": "/media/thumb1_1.png",
+        "type": "image",
+        "height": 135
+      },
+      "stopThumbnail": {
+        "filename": "thumb1_3.png",
+        "url": "/media/thumb1_3.png",
+        "type": "image",
+        "height": 135
+      },
+      "displayName": "ls: Player3 vs Player4",
+      "metadata": {}
+    },
+    {
+      "id": "d202201170222331640000",
+      "streamRecordingFile": "",
+      "recordingFile": null,
+      "startTimestamp": "01:02:20.349",
+      "stopTimestamp": "01:09:42.783",
+      "startThumbnail": {
+        "filename": "thumb2_1.png",
+        "url": "/media/thumb2_1.png",
+        "type": "image",
+        "height": 135
+      },
+      "stopThumbnail": {
+        "filename": "thumb2_2.png",
+        "url": "/media/thumb2_2.png",
+        "type": "image",
+        "height": 135
+      },
+      "displayName": "wf: Player1 vs Player2",
+      "metadata": {}
+    }
+  ]
+}

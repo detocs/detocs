@@ -1,0 +1,65 @@
+{
+  "players": [
+    {
+      "person": {
+        "id": "d202201010000000000000",
+        "handle": "Author",
+        "prefix": "LP",
+        "alias": "Datagram",
+        "serviceIds": {
+          "twitter": "gramofdata"
+        }
+      },
+      "score": 1
+    },
+    {
+      "person": {
+        "id": "d202201010000000000001",
+        "handle": "Player 2",
+        "prefix": null,
+        "serviceIds": {}
+      },
+      "score": 0
+    }
+  ],
+  "match": {
+    "id": "ws",
+    "name": "Winners Semis",
+    "smashggId": "Winners Semi-Final"
+  },
+  "game": {
+    "id": "mbtl",
+    "name": "Melty Blood Type Lumina",
+    "shortNames": [],
+    "hashtags": [],
+    "serviceInfo": {}
+  },
+  "commentators": [
+    {
+      "person": {
+        "id": "d202201010000000000002",
+        "handle": "Commentator 1",
+        "prefix": "ABc",
+        "serviceIds": {
+          "twitter": "com1"
+        }
+      }
+    },
+    {
+      "person": {
+        "id": "d202201010000000000003",
+        "handle": "Commentator 2",
+        "prefix": "XYZ",
+        "serviceIds": {
+          "twitter": "com2"
+        }
+      }
+    }
+  ],
+  "tournament": "Competition Cup 2",
+  "event": "Street Fighter V top 8",
+  "messages": [
+    "Starting Soon!",
+    "Bottom Text"
+  ]
+}

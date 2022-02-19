@@ -379,6 +379,7 @@ const VideoEditor: FunctionalComponent<VideoEditorProps> = (props) => {
           {!isRendered && <input
             type="range"
             name="startMs"
+            aria-label="Clip start"
             class="video-editor__range-bound video-editor__range-start"
             style={`--range-width: ${startRangePercentage}`}
             min={0}
@@ -391,6 +392,7 @@ const VideoEditor: FunctionalComponent<VideoEditorProps> = (props) => {
           />}
           <input
             type="range"
+            aria-label="Playback position"
             class="video-editor__playback-cursor"
             min={0}
             max={durationMs}
@@ -405,6 +407,7 @@ const VideoEditor: FunctionalComponent<VideoEditorProps> = (props) => {
           {!isRendered && <input
             type="range"
             name="endMs"
+            aria-label="Clip end"
             class="video-editor__range-bound video-editor__range-end"
             style={`--range-width: ${endRangePercentage}`}
             min={endMinimum}

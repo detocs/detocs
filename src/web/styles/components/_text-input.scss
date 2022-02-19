@@ -45,6 +45,10 @@ $border: $borderSize inset rgb(238, 238, 238); // Default browser border color
   transition-timing-function: ease-in-out;
   transition-property: bottom, opacity, font-size, line-height;
 
+  @media (prefers-reduced-motion) {
+    transition-duration: 0s;
+  }
+
   @at-root .textInput__input:placeholder-shown + & {
     bottom: 0;
 

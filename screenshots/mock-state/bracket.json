@@ -1,0 +1,4438 @@
+{
+  "tournament": {
+    "id": "122950",
+    "name": "COMBO BREAKER 2019",
+    "url": "https://smash.gg/tournament/combo-breaker-2019/events"
+  },
+  "tournamentId": "122950",
+  "events": [
+    {
+      "id": "282982",
+      "name": "Mortal Kombat 11",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11"
+    },
+    {
+      "id": "283329",
+      "name": "TEKKEN 7",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7"
+    },
+    {
+      "id": "283330",
+      "name": "Street Fighter V: Arcade Edition",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition"
+    },
+    {
+      "id": "283331",
+      "name": "DRAGON BALL FighterZ",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/dragon-ball-fighterz"
+    },
+    {
+      "id": "283332",
+      "name": "Guilty Gear Xrd Rev 2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/guilty-gear-xrd-rev-2"
+    },
+    {
+      "id": "283333",
+      "name": "Soulcalibur VI",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/soulcalibur-vi"
+    },
+    {
+      "id": "283334",
+      "name": "BlazBlue: Cross Tag Battle",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/blazblue-cross-tag-battle"
+    },
+    {
+      "id": "283335",
+      "name": "Under Night In-Birth Exe:Late[st]",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/under-night-in-birth-exe-late-st"
+    },
+    {
+      "id": "283336",
+      "name": "Killer Instinct",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/killer-instinct"
+    },
+    {
+      "id": "283337",
+      "name": "Skullgirls: 2nd Encore",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/skullgirls-2nd-encore"
+    },
+    {
+      "id": "283339",
+      "name": "The King of Fighters XIV",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/the-king-of-fighters-xiv"
+    },
+    {
+      "id": "283340",
+      "name": "Marvel vs. Capcom: Infinite",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/marvel-vs-capcom-infinite"
+    },
+    {
+      "id": "283341",
+      "name": "Super Smash Bros. Ultimate Singles",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-smash-bros-ultimate-singles"
+    },
+    {
+      "id": "283343",
+      "name": "Super Smash Bros. Ultimate Doubles",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-smash-bros-ultimate-doubles"
+    },
+    {
+      "id": "283344",
+      "name": "Vampire Savior",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/vampire-savior"
+    },
+    {
+      "id": "283345",
+      "name": "Super Street Fighter II Turbo",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-street-fighter-ii-turbo"
+    },
+    {
+      "id": "283346",
+      "name": "Street Fighter III: 3rd Strike",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-iii-3rd-strike"
+    },
+    {
+      "id": "283348",
+      "name": "Mystery Game Tournament",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mystery-game-tournament"
+    },
+    {
+      "id": "283349",
+      "name": "Street Fighter Alpha 2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-alpha-2"
+    },
+    {
+      "id": "283350",
+      "name": "Capcom vs. SNK 2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/capcom-vs-snk-2"
+    },
+    {
+      "id": "283351",
+      "name": "Soulcalibur II",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/soulcalibur-ii"
+    },
+    {
+      "id": "283352",
+      "name": "Marvel vs. Capcom 2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/marvel-vs-capcom-2"
+    },
+    {
+      "id": "283353",
+      "name": "Street Fighter EX2 Plus",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-ex2-plus"
+    },
+    {
+      "id": "283354",
+      "name": "TMNT Tournament Fighters",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tmnt-tournament-fighters"
+    }
+  ],
+  "eventId": "283330",
+  "phases": [
+    {
+      "id": "591909",
+      "name": "Phase 1",
+      "eventId": "282982",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909",
+      "startAt": null
+    },
+    {
+      "id": "591910",
+      "name": "Phase 2",
+      "eventId": "282982",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591910",
+      "startAt": null
+    },
+    {
+      "id": "591911",
+      "name": "Top 24",
+      "eventId": "282982",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591911",
+      "startAt": null
+    },
+    {
+      "id": "591912",
+      "name": "Phase 1",
+      "eventId": "283329",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912",
+      "startAt": null
+    },
+    {
+      "id": "591913",
+      "name": "Phase 2",
+      "eventId": "283329",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591913",
+      "startAt": null
+    },
+    {
+      "id": "591914",
+      "name": "Top 24",
+      "eventId": "283329",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591914",
+      "startAt": null
+    },
+    {
+      "id": "591915",
+      "name": "Phase 1",
+      "eventId": "283330",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915",
+      "startAt": null
+    },
+    {
+      "id": "591916",
+      "name": "Phase 2",
+      "eventId": "283330",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591916",
+      "startAt": null
+    },
+    {
+      "id": "591917",
+      "name": "Top 24",
+      "eventId": "283330",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591917",
+      "startAt": null
+    },
+    {
+      "id": "591918",
+      "name": "Pools",
+      "eventId": "283331",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/dragon-ball-fighterz/brackets/591918",
+      "startAt": null
+    },
+    {
+      "id": "591919",
+      "name": "Top 48",
+      "eventId": "283331",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/dragon-ball-fighterz/brackets/591919",
+      "startAt": null
+    },
+    {
+      "id": "591920",
+      "name": "Pools",
+      "eventId": "283332",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/guilty-gear-xrd-rev-2/brackets/591920",
+      "startAt": null
+    },
+    {
+      "id": "591921",
+      "name": "Top 48",
+      "eventId": "283332",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/guilty-gear-xrd-rev-2/brackets/591921",
+      "startAt": null
+    },
+    {
+      "id": "591922",
+      "name": "Pools",
+      "eventId": "283333",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/soulcalibur-vi/brackets/591922",
+      "startAt": null
+    },
+    {
+      "id": "591923",
+      "name": "Top 48",
+      "eventId": "283333",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/soulcalibur-vi/brackets/591923",
+      "startAt": null
+    },
+    {
+      "id": "591924",
+      "name": "Pools",
+      "eventId": "283334",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/blazblue-cross-tag-battle/brackets/591924",
+      "startAt": null
+    },
+    {
+      "id": "591925",
+      "name": "Top 24",
+      "eventId": "283334",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/blazblue-cross-tag-battle/brackets/591925",
+      "startAt": null
+    },
+    {
+      "id": "591926",
+      "name": "Pools",
+      "eventId": "283335",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/under-night-in-birth-exe-late-st/brackets/591926",
+      "startAt": null
+    },
+    {
+      "id": "591927",
+      "name": "Top 48",
+      "eventId": "283335",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/under-night-in-birth-exe-late-st/brackets/591927",
+      "startAt": null
+    },
+    {
+      "id": "591928",
+      "name": "Pools",
+      "eventId": "283336",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/killer-instinct/brackets/591928",
+      "startAt": null
+    },
+    {
+      "id": "591929",
+      "name": "Top 24",
+      "eventId": "283336",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/killer-instinct/brackets/591929",
+      "startAt": null
+    },
+    {
+      "id": "591930",
+      "name": "Pools",
+      "eventId": "283337",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/skullgirls-2nd-encore/brackets/591930",
+      "startAt": null
+    },
+    {
+      "id": "591931",
+      "name": "Top 24",
+      "eventId": "283337",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/skullgirls-2nd-encore/brackets/591931",
+      "startAt": null
+    },
+    {
+      "id": "591932",
+      "name": "Pools",
+      "eventId": "283339",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/the-king-of-fighters-xiv/brackets/591932",
+      "startAt": null
+    },
+    {
+      "id": "591933",
+      "name": "Top 8",
+      "eventId": "283339",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/the-king-of-fighters-xiv/brackets/591933",
+      "startAt": null
+    },
+    {
+      "id": "591934",
+      "name": "Pools",
+      "eventId": "283340",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/marvel-vs-capcom-infinite/brackets/591934",
+      "startAt": null
+    },
+    {
+      "id": "591935",
+      "name": "Top 24",
+      "eventId": "283340",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/marvel-vs-capcom-infinite/brackets/591935",
+      "startAt": null
+    },
+    {
+      "id": "591936",
+      "name": "Pools",
+      "eventId": "283341",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-smash-bros-ultimate-singles/brackets/591936",
+      "startAt": null
+    },
+    {
+      "id": "591937",
+      "name": "Top 64",
+      "eventId": "283341",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-smash-bros-ultimate-singles/brackets/591937",
+      "startAt": null
+    },
+    {
+      "id": "591938",
+      "name": "Pools",
+      "eventId": "283343",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-smash-bros-ultimate-doubles/brackets/591938",
+      "startAt": null
+    },
+    {
+      "id": "591939",
+      "name": "Top 8",
+      "eventId": "283343",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-smash-bros-ultimate-doubles/brackets/591939",
+      "startAt": null
+    },
+    {
+      "id": "591940",
+      "name": "Pools",
+      "eventId": "283344",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/vampire-savior/brackets/591940",
+      "startAt": null
+    },
+    {
+      "id": "591941",
+      "name": "Top 24",
+      "eventId": "283344",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/vampire-savior/brackets/591941",
+      "startAt": null
+    },
+    {
+      "id": "591942",
+      "name": "Pools",
+      "eventId": "283345",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-street-fighter-ii-turbo/brackets/591942",
+      "startAt": null
+    },
+    {
+      "id": "591943",
+      "name": "Top 24",
+      "eventId": "283345",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-street-fighter-ii-turbo/brackets/591943",
+      "startAt": null
+    },
+    {
+      "id": "591944",
+      "name": "Pools",
+      "eventId": "283346",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-iii-3rd-strike/brackets/591944",
+      "startAt": null
+    },
+    {
+      "id": "591945",
+      "name": "Top 24",
+      "eventId": "283346",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-iii-3rd-strike/brackets/591945",
+      "startAt": null
+    },
+    {
+      "id": "591946",
+      "name": "Phase 1",
+      "eventId": "283348",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mystery-game-tournament/brackets/591946",
+      "startAt": null
+    },
+    {
+      "id": "591947",
+      "name": "Phase 2",
+      "eventId": "283348",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mystery-game-tournament/brackets/591947",
+      "startAt": null
+    },
+    {
+      "id": "591948",
+      "name": "Top 8",
+      "eventId": "283348",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mystery-game-tournament/brackets/591948",
+      "startAt": null
+    },
+    {
+      "id": "591949",
+      "name": "Pools",
+      "eventId": "283349",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-alpha-2/brackets/591949",
+      "startAt": null
+    },
+    {
+      "id": "591950",
+      "name": "Top 8",
+      "eventId": "283349",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-alpha-2/brackets/591950",
+      "startAt": null
+    },
+    {
+      "id": "591951",
+      "name": "Pools",
+      "eventId": "283350",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/capcom-vs-snk-2/brackets/591951",
+      "startAt": null
+    },
+    {
+      "id": "591952",
+      "name": "Top 8",
+      "eventId": "283350",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/capcom-vs-snk-2/brackets/591952",
+      "startAt": null
+    },
+    {
+      "id": "591953",
+      "name": "Pools",
+      "eventId": "283351",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/soulcalibur-ii/brackets/591953",
+      "startAt": null
+    },
+    {
+      "id": "591954",
+      "name": "Top 8",
+      "eventId": "283351",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/soulcalibur-ii/brackets/591954",
+      "startAt": null
+    },
+    {
+      "id": "591955",
+      "name": "Pools",
+      "eventId": "283352",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/marvel-vs-capcom-2/brackets/591955",
+      "startAt": null
+    },
+    {
+      "id": "591956",
+      "name": "Top 8",
+      "eventId": "283352",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/marvel-vs-capcom-2/brackets/591956",
+      "startAt": null
+    },
+    {
+      "id": "485898",
+      "name": "Bracket",
+      "eventId": "283353",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-ex2-plus/brackets/485898",
+      "startAt": null
+    },
+    {
+      "id": "591957",
+      "name": "Pools",
+      "eventId": "283354",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tmnt-tournament-fighters/brackets/591957",
+      "startAt": null
+    },
+    {
+      "id": "591958",
+      "name": "Top 8",
+      "eventId": "283354",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tmnt-tournament-fighters/brackets/591958",
+      "startAt": null
+    }
+  ],
+  "phaseId": "591917",
+  "phaseGroups": [
+    {
+      "id": "984959",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "A1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984959"
+    },
+    {
+      "id": "984960",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "A2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984960"
+    },
+    {
+      "id": "984961",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "A3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984961"
+    },
+    {
+      "id": "984962",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "A4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984962"
+    },
+    {
+      "id": "984963",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "B1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984963"
+    },
+    {
+      "id": "984964",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "B2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984964"
+    },
+    {
+      "id": "984965",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "B3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984965"
+    },
+    {
+      "id": "984966",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "B4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984966"
+    },
+    {
+      "id": "984967",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "C1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984967"
+    },
+    {
+      "id": "984968",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "C2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984968"
+    },
+    {
+      "id": "984969",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "C3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984969"
+    },
+    {
+      "id": "984970",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "C4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984970"
+    },
+    {
+      "id": "984971",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "D1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984971"
+    },
+    {
+      "id": "984972",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "D2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984972"
+    },
+    {
+      "id": "984973",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "D3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984973"
+    },
+    {
+      "id": "984974",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "D4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984974"
+    },
+    {
+      "id": "984975",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "G1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984975"
+    },
+    {
+      "id": "984976",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "G2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984976"
+    },
+    {
+      "id": "984977",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "G3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984977"
+    },
+    {
+      "id": "984978",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "G4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984978"
+    },
+    {
+      "id": "984979",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "H1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984979"
+    },
+    {
+      "id": "984980",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "H2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984980"
+    },
+    {
+      "id": "984981",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "H3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984981"
+    },
+    {
+      "id": "984982",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "H4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984982"
+    },
+    {
+      "id": "984983",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "I1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984983"
+    },
+    {
+      "id": "984984",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "I2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984984"
+    },
+    {
+      "id": "984985",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "I3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984985"
+    },
+    {
+      "id": "984986",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "I4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984986"
+    },
+    {
+      "id": "984987",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "J1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984987"
+    },
+    {
+      "id": "984988",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "J2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984988"
+    },
+    {
+      "id": "984989",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "J3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984989"
+    },
+    {
+      "id": "984990",
+      "phaseId": "591909",
+      "eventId": "282982",
+      "name": "J4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591909/984990"
+    },
+    {
+      "id": "984991",
+      "phaseId": "591910",
+      "eventId": "282982",
+      "name": "K1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591910/984991"
+    },
+    {
+      "id": "984992",
+      "phaseId": "591910",
+      "eventId": "282982",
+      "name": "K3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591910/984992"
+    },
+    {
+      "id": "984993",
+      "phaseId": "591910",
+      "eventId": "282982",
+      "name": "L1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591910/984993"
+    },
+    {
+      "id": "984994",
+      "phaseId": "591910",
+      "eventId": "282982",
+      "name": "L3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591910/984994"
+    },
+    {
+      "id": "984995",
+      "phaseId": "591911",
+      "eventId": "282982",
+      "name": "MK1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mortal-kombat-11/brackets/591911/984995"
+    },
+    {
+      "id": "984996",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "A1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/984996"
+    },
+    {
+      "id": "984997",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "A2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/984997"
+    },
+    {
+      "id": "984998",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "A3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/984998"
+    },
+    {
+      "id": "984999",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "A4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/984999"
+    },
+    {
+      "id": "985000",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "B1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/985000"
+    },
+    {
+      "id": "985001",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "B2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/985001"
+    },
+    {
+      "id": "985002",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "B3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/985002"
+    },
+    {
+      "id": "985003",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "B4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/985003"
+    },
+    {
+      "id": "985004",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "C1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/985004"
+    },
+    {
+      "id": "985005",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "C2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/985005"
+    },
+    {
+      "id": "985006",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "C3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/985006"
+    },
+    {
+      "id": "985007",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "C4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/985007"
+    },
+    {
+      "id": "985008",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "D1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/985008"
+    },
+    {
+      "id": "985009",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "D2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/985009"
+    },
+    {
+      "id": "985010",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "D3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/985010"
+    },
+    {
+      "id": "985011",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "D4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/985011"
+    },
+    {
+      "id": "985012",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "E1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/985012"
+    },
+    {
+      "id": "985013",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "E2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/985013"
+    },
+    {
+      "id": "985014",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "E3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/985014"
+    },
+    {
+      "id": "985015",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "E4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/985015"
+    },
+    {
+      "id": "985016",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "G1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/985016"
+    },
+    {
+      "id": "985017",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "G2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/985017"
+    },
+    {
+      "id": "985018",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "G3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/985018"
+    },
+    {
+      "id": "985019",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "G4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/985019"
+    },
+    {
+      "id": "985020",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "H1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/985020"
+    },
+    {
+      "id": "985021",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "H2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/985021"
+    },
+    {
+      "id": "985022",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "H3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/985022"
+    },
+    {
+      "id": "985023",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "H4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/985023"
+    },
+    {
+      "id": "985024",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "I1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/985024"
+    },
+    {
+      "id": "985025",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "I2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/985025"
+    },
+    {
+      "id": "985026",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "I3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/985026"
+    },
+    {
+      "id": "985027",
+      "phaseId": "591912",
+      "eventId": "283329",
+      "name": "I4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591912/985027"
+    },
+    {
+      "id": "985028",
+      "phaseId": "591913",
+      "eventId": "283329",
+      "name": "J1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591913/985028"
+    },
+    {
+      "id": "985029",
+      "phaseId": "591913",
+      "eventId": "283329",
+      "name": "J3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591913/985029"
+    },
+    {
+      "id": "985030",
+      "phaseId": "591913",
+      "eventId": "283329",
+      "name": "K1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591913/985030"
+    },
+    {
+      "id": "985031",
+      "phaseId": "591913",
+      "eventId": "283329",
+      "name": "K3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591913/985031"
+    },
+    {
+      "id": "985032",
+      "phaseId": "591914",
+      "eventId": "283329",
+      "name": "TK1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tekken-7/brackets/591914/985032"
+    },
+    {
+      "id": "985033",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "B1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985033"
+    },
+    {
+      "id": "985034",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "B2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985034"
+    },
+    {
+      "id": "985035",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "B3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985035"
+    },
+    {
+      "id": "985036",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "B4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985036"
+    },
+    {
+      "id": "985037",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "C1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985037"
+    },
+    {
+      "id": "985038",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "C2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985038"
+    },
+    {
+      "id": "985039",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "C3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985039"
+    },
+    {
+      "id": "985040",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "C4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985040"
+    },
+    {
+      "id": "985041",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "D1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985041"
+    },
+    {
+      "id": "985042",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "D2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985042"
+    },
+    {
+      "id": "985043",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "D3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985043"
+    },
+    {
+      "id": "985044",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "D4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985044"
+    },
+    {
+      "id": "985045",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "E1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985045"
+    },
+    {
+      "id": "985046",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "E2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985046"
+    },
+    {
+      "id": "985047",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "E3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985047"
+    },
+    {
+      "id": "985048",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "E4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985048"
+    },
+    {
+      "id": "985049",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "G1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985049"
+    },
+    {
+      "id": "985050",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "G2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985050"
+    },
+    {
+      "id": "985051",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "G3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985051"
+    },
+    {
+      "id": "985052",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "G4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985052"
+    },
+    {
+      "id": "985053",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "H1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985053"
+    },
+    {
+      "id": "985054",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "H2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985054"
+    },
+    {
+      "id": "985055",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "H3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985055"
+    },
+    {
+      "id": "985056",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "H4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985056"
+    },
+    {
+      "id": "985057",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "I1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985057"
+    },
+    {
+      "id": "985058",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "I2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985058"
+    },
+    {
+      "id": "985059",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "I3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985059"
+    },
+    {
+      "id": "985060",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "I4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985060"
+    },
+    {
+      "id": "985061",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "J1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985061"
+    },
+    {
+      "id": "985062",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "J2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985062"
+    },
+    {
+      "id": "985063",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "J3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985063"
+    },
+    {
+      "id": "985064",
+      "phaseId": "591915",
+      "eventId": "283330",
+      "name": "J4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591915/985064"
+    },
+    {
+      "id": "985065",
+      "phaseId": "591916",
+      "eventId": "283330",
+      "name": "K1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591916/985065"
+    },
+    {
+      "id": "985066",
+      "phaseId": "591916",
+      "eventId": "283330",
+      "name": "K3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591916/985066"
+    },
+    {
+      "id": "985067",
+      "phaseId": "591916",
+      "eventId": "283330",
+      "name": "L1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591916/985067"
+    },
+    {
+      "id": "985068",
+      "phaseId": "591916",
+      "eventId": "283330",
+      "name": "L3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591916/985068"
+    },
+    {
+      "id": "985069",
+      "phaseId": "591917",
+      "eventId": "283330",
+      "name": "SFV1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-v-arcade-edition/brackets/591917/985069"
+    },
+    {
+      "id": "985070",
+      "phaseId": "591918",
+      "eventId": "283331",
+      "name": "B1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/dragon-ball-fighterz/brackets/591918/985070"
+    },
+    {
+      "id": "985071",
+      "phaseId": "591918",
+      "eventId": "283331",
+      "name": "B2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/dragon-ball-fighterz/brackets/591918/985071"
+    },
+    {
+      "id": "985072",
+      "phaseId": "591918",
+      "eventId": "283331",
+      "name": "B3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/dragon-ball-fighterz/brackets/591918/985072"
+    },
+    {
+      "id": "985073",
+      "phaseId": "591918",
+      "eventId": "283331",
+      "name": "C1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/dragon-ball-fighterz/brackets/591918/985073"
+    },
+    {
+      "id": "985074",
+      "phaseId": "591918",
+      "eventId": "283331",
+      "name": "C2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/dragon-ball-fighterz/brackets/591918/985074"
+    },
+    {
+      "id": "985075",
+      "phaseId": "591918",
+      "eventId": "283331",
+      "name": "C3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/dragon-ball-fighterz/brackets/591918/985075"
+    },
+    {
+      "id": "985076",
+      "phaseId": "591918",
+      "eventId": "283331",
+      "name": "D1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/dragon-ball-fighterz/brackets/591918/985076"
+    },
+    {
+      "id": "985077",
+      "phaseId": "591918",
+      "eventId": "283331",
+      "name": "D2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/dragon-ball-fighterz/brackets/591918/985077"
+    },
+    {
+      "id": "985078",
+      "phaseId": "591918",
+      "eventId": "283331",
+      "name": "D3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/dragon-ball-fighterz/brackets/591918/985078"
+    },
+    {
+      "id": "985079",
+      "phaseId": "591918",
+      "eventId": "283331",
+      "name": "E1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/dragon-ball-fighterz/brackets/591918/985079"
+    },
+    {
+      "id": "985080",
+      "phaseId": "591918",
+      "eventId": "283331",
+      "name": "E2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/dragon-ball-fighterz/brackets/591918/985080"
+    },
+    {
+      "id": "985081",
+      "phaseId": "591918",
+      "eventId": "283331",
+      "name": "E3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/dragon-ball-fighterz/brackets/591918/985081"
+    },
+    {
+      "id": "985082",
+      "phaseId": "591918",
+      "eventId": "283331",
+      "name": "H1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/dragon-ball-fighterz/brackets/591918/985082"
+    },
+    {
+      "id": "985083",
+      "phaseId": "591918",
+      "eventId": "283331",
+      "name": "H2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/dragon-ball-fighterz/brackets/591918/985083"
+    },
+    {
+      "id": "985084",
+      "phaseId": "591918",
+      "eventId": "283331",
+      "name": "H3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/dragon-ball-fighterz/brackets/591918/985084"
+    },
+    {
+      "id": "985085",
+      "phaseId": "591918",
+      "eventId": "283331",
+      "name": "H4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/dragon-ball-fighterz/brackets/591918/985085"
+    },
+    {
+      "id": "985086",
+      "phaseId": "591919",
+      "eventId": "283331",
+      "name": "DBZ1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/dragon-ball-fighterz/brackets/591919/985086"
+    },
+    {
+      "id": "985087",
+      "phaseId": "591920",
+      "eventId": "283332",
+      "name": "C1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/guilty-gear-xrd-rev-2/brackets/591920/985087"
+    },
+    {
+      "id": "985088",
+      "phaseId": "591920",
+      "eventId": "283332",
+      "name": "C2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/guilty-gear-xrd-rev-2/brackets/591920/985088"
+    },
+    {
+      "id": "985089",
+      "phaseId": "591920",
+      "eventId": "283332",
+      "name": "C3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/guilty-gear-xrd-rev-2/brackets/591920/985089"
+    },
+    {
+      "id": "985090",
+      "phaseId": "591920",
+      "eventId": "283332",
+      "name": "C4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/guilty-gear-xrd-rev-2/brackets/591920/985090"
+    },
+    {
+      "id": "985091",
+      "phaseId": "591920",
+      "eventId": "283332",
+      "name": "D1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/guilty-gear-xrd-rev-2/brackets/591920/985091"
+    },
+    {
+      "id": "985092",
+      "phaseId": "591920",
+      "eventId": "283332",
+      "name": "D2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/guilty-gear-xrd-rev-2/brackets/591920/985092"
+    },
+    {
+      "id": "985093",
+      "phaseId": "591920",
+      "eventId": "283332",
+      "name": "D3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/guilty-gear-xrd-rev-2/brackets/591920/985093"
+    },
+    {
+      "id": "985094",
+      "phaseId": "591920",
+      "eventId": "283332",
+      "name": "D4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/guilty-gear-xrd-rev-2/brackets/591920/985094"
+    },
+    {
+      "id": "985095",
+      "phaseId": "591920",
+      "eventId": "283332",
+      "name": "G1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/guilty-gear-xrd-rev-2/brackets/591920/985095"
+    },
+    {
+      "id": "985096",
+      "phaseId": "591920",
+      "eventId": "283332",
+      "name": "G2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/guilty-gear-xrd-rev-2/brackets/591920/985096"
+    },
+    {
+      "id": "985097",
+      "phaseId": "591920",
+      "eventId": "283332",
+      "name": "G3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/guilty-gear-xrd-rev-2/brackets/591920/985097"
+    },
+    {
+      "id": "985098",
+      "phaseId": "591920",
+      "eventId": "283332",
+      "name": "G4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/guilty-gear-xrd-rev-2/brackets/591920/985098"
+    },
+    {
+      "id": "985099",
+      "phaseId": "591920",
+      "eventId": "283332",
+      "name": "H1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/guilty-gear-xrd-rev-2/brackets/591920/985099"
+    },
+    {
+      "id": "985100",
+      "phaseId": "591920",
+      "eventId": "283332",
+      "name": "H2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/guilty-gear-xrd-rev-2/brackets/591920/985100"
+    },
+    {
+      "id": "985101",
+      "phaseId": "591920",
+      "eventId": "283332",
+      "name": "H3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/guilty-gear-xrd-rev-2/brackets/591920/985101"
+    },
+    {
+      "id": "985102",
+      "phaseId": "591920",
+      "eventId": "283332",
+      "name": "H4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/guilty-gear-xrd-rev-2/brackets/591920/985102"
+    },
+    {
+      "id": "985103",
+      "phaseId": "591921",
+      "eventId": "283332",
+      "name": "XRD1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/guilty-gear-xrd-rev-2/brackets/591921/985103"
+    },
+    {
+      "id": "985104",
+      "phaseId": "591922",
+      "eventId": "283333",
+      "name": "D1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/soulcalibur-vi/brackets/591922/985104"
+    },
+    {
+      "id": "985105",
+      "phaseId": "591922",
+      "eventId": "283333",
+      "name": "D2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/soulcalibur-vi/brackets/591922/985105"
+    },
+    {
+      "id": "985106",
+      "phaseId": "591922",
+      "eventId": "283333",
+      "name": "D3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/soulcalibur-vi/brackets/591922/985106"
+    },
+    {
+      "id": "985107",
+      "phaseId": "591922",
+      "eventId": "283333",
+      "name": "D4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/soulcalibur-vi/brackets/591922/985107"
+    },
+    {
+      "id": "985108",
+      "phaseId": "591922",
+      "eventId": "283333",
+      "name": "E1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/soulcalibur-vi/brackets/591922/985108"
+    },
+    {
+      "id": "985109",
+      "phaseId": "591922",
+      "eventId": "283333",
+      "name": "E2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/soulcalibur-vi/brackets/591922/985109"
+    },
+    {
+      "id": "985110",
+      "phaseId": "591922",
+      "eventId": "283333",
+      "name": "E3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/soulcalibur-vi/brackets/591922/985110"
+    },
+    {
+      "id": "985111",
+      "phaseId": "591922",
+      "eventId": "283333",
+      "name": "E4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/soulcalibur-vi/brackets/591922/985111"
+    },
+    {
+      "id": "985112",
+      "phaseId": "591922",
+      "eventId": "283333",
+      "name": "H1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/soulcalibur-vi/brackets/591922/985112"
+    },
+    {
+      "id": "985113",
+      "phaseId": "591922",
+      "eventId": "283333",
+      "name": "H2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/soulcalibur-vi/brackets/591922/985113"
+    },
+    {
+      "id": "985114",
+      "phaseId": "591922",
+      "eventId": "283333",
+      "name": "H3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/soulcalibur-vi/brackets/591922/985114"
+    },
+    {
+      "id": "985115",
+      "phaseId": "591922",
+      "eventId": "283333",
+      "name": "H4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/soulcalibur-vi/brackets/591922/985115"
+    },
+    {
+      "id": "985116",
+      "phaseId": "591922",
+      "eventId": "283333",
+      "name": "I1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/soulcalibur-vi/brackets/591922/985116"
+    },
+    {
+      "id": "985117",
+      "phaseId": "591922",
+      "eventId": "283333",
+      "name": "I2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/soulcalibur-vi/brackets/591922/985117"
+    },
+    {
+      "id": "985118",
+      "phaseId": "591922",
+      "eventId": "283333",
+      "name": "I3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/soulcalibur-vi/brackets/591922/985118"
+    },
+    {
+      "id": "985119",
+      "phaseId": "591922",
+      "eventId": "283333",
+      "name": "I4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/soulcalibur-vi/brackets/591922/985119"
+    },
+    {
+      "id": "985120",
+      "phaseId": "591923",
+      "eventId": "283333",
+      "name": "SCS1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/soulcalibur-vi/brackets/591923/985120"
+    },
+    {
+      "id": "985121",
+      "phaseId": "591924",
+      "eventId": "283334",
+      "name": "G1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/blazblue-cross-tag-battle/brackets/591924/985121"
+    },
+    {
+      "id": "985122",
+      "phaseId": "591924",
+      "eventId": "283334",
+      "name": "G2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/blazblue-cross-tag-battle/brackets/591924/985122"
+    },
+    {
+      "id": "985123",
+      "phaseId": "591924",
+      "eventId": "283334",
+      "name": "H1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/blazblue-cross-tag-battle/brackets/591924/985123"
+    },
+    {
+      "id": "985124",
+      "phaseId": "591924",
+      "eventId": "283334",
+      "name": "H2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/blazblue-cross-tag-battle/brackets/591924/985124"
+    },
+    {
+      "id": "985125",
+      "phaseId": "591924",
+      "eventId": "283334",
+      "name": "I1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/blazblue-cross-tag-battle/brackets/591924/985125"
+    },
+    {
+      "id": "985126",
+      "phaseId": "591924",
+      "eventId": "283334",
+      "name": "I2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/blazblue-cross-tag-battle/brackets/591924/985126"
+    },
+    {
+      "id": "985127",
+      "phaseId": "591924",
+      "eventId": "283334",
+      "name": "J1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/blazblue-cross-tag-battle/brackets/591924/985127"
+    },
+    {
+      "id": "985128",
+      "phaseId": "591924",
+      "eventId": "283334",
+      "name": "J2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/blazblue-cross-tag-battle/brackets/591924/985128"
+    },
+    {
+      "id": "985129",
+      "phaseId": "591925",
+      "eventId": "283334",
+      "name": "BBX1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/blazblue-cross-tag-battle/brackets/591925/985129"
+    },
+    {
+      "id": "985130",
+      "phaseId": "591926",
+      "eventId": "283335",
+      "name": "C1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/under-night-in-birth-exe-late-st/brackets/591926/985130"
+    },
+    {
+      "id": "985131",
+      "phaseId": "591926",
+      "eventId": "283335",
+      "name": "C2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/under-night-in-birth-exe-late-st/brackets/591926/985131"
+    },
+    {
+      "id": "985132",
+      "phaseId": "591926",
+      "eventId": "283335",
+      "name": "C3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/under-night-in-birth-exe-late-st/brackets/591926/985132"
+    },
+    {
+      "id": "985133",
+      "phaseId": "591926",
+      "eventId": "283335",
+      "name": "C4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/under-night-in-birth-exe-late-st/brackets/591926/985133"
+    },
+    {
+      "id": "985134",
+      "phaseId": "591926",
+      "eventId": "283335",
+      "name": "D1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/under-night-in-birth-exe-late-st/brackets/591926/985134"
+    },
+    {
+      "id": "985135",
+      "phaseId": "591926",
+      "eventId": "283335",
+      "name": "D2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/under-night-in-birth-exe-late-st/brackets/591926/985135"
+    },
+    {
+      "id": "985136",
+      "phaseId": "591926",
+      "eventId": "283335",
+      "name": "D3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/under-night-in-birth-exe-late-st/brackets/591926/985136"
+    },
+    {
+      "id": "985137",
+      "phaseId": "591926",
+      "eventId": "283335",
+      "name": "D4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/under-night-in-birth-exe-late-st/brackets/591926/985137"
+    },
+    {
+      "id": "985138",
+      "phaseId": "591926",
+      "eventId": "283335",
+      "name": "E1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/under-night-in-birth-exe-late-st/brackets/591926/985138"
+    },
+    {
+      "id": "985139",
+      "phaseId": "591926",
+      "eventId": "283335",
+      "name": "E2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/under-night-in-birth-exe-late-st/brackets/591926/985139"
+    },
+    {
+      "id": "985140",
+      "phaseId": "591926",
+      "eventId": "283335",
+      "name": "E3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/under-night-in-birth-exe-late-st/brackets/591926/985140"
+    },
+    {
+      "id": "985141",
+      "phaseId": "591926",
+      "eventId": "283335",
+      "name": "E4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/under-night-in-birth-exe-late-st/brackets/591926/985141"
+    },
+    {
+      "id": "985142",
+      "phaseId": "591926",
+      "eventId": "283335",
+      "name": "G1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/under-night-in-birth-exe-late-st/brackets/591926/985142"
+    },
+    {
+      "id": "985143",
+      "phaseId": "591926",
+      "eventId": "283335",
+      "name": "G2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/under-night-in-birth-exe-late-st/brackets/591926/985143"
+    },
+    {
+      "id": "985144",
+      "phaseId": "591926",
+      "eventId": "283335",
+      "name": "G3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/under-night-in-birth-exe-late-st/brackets/591926/985144"
+    },
+    {
+      "id": "985145",
+      "phaseId": "591926",
+      "eventId": "283335",
+      "name": "G4",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/under-night-in-birth-exe-late-st/brackets/591926/985145"
+    },
+    {
+      "id": "985146",
+      "phaseId": "591927",
+      "eventId": "283335",
+      "name": "UNI1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/under-night-in-birth-exe-late-st/brackets/591927/985146"
+    },
+    {
+      "id": "985147",
+      "phaseId": "591928",
+      "eventId": "283336",
+      "name": "B1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/killer-instinct/brackets/591928/985147"
+    },
+    {
+      "id": "985148",
+      "phaseId": "591928",
+      "eventId": "283336",
+      "name": "B2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/killer-instinct/brackets/591928/985148"
+    },
+    {
+      "id": "985149",
+      "phaseId": "591928",
+      "eventId": "283336",
+      "name": "C1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/killer-instinct/brackets/591928/985149"
+    },
+    {
+      "id": "985150",
+      "phaseId": "591928",
+      "eventId": "283336",
+      "name": "C2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/killer-instinct/brackets/591928/985150"
+    },
+    {
+      "id": "985151",
+      "phaseId": "591928",
+      "eventId": "283336",
+      "name": "D1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/killer-instinct/brackets/591928/985151"
+    },
+    {
+      "id": "985152",
+      "phaseId": "591928",
+      "eventId": "283336",
+      "name": "D2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/killer-instinct/brackets/591928/985152"
+    },
+    {
+      "id": "985153",
+      "phaseId": "591928",
+      "eventId": "283336",
+      "name": "G1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/killer-instinct/brackets/591928/985153"
+    },
+    {
+      "id": "985154",
+      "phaseId": "591928",
+      "eventId": "283336",
+      "name": "G2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/killer-instinct/brackets/591928/985154"
+    },
+    {
+      "id": "985155",
+      "phaseId": "591929",
+      "eventId": "283336",
+      "name": "KI1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/killer-instinct/brackets/591929/985155"
+    },
+    {
+      "id": "985156",
+      "phaseId": "591930",
+      "eventId": "283337",
+      "name": "D1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/skullgirls-2nd-encore/brackets/591930/985156"
+    },
+    {
+      "id": "985157",
+      "phaseId": "591930",
+      "eventId": "283337",
+      "name": "D2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/skullgirls-2nd-encore/brackets/591930/985157"
+    },
+    {
+      "id": "985158",
+      "phaseId": "591930",
+      "eventId": "283337",
+      "name": "E1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/skullgirls-2nd-encore/brackets/591930/985158"
+    },
+    {
+      "id": "985159",
+      "phaseId": "591930",
+      "eventId": "283337",
+      "name": "E2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/skullgirls-2nd-encore/brackets/591930/985159"
+    },
+    {
+      "id": "985160",
+      "phaseId": "591930",
+      "eventId": "283337",
+      "name": "H1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/skullgirls-2nd-encore/brackets/591930/985160"
+    },
+    {
+      "id": "985161",
+      "phaseId": "591930",
+      "eventId": "283337",
+      "name": "H2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/skullgirls-2nd-encore/brackets/591930/985161"
+    },
+    {
+      "id": "985162",
+      "phaseId": "591930",
+      "eventId": "283337",
+      "name": "I1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/skullgirls-2nd-encore/brackets/591930/985162"
+    },
+    {
+      "id": "985163",
+      "phaseId": "591930",
+      "eventId": "283337",
+      "name": "I2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/skullgirls-2nd-encore/brackets/591930/985163"
+    },
+    {
+      "id": "985164",
+      "phaseId": "591931",
+      "eventId": "283337",
+      "name": "LM1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/skullgirls-2nd-encore/brackets/591931/985164"
+    },
+    {
+      "id": "985165",
+      "phaseId": "591932",
+      "eventId": "283339",
+      "name": "C1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/the-king-of-fighters-xiv/brackets/591932/985165"
+    },
+    {
+      "id": "985166",
+      "phaseId": "591932",
+      "eventId": "283339",
+      "name": "C2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/the-king-of-fighters-xiv/brackets/591932/985166"
+    },
+    {
+      "id": "985167",
+      "phaseId": "591932",
+      "eventId": "283339",
+      "name": "D1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/the-king-of-fighters-xiv/brackets/591932/985167"
+    },
+    {
+      "id": "985168",
+      "phaseId": "591932",
+      "eventId": "283339",
+      "name": "D2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/the-king-of-fighters-xiv/brackets/591932/985168"
+    },
+    {
+      "id": "985169",
+      "phaseId": "591933",
+      "eventId": "283339",
+      "name": "EF1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/the-king-of-fighters-xiv/brackets/591933/985169"
+    },
+    {
+      "id": "985170",
+      "phaseId": "591934",
+      "eventId": "283340",
+      "name": "G1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/marvel-vs-capcom-infinite/brackets/591934/985170"
+    },
+    {
+      "id": "985171",
+      "phaseId": "591934",
+      "eventId": "283340",
+      "name": "G2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/marvel-vs-capcom-infinite/brackets/591934/985171"
+    },
+    {
+      "id": "985172",
+      "phaseId": "591934",
+      "eventId": "283340",
+      "name": "H1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/marvel-vs-capcom-infinite/brackets/591934/985172"
+    },
+    {
+      "id": "985173",
+      "phaseId": "591934",
+      "eventId": "283340",
+      "name": "H2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/marvel-vs-capcom-infinite/brackets/591934/985173"
+    },
+    {
+      "id": "985174",
+      "phaseId": "591934",
+      "eventId": "283340",
+      "name": "I1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/marvel-vs-capcom-infinite/brackets/591934/985174"
+    },
+    {
+      "id": "985175",
+      "phaseId": "591934",
+      "eventId": "283340",
+      "name": "I2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/marvel-vs-capcom-infinite/brackets/591934/985175"
+    },
+    {
+      "id": "985176",
+      "phaseId": "591934",
+      "eventId": "283340",
+      "name": "J1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/marvel-vs-capcom-infinite/brackets/591934/985176"
+    },
+    {
+      "id": "985177",
+      "phaseId": "591934",
+      "eventId": "283340",
+      "name": "J2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/marvel-vs-capcom-infinite/brackets/591934/985177"
+    },
+    {
+      "id": "985178",
+      "phaseId": "591935",
+      "eventId": "283340",
+      "name": "INF1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/marvel-vs-capcom-infinite/brackets/591935/985178"
+    },
+    {
+      "id": "985179",
+      "phaseId": "591936",
+      "eventId": "283341",
+      "name": "B1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-smash-bros-ultimate-singles/brackets/591936/985179"
+    },
+    {
+      "id": "985180",
+      "phaseId": "591936",
+      "eventId": "283341",
+      "name": "B2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-smash-bros-ultimate-singles/brackets/591936/985180"
+    },
+    {
+      "id": "985181",
+      "phaseId": "591936",
+      "eventId": "283341",
+      "name": "C1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-smash-bros-ultimate-singles/brackets/591936/985181"
+    },
+    {
+      "id": "985182",
+      "phaseId": "591936",
+      "eventId": "283341",
+      "name": "C2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-smash-bros-ultimate-singles/brackets/591936/985182"
+    },
+    {
+      "id": "985183",
+      "phaseId": "591936",
+      "eventId": "283341",
+      "name": "D1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-smash-bros-ultimate-singles/brackets/591936/985183"
+    },
+    {
+      "id": "985184",
+      "phaseId": "591936",
+      "eventId": "283341",
+      "name": "D2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-smash-bros-ultimate-singles/brackets/591936/985184"
+    },
+    {
+      "id": "985185",
+      "phaseId": "591936",
+      "eventId": "283341",
+      "name": "D3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-smash-bros-ultimate-singles/brackets/591936/985185"
+    },
+    {
+      "id": "985186",
+      "phaseId": "591936",
+      "eventId": "283341",
+      "name": "G1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-smash-bros-ultimate-singles/brackets/591936/985186"
+    },
+    {
+      "id": "985187",
+      "phaseId": "591936",
+      "eventId": "283341",
+      "name": "G2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-smash-bros-ultimate-singles/brackets/591936/985187"
+    },
+    {
+      "id": "985188",
+      "phaseId": "591936",
+      "eventId": "283341",
+      "name": "G3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-smash-bros-ultimate-singles/brackets/591936/985188"
+    },
+    {
+      "id": "985189",
+      "phaseId": "591936",
+      "eventId": "283341",
+      "name": "H1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-smash-bros-ultimate-singles/brackets/591936/985189"
+    },
+    {
+      "id": "985190",
+      "phaseId": "591936",
+      "eventId": "283341",
+      "name": "H2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-smash-bros-ultimate-singles/brackets/591936/985190"
+    },
+    {
+      "id": "985191",
+      "phaseId": "591936",
+      "eventId": "283341",
+      "name": "H3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-smash-bros-ultimate-singles/brackets/591936/985191"
+    },
+    {
+      "id": "985192",
+      "phaseId": "591936",
+      "eventId": "283341",
+      "name": "I1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-smash-bros-ultimate-singles/brackets/591936/985192"
+    },
+    {
+      "id": "985193",
+      "phaseId": "591936",
+      "eventId": "283341",
+      "name": "I2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-smash-bros-ultimate-singles/brackets/591936/985193"
+    },
+    {
+      "id": "985194",
+      "phaseId": "591936",
+      "eventId": "283341",
+      "name": "I3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-smash-bros-ultimate-singles/brackets/591936/985194"
+    },
+    {
+      "id": "985195",
+      "phaseId": "591937",
+      "eventId": "283341",
+      "name": "SSB1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-smash-bros-ultimate-singles/brackets/591937/985195"
+    },
+    {
+      "id": "985196",
+      "phaseId": "591938",
+      "eventId": "283343",
+      "name": "B3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-smash-bros-ultimate-doubles/brackets/591938/985196"
+    },
+    {
+      "id": "985197",
+      "phaseId": "591938",
+      "eventId": "283343",
+      "name": "C3",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-smash-bros-ultimate-doubles/brackets/591938/985197"
+    },
+    {
+      "id": "985198",
+      "phaseId": "591939",
+      "eventId": "283343",
+      "name": "EF1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-smash-bros-ultimate-doubles/brackets/591939/985198"
+    },
+    {
+      "id": "985199",
+      "phaseId": "591940",
+      "eventId": "283344",
+      "name": "G1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/vampire-savior/brackets/591940/985199"
+    },
+    {
+      "id": "985200",
+      "phaseId": "591940",
+      "eventId": "283344",
+      "name": "G2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/vampire-savior/brackets/591940/985200"
+    },
+    {
+      "id": "985201",
+      "phaseId": "591940",
+      "eventId": "283344",
+      "name": "H1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/vampire-savior/brackets/591940/985201"
+    },
+    {
+      "id": "985202",
+      "phaseId": "591940",
+      "eventId": "283344",
+      "name": "H2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/vampire-savior/brackets/591940/985202"
+    },
+    {
+      "id": "985203",
+      "phaseId": "591940",
+      "eventId": "283344",
+      "name": "I1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/vampire-savior/brackets/591940/985203"
+    },
+    {
+      "id": "985204",
+      "phaseId": "591940",
+      "eventId": "283344",
+      "name": "I2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/vampire-savior/brackets/591940/985204"
+    },
+    {
+      "id": "985205",
+      "phaseId": "591940",
+      "eventId": "283344",
+      "name": "J1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/vampire-savior/brackets/591940/985205"
+    },
+    {
+      "id": "985206",
+      "phaseId": "591940",
+      "eventId": "283344",
+      "name": "J2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/vampire-savior/brackets/591940/985206"
+    },
+    {
+      "id": "985207",
+      "phaseId": "591941",
+      "eventId": "283344",
+      "name": "VS1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/vampire-savior/brackets/591941/985207"
+    },
+    {
+      "id": "985208",
+      "phaseId": "591942",
+      "eventId": "283345",
+      "name": "B1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-street-fighter-ii-turbo/brackets/591942/985208"
+    },
+    {
+      "id": "985209",
+      "phaseId": "591942",
+      "eventId": "283345",
+      "name": "B2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-street-fighter-ii-turbo/brackets/591942/985209"
+    },
+    {
+      "id": "985210",
+      "phaseId": "591942",
+      "eventId": "283345",
+      "name": "C1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-street-fighter-ii-turbo/brackets/591942/985210"
+    },
+    {
+      "id": "985211",
+      "phaseId": "591942",
+      "eventId": "283345",
+      "name": "C2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-street-fighter-ii-turbo/brackets/591942/985211"
+    },
+    {
+      "id": "985212",
+      "phaseId": "591942",
+      "eventId": "283345",
+      "name": "G1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-street-fighter-ii-turbo/brackets/591942/985212"
+    },
+    {
+      "id": "985213",
+      "phaseId": "591942",
+      "eventId": "283345",
+      "name": "G2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-street-fighter-ii-turbo/brackets/591942/985213"
+    },
+    {
+      "id": "985214",
+      "phaseId": "591942",
+      "eventId": "283345",
+      "name": "H1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-street-fighter-ii-turbo/brackets/591942/985214"
+    },
+    {
+      "id": "985215",
+      "phaseId": "591942",
+      "eventId": "283345",
+      "name": "H2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-street-fighter-ii-turbo/brackets/591942/985215"
+    },
+    {
+      "id": "985216",
+      "phaseId": "591943",
+      "eventId": "283345",
+      "name": "ST1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/super-street-fighter-ii-turbo/brackets/591943/985216"
+    },
+    {
+      "id": "985217",
+      "phaseId": "591944",
+      "eventId": "283346",
+      "name": "D1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-iii-3rd-strike/brackets/591944/985217"
+    },
+    {
+      "id": "985218",
+      "phaseId": "591944",
+      "eventId": "283346",
+      "name": "D2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-iii-3rd-strike/brackets/591944/985218"
+    },
+    {
+      "id": "985219",
+      "phaseId": "591944",
+      "eventId": "283346",
+      "name": "E1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-iii-3rd-strike/brackets/591944/985219"
+    },
+    {
+      "id": "985220",
+      "phaseId": "591944",
+      "eventId": "283346",
+      "name": "E2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-iii-3rd-strike/brackets/591944/985220"
+    },
+    {
+      "id": "985221",
+      "phaseId": "591944",
+      "eventId": "283346",
+      "name": "I1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-iii-3rd-strike/brackets/591944/985221"
+    },
+    {
+      "id": "985222",
+      "phaseId": "591944",
+      "eventId": "283346",
+      "name": "I2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-iii-3rd-strike/brackets/591944/985222"
+    },
+    {
+      "id": "985223",
+      "phaseId": "591944",
+      "eventId": "283346",
+      "name": "J1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-iii-3rd-strike/brackets/591944/985223"
+    },
+    {
+      "id": "985224",
+      "phaseId": "591944",
+      "eventId": "283346",
+      "name": "J2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-iii-3rd-strike/brackets/591944/985224"
+    },
+    {
+      "id": "985225",
+      "phaseId": "591945",
+      "eventId": "283346",
+      "name": "TS1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-iii-3rd-strike/brackets/591945/985225"
+    },
+    {
+      "id": "985226",
+      "phaseId": "591946",
+      "eventId": "283348",
+      "name": "A1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mystery-game-tournament/brackets/591946/985226"
+    },
+    {
+      "id": "985227",
+      "phaseId": "591946",
+      "eventId": "283348",
+      "name": "A2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mystery-game-tournament/brackets/591946/985227"
+    },
+    {
+      "id": "985228",
+      "phaseId": "591946",
+      "eventId": "283348",
+      "name": "B1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mystery-game-tournament/brackets/591946/985228"
+    },
+    {
+      "id": "985229",
+      "phaseId": "591946",
+      "eventId": "283348",
+      "name": "B2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mystery-game-tournament/brackets/591946/985229"
+    },
+    {
+      "id": "985230",
+      "phaseId": "591946",
+      "eventId": "283348",
+      "name": "C1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mystery-game-tournament/brackets/591946/985230"
+    },
+    {
+      "id": "985231",
+      "phaseId": "591946",
+      "eventId": "283348",
+      "name": "C2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mystery-game-tournament/brackets/591946/985231"
+    },
+    {
+      "id": "985232",
+      "phaseId": "591946",
+      "eventId": "283348",
+      "name": "D1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mystery-game-tournament/brackets/591946/985232"
+    },
+    {
+      "id": "985233",
+      "phaseId": "591946",
+      "eventId": "283348",
+      "name": "D2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mystery-game-tournament/brackets/591946/985233"
+    },
+    {
+      "id": "985234",
+      "phaseId": "591946",
+      "eventId": "283348",
+      "name": "E1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mystery-game-tournament/brackets/591946/985234"
+    },
+    {
+      "id": "985235",
+      "phaseId": "591946",
+      "eventId": "283348",
+      "name": "E2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mystery-game-tournament/brackets/591946/985235"
+    },
+    {
+      "id": "985236",
+      "phaseId": "591946",
+      "eventId": "283348",
+      "name": "G1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mystery-game-tournament/brackets/591946/985236"
+    },
+    {
+      "id": "985237",
+      "phaseId": "591946",
+      "eventId": "283348",
+      "name": "G2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mystery-game-tournament/brackets/591946/985237"
+    },
+    {
+      "id": "985238",
+      "phaseId": "591946",
+      "eventId": "283348",
+      "name": "H1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mystery-game-tournament/brackets/591946/985238"
+    },
+    {
+      "id": "985239",
+      "phaseId": "591946",
+      "eventId": "283348",
+      "name": "H2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mystery-game-tournament/brackets/591946/985239"
+    },
+    {
+      "id": "985240",
+      "phaseId": "591946",
+      "eventId": "283348",
+      "name": "I1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mystery-game-tournament/brackets/591946/985240"
+    },
+    {
+      "id": "985241",
+      "phaseId": "591946",
+      "eventId": "283348",
+      "name": "I2",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mystery-game-tournament/brackets/591946/985241"
+    },
+    {
+      "id": "985242",
+      "phaseId": "591947",
+      "eventId": "283348",
+      "name": "J1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mystery-game-tournament/brackets/591947/985242"
+    },
+    {
+      "id": "985243",
+      "phaseId": "591947",
+      "eventId": "283348",
+      "name": "K1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mystery-game-tournament/brackets/591947/985243"
+    },
+    {
+      "id": "985244",
+      "phaseId": "591948",
+      "eventId": "283348",
+      "name": "OPQ1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/mystery-game-tournament/brackets/591948/985244"
+    },
+    {
+      "id": "985245",
+      "phaseId": "591949",
+      "eventId": "283349",
+      "name": "A1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-alpha-2/brackets/591949/985245"
+    },
+    {
+      "id": "985246",
+      "phaseId": "591949",
+      "eventId": "283349",
+      "name": "B1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-alpha-2/brackets/591949/985246"
+    },
+    {
+      "id": "985247",
+      "phaseId": "591949",
+      "eventId": "283349",
+      "name": "C1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-alpha-2/brackets/591949/985247"
+    },
+    {
+      "id": "985248",
+      "phaseId": "591949",
+      "eventId": "283349",
+      "name": "D1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-alpha-2/brackets/591949/985248"
+    },
+    {
+      "id": "985249",
+      "phaseId": "591950",
+      "eventId": "283349",
+      "name": "E1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-alpha-2/brackets/591950/985249"
+    },
+    {
+      "id": "985250",
+      "phaseId": "591951",
+      "eventId": "283350",
+      "name": "D1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/capcom-vs-snk-2/brackets/591951/985250"
+    },
+    {
+      "id": "985251",
+      "phaseId": "591951",
+      "eventId": "283350",
+      "name": "H1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/capcom-vs-snk-2/brackets/591951/985251"
+    },
+    {
+      "id": "985252",
+      "phaseId": "591951",
+      "eventId": "283350",
+      "name": "I1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/capcom-vs-snk-2/brackets/591951/985252"
+    },
+    {
+      "id": "985253",
+      "phaseId": "591951",
+      "eventId": "283350",
+      "name": "J1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/capcom-vs-snk-2/brackets/591951/985253"
+    },
+    {
+      "id": "985254",
+      "phaseId": "591952",
+      "eventId": "283350",
+      "name": "LM1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/capcom-vs-snk-2/brackets/591952/985254"
+    },
+    {
+      "id": "985255",
+      "phaseId": "591953",
+      "eventId": "283351",
+      "name": "G1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/soulcalibur-ii/brackets/591953/985255"
+    },
+    {
+      "id": "985256",
+      "phaseId": "591953",
+      "eventId": "283351",
+      "name": "H1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/soulcalibur-ii/brackets/591953/985256"
+    },
+    {
+      "id": "985257",
+      "phaseId": "591953",
+      "eventId": "283351",
+      "name": "I1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/soulcalibur-ii/brackets/591953/985257"
+    },
+    {
+      "id": "985258",
+      "phaseId": "591953",
+      "eventId": "283351",
+      "name": "J1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/soulcalibur-ii/brackets/591953/985258"
+    },
+    {
+      "id": "985259",
+      "phaseId": "591954",
+      "eventId": "283351",
+      "name": "NO1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/soulcalibur-ii/brackets/591954/985259"
+    },
+    {
+      "id": "985260",
+      "phaseId": "591955",
+      "eventId": "283352",
+      "name": "B1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/marvel-vs-capcom-2/brackets/591955/985260"
+    },
+    {
+      "id": "985261",
+      "phaseId": "591955",
+      "eventId": "283352",
+      "name": "C1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/marvel-vs-capcom-2/brackets/591955/985261"
+    },
+    {
+      "id": "985262",
+      "phaseId": "591955",
+      "eventId": "283352",
+      "name": "D1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/marvel-vs-capcom-2/brackets/591955/985262"
+    },
+    {
+      "id": "985263",
+      "phaseId": "591955",
+      "eventId": "283352",
+      "name": "E1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/marvel-vs-capcom-2/brackets/591955/985263"
+    },
+    {
+      "id": "985264",
+      "phaseId": "591956",
+      "eventId": "283352",
+      "name": "F1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/marvel-vs-capcom-2/brackets/591956/985264"
+    },
+    {
+      "id": "847613",
+      "phaseId": "485898",
+      "eventId": "283353",
+      "name": "EX1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/street-fighter-ex2-plus/brackets/485898/847613"
+    },
+    {
+      "id": "985265",
+      "phaseId": "591957",
+      "eventId": "283354",
+      "name": "B1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tmnt-tournament-fighters/brackets/591957/985265"
+    },
+    {
+      "id": "985266",
+      "phaseId": "591957",
+      "eventId": "283354",
+      "name": "C1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tmnt-tournament-fighters/brackets/591957/985266"
+    },
+    {
+      "id": "985267",
+      "phaseId": "591957",
+      "eventId": "283354",
+      "name": "H1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tmnt-tournament-fighters/brackets/591957/985267"
+    },
+    {
+      "id": "985268",
+      "phaseId": "591957",
+      "eventId": "283354",
+      "name": "I1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tmnt-tournament-fighters/brackets/591957/985268"
+    },
+    {
+      "id": "985269",
+      "phaseId": "591958",
+      "eventId": "283354",
+      "name": "K1",
+      "url": "https://smash.gg/tournament/combo-breaker-2019/event/tmnt-tournament-fighters/brackets/591958/985269"
+    }
+  ],
+  "unfinishedSets": [
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741143",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "gf",
+        "name": "Grand Finals",
+        "smashggId": "Grand Final"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "H",
+      "displayName": "H - gf: Rec | Punk vs Mousesports | Problem-X",
+      "completedAt": 1558907728,
+      "entrants": [
+        {
+          "name": "Rec | Punk",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "240230",
+              "handle": "Punk",
+              "prefix": "Rec",
+              "serviceIds": {
+                "twitter": "PunkDaGod"
+              }
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "Mousesports | Problem-X",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "314782",
+              "handle": "Problem-X",
+              "prefix": "Mousesports",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": true
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741144",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "tf",
+        "name": "True Finals",
+        "smashggId": "Grand Final Reset"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "I",
+      "displayName": "I - tf: Mousesports | Problem-X vs Rec | Punk",
+      "completedAt": 1558908090,
+      "entrants": [
+        {
+          "name": "Mousesports | Problem-X",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "314782",
+              "handle": "Problem-X",
+              "prefix": "Mousesports",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": true
+        },
+        {
+          "name": "Rec | Punk",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "240230",
+              "handle": "Punk",
+              "prefix": "Rec",
+              "serviceIds": {
+                "twitter": "PunkDaGod"
+              }
+            }
+          ],
+          "inLosers": true
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741142",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "wf",
+        "name": "Winners Finals",
+        "smashggId": "Winners Final"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "G",
+      "displayName": "G - wf: Mousesports | Problem-X vs Rec | Punk",
+      "completedAt": 1558904877,
+      "entrants": [
+        {
+          "name": "Mousesports | Problem-X",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "314782",
+              "handle": "Problem-X",
+              "prefix": "Mousesports",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "Rec | Punk",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "240230",
+              "handle": "Punk",
+              "prefix": "Rec",
+              "serviceIds": {
+                "twitter": "PunkDaGod"
+              }
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741166",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "lf",
+        "name": "Losers Finals",
+        "smashggId": "Losers Final"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "AE",
+      "displayName": "AE - lf: Mousesports | Problem-X vs YOG | Machabo",
+      "completedAt": 1558907235,
+      "entrants": [
+        {
+          "name": "Mousesports | Problem-X",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "314782",
+              "handle": "Problem-X",
+              "prefix": "Mousesports",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "YOG | Machabo",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "405023",
+              "handle": "Machabo",
+              "prefix": "YOG",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741165",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "ls",
+        "name": "Losers Semis",
+        "smashggId": "Losers Semi-Final"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "AD",
+      "displayName": "AD - ls: YOG | Machabo vs Fudoh | Haitani",
+      "completedAt": 1558905823,
+      "entrants": [
+        {
+          "name": "YOG | Machabo",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "405023",
+              "handle": "Machabo",
+              "prefix": "YOG",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "Fudoh | Haitani",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "616047",
+              "handle": "Haitani",
+              "prefix": "Fudoh",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741140",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "ws",
+        "name": "Winners Semis",
+        "smashggId": "Winners Semi-Final"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "E",
+      "displayName": "E - ws: Liquid | John Takeuchi vs Mousesports | Problem-X",
+      "completedAt": 1558899353,
+      "entrants": [
+        {
+          "name": "Liquid | John Takeuchi",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "404377",
+              "handle": "John Takeuchi",
+              "prefix": "Liquid",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "Mousesports | Problem-X",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "314782",
+              "handle": "Problem-X",
+              "prefix": "Mousesports",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741141",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "ws",
+        "name": "Winners Semis",
+        "smashggId": "Winners Semi-Final"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "F",
+      "displayName": "F - ws: Red Bull | gachikun vs Rec | Punk",
+      "completedAt": 1558899968,
+      "entrants": [
+        {
+          "name": "Red Bull | gachikun",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "356363",
+              "handle": "gachikun",
+              "prefix": "Red Bull",
+              "serviceIds": {
+                "twitter": "gachikun0423"
+              }
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "Rec | Punk",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "240230",
+              "handle": "Punk",
+              "prefix": "Rec",
+              "serviceIds": {
+                "twitter": "PunkDaGod"
+              }
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741163",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "lq",
+        "name": "Losers Quarters",
+        "smashggId": "Losers Quarter-Final"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "AB",
+      "displayName": "AB - lq: Red Bull | gachikun vs YOG | Machabo",
+      "completedAt": 1558903040,
+      "entrants": [
+        {
+          "name": "Red Bull | gachikun",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "356363",
+              "handle": "gachikun",
+              "prefix": "Red Bull",
+              "serviceIds": {
+                "twitter": "gachikun0423"
+              }
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "YOG | Machabo",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "405023",
+              "handle": "Machabo",
+              "prefix": "YOG",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741164",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "lq",
+        "name": "Losers Quarters",
+        "smashggId": "Losers Quarter-Final"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "AC",
+      "displayName": "AC - lq: Liquid | John Takeuchi vs Fudoh | Haitani",
+      "completedAt": 1558904032,
+      "entrants": [
+        {
+          "name": "Liquid | John Takeuchi",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "404377",
+              "handle": "John Takeuchi",
+              "prefix": "Liquid",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "Fudoh | Haitani",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "616047",
+              "handle": "Haitani",
+              "prefix": "Fudoh",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741162",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "l4",
+        "name": "Losers Round 4",
+        "smashggId": "Losers Round 4"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "AA",
+      "displayName": "AA - l4: Fudoh | Haitani vs Takamura",
+      "completedAt": 1558901663,
+      "entrants": [
+        {
+          "name": "Fudoh | Haitani",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "616047",
+              "handle": "Haitani",
+              "prefix": "Fudoh",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "Takamura",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "394851",
+              "handle": "Takamura",
+              "prefix": null,
+              "serviceIds": {
+                "twitter": "Takamura_Be"
+              }
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741161",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "l4",
+        "name": "Losers Round 4",
+        "smashggId": "Losers Round 4"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "Z",
+      "displayName": "Z - l4: XSET | iDom vs YOG | Machabo",
+      "completedAt": 1558900796,
+      "entrants": [
+        {
+          "name": "XSET | iDom",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "415385",
+              "handle": "iDom",
+              "prefix": "XSET",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "YOG | Machabo",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "405023",
+              "handle": "Machabo",
+              "prefix": "YOG",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741136",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "wq",
+        "name": "Winners Quarters",
+        "smashggId": "Winners Quarter-Final"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "A",
+      "displayName": "A - wq: Liquid | John Takeuchi vs YOG | Machabo",
+      "completedAt": 1558886068,
+      "entrants": [
+        {
+          "name": "Liquid | John Takeuchi",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "404377",
+              "handle": "John Takeuchi",
+              "prefix": "Liquid",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "YOG | Machabo",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "405023",
+              "handle": "Machabo",
+              "prefix": "YOG",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741137",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "wq",
+        "name": "Winners Quarters",
+        "smashggId": "Winners Quarter-Final"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "B",
+      "displayName": "B - wq: CYG BST | Fuudo vs Mousesports | Problem-X",
+      "completedAt": 1558886399,
+      "entrants": [
+        {
+          "name": "CYG BST | Fuudo",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "565873",
+              "handle": "Fuudo",
+              "prefix": "CYG BST",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "Mousesports | Problem-X",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "314782",
+              "handle": "Problem-X",
+              "prefix": "Mousesports",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741138",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "wq",
+        "name": "Winners Quarters",
+        "smashggId": "Winners Quarter-Final"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "C",
+      "displayName": "C - wq: Red Bull | gachikun vs Takamura",
+      "completedAt": 1558886747,
+      "entrants": [
+        {
+          "name": "Red Bull | gachikun",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "356363",
+              "handle": "gachikun",
+              "prefix": "Red Bull",
+              "serviceIds": {
+                "twitter": "gachikun0423"
+              }
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "Takamura",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "394851",
+              "handle": "Takamura",
+              "prefix": null,
+              "serviceIds": {
+                "twitter": "Takamura_Be"
+              }
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741139",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "wq",
+        "name": "Winners Quarters",
+        "smashggId": "Winners Quarter-Final"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "D",
+      "displayName": "D - wq: Rec | Punk vs NASR | Big Bird",
+      "completedAt": 1558887268,
+      "entrants": [
+        {
+          "name": "Rec | Punk",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "240230",
+              "handle": "Punk",
+              "prefix": "Rec",
+              "serviceIds": {
+                "twitter": "PunkDaGod"
+              }
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "NASR | Big Bird",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "379268",
+              "handle": "Big Bird",
+              "prefix": "NASR",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741157",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "l3",
+        "name": "Losers Round 3",
+        "smashggId": "Losers Round 3"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "V",
+      "displayName": "V - l3: CYG BST | Fuudo vs XSET | iDom",
+      "completedAt": 1558889698,
+      "entrants": [
+        {
+          "name": "CYG BST | Fuudo",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "565873",
+              "handle": "Fuudo",
+              "prefix": "CYG BST",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "XSET | iDom",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "415385",
+              "handle": "iDom",
+              "prefix": "XSET",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741158",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "l3",
+        "name": "Losers Round 3",
+        "smashggId": "Losers Round 3"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "W",
+      "displayName": "W - l3: YOG | Machabo vs Denial | JB",
+      "completedAt": 1558890069,
+      "entrants": [
+        {
+          "name": "YOG | Machabo",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "405023",
+              "handle": "Machabo",
+              "prefix": "YOG",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "Denial | JB",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "261213",
+              "handle": "JB",
+              "prefix": "Denial",
+              "serviceIds": {
+                "twitter": "TryhardJB"
+              }
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741159",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "l3",
+        "name": "Losers Round 3",
+        "smashggId": "Losers Round 3"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "X",
+      "displayName": "X - l3: NASR | Big Bird vs Fudoh | Haitani",
+      "completedAt": 1558890591,
+      "entrants": [
+        {
+          "name": "NASR | Big Bird",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "379268",
+              "handle": "Big Bird",
+              "prefix": "NASR",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "Fudoh | Haitani",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "616047",
+              "handle": "Haitani",
+              "prefix": "Fudoh",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741160",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "l3",
+        "name": "Losers Round 3",
+        "smashggId": "Losers Round 3"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "Y",
+      "displayName": "Y - l3: Takamura vs Bandits | MenaRD",
+      "completedAt": 1558891252,
+      "entrants": [
+        {
+          "name": "Takamura",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "394851",
+              "handle": "Takamura",
+              "prefix": null,
+              "serviceIds": {
+                "twitter": "Takamura_Be"
+              }
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "Bandits | MenaRD",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "224650",
+              "handle": "MenaRD",
+              "prefix": "Bandits",
+              "serviceIds": {
+                "twitter": "sdgtigers"
+              }
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741153",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "l2",
+        "name": "Losers Round 2",
+        "smashggId": "Losers Round 2"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "R",
+      "displayName": "R - l2: VGIA | VegaPatch vs XSET | iDom",
+      "completedAt": 1558889291,
+      "entrants": [
+        {
+          "name": "VGIA | VegaPatch",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "503477",
+              "handle": "VegaPatch",
+              "prefix": "VGIA",
+              "serviceIds": {
+                "twitter": "Vegapatch"
+              }
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "XSET | iDom",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "415385",
+              "handle": "iDom",
+              "prefix": "XSET",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741154",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "l2",
+        "name": "Losers Round 2",
+        "smashggId": "Losers Round 2"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "S",
+      "displayName": "S - l2: Denial | JB vs Victrix | Momochi",
+      "completedAt": 1558886835,
+      "entrants": [
+        {
+          "name": "Denial | JB",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "261213",
+              "handle": "JB",
+              "prefix": "Denial",
+              "serviceIds": {
+                "twitter": "TryhardJB"
+              }
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "Victrix | Momochi",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "277358",
+              "handle": "Momochi",
+              "prefix": "Victrix",
+              "serviceIds": {
+                "twitter": "momochi212"
+              }
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741155",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "l2",
+        "name": "Losers Round 2",
+        "smashggId": "Losers Round 2"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "T",
+      "displayName": "T - l2: Fudoh | Haitani vs FAV | sako",
+      "completedAt": 1558887913,
+      "entrants": [
+        {
+          "name": "Fudoh | Haitani",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "616047",
+              "handle": "Haitani",
+              "prefix": "Fudoh",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "FAV | sako",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "327575",
+              "handle": "sako",
+              "prefix": "FAV",
+              "serviceIds": {
+                "twitter": "akikiwww"
+              }
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741156",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "l2",
+        "name": "Losers Round 2",
+        "smashggId": "Losers Round 2"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "U",
+      "displayName": "U - l2: Red Bull Hx | Bonchan vs Bandits | MenaRD",
+      "completedAt": 1558889278,
+      "entrants": [
+        {
+          "name": "Red Bull Hx | Bonchan",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "232824",
+              "handle": "Bonchan",
+              "prefix": "Red Bull Hx",
+              "serviceIds": {
+                "twitter": "katitagaribon"
+              }
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "Bandits | MenaRD",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "224650",
+              "handle": "MenaRD",
+              "prefix": "Bandits",
+              "serviceIds": {
+                "twitter": "sdgtigers"
+              }
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741145",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "l1",
+        "name": "Losers Round 1",
+        "smashggId": "Losers Round 1"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "J",
+      "displayName": "J - l1: VGIA | VegaPatch vs Insufficient $ | Joey",
+      "completedAt": 1558886114,
+      "entrants": [
+        {
+          "name": "VGIA | VegaPatch",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "503477",
+              "handle": "VegaPatch",
+              "prefix": "VGIA",
+              "serviceIds": {
+                "twitter": "Vegapatch"
+              }
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "Insufficient $ | Joey",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "366077",
+              "handle": "Joey",
+              "prefix": "Insufficient $",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741146",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "l1",
+        "name": "Losers Round 1",
+        "smashggId": "Losers Round 1"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "K",
+      "displayName": "K - l1: Liquid | Nemo vs XSET | iDom",
+      "completedAt": 1558886127,
+      "entrants": [
+        {
+          "name": "Liquid | Nemo",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "385095",
+              "handle": "Nemo",
+              "prefix": "Liquid",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "XSET | iDom",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "415385",
+              "handle": "iDom",
+              "prefix": "XSET",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741147",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "l1",
+        "name": "Losers Round 1",
+        "smashggId": "Losers Round 1"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "L",
+      "displayName": "L - l1: Denial | JB vs END | Shine",
+      "completedAt": 1558886139,
+      "entrants": [
+        {
+          "name": "Denial | JB",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "261213",
+              "handle": "JB",
+              "prefix": "Denial",
+              "serviceIds": {
+                "twitter": "TryhardJB"
+              }
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "END | Shine",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "140014",
+              "handle": "Shine",
+              "prefix": "END",
+              "serviceIds": {
+                "twitter": "Shine_NYC"
+              }
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741148",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "l1",
+        "name": "Losers Round 1",
+        "smashggId": "Losers Round 1"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "M",
+      "displayName": "M - l1: Fudoh | Fujimura vs Victrix | Momochi",
+      "completedAt": 1558886173,
+      "entrants": [
+        {
+          "name": "Fudoh | Fujimura",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "616064",
+              "handle": "Fujimura",
+              "prefix": "Fudoh",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "Victrix | Momochi",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "277358",
+              "handle": "Momochi",
+              "prefix": "Victrix",
+              "serviceIds": {
+                "twitter": "momochi212"
+              }
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741149",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "l1",
+        "name": "Losers Round 1",
+        "smashggId": "Losers Round 1"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "N",
+      "displayName": "N - l1: Fudoh | Haitani vs W2W | T260G",
+      "completedAt": 1558886185,
+      "entrants": [
+        {
+          "name": "Fudoh | Haitani",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "616047",
+              "handle": "Haitani",
+              "prefix": "Fudoh",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "W2W | T260G",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "139776",
+              "handle": "T260G",
+              "prefix": "W2W",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741150",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "l1",
+        "name": "Losers Round 1",
+        "smashggId": "Losers Round 1"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "O",
+      "displayName": "O - l1: FAV | sako vs Qanba X Douyu | Xiaohai",
+      "completedAt": 1558886194,
+      "entrants": [
+        {
+          "name": "FAV | sako",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "327575",
+              "handle": "sako",
+              "prefix": "FAV",
+              "serviceIds": {
+                "twitter": "akikiwww"
+              }
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "Qanba X Douyu | Xiaohai",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "139993",
+              "handle": "Xiaohai",
+              "prefix": "Qanba X Douyu",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741151",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "l1",
+        "name": "Losers Round 1",
+        "smashggId": "Losers Round 1"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "P",
+      "displayName": "P - l1: Red Bull Hx | Bonchan vs CAG | Dogura",
+      "completedAt": 1558886204,
+      "entrants": [
+        {
+          "name": "Red Bull Hx | Bonchan",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "232824",
+              "handle": "Bonchan",
+              "prefix": "Red Bull Hx",
+              "serviceIds": {
+                "twitter": "katitagaribon"
+              }
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "CAG | Dogura",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "266493",
+              "handle": "Dogura",
+              "prefix": "CAG",
+              "serviceIds": {
+                "twitter": "Sephiroth_gas"
+              }
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    },
+    {
+      "serviceInfo": {
+        "serviceName": "smashgg",
+        "id": "20741152",
+        "phaseId": "591917",
+        "phaseGroupId": "985069"
+      },
+      "match": {
+        "id": "l1",
+        "name": "Losers Round 1",
+        "smashggId": "Losers Round 1"
+      },
+      "videogame": {
+        "id": "",
+        "name": "Street Fighter V: Arcade Edition",
+        "shortNames": [],
+        "hashtags": [],
+        "serviceInfo": {
+          "smashgg": {
+            "id": "7"
+          }
+        }
+      },
+      "shortIdentifier": "Q",
+      "displayName": "Q - l1: Bandits | MenaRD vs CYG BST | Daigo",
+      "completedAt": 1558886257,
+      "entrants": [
+        {
+          "name": "Bandits | MenaRD",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "224650",
+              "handle": "MenaRD",
+              "prefix": "Bandits",
+              "serviceIds": {
+                "twitter": "sdgtigers"
+              }
+            }
+          ],
+          "inLosers": false
+        },
+        {
+          "name": "CYG BST | Daigo",
+          "participants": [
+            {
+              "serviceName": "smashgg",
+              "serviceId": "135910",
+              "handle": "Daigo",
+              "prefix": "CYG BST",
+              "serviceIds": {}
+            }
+          ],
+          "inLosers": false
+        }
+      ]
+    }
+  ]
+}
