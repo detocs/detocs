@@ -1,12 +1,13 @@
 import { youtube } from '@google/youtube';
 import { CodeChallengeMethod, OAuth2Client } from 'google-auth-library';
 import http from 'http';
-import { Result, ok, err } from 'neverthrow';
+import { Result, ok, err, ResultAsync } from 'neverthrow';
 import open from 'open';
 import url from 'url';
 
 import { getCredentials, saveCredentials } from '@util/configuration/credentials';
 import { getLogger } from '@util/logger';
+import { youtube_v3 } from '@google/youtube/v3';
 
 const logger = getLogger('services/youtube');
 export const MAX_TITLE_SIZE = 100;
@@ -104,7 +105,7 @@ async function printChannelInfo(auth: OAuth2Client): Promise<void> {
         reject(err);
         return;
       }
-      var channels = response?.data.items;
+      const channels = response?.data.items;
       if (!channels || channels.length === 0) {
         reject(new Error('No YouTube channel found'));
         return;
@@ -115,6 +116,79 @@ async function printChannelInfo(auth: OAuth2Client): Promise<void> {
       resolve();
     });
   });
+}
+
+export function getVideoById(
+  auth: OAuth2Client,
+  id: string,
+): ResultAsync<youtube_v3.Schema$Video|null, Error> {
+  return ResultAsync.fromPromise(
+    youtube('v3').videos.list({
+      auth,
+      part: [ 'id', 'snippet' ],
+      id: [id],
+    }),
+    e => e as Error,
+  ).map(response => {
+    if (!response.data.items) {
+      return null;
+    }
+    return response.data.items[0] || null;
+  });
+}
+
+export function getVideoByName(
+  auth: OAuth2Client,
+  name: string,
+): ResultAsync<youtube_v3.Schema$Video|null, Error> {
+  return ResultAsync.fromPromise(
+    youtube('v3').search.list({
+      auth,
+      forMine: true,
+      type: ['video'],
+      part: [ 'id', 'snippet' ],
+      q: `"${name}"`,
+    }),
+    e => e as Error,
+  ).map(response => {
+    if (!response.data.items || response.data.items.length == 0) {
+      return null;
+    }
+    logger.debug('Search retults:', response.data.items.map(item => item.snippet?.title));
+    const match = response.data.items.find(item => item.snippet?.title === name);
+    if (!match) {
+      return null;
+    }
+    return {
+      ...match,
+      id: match.id?.videoId,
+    };
+  });
+}
+
+export function updateVideo(
+  auth: OAuth2Client,
+  id: string,
+  metadata: youtube_v3.Schema$Video,
+): ResultAsync<youtube_v3.Schema$Video, Error> {
+  return ResultAsync.fromPromise(
+    youtube('v3').videos.update({
+      auth,
+      part: [ 'snippet' ],
+      requestBody: {
+        ...metadata,
+        id,
+      },
+    }),
+    e => e as Error,
+  ).map(response => {
+    return response.data;
+  });
+}
+
+export function titleify(name: string): string {
+  // TODO: How do they handle unicode?
+  return name.replace(/[^A-Za-z0-9]/g, ' ').substring(0, 100).trim();
 }
 
 export function titleSize(title: string): number {

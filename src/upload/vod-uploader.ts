@@ -6,6 +6,7 @@ import { OAuth2Client } from 'google-auth-library';
 import yaml from 'js-yaml';
 import merge from 'lodash.merge';
 import moment from 'moment-timezone';
+import { err, ok, ResultAsync } from 'neverthrow';
 import ResumableUpload from 'node-youtube-resumable-upload';
 import path from 'path';
 import util from 'util';
@@ -25,7 +26,10 @@ import {
   descriptionSize,
   MAX_DESCRIPTION_SIZE,
   titleSize,
-  MAX_TITLE_SIZE
+  MAX_TITLE_SIZE,
+  getVideoByName,
+  updateVideo,
+  titleify,
 } from '@services/youtube';
 import { mode } from '@util/array';
 import { getConfig } from '@util/configuration/config';
@@ -67,6 +71,7 @@ export enum Command {
   Metadata,
   Video,
   Upload,
+  Update,
 }
 
 export enum Style {
@@ -79,6 +84,7 @@ interface VodUploaderParams {
   logFile: string;
   command: Command;
   style: Style;
+  videoNum: number | undefined;
 }
 
 interface PhaseGroupNameMapping {
@@ -94,8 +100,9 @@ export class VodUploader {
   private readonly dirName: string;
   private readonly command: Command;
   private readonly style: Style;
+  private readonly videoNum: number | undefined;
 
-  public constructor({ bracketProvider, logFile, command, style }: VodUploaderParams) {
+  public constructor({ bracketProvider, logFile, command, style, videoNum }: VodUploaderParams) {
     this.bracketProvider = bracketProvider;
     this.logFile = logFile;
     this.dirName = path.join(
@@ -104,13 +111,14 @@ export class VodUploader {
     );
     this.command = command;
     this.style = style;
+    this.videoNum = videoNum;
   }
 
   public async run(): Promise<void> {
     await loadDatabases();
 
     let youtubeOauthClient: OAuth2Client | null = null;
-    if (this.command == Command.Upload) {
+    if (this.command == Command.Upload || this.command == Command.Update) {
       // Get YouTube credentials first, so that the rest can be done unattended
       const res = await getYoutubeAuthClient();
       if (res.isErr()) {
@@ -150,13 +158,16 @@ export class VodUploader {
           phase,
         )];
       }
+      if (this.videoNum && this.videoNum > 0 && this.videoNum <= metadata.length) {
+        metadata = metadata.slice(this.videoNum - 1, this.videoNum);
+      }
     }
 
     for (const m of metadata) {
       dumpMetadata(m);
     }
 
-    if (this.command >= Command.Video) {
+    if (this.command >= Command.Video && this.command <= Command.Upload) {
       for (const m of metadata) {
         // Don't bother parallelizing, since reading from the source file is the bottleneck
         const filepath = path.join(this.dirName, m.filename);
@@ -179,6 +190,12 @@ export class VodUploader {
     if (this.command == Command.Upload) {
       for (const m of metadata) {
         await this.upload(youtubeOauthClient as OAuth2Client, m);
+      }
+    }
+
+    if (this.command == Command.Update) {
+      for (const m of metadata) {
+        await this.update(youtubeOauthClient as OAuth2Client, m);
       }
     }
   }
@@ -266,11 +283,12 @@ export class VodUploader {
     };
     sets.forEach(set => set.start = set.start ? offsetTimestamp(set.start) : '0:00:00');
 
-    const title = setList.title || [
+    const defaultTitle = [
       `${tournament.shortName}:`,
       videogame.name,
       phase.name,
     ].filter(nonEmpty).join(' ');
+    const title = setList.title || defaultTitle;
 
     const matchDescs = sets.map(set => {
       const players = set.players;
@@ -299,7 +317,7 @@ export class VodUploader {
     );
 
     const filename = filenamify(`${setList.start} `, { replacement: '-' }) +
-        filenamify(title, { replacement: ' ' }) +
+        filenamify(defaultTitle, { replacement: ' ' }) +
         '.mkv';
 
     return {
@@ -332,10 +350,9 @@ export class VodUploader {
 
       const bracketSet = bracketSets.find(s => s.serviceInfo.id === timestampedSet.id);
       const set = getSetData(timestampedSet, bracketSet, phaseGroupNames);
-      logger.debug(set);
       const players = set.players;
 
-      const title = [
+      const defaultTitle = [
         `${tournament.shortName}:`,
         `${players[0].name} vs ${players[1].name}`,
         '-',
@@ -343,6 +360,7 @@ export class VodUploader {
         phase.name,
         set.fullRoundText,
       ].filter(nonEmpty).join(' ');
+      const title = timestampedSet.title || defaultTitle;
 
       const matchDesc = [
         videogame.name,
@@ -367,7 +385,7 @@ export class VodUploader {
         [phase.name]);
 
       const filename = filenamify(`${timestampedSet.start} `, { replacement: '-' }) +
-          filenamify(title, { replacement: ' ' }) +
+          filenamify(defaultTitle, { replacement: ' ' }) +
           '.mkv';
 
       return {
@@ -420,6 +438,89 @@ export class VodUploader {
       logger.info(`Video "${m.filename}" uploaded with id ${video.id}`);
       await fs.writeFile(uploadFile, JSON.stringify(video, null, 2));
     }
+  }
+
+  private async update(auth: OAuth2Client, m: Metadata): Promise<void> {
+    checkMetadataSize(m);
+
+    const videoFile = path.join(this.dirName, m.filename);
+    const uploadFile = videoFile + '.upload.json';
+
+    return ResultAsync
+      .fromPromise(
+        fs.readFile(uploadFile, { encoding: 'utf8' }),
+        e => e as Error
+      )
+      .andThen(str => {
+        try {
+          const log: youtubeV3.Schema$Video = JSON.parse(str);
+          return ok(log);
+        } catch {
+          return err<youtubeV3.Schema$Video, Error>(
+            new Error(`Unable to parse JSON from ${uploadFile}`)
+          );
+        }
+      })
+      .andThen(json => {
+        if (!json.id) {
+          return err<string, Error>(new Error('Video data in upload log has no ID'));
+        }
+        logger.info(`Loaded video id from ${uploadFile}`);
+        return ok(json.id);
+      })
+      .orElse(() => {
+        const titleQuery = m.title;
+        const filenameQuery = titleify(path.basename(m.filename, path.extname(m.filename)));
+        return getVideoByName(auth, titleQuery)
+          .andThen<{ video: youtubeV3.Schema$Video, name: string }>(video => {
+          return video
+            ? ok({video, name: titleQuery})
+            : err(
+              new Error(`No video found for query "${titleQuery}`)
+            );
+        })
+          .orElse(() => getVideoByName(auth, filenameQuery)
+            .andThen<{ video: youtubeV3.Schema$Video, name: string }>(video => {
+            return video
+              ? ok({ video, name: filenameQuery })
+              : err(
+                new Error(`No video found for query "${filenameQuery}`)
+              );
+          })
+          )
+          .andThen(({ video, name }) => {
+            if (!video.id) {
+              return err<string, Error>(new Error('Video returned by search api has no ID'));
+            }
+            logger.info(`Searched YouTube for "${name}", found "${video.snippet?.title}`);
+            return ok(video.id);
+          });
+      })
+      .map(id => {
+        logger.info(`YouTube video ID: ${id}`);
+        return id;
+      })
+      .andThen(id => updateVideo(
+        auth,
+        id,
+        {
+          snippet: {
+            title: m.title,
+            description: m.description,
+            tags: m.tags,
+            categoryId: GAMING_CATEGORY_ID,
+          },
+        },
+      ))
+      .andThen(video => ResultAsync.fromPromise(
+        fs.writeFile(uploadFile, JSON.stringify(video, null, 2))
+          .then(() => video),
+        e => e as Error,
+      ))
+      .match(
+        video => logger.info(`Video "${video.id}" updated`),
+        logger.error,
+      );
   }
 }
 

@@ -16,8 +16,11 @@ export type VodVideogame = Game & {
 
 export type VodPhase = Pick<TournamentPhase, 'name' | 'startAt'>;
 
-export type Log = RecordingLog & {
+export type Log = Omit<RecordingLog, 'sets'> & {
   title?: string;
+  sets: (RecordingLog["sets"][0] & {
+    title?: string,
+  })[],
   phaseName?: string;
   event?: Partial<{
     tournament?: Partial<VodTournament>;

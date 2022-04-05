@@ -68,6 +68,7 @@ interface VodOptions {
   logFile: string;
   command: string;
   ps: boolean;
+  n?: number;
 }
 
 setAppRoot(__dirname);
@@ -171,7 +172,7 @@ const parser = yargs
       })
       .positional('command', {
         type: 'string',
-        choices: ['metadata', 'cut', 'upload'],
+        choices: ['metadata', 'cut', 'upload', 'update'],
         default: 'metadata',
       })
       .option('ps', {
@@ -179,6 +180,12 @@ const parser = yargs
         describe: 'One video per set',
         type: 'boolean',
         default: false,
+        group: 'Options',
+      })
+      .option('n', {
+        alias: 'video-num',
+        describe: 'Which set to cut/upload/update (1-indexed)',
+        type: 'number',
         group: 'Options',
       }),
   })
@@ -284,6 +291,9 @@ async function importPeople(opts: yargs.Arguments<PersonImportOptions>): Promise
 async function vods(opts: yargs.Arguments<VodOptions>): Promise<void> {
   let command = Command.Metadata;
   switch (opts.command) {
+    case 'update':
+      command = Command.Update;
+      break;
     case 'upload':
       command = Command.Upload;
       break;
@@ -296,6 +306,7 @@ async function vods(opts: yargs.Arguments<VodOptions>): Promise<void> {
     logFile: opts.logFile,
     command,
     style: opts.ps ? Style.PerSet : Style.Full,
+    videoNum: opts.n,
   });
   await uploader.run()
     .catch(err => {
