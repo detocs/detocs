@@ -154,7 +154,8 @@ export function getVideoByName(
     if (!response.data.items || response.data.items.length == 0) {
       return null;
     }
-    logger.debug('Search retults:', response.data.items.map(item => item.snippet?.title));
+    logger.debug(`Search retults for "${name}":`,
+      response.data.items.map(item => item.snippet?.title));
     const match = response.data.items.find(item => item.snippet?.title === name);
     if (!match) {
       return null;

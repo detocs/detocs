@@ -468,7 +468,8 @@ export class VodUploader {
         logger.info(`Loaded video id from ${uploadFile}`);
         return ok(json.id);
       })
-      .orElse(() => {
+      .orElse(e => {
+        logger.warn(e);
         const titleQuery = m.title;
         const filenameQuery = titleify(path.basename(m.filename, path.extname(m.filename)));
         return getVideoByName(auth, titleQuery)
@@ -479,15 +480,17 @@ export class VodUploader {
               new Error(`No video found for query "${titleQuery}`)
             );
         })
-          .orElse(() => getVideoByName(auth, filenameQuery)
-            .andThen<{ video: youtubeV3.Schema$Video, name: string }>(video => {
-            return video
-              ? ok({ video, name: filenameQuery })
-              : err(
-                new Error(`No video found for query "${filenameQuery}`)
-              );
+          .orElse(e => {
+            logger.warn(e);
+            return getVideoByName(auth, filenameQuery)
+              .andThen<{ video: youtubeV3.Schema$Video, name: string }>(video => {
+              return video
+                ? ok({ video, name: filenameQuery })
+                : err(
+                  new Error(`No video found for query "${filenameQuery}`)
+                );
+            });
           })
-          )
           .andThen(({ video, name }) => {
             if (!video.id) {
               return err<string, Error>(new Error('Video returned by search api has no ID'));
