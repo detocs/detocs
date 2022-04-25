@@ -290,6 +290,10 @@ export class VodUploader {
     ].filter(nonEmpty).join(' ');
     const title = setList.title || defaultTitle;
 
+    const commentators = setList.commentators ||
+      getCommentators(setList.sets) ||
+      'unknown';
+
     const matchDescs = sets.map(set => {
       const players = set.players;
       const p1 = players[0].name;
@@ -303,6 +307,7 @@ export class VodUploader {
       videogame,
       phase,
       setList.matchDescription || matchDescs,
+      commentators,
     );
 
     const players = sets.map(s => s.players)
@@ -362,6 +367,11 @@ export class VodUploader {
       ].filter(nonEmpty).join(' ');
       const title = timestampedSet.title || defaultTitle;
 
+      const commentators = timestampedSet.commentators ||
+        setList.commentators ||
+        getCommentators([timestampedSet]) ||
+        'unknown';
+
       const matchDesc = [
         videogame.name,
         phase.name,
@@ -374,6 +384,7 @@ export class VodUploader {
         videogame,
         phase,
         matchDesc,
+        commentators,
       );
 
       const tags = videoTags(
@@ -525,6 +536,12 @@ export class VodUploader {
         logger.error,
       );
   }
+}
+
+function getCommentators(sets: Log['sets']): string | undefined {
+  return [...new Set(
+    sets.flatMap(set => set.state?.commentators?.map(c => getPrefixedAlias(c.person)))
+  )].filter(nonEmpty).join(', ');
 }
 
 async function loadDatabases(): Promise<void> {

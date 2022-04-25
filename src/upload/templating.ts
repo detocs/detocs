@@ -36,7 +36,9 @@ export function videoDescription(
   tournament: VodTournament,
   videogame: VodVideogame,
   phase: VodPhase,
-  matchDesc: string): string {
+  matchDesc: string,
+  commentators: string,
+): string {
   const date = formatDate(
     phase.startAt != null ? phase.startAt : tournament.startAt,
     phase.startAt != null ? null : tournament.endAt,
@@ -54,6 +56,7 @@ export function videoDescription(
     'tournamentUrl': tournament.url,
     'date': date,
     'hashtags': hashtags.filter(nonEmpty).map(str => "#" + str).join(' '),
+    'commentators': commentators,
   };
   return template(templateData);
 }
