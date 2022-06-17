@@ -148,7 +148,7 @@
     "core-js": "^3.6.5",
     "cpx2": "^2.0.0",
     "doiuse": "^4.4.1",
-    "electron": "^9.4.4",
+    "electron": "^15.5.5",
     "electron-builder": "^22.8.0",
     "electron-packager": "^15.0.0",
     "element-qsa-scope": "^1.1.0",
