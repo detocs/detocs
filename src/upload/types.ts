@@ -16,6 +16,8 @@ export type VodVideogame = Game & {
 
 export type VodPhase = Pick<TournamentPhase, 'name' | 'startAt'>;
 
+export type VodUserData = Record<string, unknown>;
+
 export type Log = Omit<RecordingLog, 'sets'> & {
   title?: string;
   commentators?: string,
@@ -34,4 +36,5 @@ export type Log = Omit<RecordingLog, 'sets'> & {
   matchDescription?: string;
   additionalTags?: string[];
   excludedTags?: string[];
+  userData?: VodUserData;
 };

@@ -5,7 +5,7 @@ import moment from 'moment-timezone';
 
 import { nonEmpty } from '@util/predicates';
 
-import { VodTournament, VodVideogame, VodPhase } from './types';
+import { VodTournament, VodVideogame, VodPhase, VodUserData } from './types';
 import { getConfig } from '@util/configuration/config';
 import { handleBuiltin } from '@util/path';
 
@@ -17,6 +17,8 @@ interface TemplateData {
   'tournamentUrl'?: string;
   'date': string;
   'hashtags': string;
+  'commentators': string;
+  'userData': VodUserData;
 }
 type VodTemplate = (data: TemplateData) => string;
 
@@ -27,6 +29,8 @@ const TEST_DATA: TemplateData = {
   'tournamentUrl': 'https://tournaments.com/test-tournament',
   'date': 'October 10th, 2020',
   'hashtags': '#DETOCS #test',
+  'commentators': 'Test Commentator',
+  'userData': {},
 };
 
 const hb = Handlebars.create();
@@ -38,6 +42,7 @@ export function videoDescription(
   phase: VodPhase,
   matchDesc: string,
   commentators: string,
+  userData: VodUserData,
 ): string {
   const date = formatDate(
     phase.startAt != null ? phase.startAt : tournament.startAt,
@@ -49,7 +54,7 @@ export function videoDescription(
     videogame.hashtag,
   ];
 
-  const templateData = {
+  const templateData: TemplateData = {
     'description': matchDesc,
     'tournamentName': tournament.name,
     'tournamentVenue': [tournament.venueName, tournament.venueAddress].filter(nonEmpty).join(' - '),
@@ -57,6 +62,7 @@ export function videoDescription(
     'date': date,
     'hashtags': hashtags.filter(nonEmpty).map(str => "#" + str).join(' '),
     'commentators': commentators,
+    'userData': userData,
   };
   return template(templateData);
 }

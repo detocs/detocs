@@ -308,6 +308,7 @@ export class VodUploader {
       phase,
       setList.matchDescription || matchDescs,
       commentators,
+      setList.userData || {},
     );
 
     const players = sets.map(s => s.players)
@@ -385,6 +386,7 @@ export class VodUploader {
         phase,
         matchDesc,
         commentators,
+        setList.userData || {},
       );
 
       const tags = videoTags(
