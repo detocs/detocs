@@ -290,9 +290,9 @@ export class VodUploader {
     ].filter(nonEmpty).join(' ');
     const title = setList.title || defaultTitle;
 
-    const commentators = setList.commentators ||
-      getCommentators(setList.sets) ||
-      'unknown';
+    const commentators = setList.commentators ??
+      getCommentators(setList.sets) ??
+      '';
 
     const matchDescs = sets.map(set => {
       const players = set.players;
@@ -368,10 +368,10 @@ export class VodUploader {
       ].filter(nonEmpty).join(' ');
       const title = timestampedSet.title || defaultTitle;
 
-      const commentators = timestampedSet.commentators ||
-        setList.commentators ||
-        getCommentators([timestampedSet]) ||
-        'unknown';
+      const commentators = timestampedSet.commentators ??
+        setList.commentators ??
+        getCommentators([timestampedSet]) ??
+        '';
 
       const matchDesc = [
         videogame.name,
