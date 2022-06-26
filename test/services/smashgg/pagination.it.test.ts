@@ -1,3 +1,4 @@
+import {jest} from '@jest/globals';
 import { paginatedQuery } from '@services/smashgg/pagination';
 import {
   PHASE_SET_QUERY,
@@ -13,22 +14,22 @@ describe(paginatedQuery, () => {
 
   it('handles single page queries', async () => {
     const client = new SmashggClient().getClient();
-    const request = spyOn(client, 'request').and.callThrough();
-    const rawRequest = spyOn(client, 'rawRequest').and.callThrough();
+    const request = jest.spyOn(client, 'request');
+    const rawRequest = jest.spyOn(client, 'rawRequest');
     const data = await paginatedQuery({
       client,
       query: PHASE_SET_QUERY,
       params: { phaseId: '857511' }, // Lunar Phase Online Edition #13 Under Night In-Birth
       extractor: (resp: PhaseSetQueryResponse) => resp.phase.sets,
     });
-    expect(request.calls.count() + rawRequest.calls.count()).toBe(1);
+    expect(request.mock.calls.length + rawRequest.mock.calls.length).toBe(1);
     expect(data).toHaveLength(6);
   });
 
   it('uses auto page size by default', async () => {
     const client = new SmashggClient().getClient();
-    const request = spyOn(client, 'request').and.callThrough();
-    const rawRequest = spyOn(client, 'rawRequest').and.callThrough();
+    const request = jest.spyOn(client, 'request');
+    const rawRequest = jest.spyOn(client, 'rawRequest');
     const data = await paginatedQuery({
       client,
       query: PHASE_SET_QUERY,
@@ -36,14 +37,14 @@ describe(paginatedQuery, () => {
       extractor: (resp: PhaseSetQueryResponse) => resp.phase.sets,
     });
     // Default perPage should be 14, giving 2 pages total
-    expect(request.calls.count() + rawRequest.calls.count()).toBe(2);
+    expect(request.mock.calls.length + rawRequest.mock.calls.length).toBe(2);
     expect(data).toHaveLength(24);
   });
 
   it('chooses optimal page sizes when possible', async () => {
     const client = new SmashggClient().getClient();
-    const request = spyOn(client, 'request').and.callThrough();
-    const rawRequest = spyOn(client, 'rawRequest').and.callThrough();
+    const request = jest.spyOn(client, 'request');
+    const rawRequest = jest.spyOn(client, 'rawRequest');
     const data = await paginatedQuery({
       client,
       query: PHASE_SET_QUERY,
@@ -51,14 +52,14 @@ describe(paginatedQuery, () => {
       extractor: (resp: PhaseSetQueryResponse) => resp.phase.sets,
     });
     // Default perPage should be 14, giving 4 pages total
-    expect(request.calls.count() + rawRequest.calls.count()).toBeLessThanOrEqual(3);
+    expect(request.mock.calls.length + rawRequest.mock.calls.length).toBeLessThanOrEqual(3);
     expect(data).toHaveLength(48);
   });
 
   it('uses provided default page size', async () => {
     const client = new SmashggClient().getClient();
-    const request = spyOn(client, 'request').and.callThrough();
-    const rawRequest = spyOn(client, 'rawRequest').and.callThrough();
+    const request = jest.spyOn(client, 'request');
+    const rawRequest = jest.spyOn(client, 'rawRequest');
     const data = await paginatedQuery({
       client,
       query: PHASE_SET_QUERY,
@@ -66,7 +67,7 @@ describe(paginatedQuery, () => {
       extractor: (resp: PhaseSetQueryResponse) => resp.phase.sets,
       defaultPageSize: 24,
     });
-    expect(request.calls.count() + rawRequest.calls.count()).toBe(1);
+    expect(request.mock.calls.length + rawRequest.mock.calls.length).toBe(1);
     expect(data).toHaveLength(24);
   });
 });
