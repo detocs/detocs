@@ -16,7 +16,7 @@ export async function loadLog(logPath: string): Promise<Log> {
 // TODO: Make an actual system for this once there's more than one
 // backwards-incompatible change
 function backfillServiceName(log: Log): void {
-  if (!log.format) {
+  if (!log.format && !log.bracketService) {
     log.bracketService = SMASHGG_SERVICE_NAME;
   }
 
