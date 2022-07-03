@@ -5,8 +5,8 @@ import { promisify } from 'util';
 
 import TwitterClient, { ApiTwitterClient, MockTwitterClient } from '@services/twitter/twitter';
 import { loadCredentials, getCredentials } from '@util/configuration/credentials';
+import { FFMPEG_BIN } from '@util/ffmpeg';
 
-const FFMPEG_COMMAND = 'ffmpeg';
 const EXAMPLE_FILE_FOLDER = path.resolve('temp-twitter-test-files');
 const pExecFile = promisify(execFile);
 let twitterClient: TwitterClient = new MockTwitterClient();
@@ -67,7 +67,7 @@ async function twitterLogin(): Promise<void> {
 }
 
 async function generateTestVideo(mediaPath: string, fileSize: number): Promise<void> {
-  await pExecFile(FFMPEG_COMMAND, [
+  await pExecFile(FFMPEG_BIN, [
     '-f', 'lavfi',
     '-i', 'testsrc=size=1920x1080:rate=60',
     '-vf', 'format=yuv420p',
@@ -77,7 +77,7 @@ async function generateTestVideo(mediaPath: string, fileSize: number): Promise<v
 }
 
 async function generateStatic(mediaPath: string, fileSize: number): Promise<void> {
-  await pExecFile(FFMPEG_COMMAND, [
+  await pExecFile(FFMPEG_BIN, [
     '-f', 'lavfi',
     '-i', 'nullsrc=s=1920x1080',
     '-filter_complex', 'geq=random(1)*255:128:128;aevalsrc=-2+random(0)',

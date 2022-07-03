@@ -1,4 +1,6 @@
 import { execFile } from 'child_process';
+import ffmpegStatic from 'ffmpeg-static';
+import ffprobeStatic from 'ffprobe-static';
 import path from 'path';
 import { promisify } from 'util';
 
@@ -6,6 +8,7 @@ import { Timestamp } from '@models/timestamp';
 import { getConfig } from '@util/configuration/config';
 import { getLogger } from '@util/logger';
 import * as pathUtil from '@util/path';
+import { copyBundledFile } from '@util/pkg';
 
 export interface VideoStats {
   durationMs?: number;
@@ -13,9 +16,9 @@ export interface VideoStats {
 
 const logger = getLogger('util/ffmpeg');
 const pExecFile = promisify(execFile);
-const FFMPEG_COMMAND = 'ffmpeg';
-const FFPROBE_COMMAND = 'ffprobe';
 export const WAVEFORM_HEIGHT = 80;
+export const FFMPEG_BIN = copyBundledFile(ffmpegStatic);
+export const FFPROBE_BIN = copyBundledFile(ffprobeStatic.path);
 const WAVEFORM_PIXELS_PER_MS = 0.06; // 1 pixel per frame
 const WAVEFORM_MAX_WIDTH = 1920;
 
@@ -34,8 +37,8 @@ export async function losslessCut(
     '-y',
     outFile,
   ];
-  logger.debug(FFMPEG_COMMAND, args.join(' '));
-  const { stderr } = await pExecFile(FFMPEG_COMMAND, args);
+  logger.debug(FFMPEG_BIN, args.join(' '));
+  const { stderr } = await pExecFile(FFMPEG_BIN, args);
   if (stderr) {
     logger.debug(stderr);
   }
@@ -62,8 +65,8 @@ export async function lossyCut(
     '-y',
     outFile,
   ];
-  logger.debug(FFMPEG_COMMAND, args.join(' '));
-  const { stderr } = await pExecFile(FFMPEG_COMMAND, args);
+  logger.debug(FFMPEG_BIN, args.join(' '));
+  const { stderr } = await pExecFile(FFMPEG_BIN, args);
   if (stderr) {
     logger.debug(stderr);
   }
@@ -91,9 +94,9 @@ export async function getVideoFrame(
     '-filter:v', `scale=${dimensions.width || -1}:${dimensions.height || -1}`,
     'pipe:',
   ];
-  logger.debug(FFMPEG_COMMAND, args.join(' '));
+  logger.debug(FFMPEG_BIN, args.join(' '));
   const hrstart = process.hrtime();
-  const { stdout, stderr } = await pExecFile(FFMPEG_COMMAND, args, { encoding: 'buffer' });
+  const { stdout, stderr } = await pExecFile(FFMPEG_BIN, args, { encoding: 'buffer' });
   const hrend = process.hrtime(hrstart);
   if (stderr.length) {
     logger.debug(stderr.toString());
@@ -110,8 +113,8 @@ export async function getVideoStats(file: string): Promise<VideoStats> {
     '-of', 'default=noprint_wrappers=1',
     file,
   ];
-  logger.debug(FFPROBE_COMMAND, args.join(' '));
-  const { stdout, stderr } = await pExecFile(FFPROBE_COMMAND, args, { encoding: 'utf8' });
+  logger.debug(FFPROBE_BIN, args.join(' '));
+  const { stdout, stderr } = await pExecFile(FFPROBE_BIN, args, { encoding: 'utf8' });
   const match = durationRegex.exec(stdout.trim());
   if (stderr.length && !match) {
     throw new Error(stderr);
@@ -160,8 +163,8 @@ export async function copyToWebCompatibleFormat(
     '-y',
     outFile,
   ];
-  logger.debug(FFMPEG_COMMAND, args.join(' '));
-  const { stderr } = await pExecFile(FFMPEG_COMMAND, args);
+  logger.debug(FFMPEG_BIN, args.join(' '));
+  const { stderr } = await pExecFile(FFMPEG_BIN, args);
   if (stderr) {
     logger.debug(stderr);
   }
@@ -186,8 +189,8 @@ export async function getWaveform(
     '-y',
     outFile,
   ];
-  logger.debug(FFMPEG_COMMAND, args.join(' '));
-  const { stderr } = await pExecFile(FFMPEG_COMMAND, args);
+  logger.debug(FFMPEG_BIN, args.join(' '));
+  const { stderr } = await pExecFile(FFMPEG_BIN, args);
   if (stderr) {
     logger.debug(stderr);
   }
@@ -203,8 +206,8 @@ export async function getKeyframes(file: string): Promise<Timestamp[]> {
     '-print_format', 'csv=p=0',
     file,
   ];
-  logger.debug(FFPROBE_COMMAND, args.join(' '));
-  const { stdout, stderr } = await pExecFile(FFPROBE_COMMAND, args, { encoding: 'utf8' });
+  logger.debug(FFPROBE_BIN, args.join(' '));
+  const { stdout, stderr } = await pExecFile(FFPROBE_BIN, args, { encoding: 'utf8' });
   if (stderr.length) {
     throw new Error(stderr);
   }

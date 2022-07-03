@@ -1,0 +1,17 @@
+{
+  "name": "detocs-macos",
+  "bin": {
+    "detocs": "../build/src/main.js"
+  },
+  "pkg": {
+    "targets": [ "node12-macos-x64" ],
+    "outputPath": "dist/server",
+    "assets": [
+      "../node_modules/ffmpeg-static/bin/darwin/x64/*",
+      "../node_modules/ffprobe-static/bin/darwin/x64/*",
+      "../node_modules/mkvmerge-static/bin/darwin/x64/*",
+      "../build/public/**/*",
+      "../build/templates/**/*"
+    ]
+  }
+}

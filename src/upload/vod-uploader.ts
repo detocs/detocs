@@ -33,10 +33,11 @@ import {
 } from '@services/youtube';
 import { mode } from '@util/array';
 import { getConfig } from '@util/configuration/config';
+import { KeyframeSource } from '@util/keyframe-source';
 import { getLogger } from '@util/logger';
+import { trimVideo } from '@util/mkvmerge';
 import { nonEmpty, nonNull } from '@util/predicates';
 
-import { KeyframeSource } from './keyframe-source';
 import { loadLog } from './loader';
 import { videoDescription, getSingleVideoTemplate, getPerSetTemplate } from './templating';
 import { Log, VodTournament, VodVideogame, VodPhase } from './types';
@@ -176,7 +177,7 @@ export class VodUploader {
           logger.info(`${filepath} already exists, skipping cut`);
         } catch {
           // File does not exist
-          await trimClip(
+          await trimVideo(
             keyframeSource,
             m.sourcePath,
             m.start,
@@ -815,34 +816,6 @@ function getSetData(
     start,
     end,
   };
-}
-
-async function trimClip(
-  keyframeSource: KeyframeSource,
-  sourceFile: string,
-  start: Timestamp,
-  end: Timestamp,
-  outFile: string,
-): Promise<void> {
-  const startKeyframe = keyframeSource.closestPrecedingKeyframe(start);
-  const endKeyframe = keyframeSource.closestSubsequentKeyframe(end);
-  logger.debug(`Choosing keyframe ${startKeyframe} for timestamp ${start}`);
-  logger.debug(`Choosing keyframe ${endKeyframe} for timestamp ${end}`);
-  logger.info(
-    `Cutting ${startKeyframe} to ${endKeyframe} from ${sourceFile}, saving to ${outFile}`);
-  const args = [
-    '--verbose',
-    '--output', outFile,
-    '--split', `parts:${startKeyframe}-${endKeyframe}`,
-    sourceFile,
-  ];
-  const { stdout, stderr } = await pExecFile('mkvmerge', args);
-  if (stdout) {
-    logger.debug(stdout);
-  }
-  if (stderr) {
-    logger.warn(stderr);
-  }
 }
 
 function subtractTimestamp(a: Timestamp, b: Timestamp): Timestamp {
