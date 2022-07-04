@@ -74,7 +74,7 @@ Optimized: ${optimalTotalPages} @ ${optimalPerPage}/page, predicted complexity: 
 }`);
   if (minTotalPages > RATE_LIMIT) {
     throw new Error(
-      `Number of pages required for query (${minTotalPages}) will exceed smash.gg's rate limit`);
+      `Number of pages required for query (${minTotalPages}) will exceed start.gg's rate limit`);
   }
 
   async function queryPages(

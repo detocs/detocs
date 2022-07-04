@@ -177,7 +177,7 @@ class BracketServer {
     if (parsed) {
       return [ parsed.serviceId, this.bracketProvider.get(parsed.serviceName) ];
     }
-    // Default to smash.gg for now
+    // Default to smashgg for now
     return [ tourneyUrlOrSlug, this.bracketProvider.get(SMASHGG_SERVICE_NAME)];
   }
 

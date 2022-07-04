@@ -16,6 +16,7 @@ const logger = getLogger('credentials');
 
 // TODO: Make credentials immutable, add setCredentials
 export interface Credentials {
+  startggKey?: SmashggApiToken;
   smashggKey?: SmashggApiToken;
   challongeKey?: ChallongeApiKey;
   twitterKey?: string;

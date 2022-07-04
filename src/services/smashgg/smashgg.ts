@@ -14,7 +14,6 @@ import TournamentSet, {
 } from '@models/tournament-set';
 import BracketService from '@services/bracket-service';
 import { getCredentials } from '@util/configuration/credentials';
-import { nonNull } from '@util/predicates';
 
 import {
   TOURNAMENT_URL_REGEX,
@@ -52,14 +51,15 @@ import {
 } from './queries';
 import { SmashggSlug } from './types';
 
-// TODO: Propagate smash.gg errors
+// TODO: Propagate smashgg errors
 export default class SmashggClient implements BracketService {
   private client: GraphQLClient;
 
   public constructor() {
-    const token = getCredentials().smashggKey;
-    if (!token) {
-      throw new Error('No smash.gg API token');
+    const { startggKey, smashggKey } = getCredentials();
+    const token = startggKey ?? smashggKey;
+    if (token == null) {
+      throw new Error('No start.gg API token');
     }
     this.client = new GraphQLClient(ENDPOINT, {
       headers: { authorization: `Bearer ${token}` },
