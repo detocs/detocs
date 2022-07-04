@@ -18,7 +18,14 @@ module.exports = {
     },
   },
   rules: {
-    'max-len': ['error', { 'code': 100 }],
+    'max-len': ['error', {
+      'code': 100,
+      'ignoreTrailingComments': true,
+      'ignoreUrls': true,
+      'ignoreStrings': true,
+      'ignoreTemplateLiterals': true,
+      'ignoreRegExpLiterals': true,
+    }],
     'semi': 'off',
     '@typescript-eslint/semi': ['error', 'always'],
     '@typescript-eslint/indent': [ERROR, 2],
