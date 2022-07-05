@@ -6,7 +6,7 @@ const ICON_NAME_MAPPING = Object.freeze({
   'close': 'x-circle',
 });
 
-export type Props = JSXInternal.HTMLAttributes & {
+export type Props = JSXInternal.SVGAttributes<SVGSVGElement> & {
   name: keyof typeof ICON_NAME_MAPPING;
   label: string;
 };

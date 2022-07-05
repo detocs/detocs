@@ -4,10 +4,11 @@ import { JSXInternal } from 'preact/src/jsx';
 
 import { INTERACTIVE_SELECTOR, keyHandler, Key } from '@util/dom';
 
-type FocusTrapProps = RenderableProps<{}> & JSXInternal.HTMLAttributes;
+type FocusTrapProps = RenderableProps<Record<string, unknown>> &
+JSXInternal.HTMLAttributes<HTMLDivElement>;
 
 const FocusTrap: FunctionalComponent<FocusTrapProps> = ({ children, ...attributes }): VNode => {
-  const ref = useRef<HTMLElement>();
+  const ref = useRef<HTMLDivElement>(null);
   let firstInteractible: HTMLElement | undefined;
   let lastInteractible: HTMLElement | undefined;
   useEffect(() => {

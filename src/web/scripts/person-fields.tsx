@@ -92,7 +92,7 @@ export type PersonFieldInputProps = RenderableProps<PersonFieldProps & {
 }> &
 JSXInternal.HTMLAttributes;
 
-export const PersonFieldInput: FunctionalComponent<PersonFieldInputProps> = forwardRef(({
+export const PersonFieldInput = forwardRef<HTMLInputElement, PersonFieldInputProps>(({
   fieldName,
   label,
   prefix,
@@ -130,7 +130,7 @@ export const PersonSelector: FunctionalComponent<PersonFieldProps> = ({
   onUpdatePerson,
 }): VNode => {
   const [ options, updateOptions ] = useState([]);
-  const inputRef = useRef<HTMLInputElement>();
+  const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteId = useAutocompleteId();
 
   const updateAutocomplete = useCallback(

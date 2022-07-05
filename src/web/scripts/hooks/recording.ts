@@ -1,5 +1,5 @@
 import updateImmutable from 'immutability-helper';
-import { StateUpdater } from 'preact/hooks/src';
+import { StateUpdater } from 'preact/hooks';
 
 import RecordingState, { Recording } from '@server/recording/state';
 

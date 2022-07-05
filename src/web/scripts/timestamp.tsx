@@ -14,7 +14,7 @@ export const TimestampInput: FunctionalComponent<{
   const forwardSmall = adjustTimestamp(updater, 1);
   const forwardMedium = adjustTimestamp(updater, 3);
 
-  const keyHandler: JSX.KeyboardEventHandler = (e): void => {
+  const keyHandler: JSX.KeyboardEventHandler<EventTarget> = (e): void => {
     switch (e.key) {
       case 'ArrowUp':
         forwardSmall();

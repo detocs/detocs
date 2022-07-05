@@ -1,6 +1,6 @@
 import debounce from 'lodash.debounce';
 import { h, FunctionalComponent, Fragment } from 'preact';
-import { StateUpdater, useRef, useState, PropRef } from 'preact/hooks';
+import { StateUpdater, useRef, useState, Ref, useEffect } from 'preact/hooks';
 
 import { ImageClip, VideoClip, isVideoClip, Clip } from '@models/media';
 import { GetClipResponse } from '@server/clip/server';
@@ -21,7 +21,6 @@ import { useLocalState } from './hooks/local-state';
 import { logError } from './log';
 import { fromMillis } from '@util/timestamp';
 import { Timestamp } from '@models/timestamp';
-import { useEffect } from 'react';
 
 interface Props {
   state: State;
@@ -127,7 +126,7 @@ const VideoEditor: FunctionalComponent<VideoEditorProps> = (props) => {
   const isRendered = status === ClipStatus.Rendered;
   const durationMs = media.durationMs;
 
-  const videoRef = useRef<HTMLVideoElement>();
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [ currentTime, updateCurrentTime ] = useState(0);
   const startMaximum = endMs;
   const startRangePercentage = `${startMaximum / durationMs * 100}%`;
@@ -293,7 +292,7 @@ const VideoEditor: FunctionalComponent<VideoEditorProps> = (props) => {
 };
 
 function rangeUpdateHandler(
-  videoRef: PropRef<HTMLVideoElement>,
+  videoRef: Ref<HTMLVideoElement>,
   rangeUpdater: StateUpdater<number>,
   playbackUpdater: (timestampMs: number) => void,
   offset = 0,
@@ -316,7 +315,7 @@ function rangeUpdateHandler(
 }
 
 function playbackUpdateHandler(
-  videoRef: PropRef<HTMLVideoElement>,
+  videoRef: Ref<HTMLVideoElement>,
   playbackUpdater: (timestampMs: number) => void,
 ): (event: Event) => void {
   return (e) => {

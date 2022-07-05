@@ -1,5 +1,6 @@
 import updateImmutable from 'immutability-helper';
-import { h, FunctionalComponent, RenderableProps, VNode, Fragment, createRef } from 'preact';
+import { h, FunctionalComponent, RenderableProps, VNode, Fragment } from 'preact';
+import { useRef } from 'preact/hooks';
 
 import TournamentSet, { nullSet, getTournamentSetIdString } from '@models/tournament-set';
 import { inputHandler } from '@util/dom';
@@ -24,7 +25,7 @@ const SetSelector: FunctionalComponent<Props> = ({
   updateSet,
   unfinishedSets,
 }: RenderableProps<Props>): VNode => {
-  const inputRef = createRef<HTMLInputElement>();
+  const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteId = useAutocompleteId();
   // TODO: Implement a way to clear this field
 

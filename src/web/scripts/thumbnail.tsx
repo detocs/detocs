@@ -142,7 +142,7 @@ const VideoThumbnail: FC<VideoThumbnailProps> = ({
 };
 
 const ThumbVid: FC<{ media: VideoFile }> = ({ media }): VNode => {
-  const videoRef = useRef<HTMLVideoElement>();
+  const videoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
     if (!videoRef.current) {
       console.warn('Unable to observe <video> element for thumbnail');
@@ -195,7 +195,7 @@ const ImageThumbnail: FC<ImageThumbnailProps> = ({ media, ...additionalProps }):
 };
 
 const ThumbImg: FC<{ media: ImageFile }> = ({ media }): VNode => {
-  const imageRef = useRef<HTMLImageElement>();
+  const imageRef = useRef<HTMLImageElement>(null);
   useEffect(() => {
     if (!imageRef.current) {
       console.warn('Unable to observe <object> element for thumbnail');

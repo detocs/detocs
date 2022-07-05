@@ -36,9 +36,9 @@ const RecordingDashboard: FunctionalComponent<Props> = ({ state, updateState }):
   const recording = state.recordings[0];
   const isRecording = !!recording && !!recording.startTimestamp && !recording.stopTimestamp;
 
-  const ref = useRef();
+  const ref = useRef<HTMLOListElement>(null);
   useEffect(() => {
-    let tabElement = (ref.current as HTMLElement).closest('.tabbable-section');
+    let tabElement = ref.current?.closest('.tabbable-section');
     tabElement = tabElement && tabElement.querySelector('.tabbable-section__tab label');
     if (!tabElement) {
       return;

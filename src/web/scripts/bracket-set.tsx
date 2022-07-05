@@ -28,7 +28,7 @@ const BracketSet: FunctionalComponent<Props> = ({
   const currentSet = localSet?.serviceInfo.id
     ? sets.find(s => isEqual(s.serviceInfo, localSet.serviceInfo)) || localSet
     : localSet;
-  const ref = useRef<HTMLFieldSetElement>();
+  const ref = useRef<HTMLFieldSetElement>(null);
   const submit = (): void => {
     const form = ref.current?.form;
     if (!ref.current || !form) {

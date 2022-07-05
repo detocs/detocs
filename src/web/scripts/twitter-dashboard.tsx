@@ -73,8 +73,8 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
   twitterState,
   clipState,
 }): VNode => {
-  const bodyRef = useRef<HTMLTextAreaElement>();
-  const selectMediaRef = useRef<HTMLButtonElement>();
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
+  const selectMediaRef = useRef<HTMLButtonElement>(null);
   const [ mode, setMode ] = useSessionStorage<DashboardMode>('twitter-mode', 'single');
   const [ body, setBody ] = useState('');
   const [ clipId, setClipId ] = useState<string | null>(null);
@@ -230,7 +230,7 @@ const TwitterMedia: FunctionalComponent<MediaProps> = ({
   mediaError,
 }): VNode => {
   const clipView = clipState.clips.find(c => c.clip.id === clipId) || null;
-  const previewRef = useRef<HTMLOutputElement>();
+  const previewRef = useRef<HTMLOutputElement>(null);
   const [ mediaInputId ] = useId(1, 'twitter-media-');
   useEffect(() => {
     previewRef.current?.setCustomValidity(mediaError);

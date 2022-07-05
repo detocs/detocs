@@ -45,9 +45,9 @@ const BracketDashboard: FunctionalComponent<Props> = ({ state, updateState }): V
   const phaseGroups = state.phaseId ?
     state.phaseGroups.filter(pg => pg.phaseId === state.phaseId) :
     [];
-  const tournamentRef = useRef<HTMLInputElement>();
-  const eventRef = useRef<HTMLSelectElement>();
-  const phaseRef = useRef<HTMLSelectElement>();
+  const tournamentRef = useRef<HTMLInputElement>(null);
+  const eventRef = useRef<HTMLSelectElement>(null);
+  const phaseRef = useRef<HTMLSelectElement>(null);
   useEffect(() => {
     if (!state.tournamentId) {
       tournamentRef.current?.focus();

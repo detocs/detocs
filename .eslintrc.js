@@ -26,6 +26,13 @@ module.exports = {
       'ignoreTemplateLiterals': true,
       'ignoreRegExpLiterals': true,
     }],
+    'no-restricted-imports': ['error', {
+      'paths': [
+        'preact/hooks/src',
+        'preact/compat/src',
+        'react'
+      ],
+    }],
     'semi': 'off',
     '@typescript-eslint/semi': ['error', 'always'],
     '@typescript-eslint/indent': [ERROR, 2],

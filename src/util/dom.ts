@@ -1,4 +1,5 @@
 import { JSX } from 'preact';
+import { TargetedEvent } from 'preact/compat';
 import { Key } from 'w3c-keys';
 export { Key } from 'w3c-keys';
 
@@ -13,8 +14,9 @@ export function cloneTemplate(id: string): DocumentFragment {
   return template.content.cloneNode(true) as DocumentFragment;
 }
 
-export function inputHandler(fn: (value: string) => void): JSX.EventHandler<Event> {
-  return (e: Event) => fn((e.target as HTMLInputElement | HTMLTextAreaElement).value);
+export function inputHandler(fn: (value: string) => void):
+JSX.EventHandler<TargetedEvent<HTMLInputElement|HTMLTextAreaElement, Event>> {
+  return e => fn(e.currentTarget.value);
 }
 
 export function keyHandler(

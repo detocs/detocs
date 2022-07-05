@@ -4,7 +4,7 @@ import { useRef, useState } from 'preact/hooks';
 export default function useModalState(
   initiallyOpen=false,
 ): [ boolean, () => void, () => void, Ref<HTMLElement> ] {
-  const triggerRef = useRef<HTMLElement>();
+  const triggerRef = useRef<HTMLElement>(null);
   const [ modalOpen, updateModalOpen ] = useState(initiallyOpen);
   const openModal = (): void => {
     updateModalOpen(true);
