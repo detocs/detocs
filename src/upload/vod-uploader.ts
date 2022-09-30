@@ -1,5 +1,4 @@
 import { youtube_v3 as youtubeV3 } from '@google/youtube/v3';
-import childProcess from 'child_process';
 import filenamify from 'filenamify';
 import fsSync, { promises as fs } from 'fs';
 import { OAuth2Client } from 'google-auth-library';
@@ -9,7 +8,6 @@ import moment from 'moment-timezone';
 import { err, ok, ResultAsync } from 'neverthrow';
 import ResumableUpload from 'node-youtube-resumable-upload';
 import path from 'path';
-import util from 'util';
 
 import Game from '@models/game';
 import { getGameById, getGameByServiceId, loadGameDatabase } from '@models/games';
@@ -30,6 +28,13 @@ import {
   getVideoByName,
   updateVideo,
   titleify,
+  sanitizeTag,
+  sanitizeTitle,
+  sanitizeDescription,
+  SanitizedTitle,
+  SanitizedDescription,
+  SanitizedTag,
+  GAMING_CATEGORY_ID,
 } from '@services/youtube';
 import { mode } from '@util/array';
 import { getConfig } from '@util/configuration/config';
@@ -63,9 +68,9 @@ interface Metadata {
   start: Timestamp;
   end: Timestamp;
   filename: string;
-  title: string;
-  description: string;
-  tags: string[];
+  title: SanitizedTitle;
+  description: SanitizedDescription;
+  tags: SanitizedTag[];
 }
 
 export enum Command {
@@ -91,9 +96,6 @@ interface VodUploaderParams {
 interface PhaseGroupNameMapping {
   get: (phaseGroupId?: string | null) => string | undefined;
 }
-
-const GAMING_CATEGORY_ID = '20';
-const pExecFile = util.promisify(childProcess.execFile);
 
 export class VodUploader {
   private readonly bracketProvider: BracketServiceProvider;
@@ -332,8 +334,8 @@ export class VodUploader {
       start: setList.start,
       end: setList.end,
       filename,
-      title,
-      description,
+      title: sanitizeTitle(title),
+      description: sanitizeDescription(description),
       tags,
     };
   }
@@ -407,8 +409,8 @@ export class VodUploader {
         start: timestampedSet.start,
         end: timestampedSet.end,
         filename,
-        title,
-        description,
+        title: sanitizeTitle(title),
+        description: sanitizeDescription(description),
         tags,
       };
     });
@@ -729,7 +731,7 @@ function videoTags(
   players: Set['players'],
   excludedTags: string[],
   additionalTags: string[],
-): string[] {
+): SanitizedTag[] {
   const playerTags = players.flatMap(p => [
     p.prefix && `${p.prefix} ${p.handle}`,
     p.handle,
@@ -752,7 +754,8 @@ function videoTags(
   ].filter(nonEmpty).map(sanitizeTag).filter(nonEmpty);
 
   const tagsSet = new Set(tags);
-  excludedTags.forEach(tagsSet.delete.bind(tagsSet));
+  excludedTags.map(sanitizeTag)
+    .forEach(tagsSet.delete.bind(tagsSet));
   return Array.from(tagsSet);
 }
 
@@ -856,12 +859,6 @@ function groupTags(): string[] {
     'Lunar Phase',
     'LunarPhaseLive',
   ];
-}
-
-function sanitizeTag(str: string): string {
-  // TODO: Actually make this an exhaustive list?
-  return str.replace(/[,.?!|/\\(){}\[\]]/g, '')
-    .trim();
 }
 
 function isValidPhase(phaseId: string | null | undefined): phaseId is string {

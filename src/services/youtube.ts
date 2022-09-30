@@ -9,10 +9,15 @@ import { getCredentials, saveCredentials } from '@util/configuration/credentials
 import { getLogger } from '@util/logger';
 import { youtube_v3 } from '@google/youtube/v3';
 
+export type SanitizedTitle = string & { readonly __tag: unique symbol };
+export type SanitizedDescription = SanitizedTitle;
+export type SanitizedTag = string & { readonly __tag: unique symbol };
+
 const logger = getLogger('services/youtube');
 export const MAX_TITLE_SIZE = 100;
 export const MAX_DESCRIPTION_SIZE = 5000;
 export const MAX_TAGS_SIZE = 500;
+export const GAMING_CATEGORY_ID = '20';
 const SCOPES = [
   'https://www.googleapis.com/auth/youtube',
   'https://www.googleapis.com/auth/youtubepartner',
@@ -200,10 +205,27 @@ export function descriptionSize(desc: string): number {
   return Buffer.byteLength(desc);
 }
 
+export function sanitizeTitle(str: string): SanitizedTitle {
+  const sanitized = str.replace(/</g, 'ᐸ')
+    .replace(/>/g, 'ᐳ');
+  return sanitized as SanitizedTitle;
+}
+
+export function sanitizeDescription(str: string): SanitizedDescription {
+  return sanitizeTitle(str);
+}
+
 export function tagsSize(tags: string[]): number {
   const characterCount = tags
     .map(t => t.includes(' ') || t.includes(',') ? t.length + 2 : t.length)
     .reduce((acc, curr) => acc + curr);
   const commas = Math.max(tags.length - 1, 0);
   return characterCount + commas;
+}
+
+export function sanitizeTag(str: string): SanitizedTag {
+  const sanitized = str.replace(/[,.?!|/\\(){}\[\]<>]/g, '')
+    .trim();
+  // TODO: Actually make this an exhaustive list?
+  return sanitized as SanitizedTag;
 }
