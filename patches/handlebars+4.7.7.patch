@@ -1,5 +1,5 @@
 diff --git a/node_modules/handlebars/dist/cjs/handlebars/runtime.js b/node_modules/handlebars/dist/cjs/handlebars/runtime.js
-index 7503ded..43fbe10 100644
+index 5b97626..c4f0fca 100644
 --- a/node_modules/handlebars/dist/cjs/handlebars/runtime.js
 +++ b/node_modules/handlebars/dist/cjs/handlebars/runtime.js
 @@ -142,7 +142,7 @@ function template(templateSpec, env) {
