@@ -1,0 +1,29 @@
+diff --git a/node_modules/obs-websocket-js/types/index.d.ts b/node_modules/obs-websocket-js/types/index.d.ts
+index de8d1da..c2b81e2 100644
+--- a/node_modules/obs-websocket-js/types/index.d.ts
++++ b/node_modules/obs-websocket-js/types/index.d.ts
+@@ -95,7 +95,7 @@ declare module "obs-websocket-js" {
+     }
+   }
+ 
+-  interface RequestMethodsArgsMap {
++  export interface RequestMethodsArgsMap {
+     GetVersion: void;
+ 
+     GetAuthRequired: void;
+@@ -550,7 +550,7 @@ declare module "obs-websocket-js" {
+     StopVirtualCam: void;
+   }
+ 
+-  interface RequestMethodReturnMap {
++  export interface RequestMethodReturnMap {
+     GetVersion: {
+       messageId: string;
+       status: "ok";
+@@ -1451,5 +1451,5 @@ declare module "obs-websocket-js" {
+     ): this;
+   }
+ 
+-  export = ObsWebSocket;
++  export default ObsWebSocket;
+ }

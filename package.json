@@ -107,7 +107,7 @@
     "neverthrow": "^4.0.1",
     "node-youtube-resumable-upload": "git+https://github.com/data-enabler/node-youtube-resumable-upload.git",
     "oauth-1.0a": "^2.2.6",
-    "obs-websocket-js": "^3.1.0",
+    "obs-websocket-js": "^4.0.3",
     "open": "^7.0.3",
     "p-limit": "^3.0.2",
     "twit": "^2.2.11",

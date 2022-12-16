@@ -1,6 +1,5 @@
 import { ResultAsync, okAsync } from 'neverthrow';
 import ObsWebSocket, {
-  ObsError,
   RequestMethodsArgsMap,
   RequestMethodReturnMap,
 } from 'obs-websocket-js';
@@ -68,7 +67,7 @@ export class ObsConnectionImpl implements ObsConnection {
     return connection.andThen(() => {
       return ResultAsync.fromPromise(
         this.ws.send(requestType, ...args),
-        obsError => new Error(`${requestType} failed: ${(obsError as ObsError).error}`),
+        obsError => new Error(`${requestType} failed: ${(obsError as ObsWebSocket.ObsError).error}`),
       );
     });
   };
@@ -107,20 +106,20 @@ export class ObsConnectionImpl implements ObsConnection {
           logger.warn('Error thrown, but we\'re connected');
           return;
         }
-        logger.debug(`Unable to connect to ${obsConfig.address}: ${(error as ObsError).error}`);
+        logger.debug(`Unable to connect to ${obsConfig.address}: ${(error as ObsWebSocket.ObsError).error}`);
       }
     }
     logger.warn('Hit maximum number of OBS connection attempts');
     throw new Error('Unable to connect to OBS');
   };
 
-  private readonly handleDisconnect = () => {
+  private readonly handleDisconnect = (): void => {
     this.connected = false;
     logger.warn('Lost connection to OBS');
     this.connect();
   };
 
-  public readonly disconnect = () => {
+  public readonly disconnect = (): void => {
     this.ws.off('ConnectionClosed', this.handleDisconnect);
     this.ws.disconnect();
     logger.info('Disconnected from OBS');
