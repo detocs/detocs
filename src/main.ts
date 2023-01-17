@@ -1,9 +1,5 @@
 #!/usr/bin/env node
 import 'isomorphic-fetch';
-import log4js, { Configuration } from 'log4js';
-import moment from 'moment';
-import ObsWebSocket from 'obs-websocket-js';
-import { join } from 'path';
 import yargs from 'yargs';
 
 import startElectron from '@desktop/electron';
@@ -27,15 +23,15 @@ import ChallongeClient, {
   parseTournamentId as parseChallongeId,
 } from '@services/challonge/challonge';
 import { CHALLONGE_SERVICE_NAME } from '@services/challonge/constants';
-import { ObsConnectionImpl } from '@services/obs/connection';
 import ObsClient from '@services/obs/obs';
+import ObsLegacyClient from '@services/obs-legacy/obs';
 import { SMASHGG_SERVICE_NAME } from '@services/smashgg/constants';
 import SmashggClient, { parseTournamentSlug as parseSmashggSlug } from '@services/smashgg/smashgg';
 import { VodUploader, Style, Command } from '@upload/vod-uploader';
 import { loadConfig, getConfig } from '@util/configuration/config';
 import { loadCredentials } from '@util/configuration/credentials';
 import { sortedKeys } from '@util/json';
-import { getBasicLogger } from '@util/logger';
+import { configureLogger, getBasicLogger } from '@util/logger';
 import {
   getVersion,
   setAppRoot,
@@ -44,6 +40,7 @@ import {
   isPkg,
 } from '@util/meta';
 import web from '@web/server';
+import VisionMixer from '@services/vision-mixer-service';
 
 interface ConfigOptions {
   config?: string;
@@ -208,14 +205,12 @@ async function middlewareLoadCredentials(args: yargs.Arguments<ConfigOptions>): 
 }
 
 async function startServer(): Promise<void> {
-  configureLogger();
+  configureLogger(getConfig().logDirectory);
   logConfig();
 
-  const obsConn = new ObsConnectionImpl(new ObsWebSocket());
-  const obsClient = new ObsClient(obsConn);
-  obsConn.connect().catch(logger.warn);
+  const visionMixer = getVisionMixer();
 
-  const mediaServer = new MediaServer({ obsClient, dirName: 'media' });
+  const mediaServer = new MediaServer({ visionMixer, dirName: 'media' });
   mediaServer.start();
 
   const bracketProvider = getBracketProvider();
@@ -225,7 +220,7 @@ async function startServer(): Promise<void> {
 
   const port = getConfig().ports.web;
   await Promise.all([
-    server({ bracketProvider, mediaServer, obsClient, personDatabase }),
+    server({ bracketProvider, mediaServer, visionMixer, personDatabase }),
     web({ mediaServer, port }),
   ]);
   if (isElectron()) {
@@ -233,6 +228,13 @@ async function startServer(): Promise<void> {
   } else if (isPkg()) {
     startLocalBrowser({ port });
   }
+}
+
+function getVisionMixer(): VisionMixer {
+  const obsWebsocketVersion = getConfig().obs?.webSocketVersion;
+  return obsWebsocketVersion && obsWebsocketVersion < 5
+    ? ObsLegacyClient.getClient()
+    : ObsClient.getClient();
 }
 
 async function exportPeople(opts: yargs.Arguments<PersonExportOptions>): Promise<void> {
@@ -314,29 +316,6 @@ async function vods(opts: yargs.Arguments<VodOptions>): Promise<void> {
       process.exit(1);
     });
   process.exit();
-}
-
-function configureLogger(): void {
-  const appenders: Configuration['appenders'] = {
-    'out': { type: 'stdout' },
-  };
-  const logDir = getConfig().logDirectory;
-  if (logDir) {
-    const timestamp = moment().toISOString(true).replace(/:/g, '-');
-    appenders['app'] = {
-      type: 'file',
-      filename: join(logDir, `${timestamp}.log`),
-    };
-  }
-  log4js.configure({
-    appenders,
-    categories: {
-      default: {
-        appenders: Object.keys(appenders),
-        level: 'debug',
-      },
-    },
-  });
 }
 
 function logConfig(): void {

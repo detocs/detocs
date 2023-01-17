@@ -1,14 +1,15 @@
 import { Error as ChainableError } from 'chainable-error';
 import findProcess from 'find-process';
 import { promises as fs, statSync } from 'fs';
-import { ResultAsync, okAsync, ok, err } from 'neverthrow';
-import ObsWebSocket, { OBSEventTypes, OBSResponseTypes, RequestBatchExecutionType, ResponseMessage } from 'obs-websocket-js';
-import pLimit from 'p-limit';
+import { ResultAsync, okAsync, ok, err, errAsync } from 'neverthrow';
+import ObsWebSocket from 'obs-websocket-js-4';
 import { dirname, extname, isAbsolute, join, basename } from 'path';
+import pLimit from 'p-limit';
 
 import { Timestamp } from '@models/timestamp';
 import VisionMixer, { ImageData } from '@services/vision-mixer-service';
 import { Config, getConfig } from '@util/configuration/config';
+import { Watcher, waitForFile } from '@util/fs';
 import { getLogger } from '@util/logger';
 import * as png from '@util/png';
 
@@ -23,29 +24,26 @@ interface ProcessInfo {
   cmd: string;
   bin: string;
 }
-type VideoSettings = OBSResponseTypes['GetVideoSettings'];
 
-const logger = getLogger('services/obs');
+const logger = getLogger('services/obs-legacy');
 // TODO: Get actual replay prefix from OBS
 export const OBS_REPLAY_PREFIX = 'Replay';
 const VIDEO_FILE_EXTENSIONS = ['.flv', '.mp4', '.mov', '.mkv', '.ts', '.m3u8'];
 
-export default class ObsClient implements VisionMixer {
+export default class ObsLegacyClient implements VisionMixer {
   private readonly obs: ObsConnection;
   private readonly config: Config['obs'];
   private readonly recordingFolderQueue = pLimit(1);
   private currentRecordingFolder?: string = undefined;
   private currentRecordingFile?: string | null = undefined;
-  private videoSettings?: VideoSettings = undefined;
-  private previousRecordingState?: OBSEventTypes['RecordStateChanged']['outputState'] = undefined;
   public readonly on: ObsConnection['on'];
   public readonly off: ObsConnection['off'];
   public readonly once: ObsConnection['once'];
 
-  static getClient(): ObsClient {
+  static getClient(): ObsLegacyClient {
     const config = getConfig().obs;
     const obsConn = new ObsConnectionImpl(new ObsWebSocket(), config);
-    const obsClient = new ObsClient(obsConn, config);
+    const obsClient = new ObsLegacyClient(obsConn, config);
     return obsClient;
   }
 
@@ -56,22 +54,20 @@ export default class ObsClient implements VisionMixer {
     this.off = obs.off.bind(obs);
     this.once = obs.once.bind(obs);
 
-    this.on('Identified', () => {
-      this.clearCache();
-      this.getVideoDimensions()
-        .andThen(this.isRecording.bind(this))
-        .andThen(this.getRecordingFolder.bind(this))
-        .andThen(this.getRecordingFile.bind(this))
-        .mapErr(logger.error);
-    });
-    this.on('ConnectionClosed', () => this.clearCache());
-    this.onRecordingStart(() => {
-      // The recording file doesn't appear immediately
-      setTimeout(() => this.getRecordingFile().mapErr(logger.error), 2000);
-    });
-    this.onRecordingStart(() => {
+    const updateRecordingFolder = (): ResultAsync<string, void> => {
+      this.currentRecordingFolder = undefined;
+      return this.getRecordingFolderInternal(false).mapErr(logger.error);
+    };
+    const updateRecordingFile = (): ResultAsync<string | null, void> => {
       this.currentRecordingFile = undefined;
+      return this.getRecordingFile().mapErr(logger.error);
+    };
+    this.on('AuthenticationSuccess', () => {
+      updateRecordingFolder().andThen(updateRecordingFile);
     });
+    // The recording file doesn't appear immediately
+    this.on('RecordingStarted', () => setTimeout(updateRecordingFile, 2000));
+    this.on('RecordingStopped', updateRecordingFile);
   }
 
   public connect(): ResultAsync<void, Error> {
@@ -79,10 +75,12 @@ export default class ObsClient implements VisionMixer {
   }
 
   public disconnect(): ResultAsync<void, Error> {
-    return ResultAsync.fromPromise(
-      this.obs.disconnect(),
-      e => e as Error,
-    );
+    try {
+      this.obs.disconnect();
+      return okAsync(void 0);
+    } catch (e) {
+      return errAsync(e as Error);
+    }
   }
 
   public isConnected(): boolean {
@@ -90,97 +88,53 @@ export default class ObsClient implements VisionMixer {
   }
 
   public onConnect(cb: () => void): void {
-    this.on('Identified', cb);
+    this.on('AuthenticationSuccess', cb);
   }
 
   public startRecording(): ResultAsync<void, Error> {
-    return this.obs.call('StartRecord');
+    return this.obs.send('StartRecording', true);
   }
-
   public stopRecording(): ResultAsync<void, Error> {
-    return this.obs.call('StopRecord');
+    return this.obs.send('StopRecording', true);
   }
 
   public onRecordingStart(cb: () => void): void {
-    this.on('RecordStateChanged', evt => {
-      logger.debug('onstart', evt, this.previousRecordingState, cb);
-      if (evt.outputState === 'OBS_WEBSOCKET_OUTPUT_STARTED' &&
-        evt.outputState !== this.previousRecordingState
-      ) {
-        cb();
-      }
-      this.obs.call('GetRecordStatus').map(s => logger.debug('status after event', s));
-      // Ensure that all event handlers called within this tick are treated the same
-      setTimeout(() => this.previousRecordingState = evt.outputState);
-    });
+    this.on('RecordingStarted', cb);
   }
 
   public onRecordingStop(cb: () => void): void {
-    this.on('RecordStateChanged', evt => {
-      logger.debug('onstop', evt, this.previousRecordingState, cb);
-      if (evt.outputState === 'OBS_WEBSOCKET_OUTPUT_STOPPING' &&
-        evt.outputState !== this.previousRecordingState
-      ) {
-        cb();
-      }
-      // Ensure that all event handlers called within this tick are treated the same
-      setTimeout(() => this.previousRecordingState = evt.outputState);
-    });
+    this.on('RecordingStopping', cb);
   }
 
   public isRecording(): ResultAsync<boolean, Error> {
-    return this.obs.call('GetRecordStatus')
-      .map(resp => resp.outputActive);
+    return this.obs.send('GetStreamingStatus', true)
+      .map(resp => resp['recording']);
   }
 
   public getTimestamps(): ResultAsync<{
     recordingTimestamp: Timestamp | null;
     streamTimestamp: Timestamp | null;
   }, Error> {
-    return this.obs.callBatch(
-      [
-        { requestType: 'GetStreamStatus' },
-        { requestType: 'GetRecordStatus' },
-      ],
-      { executionType: RequestBatchExecutionType.SerialRealtime },
-    ).map(responses => {
-      const [
-        { responseData: streamResp },
-        { responseData: recResp },
-      ] = responses as [ResponseMessage<'GetStreamStatus'>, ResponseMessage<'GetRecordStatus'>];
-      return ({
-        streamTimestamp: streamResp.outputActive ? streamResp.outputTimecode : null,
-        recordingTimestamp: recResp.outputActive ? recResp.outputTimecode : null,
-      });
-    });
-  }
-
-  private clearCache(): void {
-    this.videoSettings = undefined;
-    this.currentRecordingFolder = undefined;
-    this.currentRecordingFile = undefined;
-  }
-
-  public getVideoDimensions(): ResultAsync<VideoSettings, Error> {
-    if (this.videoSettings) {
-      return okAsync(this.videoSettings);
-    }
-    return this.obs.call('GetVideoSettings')
-      .map(resp => {
-        this.videoSettings = resp;
-        return resp;
-      });
+    return this.obs.send('GetStreamingStatus', true)
+      .map(resp => ({
+        streamTimestamp: resp['stream-timecode'] || null,
+        recordingTimestamp: resp['rec-timecode'] || null,
+      }));
   }
 
   public getRecordingFolder(): ResultAsync<string, Error> {
+    return this.getRecordingFolderInternal(true);
+  }
+
+  public getRecordingFolderInternal(reconnect: boolean): ResultAsync<string, Error> {
     return ResultAsync.fromPromise(
       this.recordingFolderQueue(async () => {
         if (this.currentRecordingFolder) {
           return this.currentRecordingFolder;
         }
-        return this.obs.call('GetRecordDirectory')
+        return this.obs.send('GetRecordingFolder', reconnect)
           .andThen(resp => {
-            const folder = resp.recordDirectory;
+            const folder = resp['rec-folder'];
             let asyncFolder = okAsync<string, Error>(folder);
             if (!isAbsolute(folder)) {
               // Some super cool guy is using relative paths with OBS
@@ -236,21 +190,20 @@ export default class ObsClient implements VisionMixer {
   public getCurrentThumbnail(
     dimensions?: { height?: number; width?: number },
   ): ResultAsync<ImageData, Error> {
-    return this.obs.call('GetCurrentProgramScene')
-      .andThen(resp => this.getSourceThumbnail(resp.currentProgramSceneName, dimensions));
+    return this.obs.send('GetCurrentScene', true)
+      .andThen(resp => this.getSourceThumbnail(resp.name, dimensions));
   }
 
   public getSourceThumbnail(
     sourceName: string,
     dimensions?: { height?: number; width?: number },
   ): ResultAsync<ImageData, Error> {
-    return this.obs.call('GetSourceScreenshot', {
+    return this.obs.send('TakeSourceScreenshot', true, {
       sourceName,
-      imageFormat: 'png',
-      imageWidth: dimensions?.width,
-      imageHeight: dimensions?.height,
+      embedPictureFormat: 'png',
+      ...dimensions,
     }).map(resp => {
-      const data = png.decodeBase64(resp.imageData);
+      const data = png.decodeBase64(resp.img);
       return ({
         width: png.parseWidth(data),
         height: png.parseHeight(data),
@@ -260,18 +213,22 @@ export default class ObsClient implements VisionMixer {
   }
 
   public getOutputDimensions(): ResultAsync<{ width: number; height: number }, Error> {
-    return this.getVideoDimensions()
+    return this.obs.send('GetVideoInfo', true)
       .map(resp => ({ width: resp.outputWidth, height: resp.outputHeight }));
   }
 
   public getRecordingFile(): ResultAsync<string | null, Error> {
+    return this.getRecordingFileInternal(true);
+  }
+
+  public getRecordingFileInternal(reconnect: boolean): ResultAsync<string | null, Error> {
     if (this.currentRecordingFile !== undefined) {
       return okAsync(this.currentRecordingFile);
     }
     return this.isRecording()
       .andThen(isRecording =>
         isRecording
-          ? this.getRecordingFolder().andThen(getLatestRecordingFileFromFolder)
+          ? this.getRecordingFolderInternal(reconnect).andThen(getLatestRecordingFileFromFolder)
           : okAsync(null)
       )
       .map(file => {
@@ -282,11 +239,24 @@ export default class ObsClient implements VisionMixer {
   }
 
   public saveReplayBuffer(): ResultAsync<string, Error> {
+    return this.getRecordingFolder()
+      .andThen(folder => {
+        return this.obs.send('SaveReplayBuffer', true)
+          .map(() => logger.info('Saving replay buffer'))
+          .andThen(() => this.waitForReplayFile(folder));
+      });
+  }
+
+  // 'SaveReplayBuffer' doesn't wait until the file written to resolve, so we
+  // need to listen for file creation
+  private waitForReplayFile(folder: string): ResultAsync<string, Error> {
+    const glob = join(folder, OBS_REPLAY_PREFIX) + '*';
+    let watcher: Watcher | undefined;
     const promise = new Promise<string>((resolve, reject) => {
+      watcher = waitForFile(glob, resolve, reject);
       setTimeout(() => reject(new Error('Timed out while waiting for replay file')), 30 * 1000);
-      this.obs.once('ReplayBufferSaved', evt => resolve(evt.savedReplayPath));
-      this.obs.call('SaveReplayBuffer');
-    });
+    })
+      .finally(() => watcher && watcher.close());
     return ResultAsync.fromPromise(
       promise,
       e => e as Error,

@@ -1,10 +1,11 @@
 import { Error as ChainableError } from 'chainable-error';
 import { promises as fs } from 'fs';
+import { err, ResultAsync, ok, okAsync } from 'neverthrow';
 import path from 'path';
 
 import { Screenshot, Replay, MediaFile, VideoFile, ImageFile } from '@models/media';
 import { Timestamp } from '@models/timestamp';
-import ObsClient from '@services/obs/obs';
+import VisionMixer from '@services/vision-mixer-service';
 import { sleep } from '@util/async';
 import { getConfig } from '@util/configuration/config';
 import * as ffmpeg from '@util/ffmpeg';
@@ -15,7 +16,6 @@ import { sanitizeTimestamp, toMillis, fromMillis } from '@util/timestamp';
 
 import { ReplayCache } from './replayCache';
 import { ScreenshotCache } from './screenshot-cache';
-import { err, ResultAsync, ok, okAsync } from 'neverthrow';
 
 const logger = getLogger('server/media');
 const THUMBNAIL_SIZE = 135;
@@ -25,18 +25,16 @@ const REPLAY_COMPLETION_POLL_ATTEMPTS = 10;
 const REPLAY_COMPLETION_POLL_INTERVAL_MS = 250;
 
 export class MediaServer {
-  private readonly obs: ObsClient;
+  private readonly visMixer: VisionMixer;
   private readonly dirName: string;
   private dir: string | undefined;
-  private streamWidth = 0;
-  private streamHeight = 0;
   // TODO: Cache per recording file
   private fullScreenshotCache = new ScreenshotCache(SCREENSHOT_CACHE_LENIENCY_MS);
   private thumbnailCache = new ScreenshotCache(SCREENSHOT_CACHE_LENIENCY_MS);
   private replayCache = new ReplayCache(REPLAY_CACHE_LENIENCY_MS);
 
-  public constructor({ obsClient, dirName }: { obsClient: ObsClient; dirName: string }) {
-    this.obs = obsClient;
+  public constructor({ visionMixer, dirName }: { visionMixer: VisionMixer; dirName: string }) {
+    this.visMixer = visionMixer;
     this.dirName = dirName;
   }
 
@@ -62,18 +60,11 @@ export class MediaServer {
   }
 
   private initObs(): void {
-    this.obs.on('RecordingStarted', () => this.resetCaches());
-    this.obs.on('ConnectionOpened', async () => {
-      this.obs.getOutputDimensions()
-        .map(dims => {
-          this.streamWidth = dims.width;
-          this.streamHeight = dims.height;
-        });
-    });
+    this.visMixer.onRecordingStart(() => this.resetCaches());
   }
 
   public connected(): boolean {
-    return this.obs.isConnected();
+    return this.visMixer.isConnected();
   }
 
   public getDir(): string {
@@ -93,29 +84,34 @@ export class MediaServer {
     this.replayCache = new ReplayCache(REPLAY_CACHE_LENIENCY_MS);
   }
 
-  private async getCurrentScreenshot(height: number): Promise<Screenshot> {
-    const timestampPromise = this.obs.getTimestamps()
+  private async getCurrentScreenshot(height?: number): Promise<Screenshot> {
+    const timestampPromise = this.visMixer.getTimestamps()
       .match(
         t => t,
         e => { throw e; },
       );
-    const imgPromise = this.obs.getCurrentThumbnail({ height })
+    const imgPromise = this.visMixer.getCurrentThumbnail(height ? { height } : undefined)
       .match(
         t => t,
         e => { throw e; },
       );
-    const [ timestamps, base64Img ] = await Promise.all([timestampPromise, imgPromise]);
-    if (!base64Img) {
+    const [ timestamps, imgData ] = await Promise.all([timestampPromise, imgPromise]);
+    if (!imgData) {
       throw new Error('Couldn\'t get screenshot');
     }
 
     const filename = await this.saveImageFile(
       timestamps.recordingTimestamp,
-      height,
-      Buffer.from(base64Img.substring(22), 'base64'),
+      imgData.height,
+      imgData.data,
     );
     return {
-      image: { filename, url: this.getUrl(filename), type: 'image', height },
+      image: {
+        filename,
+        url: this.getUrl(filename),
+        type: 'image',
+        height: imgData.height,
+      },
       recordingTimestampMs: timestamps.recordingTimestamp ?
         toMillis(timestamps.recordingTimestamp) :
         undefined,
@@ -131,7 +127,7 @@ export class MediaServer {
   ): ResultAsync<Buffer, Error> {
     // TODO: FFmpeg cannot operate on certain file types while they're still being written (e.g.
     // mp4). We should handle this somehow.
-    return this.obs.getRecordingFile()
+    return this.visMixer.getRecordingFile()
       .andThen<string>(file =>
       file
         ? ok(file)
@@ -164,7 +160,7 @@ export class MediaServer {
   }
 
   public async getCurrentFullScreenshot(): Promise<Screenshot> {
-    return this.getCurrentScreenshot(this.streamHeight)
+    return this.getCurrentScreenshot()
       .then(s => {
         this.fullScreenshotCache.add(s);
         this.thumbnailCache.add(s);
@@ -186,7 +182,6 @@ export class MediaServer {
       timestamp,
       [ this.fullScreenshotCache ],
       [ this.fullScreenshotCache, this.thumbnailCache ],
-      this.streamHeight,
     );
   }
 
@@ -203,7 +198,7 @@ export class MediaServer {
     timestamp: Timestamp,
     readCaches: ScreenshotCache[],
     writeCaches: ScreenshotCache[],
-    height: number,
+    height?: number,
   ): ResultAsync<Screenshot, Error> {
     const millis = toMillis(timestamp);
     for (const cache of readCaches) {
@@ -212,15 +207,21 @@ export class MediaServer {
         return okAsync(cachedScreenshot);
       }
     }
-    let asyncImage: ResultAsync<Buffer, Error> | undefined;
-    const cachedReplay = this.replayCache.get(millis);
-    if (cachedReplay) {
-      asyncImage = this.getVideoFrameFromReplay(cachedReplay, millis, height);
-    } else {
-      asyncImage = this.getVideoFrameFromMainRecording(timestamp, height);
-    }
-    return asyncImage.map(async img => {
-      const filename = await this.saveImageFile(timestamp, height, img);
+    const asyncHeight: ResultAsync<number, Error> = height != null
+      ? okAsync(height)
+      : this.visMixer.getOutputDimensions().map(dims => dims.height);
+    const asyncImage = asyncHeight.andThen(height => {
+      const cachedReplay = this.replayCache.get(millis);
+      if (cachedReplay) {
+        return this.getVideoFrameFromReplay(cachedReplay, millis, height)
+          .map(buffer => ({ buffer, height }));
+      } else {
+        return this.getVideoFrameFromMainRecording(timestamp, height)
+          .map(buffer => ({ buffer, height }));
+      }
+    });
+    return asyncImage.map(async ({ buffer, height }) => {
+      const filename = await this.saveImageFile(timestamp, height, buffer);
       const screenshot: Screenshot = {
         image: { filename, url: this.getUrl(filename), type: 'image', height },
         recordingTimestampMs: millis,
@@ -263,7 +264,7 @@ export class MediaServer {
   }
 
   public getReplay(): ResultAsync<Replay, Error> {
-    return this.obs.saveReplayBuffer()
+    return this.visMixer.saveReplayBuffer()
       .andThen(file => ResultAsync.fromPromise(
         this.fetchReplayFile(file),
         e => e as Error));
@@ -279,7 +280,7 @@ export class MediaServer {
     const dir = this.getDir();
     const nowMs = Date.now();
     const [ timestamps, fileStats, copiedFilePath ] = await Promise.all([
-      this.obs.getTimestamps()
+      this.visMixer.getTimestamps()
         .match(
           t => t,
           e => { throw e; },

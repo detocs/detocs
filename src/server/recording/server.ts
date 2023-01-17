@@ -14,7 +14,7 @@ import InfoState from '@server/info/state';
 import { MediaServer } from '@server/media/server';
 import { INFO_PORT } from '@server/ports';
 import BracketServiceProvider from '@services/bracket-service-provider';
-import ObsClient from '@services/obs/obs';
+import VisionMixer from '@services/vision-mixer-service';
 import * as ffmpeg from '@util/ffmpeg';
 import * as httpUtil from '@util/http-server';
 import { getId } from '@util/id';
@@ -35,7 +35,7 @@ interface UpdateRequest {
   'stop-timestamp'?: string;
 }
 
-let obs: ObsClient | undefined;
+let visMixer: VisionMixer | undefined;
 let media: MediaServer | null = null;
 let socketServer: ws.Server | null = null;
 let recordingLogger: RecordingLogger | null = null;
@@ -44,18 +44,18 @@ const state: State = {
 };
 
 
-export default function start({ port, mediaServer, bracketProvider, obsClient }: {
+export default function start({ port, mediaServer, bracketProvider, visionMixer }: {
   port: number;
   mediaServer: MediaServer;
   bracketProvider: BracketServiceProvider;
-  obsClient: ObsClient;
+  visionMixer: VisionMixer;
 }): void {
   logger.info('Initializing match recording server');
 
-  obs = obsClient;
+  visMixer = visionMixer;
   media = mediaServer;
 
-  obs.on('RecordingStopping', stopInProgressRecording);
+  visMixer.onRecordingStop(stopInProgressRecording);
 
   recordingLogger = new RecordingLogger(bracketProvider);
 
@@ -95,7 +95,7 @@ function broadcastState(state: State): void {
 }
 
 async function saveLogs(state: State): Promise<void> {
-  return obs?.getRecordingFolder()
+  return visMixer?.getRecordingFolder()
     .match(
       async folder => recordingLogger?.saveLogs(folder, state),
       logger.error,
@@ -108,7 +108,7 @@ async function startRecording(_req: Request, res: Response): Promise<void> {
     sendUserError(res, 'Attempted to start recording before starting stream recording');
     return;
   }
-  const timestamps = await obs?.getTimestamps()
+  const timestamps = await visMixer?.getTimestamps()
     .match(
       t => t,
       e => { throw e; },
@@ -162,7 +162,7 @@ async function stopInProgressRecording(): Promise<void> {
 }
 
 async function stopRecording(callback?: () => void): Promise<void> {
-  const timestamps = await obs?.getTimestamps()
+  const timestamps = await visMixer?.getTimestamps()
     .match(
       t => t,
       e => { throw e; },
@@ -291,12 +291,12 @@ async function cutRecording(req: Request, res: Response): Promise<void> {
 }
 
 async function getRecordingFile(): Promise<{ folder: string | null, file: string | null }> {
-  if (!obs) {
+  if (!visMixer) {
     return { folder: null, file: null };
   }
   return combine([
-    obs.getRecordingFolder(),
-    obs.getRecordingFile(),
+    visMixer.getRecordingFolder(),
+    visMixer.getRecordingFile(),
   ])
     .map(([ folder, file ]) => ({ folder, file }))
     .mapErr(logger.error)

@@ -2,6 +2,7 @@ build/
 databases/
 dist/
 node_modules/
+test/services/vision-mixer/obs*/
 web/public/*.css
 web/public/*.css.map
 web/public/*.js

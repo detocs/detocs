@@ -27,6 +27,7 @@ export interface Config {
     address: string;
     password?: string;
     binPath?: string;
+    webSocketVersion?: number;
   };
   ffmpeg: {
     transcodeVideoInputArgs: string[];
@@ -74,8 +75,9 @@ const DEFAULTS: Config = {
     web: 8080,
   },
   obs: {
-    address: 'localhost:4444',
+    address: 'localhost:4456',
     password: undefined,
+    webSocketVersion: 5,
   },
   ffmpeg: {
     transcodeVideoInputArgs: [],

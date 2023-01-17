@@ -1,6 +1,6 @@
 import PersonDatabase from '@models/people';
 import BracketServiceProvider from '@services/bracket-service-provider';
-import ObsClient from '@services/obs/obs';
+import VisionMixer from '@services/vision-mixer-service';
 import { getLogger } from '@util/logger';
 import { getProductName } from '@util/meta';
 
@@ -27,21 +27,21 @@ const logger = getLogger('server');
 interface ServerParams {
   bracketProvider: BracketServiceProvider;
   mediaServer: MediaServer;
-  obsClient: ObsClient;
+  visionMixer: VisionMixer;
   personDatabase: PersonDatabase;
 }
 
 export default function start({
   bracketProvider,
   mediaServer,
-  obsClient,
+  visionMixer,
   personDatabase,
 }: ServerParams): Promise<void> {
   logger.info(`${getProductName()} server initializing...`);
   return Promise.all([
     startControlServer(CONTROL_PORT),
     startInfoServer({ port: INFO_PORT, personDatabase }),
-    startRecordingServer({ port: RECORDING_PORT, mediaServer, bracketProvider, obsClient }),
+    startRecordingServer({ port: RECORDING_PORT, mediaServer, bracketProvider, visionMixer }),
     startTwitterServer(TWITTER_PORT, mediaServer),
     startBracketServer({ port: BRACKETS_PORT, bracketProvider }),
     startClipServer(MEDIA_DASHBOARD_PORT, mediaServer),
