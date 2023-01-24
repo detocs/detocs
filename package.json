@@ -98,7 +98,7 @@
     "lodash.set": "^4.3.2",
     "lodash.sortedindex": "^4.1.0",
     "lodash.throttle": "^4.1.1",
-    "log4js": "^4.5.1",
+    "log4js": "^6.4.0",
     "micro-memoize": "^4.0.8",
     "mkvmerge-static": "^1.0.0",
     "mkvmerge-static-linux": "^0.1.0",
