@@ -103,7 +103,6 @@ export default class ObsClient implements VisionMixer {
 
   public onRecordingStart(cb: () => void): void {
     this.on('RecordStateChanged', evt => {
-      logger.debug('onstart', evt, this.previousRecordingState, cb);
       if (evt.outputState === 'OBS_WEBSOCKET_OUTPUT_STARTED' &&
         evt.outputState !== this.previousRecordingState
       ) {
@@ -117,7 +116,6 @@ export default class ObsClient implements VisionMixer {
 
   public onRecordingStop(cb: () => void): void {
     this.on('RecordStateChanged', evt => {
-      logger.debug('onstop', evt, this.previousRecordingState, cb);
       if (evt.outputState === 'OBS_WEBSOCKET_OUTPUT_STOPPING' &&
         evt.outputState !== this.previousRecordingState
       ) {

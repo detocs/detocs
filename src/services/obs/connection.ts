@@ -134,8 +134,6 @@ export class ObsConnectionImpl implements ObsConnection {
           logger.warn('Error thrown, but we\'re connected');
           return;
         }
-        logger.debug(error);
-        logger.debug(typeof error);
         logger.debug(`Unable to connect to ${address}: ${error}`);
       }
     }

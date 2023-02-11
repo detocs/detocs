@@ -262,7 +262,6 @@ function fillBracketSet(
   if (!set) {
     return {};
   }
-  console.log(set);
   const scoreboard: Partial<Scoreboard> = {
     set,
     players: playersFromSet(set).concat([
@@ -270,7 +269,6 @@ function fillBracketSet(
       nullPlayer,
     ]).slice(0, 2),
   };
-  console.log(scoreboard.players);
   if (set.match) {
     scoreboard.match = set.match;
   }

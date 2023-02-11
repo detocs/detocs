@@ -35,7 +35,6 @@ export async function paginatedQuery<ResponseType, DataType>({
       page: 1,
     }),
   );
-  logger.debug('Initial paginated response:', JSON.stringify(rawResponse, null, 2));
   const { data, extensions } = rawResponse;
   const pagedData = extractor(data as ResponseType);
   if (!pagedData) {
