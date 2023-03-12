@@ -5,6 +5,7 @@ export default interface Person {
   handle: string;
   alias?: string;
   prefix: string | null;
+  pronouns?: string;
   serviceIds: {
     [serviceName: string]: string | undefined;
   }

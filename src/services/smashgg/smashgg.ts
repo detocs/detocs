@@ -312,6 +312,7 @@ function parseParticipant(serviceName: string, participant: ApiParticipant): Tou
     serviceId: participant.player.id.toString(),
     handle: participant.player.gamerTag,
     prefix: getParticipantPrefix(participant),
+    pronouns: participant.user?.genderPronoun || undefined,
     serviceIds: {
       'twitter': participant.user?.authorizations?.[0]?.externalUsername || undefined,
     },

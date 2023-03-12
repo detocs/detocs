@@ -18,12 +18,12 @@ import Person from '@models/person';
 import Player, { nullPlayer } from '@models/player';
 import Scoreboard from '@models/scoreboard';
 import TournamentSet from '@models/tournament-set';
-import { getConfig } from '@util/configuration/config';
-import { entrantToPerson } from '@util/entrant';
-import { filterValues, mapValues } from '@util/object';
-import { parseFormData } from '@util/parsing';
 import BracketState from '@server/bracket/state';
 import { BRACKETS_PORT } from '@server/ports';
+import { getConfig } from '@util/configuration/config';
+import { entrantToPerson } from '@util/entrant';
+import { mapValues } from '@util/object';
+import { parseFormData } from '@util/parsing';
 
 import FileOutput from './output/file/output';
 import Output from './output/output';
@@ -316,21 +316,25 @@ function parseBreak(fields: Record<string, unknown>): Break {
   };
 }
 
-function parsePerson(form: PersonForm): Partial<Person> {
-  const id = parseString(form.id);
-  const handle = parseString(form.handle);
-  const alias = parseOptionalString(form.alias);
-  const prefix = parseOptionalString(form.prefix) || null;
-  const serviceIds = form.serviceIds
-    ? mapValues(form.serviceIds, id => id || undefined)
-    : {};
-  return {
-    id,
-    handle,
-    alias,
-    prefix,
-    serviceIds,
-  };
+const FORM_MAPPINGS: {
+  [P in keyof Person]: (value: PersonForm[P]) => Person[P];
+} = {
+  id: parseString,
+  handle: parseString,
+  alias: parseOptionalString,
+  prefix: parseNullableString,
+  pronouns: parseOptionalString,
+  serviceIds: serviceIds => serviceIds
+    ? mapValues(serviceIds, id => id || undefined)
+    : {},
+};
+
+function parsePerson(form: PersonForm): Person {
+  return Object.fromEntries(
+    Object.entries(FORM_MAPPINGS)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map(([key, fn]) => [key, fn(form[key as keyof Person] as any)])
+  ) as unknown as Person;
 }
 
 function parseGame(locator: GameLocator): Game {
@@ -376,6 +380,10 @@ function parseSet(
 
 function parseOptionalString(value: unknown): string | undefined {
   return (typeof value === 'string' && value.trim()) || undefined;
+}
+
+function parseNullableString(value: unknown): string | null {
+  return parseOptionalString(value) || null;
 }
 
 function parseString(value: unknown): string {

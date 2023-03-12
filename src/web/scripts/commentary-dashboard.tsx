@@ -12,6 +12,7 @@ import {
   PersonSelector,
   PersonFieldProps,
   PersonAdditionalFields,
+  FieldName,
 } from './person-fields';
 
 interface Props {
@@ -119,19 +120,23 @@ function Commentator({ index, prefix, person, onUpdatePerson }: CommentatorProps
           onUpdatePerson={onUpdatePerson}
         />
         <PersonFieldInput
-          fieldName="prefix"
+          fieldName={FieldName.Prefix}
           prefix={prefix}
           person={person}
           onUpdatePerson={onUpdatePerson}
         />
         <PersonFieldInput
-          fieldName="twitter"
+          fieldName={FieldName.Twitter}
           prefix={prefix}
           person={person}
           onUpdatePerson={onUpdatePerson}
         />
         <PersonAdditionalFields>
-          {[ 'handle', 'alias' ].map(fieldName =>
+          {[
+            FieldName.Handle,
+            FieldName.Alias,
+            FieldName.Pronouns,
+          ].map(fieldName =>
             <PersonFieldInput
               fieldName={fieldName}
               prefix={prefix}

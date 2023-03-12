@@ -15,7 +15,17 @@ import Icon from './icon';
 import { logError } from './log';
 import TextInput from './text-input';
 
+export enum FieldName {
+  HandleOrAlias = 'handleOrAlias',
+  Handle = 'handle',
+  Alias = 'alias',
+  Prefix = 'prefix',
+  Twitter = 'twitter',
+  Pronouns = 'pronouns',
+}
+
 type PersonUpdater = (p: PersonUpdate, val: string) => PersonUpdate;
+
 interface FieldMapping {
   formName: string | null;
   label?: string;
@@ -23,7 +33,8 @@ interface FieldMapping {
   getValue: (p: PersonUpdate) => string | null | undefined;
   updatedWithValue: PersonUpdater;
 }
-const fieldMappings: Record<string, FieldMapping> = {
+
+const fieldMappings: Record<FieldName, FieldMapping> = {
   'handleOrAlias': {
     formName: null,
     getValue: p => getNameWithAlias(p),
@@ -78,6 +89,16 @@ const fieldMappings: Record<string, FieldMapping> = {
       }),
     }),
   },
+  'pronouns': {
+    formName: '[pronouns]',
+    label: 'Pronouns',
+    getValue: p => p.pronouns,
+    updatedWithValue: (p, val) => updateImmutable(p, {
+      pronouns: {
+        $set: val,
+      },
+    }),
+  },
 };
 
 export interface PersonFieldProps {
@@ -87,7 +108,7 @@ export interface PersonFieldProps {
 }
 
 export type PersonFieldInputProps = RenderableProps<PersonFieldProps & {
-  fieldName: string;
+  fieldName: FieldName;
   label?: string;
 }> &
 JSXInternal.HTMLAttributes;
@@ -182,7 +203,7 @@ export const PersonSelector: FunctionalComponent<PersonFieldProps> = ({
     <Fragment>
       <input type="hidden" name={`${prefix}[id]`} value={person.id}/>
       <PersonFieldInput
-        fieldName="handleOrAlias"
+        fieldName={FieldName.HandleOrAlias}
         prefix={prefix}
         person={person}
         onUpdatePerson={onUpdatePerson}

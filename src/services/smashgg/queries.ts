@@ -18,6 +18,7 @@ const PARTICIPANT_SUBQUERY = `
     prefix
   }
   user {
+    genderPronoun
     authorizations(types: [TWITTER]) {
       externalUsername
     }
@@ -83,6 +84,7 @@ export interface ApiParticipant {
     prefix: string | null;
   };
   user: {
+    genderPronoun: string | null;
     authorizations: {
       externalUsername: string;
     }[] | null;

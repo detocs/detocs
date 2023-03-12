@@ -10,6 +10,7 @@ import {
   PersonSelector,
   PersonFieldProps,
   PersonAdditionalFields,
+  FieldName,
 } from './person-fields';
 import TextInput from './text-input';
 
@@ -65,13 +66,18 @@ export default function PlayerFields({
               onUpdatePerson={onUpdatePerson}
             />
             <PersonFieldInput
-              fieldName="prefix"
+              fieldName={FieldName.Prefix}
               prefix={prefix}
               person={person}
               onUpdatePerson={onUpdatePerson}
             />
             <PersonAdditionalFields>
-              {[ 'handle', 'alias', 'twitter' ].map(fieldName =>
+              {[
+                FieldName.Handle,
+                FieldName.Alias,
+                FieldName.Pronouns,
+                FieldName.Twitter,
+              ].map(fieldName =>
                 <PersonFieldInput
                   fieldName={fieldName}
                   prefix={prefix}
