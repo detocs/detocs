@@ -30,6 +30,26 @@
 
 .twitter {
   inline-size: 7em;
+
+  > .textInput__input {
+    text-indent: 1em;
+  }
+
+  &::after {
+    content: '@';
+
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 1.25em;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: var(--color-text-placeholder);
+  }
 }
 
 .pronouns {
