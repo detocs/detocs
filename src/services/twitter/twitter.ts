@@ -12,7 +12,7 @@ const logger = getLogger('services/twitter');
 
 export type LoginCallback = (user: User) => unknown;
 
-export default interface TwitterClient {
+export interface TwitterClient {
   hasCredentials(): boolean;
   isLoggedIn(): boolean;
   onLogin(cb: LoginCallback): void;
@@ -23,6 +23,11 @@ export default interface TwitterClient {
   tweet(body: string, replyTo: string | null, mediaPath?: string): Promise<string>;
 }
 
+interface TwitterCredentials {
+  twitterKey: string;
+  twitterSecret: string;
+}
+
 export class ApiTwitterClient implements TwitterClient {
   private readonly oauth: TwitterOAuth;
   private readonly twitterKey: string;
@@ -30,6 +35,21 @@ export class ApiTwitterClient implements TwitterClient {
   private loginCallbacks: LoginCallback[] = [];
   private twit: Twit | null = null;
   private user: User | null = null;
+
+  static async getClient({
+    twitterKey,
+    twitterSecret,
+  }: TwitterCredentials): Promise<ApiTwitterClient> {
+    const twitterClient = new ApiTwitterClient(twitterKey, twitterSecret);
+    const accessToken = getCredentials().twitterToken;
+    if (accessToken) {
+      // TODO: Handle revoked tokens
+      logger.info('Already logged in');
+      await twitterClient.logIn(accessToken)
+        .catch(logger.error);
+    }
+    return twitterClient;
+  }
 
   public constructor(twitterKey: string, twitterSecret: string) {
     this.twitterKey = twitterKey;
@@ -95,6 +115,10 @@ export class ApiTwitterClient implements TwitterClient {
 }
 
 export class MockTwitterClient implements TwitterClient {
+  static getClient(): MockTwitterClient {
+    return new MockTwitterClient();
+  }
+
   public hasCredentials(): boolean {
     return false;
   }

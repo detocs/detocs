@@ -3,8 +3,7 @@ import updateImmutable from 'immutability-helper';
 import * as ws from 'ws';
 
 import { MediaServer } from '@server/media/server';
-import TwitterClient, { ApiTwitterClient, MockTwitterClient } from '@services/twitter/twitter';
-import { getCredentials } from '@util/configuration/credentials';
+import { TwitterClient } from '@services/twitter/twitter';
 import * as httpUtil from '@util/http-server';
 import { getLogger } from '@util/logger';
 
@@ -24,24 +23,16 @@ type WebSocketClient = ws;
 const sendUserError = httpUtil.sendUserError.bind(null, logger);
 const sendServerError = httpUtil.sendServerError.bind(null, logger);
 
-export default async function start(port: number, mediaServer: MediaServer): Promise<void> {
+export default async function start({
+  port,
+  mediaServer,
+  twitterClient,
+}:{
+  port: number,
+  mediaServer: MediaServer,
+  twitterClient: TwitterClient,
+}): Promise<void> {
   logger.info('Initializing Twitter server');
-
-  let twitterClient;
-  const { twitterKey, twitterSecret } = getCredentials();
-  if (!twitterKey || !twitterSecret) {
-    logger.warn('Twitter API keys not found');
-    twitterClient = new MockTwitterClient();
-  } else {
-    twitterClient = new ApiTwitterClient(twitterKey, twitterSecret);
-    const accessToken = getCredentials().twitterToken;
-    if (accessToken) {
-      // TODO: Handle revoked tokens
-      logger.info('Already logged in');
-      await twitterClient.logIn(accessToken)
-        .catch(logger.error);
-    }
-  }
 
   const { appServer, socketServer } = httpUtil.appWebsocketServer(
     port,

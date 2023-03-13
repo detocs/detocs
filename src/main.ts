@@ -27,9 +27,11 @@ import ObsClient from '@services/obs/obs';
 import ObsLegacyClient from '@services/obs-legacy/obs';
 import { SMASHGG_SERVICE_NAME } from '@services/smashgg/constants';
 import SmashggClient, { parseTournamentSlug as parseSmashggSlug } from '@services/smashgg/smashgg';
+import { TwitterClient, ApiTwitterClient, MockTwitterClient } from '@services/twitter/twitter';
+import VisionMixer from '@services/vision-mixer-service';
 import { VodUploader, Style, Command } from '@upload/vod-uploader';
-import { loadConfig, getConfig } from '@util/configuration/config';
-import { loadCredentials } from '@util/configuration/credentials';
+import { getConfig, loadConfig } from '@util/configuration/config';
+import { getCredentials, loadCredentials } from '@util/configuration/credentials';
 import { sortedKeys } from '@util/json';
 import { configureLogger, getBasicLogger } from '@util/logger';
 import {
@@ -40,7 +42,6 @@ import {
   isPkg,
 } from '@util/meta';
 import web from '@web/server';
-import VisionMixer from '@services/vision-mixer-service';
 
 interface ConfigOptions {
   config?: string;
@@ -219,8 +220,9 @@ async function startServer(): Promise<void> {
   await personDatabase.loadDatabase();
 
   const port = getConfig().ports.web;
+  const twitterClient = await getTwitterClient();
   await Promise.all([
-    server({ bracketProvider, mediaServer, visionMixer, personDatabase }),
+    server({ bracketProvider, mediaServer, visionMixer, personDatabase, twitterClient }),
     web({ mediaServer, port }),
   ]);
   if (isElectron()) {
@@ -235,6 +237,16 @@ function getVisionMixer(): VisionMixer {
   return obsWebsocketVersion && obsWebsocketVersion < 5
     ? ObsLegacyClient.getClient()
     : ObsClient.getClient();
+}
+
+export async function getTwitterClient(): Promise<TwitterClient> {
+  const { twitterKey, twitterSecret } = getCredentials();
+  if (!twitterKey || !twitterSecret) {
+    logger.warn('Twitter API keys not found');
+    return MockTwitterClient.getClient();
+  } else {
+    return await ApiTwitterClient.getClient({ twitterKey, twitterSecret });
+  }
 }
 
 async function exportPeople(opts: yargs.Arguments<PersonExportOptions>): Promise<void> {

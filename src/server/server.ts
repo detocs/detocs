@@ -1,5 +1,6 @@
 import PersonDatabase from '@models/people';
 import BracketServiceProvider from '@services/bracket-service-provider';
+import { TwitterClient } from '@services/twitter/twitter';
 import VisionMixer from '@services/vision-mixer-service';
 import { getLogger } from '@util/logger';
 import { getProductName } from '@util/meta';
@@ -29,6 +30,7 @@ interface ServerParams {
   mediaServer: MediaServer;
   visionMixer: VisionMixer;
   personDatabase: PersonDatabase;
+  twitterClient: TwitterClient;
 }
 
 export default function start({
@@ -36,13 +38,14 @@ export default function start({
   mediaServer,
   visionMixer,
   personDatabase,
+  twitterClient,
 }: ServerParams): Promise<void> {
   logger.info(`${getProductName()} server initializing...`);
   return Promise.all([
     startControlServer(CONTROL_PORT),
     startInfoServer({ port: INFO_PORT, personDatabase }),
     startRecordingServer({ port: RECORDING_PORT, mediaServer, bracketProvider, visionMixer }),
-    startTwitterServer(TWITTER_PORT, mediaServer),
+    startTwitterServer({ port: TWITTER_PORT, mediaServer, twitterClient }),
     startBracketServer({ port: BRACKETS_PORT, bracketProvider }),
     startClipServer(MEDIA_DASHBOARD_PORT, mediaServer),
     startErrorServer({ port: ERROR_REPORTING_PORT }),

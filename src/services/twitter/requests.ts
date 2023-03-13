@@ -100,7 +100,7 @@ export async function uploadMedia(twit: Twit, mediaPath: string): Promise<string
       resolve(data);
     });
   });
-  let resp = (await upload) as MediaStatusResponse;
+  const resp = (await upload) as MediaStatusResponse;
   logger.debug(resp);
   const mediaId = resp.media_id_string;
 
