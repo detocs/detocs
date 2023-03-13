@@ -84,13 +84,21 @@ export class MediaServer {
     this.replayCache = new ReplayCache(REPLAY_CACHE_LENIENCY_MS);
   }
 
-  private async getCurrentScreenshot(height?: number): Promise<Screenshot> {
+  private async getCurrentScreenshot({
+    height,
+    sourceName,
+  }: {
+    height?: number,
+    sourceName?: string,
+  }): Promise<Screenshot> {
     const timestampPromise = this.visMixer.getTimestamps()
       .match(
         t => t,
         e => { throw e; },
       );
-    const imgPromise = this.visMixer.getCurrentThumbnail(height ? { height } : undefined)
+    const imgPromise = (sourceName
+      ? this.visMixer.getSourceThumbnail(sourceName, height ? { height } : undefined)
+      : this.visMixer.getCurrentThumbnail(height ? { height } : undefined))
       .match(
         t => t,
         e => { throw e; },
@@ -160,7 +168,7 @@ export class MediaServer {
   }
 
   public async getCurrentFullScreenshot(): Promise<Screenshot> {
-    return this.getCurrentScreenshot()
+    return this.getCurrentScreenshot({})
       .then(s => {
         this.fullScreenshotCache.add(s);
         this.thumbnailCache.add(s);
@@ -170,11 +178,15 @@ export class MediaServer {
 
   public async getCurrentThumbnail(): Promise<Screenshot> {
     this.getReplay().mapErr(logger.warn);
-    return this.getCurrentScreenshot(THUMBNAIL_SIZE)
+    return this.getCurrentScreenshot({ height: THUMBNAIL_SIZE })
       .then(s => {
         this.thumbnailCache.add(s);
         return s;
       });
+  }
+
+  public async getSceneFullScreenshot(sourceName: string): Promise<Screenshot> {
+    return this.getCurrentScreenshot({ sourceName });
   }
 
   public getFullScreenshot(timestamp: Timestamp): ResultAsync<Screenshot, Error> {

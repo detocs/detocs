@@ -7,7 +7,7 @@ import pLimit from 'p-limit';
 import { dirname, extname, isAbsolute, join, basename } from 'path';
 
 import { Timestamp } from '@models/timestamp';
-import VisionMixer, { ImageData, VideoInput } from '@services/vision-mixer-service';
+import VisionMixer, { ImageData, Scene, VideoInput } from '@services/vision-mixer-service';
 import { Config, getConfig } from '@util/configuration/config';
 import { getLogger } from '@util/logger';
 import * as png from '@util/png';
@@ -99,6 +99,29 @@ export default class ObsClient implements VisionMixer {
       .map(resp => ({ width: resp.outputWidth, height: resp.outputHeight }));
   }
 
+  public getSceneList(): ResultAsync<Scene[], Error> {
+    return this.obs.call('GetSceneList')
+      .map(({ scenes }) => {
+        return scenes.map(s => ({
+          name: s['sceneName'] as string,
+        }));
+      });
+  }
+
+  public onSceneListUpdate(cb: (scenes: Scene[]) => void): void {
+    const sendUpdate = (): void => {
+      this.getSceneList().match(
+        cb,
+        logger.error,
+      );
+    };
+    this.obs.on('SceneCreated', sendUpdate);
+    this.obs.on('SceneRemoved', sendUpdate);
+    this.obs.on('SceneNameChanged', sendUpdate);
+    this.obs.on('Identified', sendUpdate);
+    this.obs.on('ConnectionClosed', () => cb([]));
+  }
+
   public getVideoInputList(): ResultAsync<VideoInput[], Error> {
     return this.obs.callBatch(VIDEO_INPUT_KINDS.map(kind => ({
       requestType: 'GetInputList',
@@ -127,6 +150,7 @@ export default class ObsClient implements VisionMixer {
     this.obs.on('InputRemoved', sendUpdate);
     this.obs.on('InputNameChanged', sendUpdate);
     this.obs.on('Identified', sendUpdate);
+    this.obs.on('ConnectionClosed', () => cb([]));
   }
 
   public setVideoInputFile(
@@ -229,7 +253,7 @@ export default class ObsClient implements VisionMixer {
     this.currentRecordingFile = undefined;
   }
 
-  public getVideoDimensions(): ResultAsync<VideoSettings, Error> {
+  private getVideoDimensions(): ResultAsync<VideoSettings, Error> {
     if (this.videoSettings) {
       return okAsync(this.videoSettings);
     }

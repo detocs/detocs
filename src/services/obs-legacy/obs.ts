@@ -7,7 +7,7 @@ import { dirname, extname, isAbsolute, join, basename } from 'path';
 import pLimit from 'p-limit';
 
 import { Timestamp } from '@models/timestamp';
-import VisionMixer, { ImageData, VideoInput } from '@services/vision-mixer-service';
+import VisionMixer, { ImageData, Scene, VideoInput } from '@services/vision-mixer-service';
 import { Config, getConfig } from '@util/configuration/config';
 import { Watcher, waitForFile } from '@util/fs';
 import { getLogger } from '@util/logger';
@@ -218,6 +218,25 @@ export default class ObsLegacyClient implements VisionMixer {
       .map(resp => ({ width: resp.outputWidth, height: resp.outputHeight }));
   }
 
+  public getSceneList(): ResultAsync<Scene[], Error> {
+    return this.obs.send('GetSceneList', true)
+      .map(({ scenes }) => {
+        return scenes.map(parseScene);
+      });
+  }
+
+  public onSceneListUpdate(cb: (scenes: Scene[]) => void): void {
+    const sendUpdate = (): void => {
+      this.getSceneList().match(
+        cb,
+        logger.error,
+      );
+    };
+    this.obs.on('ScenesChanged', ({ scenes }) => cb(scenes.map(parseScene)));
+    this.obs.on('AuthenticationSuccess', sendUpdate);
+    this.obs.on('ConnectionClosed', () => cb([]));
+  }
+
   public getVideoInputList(): ResultAsync<VideoInput[], Error> {
     return this.obs.send('GetMediaSourcesList', true)
       .map(resp => resp.mediaSources.map(i => ({
@@ -246,6 +265,7 @@ export default class ObsLegacyClient implements VisionMixer {
     this.obs.on('SourceDestroyed', checkKind);
     this.obs.on('SourceRenamed', checkType);
     this.obs.on('AuthenticationSuccess', sendUpdate);
+    this.obs.on('ConnectionClosed', () => cb([]));
   }
 
   public setVideoInputFile(
@@ -356,4 +376,10 @@ function getLatestRecordingFileFromFolder(folder: string): ResultAsync<string | 
 
       return file;
     });
+}
+
+function parseScene(s: ObsWebSocket.Scene): Scene {
+  return ({
+    name: s.name,
+  });
 }

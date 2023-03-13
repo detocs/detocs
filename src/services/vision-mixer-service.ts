@@ -8,6 +8,10 @@ export interface ImageData {
   data: Buffer;
 }
 
+export interface Scene {
+  name: string;
+}
+
 export interface VideoInput {
   name: string;
 }
@@ -21,6 +25,8 @@ export default interface VisionMixer {
   // TODO: Distinguish between canvas and video resolution
   getOutputDimensions(): ResultAsync<{ width: number; height: number }, Error>;
 
+  getSceneList(): ResultAsync<Scene[], Error>;
+  onSceneListUpdate(cb: (scenes: Scene[]) => void): void;
   getVideoInputList(): ResultAsync<VideoInput[], Error>;
   onVideoInputListUpdate(cb: (inputs: VideoInput[]) => void): void;
   setVideoInputFile(name: string, path: string): ResultAsync<void, Error>;

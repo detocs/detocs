@@ -21,6 +21,7 @@ import { useLocalState } from './hooks/local-state';
 import { logError } from './log';
 import { fromMillis } from '@util/timestamp';
 import { Timestamp } from '@models/timestamp';
+import Icon from './icon';
 
 interface Props {
   state: State;
@@ -60,7 +61,6 @@ const cutEndpoint = clipEndpoint('/cut').href;
 const sendEndpoint = clipEndpoint('/send').href;
 const screenshotEndpoint = clipEndpoint('/screenshot').href;
 const clipEndpoints = [
-  { displayName: 'Screenshot', callback: screenshot },
   { displayName: '5s', callback: clipEndpointForDuration(5) },
   { displayName: '10s', callback: clipEndpointForDuration(10) },
   { displayName: '15s', callback: clipEndpointForDuration(15) },
@@ -80,8 +80,13 @@ function clipEndpointForDuration(seconds: number): () => Promise<Id> {
     .then(resp => resp.id);
 }
 
-function screenshot(): Promise<string> {
-  return fetch(screenshotEndpoint, { method: 'POST' })
+function screenshot(sceneName?: string): Promise<string> {
+  const body = JSON.stringify({sceneName});
+  return fetch(screenshotEndpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body,
+  })
     .then(checkResponseStatus)
     .then(resp => resp.json() as Promise<GetClipResponse>)
     .then(resp => resp.id);
@@ -423,11 +428,23 @@ const ClipDashboard: FunctionalComponent<Props> = ({ state }) => {
     updateSelectedMediaSource={updateSelectedMediaSource}
   />;
 
+  const sceneSelector = <SceneScreenshotMenu
+    scenes={state.scenes}
+    updateCurrentClipId={updateCurrentId}
+  />;
   return (
     <div class="clips">
       <div class="clips__actions action-row">
+        <button
+          type="button"
+          onClick={() => screenshot().then(updateCurrentId).catch(logError)}
+        >
+          Screenshot
+        </button>
+        {sceneSelector}
         {clipEndpoints.map(ep =>
           <button
+            key={ep.displayName}
             type="button"
             onClick={() => ep.callback().then(updateCurrentId).catch(logError)}
           >
@@ -469,6 +486,36 @@ const ClipDashboard: FunctionalComponent<Props> = ({ state }) => {
   );
 };
 export default ClipDashboard;
+
+function SceneScreenshotMenu({
+  scenes,
+  updateCurrentClipId,
+}: {
+  scenes: string[],
+  updateCurrentClipId: (id: string) => void,
+}): VNode|null {
+  if (!scenes.length) {
+    return null;
+  }
+  // TODO: Make a real menu component
+  return (
+    <details class="menu__container">
+      <summary class="menu__trigger"><Icon name="more" label="Screenshot a specific scene" /></summary>
+      <ul class="menu__popover" role="menu">
+        {scenes.map(scene => (
+          <li key={scene} role="menuitem">
+            <button
+              type="buton"
+              onClick={() => screenshot(scene).then(updateCurrentClipId).catch(logError)}
+            >
+              {scene}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </details>
+  );
+}
 
 function MediaSourceSelector({
   mediaSources,

@@ -16,7 +16,7 @@ import { getId } from '@util/id';
 import { MediaServer } from '@server/media/server';
 
 import { State, nullState, ClipView, ClipStatus } from './state';
-import VisionMixer, { VideoInput } from '@services/vision-mixer-service';
+import VisionMixer, { Scene, VideoInput } from '@services/vision-mixer-service';
 import isEqual from 'lodash.isequal';
 
 interface SendParams {
@@ -38,6 +38,10 @@ interface ClipUpdate {
   startMs: number;
   endMs: number;
   description: string;
+}
+
+export interface GetScreenshotParams {
+  sceneName?: string;
 }
 
 export interface GetClipParams {
@@ -101,6 +105,7 @@ class ClipServer {
     this.visionMixer = visionMixer;
     this.storageDir = storageDir;
     this.registerHandlers();
+    this.getScenes();
     this.getMediaSources();
   }
 
@@ -120,6 +125,22 @@ class ClipServer {
       logger.info('Websocket connection received');
       this.sendState(client as WebSocketClient);
     });
+  }
+
+  public getScenes(): void {
+    const update = (scenes: Scene[]): void => {
+      const newScenes = scenes.map(i => i.name);
+      if (isEqual(new Set(newScenes), new Set(this.state.scenes))) {
+        return;
+      }
+      this.state = updateImmutable(
+        this.state,
+        { scenes: { $set: newScenes } },
+      );
+      this.broadcastState();
+    };
+    this.visionMixer.getSceneList().match(update, logger.error);
+    this.visionMixer.onSceneListUpdate(update);
   }
 
   public getMediaSources(): void {
@@ -151,9 +172,12 @@ class ClipServer {
   }
 
   private getScreenshot = async (req: Request, res: Response): Promise<void> => {
+    const { sceneName } = req.fields as GetScreenshotParams;
     let screenshot;
     try {
-      screenshot = await this.media.getCurrentFullScreenshot();
+      screenshot = sceneName
+        ? await this.media.getSceneFullScreenshot(sceneName)
+        : await this.media.getCurrentFullScreenshot();
     } catch(err) {
       sendServerError(res, 'Unable to get screenshot:', err as Error);
       return;
