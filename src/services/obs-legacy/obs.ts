@@ -7,7 +7,7 @@ import { dirname, extname, isAbsolute, join, basename } from 'path';
 import pLimit from 'p-limit';
 
 import { Timestamp } from '@models/timestamp';
-import VisionMixer, { ImageData } from '@services/vision-mixer-service';
+import VisionMixer, { ImageData, VideoInput } from '@services/vision-mixer-service';
 import { Config, getConfig } from '@util/configuration/config';
 import { Watcher, waitForFile } from '@util/fs';
 import { getLogger } from '@util/logger';
@@ -29,6 +29,7 @@ const logger = getLogger('services/obs-legacy');
 // TODO: Get actual replay prefix from OBS
 export const OBS_REPLAY_PREFIX = 'Replay';
 const VIDEO_FILE_EXTENSIONS = ['.flv', '.mp4', '.mov', '.mkv', '.ts', '.m3u8'];
+const VIDEO_INPUT_KINDS = ['ffmpeg_source', 'vlc_source'];
 
 export default class ObsLegacyClient implements VisionMixer {
   private readonly obs: ObsConnection;
@@ -215,6 +216,79 @@ export default class ObsLegacyClient implements VisionMixer {
   public getOutputDimensions(): ResultAsync<{ width: number; height: number }, Error> {
     return this.obs.send('GetVideoInfo', true)
       .map(resp => ({ width: resp.outputWidth, height: resp.outputHeight }));
+  }
+
+  public getVideoInputList(): ResultAsync<VideoInput[], Error> {
+    return this.obs.send('GetMediaSourcesList', true)
+      .map(resp => resp.mediaSources.map(i => ({
+        name: i.sourceName,
+      })));
+  }
+
+  public onVideoInputListUpdate(cb: (inputs: VideoInput[]) => void): void {
+    const sendUpdate = (): void => {
+      this.getVideoInputList().match(
+        cb,
+        logger.error,
+      );
+    };
+    const checkKind = (source: { sourceKind: string }): void => {
+      if (VIDEO_INPUT_KINDS.includes(source.sourceKind)) {
+        sendUpdate();
+      }
+    };
+    const checkType = (source: { sourceType: string }): void => {
+      if (source.sourceType === 'input') {
+        sendUpdate();
+      }
+    };
+    this.obs.on('SourceCreated', checkKind);
+    this.obs.on('SourceDestroyed', checkKind);
+    this.obs.on('SourceRenamed', checkType);
+    this.obs.on('AuthenticationSuccess', sendUpdate);
+  }
+
+  public setVideoInputFile(
+    name: string,
+    path: string,
+  ): ResultAsync<void, Error> {
+    return this.obs.send('GetMediaSourcesList', true)
+      .andThen(({ mediaSources }) => {
+        const source = mediaSources.find(s => s.sourceName === name);
+        if (source) {
+          return ok(source.sourceKind);
+        } else {
+          return err(new Error(`Source "${name}" not found`));
+        }
+      })
+      .map((sourceKind) => {
+        switch (sourceKind) {
+          case 'ffmpeg_source':
+            return ({
+              'is_local_file': true,
+              'local_file': path,
+            });
+          case 'vlc_source':
+            return ({
+              'playlist': [
+                {
+                  'hidden': false,
+                  'selected': false,
+                  'value': path,
+                },
+              ],
+            });
+          default:
+            return {};
+        }
+      })
+      .andThen(settings =>
+        this.obs.send('SetSourceSettings', true, {
+          sourceName: name,
+          sourceSettings: settings,
+        })
+      )
+      .map(() => void 0);
   }
 
   public getRecordingFile(): ResultAsync<string | null, Error> {

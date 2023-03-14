@@ -1,5 +1,5 @@
 import debounce from 'lodash.debounce';
-import { h, FunctionalComponent, Fragment } from 'preact';
+import { h, FunctionalComponent, Fragment, VNode } from 'preact';
 import { StateUpdater, useRef, useState, Ref, useEffect } from 'preact/hooks';
 
 import { ImageClip, VideoClip, isVideoClip, Clip } from '@models/media';
@@ -36,6 +36,7 @@ type VideoEditorProps = VideoClip & Omit<ClipView, 'clip'> & {
   updateEndMs: StateUpdater<number>;
   updateDescription: StateUpdater<string>;
   autoplay: boolean;
+  mediaSourceSelector: VNode|null;
 };
 
 /**
@@ -56,6 +57,7 @@ const EDITOR_DEBOUNCE_TIME = 100;
 
 const updateEndpoint = clipEndpoint('/update').href;
 const cutEndpoint = clipEndpoint('/cut').href;
+const sendEndpoint = clipEndpoint('/send').href;
 const screenshotEndpoint = clipEndpoint('/screenshot').href;
 const clipEndpoints = [
   { displayName: 'Screenshot', callback: screenshot },
@@ -121,6 +123,7 @@ const VideoEditor: FunctionalComponent<VideoEditorProps> = (props) => {
     description,
     updateDescription,
     autoplay,
+    mediaSourceSelector,
   } = props;
   const isRendering = status === ClipStatus.Rendering;
   const isRendered = status === ClipStatus.Rendered;
@@ -286,6 +289,19 @@ const VideoEditor: FunctionalComponent<VideoEditorProps> = (props) => {
             Cut
           </button>
         </div>
+        {isRendered && mediaSourceSelector &&
+          <form
+            method="post"
+            action={sendEndpoint}
+            class="action-row"
+          >
+            <input type="hidden" name="id" value={id} />
+            {mediaSourceSelector}
+            <button type="submit">
+              Send to program
+            </button>
+          </form>
+        }
       </div>
     </form>
   );
@@ -346,6 +362,7 @@ function removeMs(timestamp: Timestamp): string {
 interface ClipEditorProps<T extends Clip> {
   clipView: ClipView<T>;
   selected: boolean;
+  mediaSourceSelector: VNode|null;
 }
 
 const ImageClipEditor: FunctionalComponent<ClipEditorProps<ImageClip>> = ({
@@ -358,6 +375,7 @@ const ImageClipEditor: FunctionalComponent<ClipEditorProps<ImageClip>> = ({
 const VideoClipEditor: FunctionalComponent<ClipEditorProps<VideoClip>> = ({
   clipView: { clip, status },
   selected,
+  mediaSourceSelector,
 }) => {
   const durationMs = clip.media.durationMs;
   const [ startMs, updateStartMs ] = useLocalState(
@@ -387,11 +405,24 @@ const VideoClipEditor: FunctionalComponent<ClipEditorProps<VideoClip>> = ({
     description={description}
     updateDescription={updateDescription}
     autoplay={false}
+    mediaSourceSelector={mediaSourceSelector}
   />;
 };
 
 const ClipDashboard: FunctionalComponent<Props> = ({ state }) => {
   const [ currentClipId, updateCurrentId ] = useState<Id | null>(null);
+  const [ selectedMediaSource, updateSelectedMediaSource ] = useState<string|undefined>(undefined);
+  useEffect(() => {
+    if (selectedMediaSource != null && !state.mediaSources.includes(selectedMediaSource)) {
+      updateSelectedMediaSource(undefined);
+    }
+  }, [ state.mediaSources ]);
+  const mediaSourceSelector = <MediaSourceSelector
+    mediaSources={state.mediaSources}
+    selectedMediaSource={selectedMediaSource}
+    updateSelectedMediaSource={updateSelectedMediaSource}
+  />;
+
   return (
     <div class="clips">
       <div class="clips__actions action-row">
@@ -411,6 +442,7 @@ const ClipDashboard: FunctionalComponent<Props> = ({ state }) => {
             key={clipView.clip.id}
             clipView={clipView}
             selected={clipView.clip.id === currentClipId}
+            mediaSourceSelector={mediaSourceSelector}
           />
         )
       }
@@ -421,6 +453,7 @@ const ClipDashboard: FunctionalComponent<Props> = ({ state }) => {
             key={clipView.clip.id}
             clipView={clipView}
             selected={clipView.clip.id === currentClipId}
+            mediaSourceSelector={mediaSourceSelector}
           />
         )
       }
@@ -436,6 +469,30 @@ const ClipDashboard: FunctionalComponent<Props> = ({ state }) => {
   );
 };
 export default ClipDashboard;
+
+function MediaSourceSelector({
+  mediaSources,
+  selectedMediaSource,
+  updateSelectedMediaSource,
+}: {
+  mediaSources: string[],
+  selectedMediaSource: string|undefined,
+  updateSelectedMediaSource: StateUpdater<string|undefined>,
+}): VNode|null {
+  if (mediaSources.length === 0) {
+    return null;
+  }
+  return (
+    <select
+      name="sourceName"
+      value={selectedMediaSource}
+      onChange={e => updateSelectedMediaSource(e.currentTarget.value)}
+      required
+    >
+      {mediaSources.sort().map(s => <option key={s} value={s}>{s}</option>)}
+    </select>
+  );
+}
 
 function quantizedFloorFromBeginning(time: number, step: number): number {
   return time - time % step;

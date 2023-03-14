@@ -36,7 +36,7 @@ export function bindSubmitHandler(): void {
       .catch(logError);
 
     event.preventDefault();
-  });
+  }, { capture: true });
 }
 
 function setFormRoute(form: HTMLFormElement, attributes: NamedNodeMap): void {

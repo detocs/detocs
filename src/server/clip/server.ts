@@ -16,6 +16,15 @@ import { getId } from '@util/id';
 import { MediaServer } from '@server/media/server';
 
 import { State, nullState, ClipView, ClipStatus } from './state';
+import VisionMixer, { VideoInput } from '@services/vision-mixer-service';
+import isEqual from 'lodash.isequal';
+
+interface SendParams {
+  id: string;
+  sourceName: string;
+}
+
+type SendRequest = Partial<SendParams>;
 
 interface UpdateRequest {
   id?: string;
@@ -41,11 +50,23 @@ export interface GetClipResponse {
 
 type WebSocketClient = ws;
 
+type AssumeClipType<T extends Clip> = Omit<State, 'clips'> & {
+  clips: ClipView<T>[];
+};
+
 const logger = getLogger('server/clip');
 const sendUserError = httpUtil.sendUserError.bind(null, logger);
 const sendServerError = httpUtil.sendServerError.bind(null, logger);
 
-export default async function start(port: number, mediaServer: MediaServer): Promise<void> {
+export default async function start({
+  port,
+  mediaServer,
+  visionMixer,
+}: {
+  port: number,
+  mediaServer: MediaServer,
+  visionMixer: VisionMixer,
+}): Promise<void> {
   logger.info('Initializing media dashboard server');
 
   const { appServer, socketServer } = httpUtil.appWebsocketServer(
@@ -56,13 +77,14 @@ export default async function start(port: number, mediaServer: MediaServer): Pro
   const dir = getConfig().clipDirectory;
   await fs.mkdir(dir, { recursive: true });
 
-  new ClipServer(appServer, socketServer, mediaServer, dir);
+  new ClipServer(appServer, socketServer, mediaServer, visionMixer, dir);
 }
 
 class ClipServer {
   private readonly appServer: express.Express;
   private readonly socketServer: ws.Server;
   private readonly media: MediaServer;
+  private readonly visionMixer: VisionMixer;
   private readonly storageDir: string;
   private state: State = nullState;
 
@@ -70,13 +92,16 @@ class ClipServer {
     appServer: express.Express,
     socketServer: ws.Server,
     mediaServer: MediaServer,
+    visionMixer: VisionMixer,
     storageDir: string,
   ) {
     this.appServer = appServer;
     this.socketServer = socketServer;
     this.media = mediaServer;
+    this.visionMixer = visionMixer;
     this.storageDir = storageDir;
     this.registerHandlers();
+    this.getMediaSources();
   }
 
   public registerHandlers(): void {
@@ -86,6 +111,7 @@ class ClipServer {
     this.appServer.get('/clip', this.getClip);
     this.appServer.post('/update', this.updateClip);
     this.appServer.post('/cut', this.cutClip);
+    this.appServer.post('/send', this.sendClip);
     this.appServer.get('/state', (_, res) => {
       res.send(this.state);
     });
@@ -94,6 +120,22 @@ class ClipServer {
       logger.info('Websocket connection received');
       this.sendState(client as WebSocketClient);
     });
+  }
+
+  public getMediaSources(): void {
+    const update = (inputs: VideoInput[]): void => {
+      const newSources = inputs.map(i => i.name);
+      if (isEqual(new Set(newSources), new Set(this.state.mediaSources))) {
+        return;
+      }
+      this.state = updateImmutable(
+        this.state,
+        { mediaSources: { $set: newSources } },
+      );
+      this.broadcastState();
+    };
+    this.visionMixer.getVideoInputList().match(update, logger.error);
+    this.visionMixer.onVideoInputListUpdate(update);
   }
 
   private broadcastState = (): void => {
@@ -230,6 +272,30 @@ class ClipServer {
       );
   };
 
+  private sendClip = async (req: Request, res: Response): Promise<void> => {
+    // TODO: Properly distinguish between user and server errors
+    return validateSendRequest(req.fields as SendRequest)
+      .andThen<{ clipView: ClipView, sourceName: string }>(
+      ({ id, sourceName }) => {
+        const clipView = this.getVideoClipById(id).clipView;
+        return clipView
+          ? ok({ clipView, sourceName })
+          : err(new Error(`No video clip with ID ${id} found`));
+      })
+      .asyncAndThen(({ clipView, sourceName }) =>
+        this.visionMixer.setVideoInputFile(
+          sourceName,
+          this.media.getFullPath(clipView.clip.media),
+        )
+      )
+      .match(
+        () => {
+          res.sendStatus(200);
+        },
+        err => sendUserError(res, err),
+      );
+  };
+
   private async copyClipToStorage(id: string): Promise<Error | null> {
     const { clipView: cv } = this.getClipById(id);
     if (cv == null) {
@@ -263,7 +329,7 @@ class ClipServer {
       }
 
       this.state = updateImmutable(
-        this.state as { clips: ClipView<VideoClip>[]},
+        this.state as AssumeClipType<VideoClip>,
         { clips: { [index]: {
           $merge: {
             status,
@@ -285,7 +351,7 @@ class ClipServer {
       return new Error(`Clip ${id} deleted while cutting`);
     }
     this.state = updateImmutable(
-      this.state as { clips: ClipView<VideoClip>[]},
+      this.state as AssumeClipType<VideoClip>,
       { clips: { [index]: {
         $merge: {
           status: ClipStatus.Rendered,
@@ -309,7 +375,7 @@ class ClipServer {
       return new Error(`Clip ${id} deleted while generating waveform`);
     }
     this.state = updateImmutable(
-      this.state as { clips: ClipView<VideoClip>[]},
+      this.state as AssumeClipType<VideoClip>,
       { clips: { [index]: { clip: { $merge: {
         waveform
       }}}}});
@@ -322,7 +388,7 @@ class ClipServer {
       return new Error(`Clip ${id} deleted while generating thumbnail`);
     }
     this.state = updateImmutable(
-      this.state as { clips: ClipView<VideoClip>[]},
+      this.state as AssumeClipType<VideoClip>,
       { clips: { [index]: { clip: { $merge: {
         thumbnail
       }}}}});
@@ -373,7 +439,7 @@ function clipStorageFilename(clip: Clip): string {
 }
 
 function validateUpdateRequest(req: UpdateRequest): Result<ClipUpdate, Error> {
-  const { id, startMs: startStr, endMs: endStr, description } = req as UpdateRequest;
+  const { id, startMs: startStr, endMs: endStr, description } = req;
   const startMs = startStr != null ? parseInt(startStr) : NaN;
   const endMs = endStr != null ? parseInt(endStr) : NaN;
   if (!id) {
@@ -383,4 +449,15 @@ function validateUpdateRequest(req: UpdateRequest): Result<ClipUpdate, Error> {
     return err(new Error('Invalid bounds'));
   }
   return ok({ id, startMs, endMs, description: description || '' });
+}
+
+function validateSendRequest(req: SendRequest): Result<SendParams, Error> {
+  const { id, sourceName } = req;
+  if (!id) {
+    return err(new Error('id is required'));
+  }
+  if (!sourceName) {
+    return err(new Error('sourceName is required'));
+  }
+  return ok({ id, sourceName });
 }

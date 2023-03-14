@@ -7,7 +7,7 @@ import pLimit from 'p-limit';
 import { dirname, extname, isAbsolute, join, basename } from 'path';
 
 import { Timestamp } from '@models/timestamp';
-import VisionMixer, { ImageData } from '@services/vision-mixer-service';
+import VisionMixer, { ImageData, VideoInput } from '@services/vision-mixer-service';
 import { Config, getConfig } from '@util/configuration/config';
 import { getLogger } from '@util/logger';
 import * as png from '@util/png';
@@ -29,6 +29,7 @@ const logger = getLogger('services/obs');
 // TODO: Get actual replay prefix from OBS
 export const OBS_REPLAY_PREFIX = 'Replay';
 const VIDEO_FILE_EXTENSIONS = ['.flv', '.mp4', '.mov', '.mkv', '.ts', '.m3u8'];
+const VIDEO_INPUT_KINDS = ['ffmpeg_source', 'vlc_source'];
 
 export default class ObsClient implements VisionMixer {
   private readonly obs: ObsConnection;
@@ -91,6 +92,75 @@ export default class ObsClient implements VisionMixer {
 
   public onConnect(cb: () => void): void {
     this.on('Identified', cb);
+  }
+
+  public getOutputDimensions(): ResultAsync<{ width: number; height: number }, Error> {
+    return this.getVideoDimensions()
+      .map(resp => ({ width: resp.outputWidth, height: resp.outputHeight }));
+  }
+
+  public getVideoInputList(): ResultAsync<VideoInput[], Error> {
+    return this.obs.callBatch(VIDEO_INPUT_KINDS.map(kind => ({
+      requestType: 'GetInputList',
+      requestData: { inputKind: kind }
+    })), { executionType: RequestBatchExecutionType.Parallel })
+      .map(responses => (responses as ResponseMessage<'GetInputList'>[])
+        .flatMap(r => r.responseData.inputs)
+      )
+      .map(inputs => inputs.map(i => ({
+        name: i['inputName'] as string,
+      })));
+  }
+
+  public onVideoInputListUpdate(cb: (inputs: VideoInput[]) => void): void {
+    const sendUpdate = (): void => {
+      this.getVideoInputList().match(
+        cb,
+        logger.error,
+      );
+    };
+    this.obs.on('InputCreated', i => {
+      if (VIDEO_INPUT_KINDS.includes(i.inputKind)) {
+        sendUpdate();
+      }
+    });
+    this.obs.on('InputRemoved', sendUpdate);
+    this.obs.on('InputNameChanged', sendUpdate);
+    this.obs.on('Identified', sendUpdate);
+  }
+
+  public setVideoInputFile(
+    name: string,
+    path: string,
+  ): ResultAsync<void, Error> {
+    return this.obs.call('GetInputSettings', { inputName: name })
+      .map(({inputKind}) => {
+        switch (inputKind) {
+          case 'ffmpeg_source':
+            return ({
+              'is_local_file': true,
+              'local_file': path,
+            });
+          case 'vlc_source':
+            return ({
+              'playlist': [
+                {
+                  'hidden': false,
+                  'selected': false,
+                  'value': path,
+                },
+              ],
+            });
+          default:
+            return {};
+        }
+      })
+      .andThen(settings =>
+        this.obs.call('SetInputSettings', {
+          inputName: name,
+          inputSettings: settings,
+        })
+      );
   }
 
   public startRecording(): ResultAsync<void, Error> {
@@ -255,11 +325,6 @@ export default class ObsClient implements VisionMixer {
         data,
       });
     });
-  }
-
-  public getOutputDimensions(): ResultAsync<{ width: number; height: number }, Error> {
-    return this.getVideoDimensions()
-      .map(resp => ({ width: resp.outputWidth, height: resp.outputHeight }));
   }
 
   public getRecordingFile(): ResultAsync<string | null, Error> {

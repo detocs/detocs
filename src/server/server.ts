@@ -47,7 +47,7 @@ export default function start({
     startRecordingServer({ port: RECORDING_PORT, mediaServer, bracketProvider, visionMixer }),
     startTwitterServer({ port: TWITTER_PORT, mediaServer, twitterClient }),
     startBracketServer({ port: BRACKETS_PORT, bracketProvider }),
-    startClipServer(MEDIA_DASHBOARD_PORT, mediaServer),
+    startClipServer({ port: MEDIA_DASHBOARD_PORT, mediaServer, visionMixer }),
     startErrorServer({ port: ERROR_REPORTING_PORT }),
   ]).then(() => { /* void */ });
 }

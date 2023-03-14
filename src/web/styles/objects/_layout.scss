@@ -42,8 +42,16 @@ details > .input-row {
   margin-block: 0;
 }
 
-.action-row > button {
-  flex: 1 0 8em;
+.action-row {
+  > button,
+  > select {
+    flex: 1 0 8em;
+
+    overflow: hidden;
+
+    text-align: center;
+    text-overflow: ellipsis;
+  }
 }
 
 .input-block {

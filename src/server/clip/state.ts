@@ -2,10 +2,12 @@ import { Clip, ImageClip, isImageClip, VideoClip, isVideoClip } from '@models/me
 
 export interface State {
   readonly clips: ClipView[];
+  readonly mediaSources: string[],
 }
 
 export const nullState: State = {
   clips: [],
+  mediaSources: [],
 };
 
 export interface ClipView<T extends Clip = Clip> {

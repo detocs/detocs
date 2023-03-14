@@ -240,7 +240,7 @@ $cursor-width: 2px;
 
 .video-editor__buttons {
   display: flex;
-  flex: 1 1 auto;
+  flex: 1 0 13em;
 
   flex-flow: column nowrap;
   overflow: hidden; // input-row seems to be causing overflow
