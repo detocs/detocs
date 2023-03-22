@@ -26,7 +26,7 @@ const webImages = () =>
   src('assets/images/**/*')
     .pipe(dest('build/public/images/'));
 
-const webJs = () =>
+const rollup = () =>
   run('npm run webjs').exec();
 
 const screenshotJs = () =>
@@ -40,7 +40,7 @@ const build = series(
     webHtml,
     webIcons,
     webImages,
-    series(tsc, webJs),
+    series(tsc, rollup),
   ),
 );
 
@@ -53,6 +53,7 @@ module.exports = {
   default: build,
   build,
   webCss,
+  webJs: series(tsc, rollup),
   webHtml,
   screenshots,
 };

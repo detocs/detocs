@@ -3,6 +3,7 @@ import { h, FunctionalComponent, Fragment, VNode } from 'preact';
 import { StateUpdater, useRef, useState, Ref, useEffect } from 'preact/hooks';
 
 import { ImageClip, VideoClip, isVideoClip, Clip } from '@models/media';
+import { Timestamp } from '@models/timestamp';
 import { GetClipResponse } from '@server/clip/server';
 import {
   State,
@@ -14,14 +15,13 @@ import {
 import { checkResponseStatus } from '@util/ajax';
 import { inputHandler } from '@util/dom';
 import { Id } from '@util/id';
+import { fromMillis } from '@util/timestamp';
 
 import { clipEndpoint } from './api';
 import { ClipSelector } from './clip-selector';
 import { useLocalState } from './hooks/local-state';
 import { logError } from './log';
-import { fromMillis } from '@util/timestamp';
-import { Timestamp } from '@models/timestamp';
-import Icon from './icon';
+import { Menu, MenuAction, MenuSection } from './menu';
 
 interface Props {
   state: State;
@@ -55,6 +55,11 @@ const CLIP_RANGE_STEP_MS = 250;
  * Limits the rate at which values get updated while dragging range sliders
  */
 const EDITOR_DEBOUNCE_TIME = 100;
+
+/**
+ * Number of recently-screenshotted scenes to show in dropdown
+ */
+const NUM_RECENT_SCENES = 5;
 
 const updateEndpoint = clipEndpoint('/update').href;
 const cutEndpoint = clipEndpoint('/cut').href;
@@ -428,20 +433,14 @@ const ClipDashboard: FunctionalComponent<Props> = ({ state }) => {
     updateSelectedMediaSource={updateSelectedMediaSource}
   />;
 
-  const sceneSelector = <SceneScreenshotMenu
+  const screenshotMenu = <SceneScreenshotMenu
     scenes={state.scenes}
     updateCurrentClipId={updateCurrentId}
   />;
   return (
     <div class="clips">
       <div class="clips__actions action-row">
-        <button
-          type="button"
-          onClick={() => screenshot().then(updateCurrentId).catch(logError)}
-        >
-          Screenshot
-        </button>
-        {sceneSelector}
+        {screenshotMenu}
         {clipEndpoints.map(ep =>
           <button
             key={ep.displayName}
@@ -493,27 +492,52 @@ function SceneScreenshotMenu({
 }: {
   scenes: string[],
   updateCurrentClipId: (id: string) => void,
-}): VNode|null {
-  if (!scenes.length) {
-    return null;
+}): VNode {
+  const [ recentScenes, setRecentScenes ] = useState<string[]>([]);
+  function appendRecentScene(scene: string): void {
+    setRecentScenes(recent => [scene, ...recent.filter(r => r !== scene)]
+      .slice(0, NUM_RECENT_SCENES));
   }
-  // TODO: Make a real menu component
+
+  const screenshotCurrentScene = (): Promise<void> => screenshot()
+    .then(updateCurrentClipId)
+    .catch(logError);
+  function sceneToAction(scene: string): MenuAction {
+    return ({
+      label: scene,
+      onClick: () => screenshot(scene)
+        .then(updateCurrentClipId)
+        .then(() => appendRecentScene(scene))
+        .catch(logError),
+    });
+  }
+
+  let actions: (MenuAction|MenuSection)[] = [];
+
+  if (recentScenes.length == 0 || scenes.length <= NUM_RECENT_SCENES) {
+    actions = scenes.map(sceneToAction);
+  } else {
+    actions = [
+      {
+        label: 'Recent',
+        actions: recentScenes.map(sceneToAction),
+      },
+      ...scenes.filter(scene => !recentScenes.includes(scene)).map(sceneToAction),
+    ];
+  }
+
+  if (!scenes.length) {
+    return <button type="button" onClick={screenshotCurrentScene}>Screenshot</button>;
+  }
   return (
-    <details class="menu__container">
-      <summary class="menu__trigger"><Icon name="more" label="Screenshot a specific scene" /></summary>
-      <ul class="menu__popover" role="menu">
-        {scenes.map(scene => (
-          <li key={scene} role="menuitem">
-            <button
-              type="buton"
-              onClick={() => screenshot(scene).then(updateCurrentClipId).catch(logError)}
-            >
-              {scene}
-            </button>
-          </li>
-        ))}
-      </ul>
-    </details>
+    <Menu
+      label="Screenshot Scene"
+      defaultAction={{
+        label: 'Screenshot',
+        onClick: screenshotCurrentScene,
+      }}
+      actions={actions}
+    />
   );
 }
 

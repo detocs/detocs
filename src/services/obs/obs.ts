@@ -102,7 +102,8 @@ export default class ObsClient implements VisionMixer {
   public getSceneList(): ResultAsync<Scene[], Error> {
     return this.obs.call('GetSceneList')
       .map(({ scenes }) => {
-        return scenes.map(s => ({
+        // OBS Studio returns scenes in reverse order for some reason
+        return scenes.reverse().map(s => ({
           name: s['sceneName'] as string,
         }));
       });

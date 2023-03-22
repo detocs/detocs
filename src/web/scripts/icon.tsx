@@ -3,12 +3,14 @@ import { JSXInternal } from 'preact/src/jsx';
 
 const ICON_NAME_MAPPING = Object.freeze({
   'more': 'dots-circle-horizontal',
+  'dropdown-closed': 'chevron-down',
+  'dropdown-open': 'chevron-up',
   'close': 'x-circle',
 });
 
 export type Props = JSXInternal.SVGAttributes<SVGSVGElement> & {
   name: keyof typeof ICON_NAME_MAPPING;
-  label: string;
+  label?: string;
 };
 
 export default function Icon({
@@ -24,7 +26,7 @@ export default function Icon({
       role="img"
       aria-label={label}
     >
-      <title>{label}</title>
+      {label && <title>{label}</title>}
       <use href={`/icons/symbol/icons.svg#${ICON_NAME_MAPPING[name]}`}></use>
     </svg>
   );

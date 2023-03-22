@@ -43,10 +43,14 @@ details > .input-row {
 }
 
 .action-row {
+  > * {
+    flex: 1 0 8em;
+  }
+}
+
+.action-row {
   > button,
   > select {
-    flex: 1 0 8em;
-
     overflow: hidden;
 
     text-align: center;

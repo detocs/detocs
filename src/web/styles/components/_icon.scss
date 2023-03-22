@@ -5,3 +5,7 @@ $size: 2.5ex;
   height: $size;
   vertical-align: 1.5ex/2 - $size/2;
 }
+
+button > .icon {
+  margin-inline: -0.35em;
+}

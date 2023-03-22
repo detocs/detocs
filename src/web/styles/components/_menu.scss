@@ -1,34 +1,60 @@
-.menu__container {
-  position: relative;
-  display: inline-block;
+.menu__button-group {
+  display: inline-flex;
+  flex-flow: row nowrap;
 }
 
-// Override details styles
-details[open] > summary.menu__trigger {
-  margin: 0;
-  border: none;
+.menu__default-action {
+  margin-inline-end: calc(-1 * var(--width-border));
+  flex-grow: 1;
+
+  padding-inline-end: 0.35em;
+
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+
+  + .menu__trigger-container > button {
+    flex-grow: 0;
+
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
+  }
+}
+
+.menu__trigger-container {
+  display: contents;
+
+  > button {
+    flex-grow: 1;
+  }
 }
 
 .menu__popover {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  width: max-content;
   z-index: 1;
-  margin: var(--margin-small) 0;
+  max-height: calc(100vh - 3rem);
+
+  overflow: hidden auto;
+  padding: 4px;
+
+  background: var(--bg-area);
+  box-shadow: 0 0 0.5rem var(--color-shadow);
+  border-radius: 4px;
+}
+
+.menu__list, .menu__group-inner {
+  min-width: max-content;
+  box-sizing: content-box;
 
   display: flex;
   flex-flow: column nowrap;
   gap: var(--margin-small);
   padding: 0;
+}
 
-  list-style-type: none;
-  background: var(--color-bg);
-  box-shadow: 0 0 0.5rem var(--color-shadow);
-  border-radius: 4px;
+.menu__group {
+  padding: var(--margin-small);
+}
 
-  > li {
-    display: flex;
-    flex-flow: column nowrap;
-  }
+.menu__group-inner {
+  width: 100%;
+  box-sizing: border-box;
 }
