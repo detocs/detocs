@@ -1,4 +1,5 @@
 import { h, render, FunctionalComponent, VNode } from 'preact';
+import { useState } from 'preact/hooks';
 import { ToastContainer as ReactToastContainer } from 'react-toastify';
 
 import BracketState, { nullState as nullBracketState } from '@server/bracket/state';
@@ -23,6 +24,7 @@ import BracketDashboard from './bracket-dashboard';
 import BreakDashboard from './break-dashboard';
 import ClipDashboard from './clip-dashboard';
 import CommentaryDashboard from './commentary-dashboard';
+import { NUM_RECENT_SCENES } from './constants';
 import { bindSubmitHandler } from './form-ajax';
 import { useServerState } from './hooks/server-state';
 import {
@@ -74,6 +76,13 @@ const App: FunctionalComponent = (): VNode => {
   const [ commentatorsReversed, toggleCommentatorsReversed ] = useCommentatorsReversed();
   const [ thumbnailVideosEnabled, toggleThumbnailVideosEnabled ] = useThumbnailVideosEnabled();
   const ToastContainer = ReactToastContainer as FunctionalComponent;
+
+  const [ recentScenes, setRecentScenes ] = useState<string[]>([]);
+  function addRecentScene(scene: string): void {
+    setRecentScenes(recent => [scene, ...recent.filter(r => r !== scene)]
+      .slice(0, NUM_RECENT_SCENES));
+  }
+
   return (
     <ThumbnailSettingsContext.Provider value={thumbnailVideosEnabled}>
       <TabController>
@@ -99,10 +108,17 @@ const App: FunctionalComponent = (): VNode => {
           <TwitterDashboard
             twitterState={twitterState}
             clipState={clipState}
+            recentScenes={recentScenes}
+            addRecentScene={addRecentScene}
           />
         </Tab>
         <Tab id="clips">
-          <ClipDashboard state={clipState} updateState={updateClipState}/>
+          <ClipDashboard
+            state={clipState}
+            updateState={updateClipState}
+            recentScenes={recentScenes}
+            addRecentScene={addRecentScene}
+          />
         </Tab>
         <Tab id="bracket">
           <BracketDashboard state={bracketState} updateState={updateBracketState}/>

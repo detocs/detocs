@@ -2,7 +2,6 @@ import { h, FunctionalComponent, VNode, Fragment } from 'preact';
 import { useState, useEffect, useRef, useMemo, StateUpdater } from 'preact/hooks';
 import twitterText from 'twitter-text';
 
-import { GetClipResponse } from '@server/clip/server';
 import {
   State as ClipState,
   ClipStatus,
@@ -12,13 +11,14 @@ import ClientState from '@server/twitter/client-state';
 import { checkResponseStatus } from '@util/ajax';
 import { inputHandler } from '@util/dom';
 
-import { twitterEndpoint, clipEndpoint } from './api';
+import { twitterEndpoint } from './api';
 import { ClipSelectorModal } from './clip-selector';
 import useId from './hooks/id';
 import { logError } from './log';
 import { Thumbnail } from './thumbnail';
 import Toggle from './toggle';
 import { useSessionStorage } from './hooks/storage';
+import { SceneScreenshotMenu } from './screenshot-menu';
 
 declare module 'twitter-text' {
   export const configs: {
@@ -34,6 +34,8 @@ const maxTweetLength = twitterText.configs.defaults.maxWeightedTweetLength;
 interface Props {
   twitterState: ClientState;
   clipState: ClipState;
+  recentScenes: string[];
+  addRecentScene: (scene: string) => void;
 }
 
 type SubmitEvent = Event & {
@@ -44,7 +46,6 @@ type DashboardMode = 'single' | 'thread';
 
 const tweetEndpoint = twitterEndpoint('/tweet').href;
 const loginEndpoint = twitterEndpoint('/login').href;
-const screenshotEndpoint = clipEndpoint('/screenshot').href;
 
 async function submitForm(
   form: HTMLFormElement,
@@ -62,16 +63,11 @@ async function submitForm(
     .then(checkResponseStatus);
 }
 
-function takeScreenshot(): Promise<string> {
-  return fetch(screenshotEndpoint, { method: 'POST' })
-    .then(checkResponseStatus)
-    .then(resp => resp.json() as Promise<GetClipResponse>)
-    .then(resp => resp.id);
-}
-
 const TwitterDashboard: FunctionalComponent<Props> = ({
   twitterState,
   clipState,
+  recentScenes,
+  addRecentScene,
 }): VNode => {
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const selectMediaRef = useRef<HTMLButtonElement>(null);
@@ -204,12 +200,14 @@ const TwitterDashboard: FunctionalComponent<Props> = ({
               }
             </div>
           </div>
-          <TwitterMedia {...{
-            clipState,
-            clipId,
-            setClipId,
-            mediaError,
-          }} />
+          <TwitterMedia
+            clipState={clipState}
+            clipId={clipId}
+            setClipId={setClipId}
+            mediaError={mediaError}
+            recentScenes={recentScenes}
+            addRecentScene={addRecentScene}
+          />
         </div>
       </fieldset>
     </form>
@@ -221,6 +219,8 @@ interface MediaProps {
   clipId: string | null;
   setClipId: StateUpdater<string | null>;
   mediaError: string;
+  recentScenes: string[];
+  addRecentScene: (scene: string) => void;
 }
 
 const TwitterMedia: FunctionalComponent<MediaProps> = ({
@@ -228,6 +228,8 @@ const TwitterMedia: FunctionalComponent<MediaProps> = ({
   clipId,
   setClipId,
   mediaError,
+  recentScenes,
+  addRecentScene,
 }): VNode => {
   const clipView = clipState.clips.find(c => c.clip.id === clipId) || null;
   const previewRef = useRef<HTMLOutputElement>(null);
@@ -235,6 +237,7 @@ const TwitterMedia: FunctionalComponent<MediaProps> = ({
   useEffect(() => {
     previewRef.current?.setCustomValidity(mediaError);
   }, [ mediaError ]);
+
   return (
     <div className="twitter__tweet-media">
       <input
@@ -258,11 +261,12 @@ const TwitterMedia: FunctionalComponent<MediaProps> = ({
         />
       </output>
       <div className="twitter__tweet-media-actions action-row">
-        <button type="button" onClick={
-          () => takeScreenshot().then(setClipId).catch(logError)
-        }>
-          Take Screenshot
-        </button>
+        <SceneScreenshotMenu
+          scenes={clipState.scenes}
+          updateCurrentClipId={setClipId}
+          recentScenes={recentScenes}
+          addRecentScene={addRecentScene}
+        />
         <ClipSelectorModal
           clips={clipState.clips.filter(c =>
             c.status === ClipStatus.Rendered ||

@@ -21,11 +21,13 @@ import { clipEndpoint } from './api';
 import { ClipSelector } from './clip-selector';
 import { useLocalState } from './hooks/local-state';
 import { logError } from './log';
-import { Menu, MenuAction, MenuSection } from './menu';
+import { SceneScreenshotMenu } from './screenshot-menu';
 
 interface Props {
   state: State;
   updateState: StateUpdater<State>;
+  recentScenes: string[];
+  addRecentScene: (scene: string) => void;
 }
 
 interface ImageViewerProps {
@@ -56,15 +58,9 @@ const CLIP_RANGE_STEP_MS = 250;
  */
 const EDITOR_DEBOUNCE_TIME = 100;
 
-/**
- * Number of recently-screenshotted scenes to show in dropdown
- */
-const NUM_RECENT_SCENES = 5;
-
 const updateEndpoint = clipEndpoint('/update').href;
 const cutEndpoint = clipEndpoint('/cut').href;
 const sendEndpoint = clipEndpoint('/send').href;
-const screenshotEndpoint = clipEndpoint('/screenshot').href;
 const clipEndpoints = [
   { displayName: '5s', callback: clipEndpointForDuration(5) },
   { displayName: '10s', callback: clipEndpointForDuration(10) },
@@ -80,18 +76,6 @@ function clipEndpointForDuration(seconds: number): () => Promise<Id> {
   endpoint.searchParams.set('seconds', seconds.toString());
   const href = endpoint.href;
   return () => fetch(href, { method: 'POST' })
-    .then(checkResponseStatus)
-    .then(resp => resp.json() as Promise<GetClipResponse>)
-    .then(resp => resp.id);
-}
-
-function screenshot(sceneName?: string): Promise<string> {
-  const body = JSON.stringify({sceneName});
-  return fetch(screenshotEndpoint, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body,
-  })
     .then(checkResponseStatus)
     .then(resp => resp.json() as Promise<GetClipResponse>)
     .then(resp => resp.id);
@@ -419,7 +403,11 @@ const VideoClipEditor: FunctionalComponent<ClipEditorProps<VideoClip>> = ({
   />;
 };
 
-const ClipDashboard: FunctionalComponent<Props> = ({ state }) => {
+const ClipDashboard: FunctionalComponent<Props> = ({
+  state,
+  recentScenes,
+  addRecentScene,
+}) => {
   const [ currentClipId, updateCurrentId ] = useState<Id | null>(null);
   const [ selectedMediaSource, updateSelectedMediaSource ] = useState<string|undefined>(undefined);
   useEffect(() => {
@@ -433,14 +421,15 @@ const ClipDashboard: FunctionalComponent<Props> = ({ state }) => {
     updateSelectedMediaSource={updateSelectedMediaSource}
   />;
 
-  const screenshotMenu = <SceneScreenshotMenu
-    scenes={state.scenes}
-    updateCurrentClipId={updateCurrentId}
-  />;
   return (
     <div class="clips">
       <div class="clips__actions action-row">
-        {screenshotMenu}
+        <SceneScreenshotMenu
+          scenes={state.scenes}
+          updateCurrentClipId={updateCurrentId}
+          recentScenes={recentScenes}
+          addRecentScene={addRecentScene}
+        />
         {clipEndpoints.map(ep =>
           <button
             key={ep.displayName}
@@ -485,61 +474,6 @@ const ClipDashboard: FunctionalComponent<Props> = ({ state }) => {
   );
 };
 export default ClipDashboard;
-
-function SceneScreenshotMenu({
-  scenes,
-  updateCurrentClipId,
-}: {
-  scenes: string[],
-  updateCurrentClipId: (id: string) => void,
-}): VNode {
-  const [ recentScenes, setRecentScenes ] = useState<string[]>([]);
-  function appendRecentScene(scene: string): void {
-    setRecentScenes(recent => [scene, ...recent.filter(r => r !== scene)]
-      .slice(0, NUM_RECENT_SCENES));
-  }
-
-  const screenshotCurrentScene = (): Promise<void> => screenshot()
-    .then(updateCurrentClipId)
-    .catch(logError);
-  function sceneToAction(scene: string): MenuAction {
-    return ({
-      label: scene,
-      onClick: () => screenshot(scene)
-        .then(updateCurrentClipId)
-        .then(() => appendRecentScene(scene))
-        .catch(logError),
-    });
-  }
-
-  let actions: (MenuAction|MenuSection)[] = [];
-
-  if (recentScenes.length == 0 || scenes.length <= NUM_RECENT_SCENES) {
-    actions = scenes.map(sceneToAction);
-  } else {
-    actions = [
-      {
-        label: 'Recent',
-        actions: recentScenes.map(sceneToAction),
-      },
-      ...scenes.filter(scene => !recentScenes.includes(scene)).map(sceneToAction),
-    ];
-  }
-
-  if (!scenes.length) {
-    return <button type="button" onClick={screenshotCurrentScene}>Screenshot</button>;
-  }
-  return (
-    <Menu
-      label="Screenshot Scene"
-      defaultAction={{
-        label: 'Screenshot',
-        onClick: screenshotCurrentScene,
-      }}
-      actions={actions}
-    />
-  );
-}
 
 function MediaSourceSelector({
   mediaSources,
