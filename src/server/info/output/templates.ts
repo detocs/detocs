@@ -4,14 +4,13 @@ import { Result, ok, err, ResultAsync } from 'neverthrow';
 import { Error as ChainableError } from 'chainable-error';
 import Handlebars from 'handlebars';
 import frontMatter from 'front-matter';
-import { promises as fs } from 'fs';
 import { basename, extname } from 'path';
 
 import State, { sampleState } from '@server/info/state';
 import { OutputTemplateConfig } from '@util/configuration/config';
 import { validateCsv } from '@util/csv';
 import { escapeJson, escapeCsv, escapeString, EscapeFunction, escapeRegex } from '@util/escaping';
-import { watchFile, Watcher } from '@util/fs';
+import { watchFile, Watcher, readFile } from '@util/fs';
 import { setDefaultEscapingFunction } from '@util/handlebars';
 import { validateJson } from '@util/json';
 import { getLogger } from '@util/logger';
@@ -112,16 +111,14 @@ class OutputTemplateImpl implements OutputTemplate {
 
 function loadTemplateFile(path: string): ResultAsync<string, Error> {
   logger.info(`Loading output template from ${path}`);
-  return ResultAsync.fromPromise<string, Error>(
-    fs.readFile(path, { encoding: 'utf8' }),
-    e => e as Error);
+  return readFile(path);
 }
 
 function parseTemplate(contents: string, name: string): Result<OutputTemplate, Error> {
   const { userData, templateStr } = extractFrontMatter(contents);
   const fileExtension = extname(name);
   const { hb, compileOptions } = cachedHandlebarsEnv(
-    ESCAPING_FUNCTIONS_BY_EXTENSION[fileExtension],
+    ESCAPING_FUNCTIONS_BY_EXTENSION[fileExtension] || 'default',
   );
   const renderTemplate = hb.compile<OutputTemplateData>(
     templateStr,

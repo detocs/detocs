@@ -1,4 +1,6 @@
+import { promises as fs } from 'fs';
 import chokidar from 'chokidar';
+import { ResultAsync } from 'neverthrow';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
@@ -13,7 +15,12 @@ export function watchFile(
   onChange: () => void,
   onError: (err: Error) => void,
 ): Watcher {
-  return chokidar.watch(path, { persistent: false })
+  return chokidar.watch(path, {
+    persistent: false,
+    awaitWriteFinish: {
+      stabilityThreshold: 300,
+    },
+  })
     .on('error', onError)
     .on('change', onChange);
 }
@@ -38,4 +45,18 @@ export function waitForFile(
 
 export function tmpDir(name: string): string {
   return join(tmpdir(), TMP_DIR_NAME, name);
+}
+
+export function readFile(path: string): ResultAsync<string, Error> {
+  return ResultAsync.fromPromise(
+    fs.readFile(path, { encoding: 'utf8' }),
+    e => e as Error,
+  );
+}
+
+export function writeFile(path: string, data: string): ResultAsync<void, Error> {
+  return ResultAsync.fromPromise(
+    fs.writeFile(path, data, { encoding: 'utf8' }),
+    e => e as Error,
+  );
 }
