@@ -1,5 +1,6 @@
 import { Error as ChainableError } from 'chainable-error';
-import Twit from 'twit';
+import { errAsync, ResultAsync } from 'neverthrow';
+import { TwitterApi, TwitterApiReadWrite } from 'twitter-api-v2';
 
 import { getCredentials, saveCredentials } from '@util/configuration/credentials';
 import { getLogger } from '@util/logger';
@@ -19,8 +20,8 @@ export interface TwitterClient {
   offLogin(cb: LoginCallback): void;
   getAuthorizeUrl(port: number): Promise<string>;
   authorize(params: Record<string, string>): Promise<void>;
-  logIn(accessToken: AccessToken): Promise<void>;
-  tweet(body: string, replyTo: string | null, mediaPath?: string): Promise<string>;
+  logIn(accessToken: AccessToken): ResultAsync<void, Error>;
+  tweet(body: string, replyTo: string | null, mediaPath?: string): ResultAsync<string, Error>;
 }
 
 interface TwitterCredentials {
@@ -33,7 +34,7 @@ export class ApiTwitterClient implements TwitterClient {
   private readonly twitterKey: string;
   private readonly twitterSecret: string;
   private loginCallbacks: LoginCallback[] = [];
-  private twit: Twit | null = null;
+  private client: TwitterApiReadWrite | null = null;
   private user: User | null = null;
 
   static async getClient({
@@ -46,7 +47,7 @@ export class ApiTwitterClient implements TwitterClient {
       // TODO: Handle revoked tokens
       logger.info('Already logged in');
       await twitterClient.logIn(accessToken)
-        .catch(logger.error);
+        .mapErr(logger.error);
     }
     return twitterClient;
   }
@@ -89,28 +90,35 @@ export class ApiTwitterClient implements TwitterClient {
     await this.logIn(accessToken);
   }
 
-  public async logIn(accessToken: AccessToken): Promise<void> {
-    try {
-      const twit = new Twit({
-        'consumer_key': this.twitterKey,
-        'consumer_secret': this.twitterSecret,
-        'access_token': accessToken.key,
-        'access_token_secret': accessToken.secret,
-      });
-      const user = await requests.getUser(twit);
-      this.twit = twit;
-      this.user = user;
-      this.loginCallbacks.forEach(cb => cb(user));
-    } catch (err) {
-      throw new ChainableError('Unable to log in', err as Error);
-    }
+  public logIn(accessToken: AccessToken): ResultAsync<void, Error> {
+    const client = new TwitterApi({
+      appKey: this.twitterKey,
+      appSecret: this.twitterSecret,
+      accessToken: accessToken.key,
+      accessSecret: accessToken.secret,
+    });
+    this.client = client.readWrite;
+    return requests.getUser(this.client)
+      .map(user => {
+        this.user = user;
+        this.loginCallbacks.forEach(cb => cb(user));
+      })
+      .mapErr(err => new ChainableError('Unable to log in', err));
   }
 
-  public async tweet(body: string, replyTo: string | null, mediaPath?: string): Promise<string> {
-    if (!this.twit) {
-      throw new Error('Twitter client not logged in');
+  public tweet(
+    body: string,
+    replyTo: string | null,
+    mediaPath?: string,
+  ): ResultAsync<string, Error> {
+    if (!this.client) {
+      return errAsync(new Error('Twitter client not logged in'));
     }
-    return requests.tweet(this.twit, body, replyTo, mediaPath);
+    return requests.tweet(this.client, body, replyTo, mediaPath)
+      .map(tweetId => {
+        logger.info(`Created tweet ${tweetId}${replyTo ? ` as a reply to ${replyTo}` : ''}`);
+        return tweetId;
+      });
   }
 }
 
@@ -143,11 +151,11 @@ export class MockTwitterClient implements TwitterClient {
     throw new Error('No Twitter credentials available');
   }
 
-  public logIn(): Promise<void> {
-    throw new Error('No Twitter credentials available');
+  public logIn(): ResultAsync<void, Error> {
+    return errAsync(new Error('No Twitter credentials available'));
   }
 
-  public tweet(): Promise<string> {
-    throw new Error('No Twitter credentials available');
+  public tweet(): ResultAsync<string, Error> {
+    return errAsync(new Error('No Twitter credentials available'));
   }
 }

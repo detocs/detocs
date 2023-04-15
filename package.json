@@ -111,7 +111,7 @@
     "obs-websocket-js-4": "npm:obs-websocket-js@^4.0.3",
     "open": "^7.0.3",
     "p-limit": "^3.0.2",
-    "twit": "^2.2.11",
+    "twitter-api-v2": "^1.14.2",
     "ws": "^6.2.2",
     "yargs": "^17.5.1"
   },

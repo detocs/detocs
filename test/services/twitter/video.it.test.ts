@@ -3,9 +3,10 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { promisify } from 'util';
 
-import TwitterClient, { ApiTwitterClient, MockTwitterClient } from '@services/twitter/twitter';
+import { TwitterClient, ApiTwitterClient, MockTwitterClient } from '@services/twitter/twitter';
 import { loadCredentials, getCredentials } from '@util/configuration/credentials';
 import { FFMPEG_BIN } from '@util/ffmpeg';
+import { getId } from '@util/id';
 
 const EXAMPLE_FILE_FOLDER = path.resolve('temp-twitter-test-files');
 const pExecFile = promisify(execFile);
@@ -17,6 +18,27 @@ describe(twitterClient.tweet, () => {
     await createTempFolder();
   });
 
+  it('can sent a text tweet', async () => {
+    await twitterClient.tweet(getId(), null)
+      .match(
+        () => {/* noop */},
+        err => {throw err;},
+      );
+  });
+
+  it('can sent a reply', async () => {
+    const id = await twitterClient.tweet(getId(), null)
+      .match(
+        id => id,
+        err => {throw err;},
+      );
+    await twitterClient.tweet(`reply to ${id}`, id)
+      .match(
+        () => {/* noop */},
+        err => {throw err;},
+      );
+  });
+
   it('can upload a small video file', async () => {
     const filename = 'small.mp4';
     const mediaPath = tempFile(filename);
@@ -24,7 +46,11 @@ describe(twitterClient.tweet, () => {
     // Smaller than max chunk size
     await generateTestVideo(mediaPath, 256 * 1024);
 
-    await twitterClient.tweet('', null, mediaPath);
+    await twitterClient.tweet('', null, mediaPath)
+      .match(
+        () => {/* noop */},
+        err => {throw err;},
+      );
   }, 5 * 60 * 1000);
 
   it('can upload a large video file', async () => {
@@ -34,7 +60,11 @@ describe(twitterClient.tweet, () => {
     // Larger than max chunk size
     await generateStatic(mediaPath, 11 * 1024 * 1024);
 
-    await twitterClient.tweet('', null, mediaPath);
+    await twitterClient.tweet('', null, mediaPath)
+      .match(
+        () => {/* noop */},
+        err => {throw err;},
+      );
   }, 5 * 60 * 1000);
 
   afterAll(cleanupTempFiles);
@@ -102,6 +132,8 @@ async function createTempFolder(): Promise<void> {
 
 async function cleanupTempFiles(): Promise<void> {
   try {
+    const tempFiles = await fs.readdir(EXAMPLE_FILE_FOLDER);
+    await Promise.all(tempFiles.map(file => fs.unlink(path.join(EXAMPLE_FILE_FOLDER, file))));
     await fs.rmdir(EXAMPLE_FILE_FOLDER, {
       recursive: true,
     });

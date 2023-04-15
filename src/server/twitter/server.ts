@@ -125,20 +125,21 @@ class TwitterServer {
       this.state.lastTweetId :
       null;
 
-    try {
-      const tweetId = await this.twitterClient.tweet(body || '', replyTo, mediaPath);
-      logger.info(`Created tweet ${tweetId}${replyTo ? ` as a reply to ${replyTo}` : ''}`);
-      if (!forget) {
-        this.state = updateImmutable(
-          this.state,
-          { lastTweetId: { $set: tweetId } }
-        );
-      }
-      res.sendStatus(200);
-      this.broadcastState();
-    } catch (err) {
-      sendServerError(res, err as Error);
-      return;
-    }
+    await this.twitterClient.tweet(body || '', replyTo, mediaPath)
+      .match(
+        tweetId => {
+          if (!forget) {
+            this.state = updateImmutable(
+              this.state,
+              { lastTweetId: { $set: tweetId } }
+            );
+          }
+          res.sendStatus(200);
+          this.broadcastState();
+        },
+        err => {
+          sendServerError(res, err as Error);
+        },
+      );
   };
 }

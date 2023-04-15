@@ -1,137 +1,98 @@
-import Twit, { Twitter } from 'twit';
+import { Error as ChainableError } from 'chainable-error';
+import { err, ok, okAsync, Result, ResultAsync } from 'neverthrow';
+import { SendTweetV2Params, TweetV2, TwitterApiReadWrite } from 'twitter-api-v2';
+import { DataV2 } from 'twitter-api-v2/dist/esm/types/v2/shared.v2.types';
 
 import { User } from '@services/twitter/types';
-import { sleep } from '@util/async';
 import { getLogger } from '@util/logger';
+import { combineAsync } from '@util/results';
 
 const logger = getLogger('services/twitter');
 
-interface MediaStatusResponse {
-  media_id_string: string;
-  processing_info?: {
-    state: 'pending' | 'in_progress' | 'failed' | 'succeeded';
-    check_after_secs: number;
-    progress_percent: number;
-    error?: {
-      code: number;
-      name: string;
-      message: string;
-    };
-  };
+export function getUser(client: TwitterApiReadWrite): ResultAsync<User, Error> {
+  return ResultAsync.fromPromise(
+    client.currentUserV2(),
+    e => e as Error,
+  )
+    .map(res => ({
+      id: res.data.id,
+      name: res.data.name,
+      handle: res.data.username,
+      url: `https://twitter.com/${res.data.username}`,
+      avatar: res.data.profile_image_url ?? null,
+    }));
 }
 
-export async function getUser(twit: Twit): Promise<User> {
-  const { data } = await twit.get(
-    'account/verify_credentials',
-    {
-      'include_entities': false,
-      'skip_status': true,
-      'include_email': false,
-    });
-  const user = data as Twitter.User;
-  return {
-    id: user['id_str'],
-    name: user['name'],
-    handle: user['screen_name'],
-    url: `https://twitter.com/${user['screen_name']}`,
-    avatar: user['profile_image_url_https'],
-  };
-}
-
-export async function tweet(
-  twit: Twit,
+export function tweet(
+  client: TwitterApiReadWrite,
   body: string,
   replyTo: string | null,
   mediaPath?: string,
-): Promise<string> {
-  const params: Twit.Params = {
-    'status': body,
-  };
-  if (replyTo) {
-    try {
-      const status = await getTweet(twit, replyTo);
-      const excludedUsers = status.entities['user_mentions']
-        .map(mention => mention.id_str);
-      Object.assign(params, {
-        'in_reply_to_status_id': replyTo,
-        'auto_populate_reply_metadata': true,
-        'exclude_reply_user_ids': excludedUsers,
-      });
-    } catch (err) {
-      logger.warn(`Unable to find tweet ${replyTo}`);
-    }
-  }
-  if (mediaPath) {
-    Object.assign(params, {
-      'media_ids': [await uploadMedia(twit, mediaPath)],
+): ResultAsync<string, Error> {
+  const replyParams: ResultAsync<SendTweetV2Params, Error> = !replyTo ? okAsync({}) :
+    getTweet(client, replyTo)
+      .map<SendTweetV2Params>(
+      tweet => {
+        const mentionIds = tweet.entities?.mentions.map(mention => mention.id);
+        return ({
+          reply: {
+            in_reply_to_tweet_id: replyTo,
+            exclude_reply_user_ids: mentionIds,
+          },
+        });
+      })
+      .mapErr(err => new ChainableError(`Unable to find tweet ${replyTo}`, err));
+  const mediaParams: ResultAsync<SendTweetV2Params, Error> = !mediaPath ? okAsync({}) :
+    uploadMedia(client, mediaPath)
+      .map<SendTweetV2Params>(
+      mediaIds => ({
+        media: {
+          media_ids: [mediaIds],
+        },
+      }))
+      .mapErr(err => new ChainableError(`Unable to upload media ${mediaPath}`, err));
+  return combineAsync([replyParams, mediaParams])
+    .map<SendTweetV2Params>(paramsList => Object.assign({} as SendTweetV2Params, ...paramsList))
+    .andThen(params => ResultAsync.fromPromise(
+      client.v2.tweet(body, params),
+      e => e as Error,
+    ))
+    .andThen(parseData)
+    .map(({id}) => {
+      logger.debug(`Tweet created with id ${id}`);
+      return id;
     });
+}
+
+function parseData<D>(resp: DataV2<D>): Result<D, Error> {
+  if (resp.errors?.length) {
+    return err(new Error(JSON.stringify(resp.errors, null, 2)));
+  } else {
+    return ok(resp.data);
   }
-  const { data } = await twit.post('statuses/update', params);
-  const status = data as Twitter.Status;
-  logger.debug(`Tweet created with id ${status.id_str}`);
-  return status.id_str;
 }
 
-export async function getTweet(twit: Twit, id: string): Promise<Twitter.Status> {
-  const { data } = await twit.get('statuses/show', { id, 'include_entities': true });
-  return data as Twitter.Status;
+export function getTweet(client: TwitterApiReadWrite, id: string): ResultAsync<TweetV2, Error> {
+  return ResultAsync.fromPromise(
+    client.v2.singleTweet(id, { expansions: 'entities.mentions.username' }),
+    e => e as Error,
+  )
+    .andThen(parseData);
 }
 
-export async function uploadImageData(twit: Twit, imgData: string): Promise<string> {
-  const { data } = await twit.post(
-    'media/upload',
-    {
-      'media_data': imgData,
-    });
-  const resp = data as Record<string, string>;
-  const mediaId = resp['media_id_string'];
-  logger.debug(`Media uploaded with id ${mediaId}`);
-  return mediaId;
-}
-
-export async function uploadMedia(twit: Twit, mediaPath: string): Promise<string> {
+export function uploadMedia(
+  client: TwitterApiReadWrite,
+  mediaPath: string,
+): ResultAsync<string, Error> {
   logger.debug(`Uploading ${mediaPath}`);
-  const upload = new Promise((resolve, reject) => {
-    twit.postMediaChunked({ 'file_path': mediaPath }, (err, data) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-      resolve(data);
+
+  // TODO: Is there a way to get progress updates?
+  return ResultAsync.fromPromise(
+    client.v1.uploadMedia(mediaPath),
+    e => e as Error,
+  )
+    .map(mediaId => {
+      logger.debug(`Upload of ${mediaPath} complete with ID ${mediaId}`);
+      return mediaId;
     });
-  });
-  const resp = (await upload) as MediaStatusResponse;
-  logger.debug(resp);
-  const mediaId = resp.media_id_string;
-
-  // https://github.com/ttezel/twit/issues/517
-  await pollMediaStatus(twit, resp);
-
-  logger.debug(`Media uploaded with id ${mediaId}`);
-  return mediaId;
-}
-
-async function pollMediaStatus(twit: Twit, resp: MediaStatusResponse): Promise<void> {
-  const mediaId = resp.media_id_string;
-
-  while (resp.processing_info &&
-    resp.processing_info.state !== 'succeeded' &&
-    resp.processing_info.state !== 'failed'
-  ) {
-    logger.debug(`Media processing, waiting ${resp.processing_info.check_after_secs} seconds`);
-    await sleep(1000 * resp.processing_info.check_after_secs);
-
-    const res = await twit.get(
-      'media/upload',
-      {
-        'command': 'STATUS',
-        'media_id': mediaId
-      } as Twit.Params);
-    resp = res.data as MediaStatusResponse;
-    logger.debug(resp);
-  }
-
-  if (resp.processing_info?.state === 'failed') {
-    throw new Error(resp.processing_info?.error?.message);
-  }
 }
