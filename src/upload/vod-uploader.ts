@@ -9,12 +9,13 @@ import { err, ok, ResultAsync } from 'neverthrow';
 import ResumableUpload from 'node-youtube-resumable-upload';
 import path from 'path';
 
+import Character from '@models/character';
 import Game from '@models/game';
 import { getGameById, getGameByServiceId, loadGameDatabase } from '@models/games';
-import { getPrefixedAlias } from '@models/person';
+import Person, { getPrefixedAlias } from '@models/person';
 import { Timestamp } from '@models/timestamp';
 import Tournament from '@models/tournament';
-import TournamentSet from '@models/tournament-set';
+import TournamentSet, { TournamentEntrant } from '@models/tournament-set';
 import BracketService from '@services/bracket-service';
 import BracketServiceProvider from '@services/bracket-service-provider';
 import {
@@ -57,6 +58,7 @@ interface Set {
     prefix: string | null;
     handle: string;
     alias: string | null;
+    characters?: Character[];
   }[];
   fullRoundText: string;
   start: Timestamp | null;
@@ -301,7 +303,7 @@ export class VodUploader {
       const players = set.players;
       const p1 = players[0].name;
       const p2 = players[1].name;
-      return `${set.start} - ${p1} vs ${p2} (${set.fullRoundText})`;
+      return `${set.start} - ${p1}${characterList(players[0])} vs ${p2}${characterList(players[1])} (${set.fullRoundText})`;
     }).join('\n');
     const template = await getSingleVideoTemplate();
     const description = videoDescription(
@@ -361,9 +363,18 @@ export class VodUploader {
       const set = getSetData(timestampedSet, bracketSet, phaseGroupNames);
       const players = set.players;
 
-      const defaultTitle = [
+      const fullVsText = `${players[0].name}${characterList(players[0])} vs ${players[1].name}${characterList(players[1])}`;
+      const basicTitle = [
         `${tournament.shortName}:`,
         `${players[0].name} vs ${players[1].name}`,
+        '-',
+        videogame.shortName,
+        phase.name,
+        set.fullRoundText,
+      ].filter(nonEmpty).join(' ');
+      const defaultTitle = [
+        `${tournament.shortName}:`,
+        fullVsText,
         '-',
         videogame.shortName,
         phase.name,
@@ -380,7 +391,7 @@ export class VodUploader {
         videogame.name,
         phase.name,
         `${set.fullRoundText}:`,
-        `${players[0].name} vs ${players[1].name}`,
+        fullVsText,
       ].filter(nonEmpty).join(' ');
       const description = videoDescription(
         template,
@@ -398,10 +409,15 @@ export class VodUploader {
         phase,
         players,
         setList.excludedTags || [],
-        [phase.name]);
+        [
+          phase.name,
+          ...(players[0].characters?.map(c => c.name) || []),
+          ...(players[1].characters?.map(c => c.name) || []),
+        ],
+      );
 
       const filename = filenamify(`${timestampedSet.start} `, { replacement: '-' }) +
-          filenamify(defaultTitle, { replacement: ' ' }) +
+          filenamify(basicTitle, { replacement: ' ' }) +
           '.mkv';
 
       return {
@@ -769,37 +785,48 @@ function getSetData(
   const phaseGroupId = bracketSet?.serviceInfo?.phaseGroupId || null;
 
   // Players
-  let players: Set['players'] = [];
-  if (logSet?.state?.players) {
-    players = logSet.state.players.map(p => p.person).map(p => ({
-      name: getPrefixedAlias(p),
-      handle: p.handle,
-      prefix: p.prefix,
-      alias: p.alias || null,
-    }));
-  } else if (bracketSet?.entrants) {
-    players = bracketSet.entrants.map(entrant => {
-      let name;
-      let handle;
-      let prefix = null;
-      if (entrant.participants.length === 1) {
-        const part = entrant.participants[0];
-        prefix = part.prefix;
-        handle = part.handle;
-        name = prefix ? `${prefix} | ${handle}` : handle;
-      } else {
-        handle = entrant.name;
-        name = entrant.name;
-      }
-      return { name, handle, prefix, alias: null };
-    });
+  const players: Set['players'] = [];
+  const numPlayers = Math.max(
+    logSet?.state?.players?.length ?? 0,
+    bracketSet?.entrants?.length ?? 0,
+  );
+  const parseLogPlayer = (p: Person): Set['players'][0] => ({
+    name: getPrefixedAlias(p),
+    handle: p.handle,
+    prefix: p.prefix,
+    alias: p.alias || null,
+  });
+  const parseBracketPlayer = (entrant: TournamentEntrant): Set['players'][0] => {
+    let name;
+    let handle;
+    let prefix = null;
+    if (entrant.participants.length === 1) {
+      const part = entrant.participants[0];
+      prefix = part.prefix;
+      handle = part.handle;
+      name = prefix ? `${prefix} | ${handle}` : handle;
+    } else {
+      handle = entrant.name;
+      name = entrant.name;
+    }
+    return { name, handle, prefix, alias: null };
+  };
+  for (let i = 0; i < numPlayers; i++) {
+    const logPerson = logSet?.state?.players[i].person;
+    const bracketEntrant = bracketSet?.entrants[i];
+    const characters = logSet?.state?.players[i].characters;
+    if (logPerson) {
+      players.push(Object.assign(parseLogPlayer(logPerson), { characters }));
+    } else if (bracketEntrant) {
+      players.push(Object.assign(parseBracketPlayer(bracketEntrant), { characters }));
+    }
   }
 
   // Match
   // TODO: Only using smashgg IDs match names because they're singular
   const groupId = makePrefix(phaseGroupNames.get(phaseGroupId));
-  let fullRoundText = (logSet?.state?.match.smashggId && groupId + logSet.state.match.smashggId) ||
-    logSet?.state?.match.name ||
+  let fullRoundText = (logSet?.state?.match?.smashggId && groupId + logSet.state.match.smashggId) ||
+    logSet?.state?.match?.name ||
     (bracketSet?.match?.smashggId && groupId + bracketSet.match.smashggId) ||
     (bracketSet?.match?.name && groupId + bracketSet.match.name) ||
     'Unknown';
@@ -871,4 +898,11 @@ function isValidTournament(tournamentId: string | null | undefined): tournamentI
 
 function makePrefix(str?: string): string {
   return str && str + ' ' || '';
+}
+
+function characterList(player: Set['players'][0]): string {
+  if (!player.characters || !player.characters.length) {
+    return '';
+  }
+  return ` (${player.characters.map(c => c.name).join(', ')})`;
 }

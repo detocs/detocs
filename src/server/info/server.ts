@@ -288,6 +288,7 @@ function playersFromSet(set: TournamentSet): Required<Player>[] {
     score: 0,
     inLosers: set.entrants[idx].inLosers ?? false,
     comment: '',
+    characters: [],
   }));
 }
 
