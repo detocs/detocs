@@ -30,18 +30,11 @@ export function tweet(
   mediaPath?: string,
 ): ResultAsync<string, Error> {
   const replyParams: ResultAsync<SendTweetV2Params, Error> = !replyTo ? okAsync({}) :
-    getTweet(client, replyTo)
-      .map<SendTweetV2Params>(
-      tweet => {
-        const mentionIds = tweet.entities?.mentions.map(mention => mention.id);
-        return ({
-          reply: {
-            in_reply_to_tweet_id: replyTo,
-            exclude_reply_user_ids: mentionIds,
-          },
-        });
-      })
-      .mapErr(err => new ChainableError(`Unable to find tweet ${replyTo}`, err));
+    okAsync({
+      reply: {
+        in_reply_to_tweet_id: replyTo,
+      },
+    });
   const mediaParams: ResultAsync<SendTweetV2Params, Error> = !mediaPath ? okAsync({}) :
     uploadMedia(client, mediaPath)
       .map<SendTweetV2Params>(
