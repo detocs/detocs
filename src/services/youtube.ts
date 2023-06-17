@@ -159,7 +159,7 @@ export function getVideoByName(
     if (!response.data.items || response.data.items.length == 0) {
       return null;
     }
-    logger.debug(`Search retults for "${name}":`,
+    logger.debug(`Search results for "${name}":`,
       response.data.items.map(item => item.snippet?.title));
     const match = response.data.items.find(item => item.snippet?.title === name);
     if (!match) {
@@ -194,7 +194,7 @@ export function updateVideo(
 
 export function titleify(name: string): string {
   // TODO: How do they handle unicode?
-  return name.replace(/[^A-Za-z0-9]/g, ' ').substring(0, 100).trim();
+  return name.replace(/[^A-Za-z0-9&]/g, ' ').substring(0, 100).trim();
 }
 
 export function titleSize(title: string): number {
