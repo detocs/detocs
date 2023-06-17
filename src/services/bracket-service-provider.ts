@@ -1,7 +1,15 @@
 import memoize from "micro-memoize";
 import BracketService from './bracket-service';
 
-type IdParser = (url: string) => string | null;
+export interface ParsedIds {
+  tournamentId: string;
+  phaseId?: string;
+}
+export type IdParser = (url: string) => ParsedIds | null;
+export interface ParsedUrl {
+  serviceName: string;
+  parsedIds: ParsedIds;
+}
 
 export default class BracketServiceProvider {
   private readonly suppliers = new Map<string, () => BracketService>();
@@ -24,11 +32,11 @@ export default class BracketServiceProvider {
     return supplier();
   }
 
-  public parse(url: string): { serviceName: string, serviceId: string } | null {
+  public parse(url: string): ParsedUrl | null {
     for (const { name: serviceName, parser } of this.parsers) {
-      const serviceId = parser(url);
-      if (serviceId) {
-        return { serviceName, serviceId };
+      const parsedIds = parser(url);
+      if (parsedIds) {
+        return { serviceName, parsedIds };
       }
     }
     return null;

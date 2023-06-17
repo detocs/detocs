@@ -1,4 +1,4 @@
-import { parseEntrantName } from '@services/challonge/challonge';
+import { parseEntrantName, parseTournamentId } from '@services/challonge/challonge';
 
 describe(parseEntrantName, () => {
   it('leaves regular names alone', () => {
@@ -49,5 +49,26 @@ describe(parseEntrantName, () => {
       prefix: null,
       handle: '',
     });
+  });
+});
+
+describe(parseTournamentId, () => {
+  it('can load plain URLs', () => {
+    const parsedIds = parseTournamentId('https://challonge.com/Eurofight83');
+    expect(parsedIds).not.toBeNull();
+    expect(parsedIds?.tournamentId).toBe('Eurofight83');
+    expect(parsedIds?.phaseId).toBe('Eurofight83');
+  });
+
+  it('can load subdomain URLs', () => {
+    const parsedIds = parseTournamentId('https://quarterlyrapport.challonge.com/quar4llb');
+    expect(parsedIds).not.toBeNull();
+    expect(parsedIds?.tournamentId).toBe('quarterlyrapport-quar4llb');
+    expect(parsedIds?.phaseId).toBe('quarterlyrapport-quar4llb');
+  });
+
+  it('ignores non-tournament URLs', () => {
+    expect(parseTournamentId('https://challonge.com/search/tournaments')).toBeNull();
+    expect(parseTournamentId('https://challonge.com/events/quarantined4')).toBeNull();
   });
 });

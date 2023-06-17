@@ -8,6 +8,7 @@ import TournamentPhase from '@models/tournament-phase';
 import TournamentPhaseGroup from '@models/tournament-phase-group';
 import TournamentSet, { TournamentEntrant, nullEntrant } from '@models/tournament-set';
 import BracketService from '@services/bracket-service';
+import { ParsedIds } from '@services/bracket-service-provider';
 import { parseEntrantName } from '@services/challonge/challonge';
 import { checkResponseStatus } from '@util/ajax';
 import { getLogger } from '@util/logger';
@@ -223,12 +224,15 @@ function apiTournamentUrl(tournamentId: string): string {
     '?extend[organization][%24opts][slug]=1&extend[stages][%24opts][name]=1';
 }
 
-export function parseTournamentId(url: string): string | null {
+export function parseTournamentId(url: string): ParsedIds | null {
   const match = TOURNAMENT_URL_REGEX.exec(url);
   if (!match) {
     return null;
   }
-  return match[1];
+  return {
+    tournamentId: match[1],
+    phaseId: match[2] ?? undefined,
+  };
 }
 
 function getMatch(

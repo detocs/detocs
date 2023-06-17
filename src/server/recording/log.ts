@@ -11,7 +11,7 @@ import State, { Recording } from "./state";
 
 type FilePath = string;
 
-const CURRENT_LOG_FORMAT = "1";
+export const CURRENT_LOG_FORMAT = "1";
 const asyncMkdir = promisify(mkdir);
 const asyncWriteFile = promisify(writeFile);
 

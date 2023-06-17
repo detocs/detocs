@@ -11,6 +11,7 @@ import TournamentPhase from '@models/tournament-phase';
 import TournamentPhaseGroup from '@models/tournament-phase-group';
 import TournamentSet, { TournamentEntrant, nullEntrant } from '@models/tournament-set';
 import BracketService from '@services/bracket-service';
+import { ParsedIds } from '@services/bracket-service-provider';
 import {
   ApiKey,
   Timestamp,
@@ -22,7 +23,7 @@ import { checkResponseStatus, checkServerError } from '@util/ajax';
 import { getCredentials } from '@util/configuration/credentials';
 import { nonNull } from '@util/predicates';
 
-import { BASE_URL, TOURNAMENT_URL_REGEX, CHALLONGE_SERVICE_NAME } from './constants';
+import { BASE_URL, TOURNAMENT_URL_REGEX, CHALLONGE_SERVICE_NAME, RESERVED_URLS } from './constants';
 import { TournamentResponse, MatchResponse, ParticipantResponse } from './types';
 
 const ENTRANT_PREFIX_REGEX = /^(?:(.+?)\s*\|+\s*)?([^|]+)$/;
@@ -303,17 +304,24 @@ function isApiTrueFinals(match: ApiMatch): boolean {
   return prereq1 === prereq2;
 }
 
-export function parseTournamentId(url: string): string | null {
+export function parseTournamentId(url: string): ParsedIds | null {
   const match = TOURNAMENT_URL_REGEX.exec(url);
   if (!match) {
     return null;
   }
   const subdomain = match[1];
   const identifier = match[2];
-  if (subdomain && subdomain != 'www' && subdomain != 'images') {
-    return `${subdomain}-${identifier}`;
+  if (RESERVED_URLS.has(identifier)) {
+    return null;
   }
-  return identifier;
+  let tournamentId = identifier;
+  if (subdomain && subdomain != 'www' && subdomain != 'images') {
+    tournamentId = `${subdomain}-${identifier}`;
+  }
+  return {
+    tournamentId,
+    phaseId: tournamentId,
+  };
 }
 
 function convertPlayer(serviceName: string, p: { id: string; name: string; }): TournamentEntrant {

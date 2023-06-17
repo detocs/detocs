@@ -175,7 +175,7 @@ class BracketServer {
     }
     const parsed = this.bracketProvider.parse(tourneyUrlOrSlug);
     if (parsed) {
-      return [ parsed.serviceId, this.bracketProvider.get(parsed.serviceName) ];
+      return [ parsed.parsedIds.tournamentId, this.bracketProvider.get(parsed.serviceName) ];
     }
     // Default to smashgg for now
     return [ tourneyUrlOrSlug, this.bracketProvider.get(SMASHGG_SERVICE_NAME)];

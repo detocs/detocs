@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import 'isomorphic-fetch';
+import { dirname, join } from 'path';
 import yargs from 'yargs';
 
 import startElectron from '@desktop/electron';
@@ -29,6 +30,7 @@ import { SMASHGG_SERVICE_NAME } from '@services/smashgg/constants';
 import SmashggClient, { parseTournamentSlug as parseSmashggSlug } from '@services/smashgg/smashgg';
 import { TwitterClient, ApiTwitterClient, MockTwitterClient } from '@services/twitter/twitter';
 import VisionMixer from '@services/vision-mixer-service';
+import { generateLog } from '@upload/log-generator';
 import { VodUploader, Style, Command } from '@upload/vod-uploader';
 import { getConfig, loadConfig } from '@util/configuration/config';
 import { getCredentials, loadCredentials } from '@util/configuration/credentials';
@@ -41,6 +43,7 @@ import {
   isElectron,
   isPkg,
 } from '@util/meta';
+import { withoutExtension } from '@util/path';
 import web from '@web/server';
 
 interface ConfigOptions {
@@ -67,6 +70,12 @@ interface VodOptions {
   command: string;
   ps: boolean;
   n?: number;
+}
+
+interface GenerateLogOptions {
+  bracketUrls: string[];
+  folder?: string;
+  vodfile?: string;
 }
 
 setAppRoot(__dirname);
@@ -186,6 +195,30 @@ const parser = yargs
         type: 'number',
         group: 'Options',
       }),
+  })
+  .command({
+    command: 'generate-log <bracketUrls...>',
+    describe: 'Generate log files for a bracket',
+    handler: generateLogCommand,
+    builder: (y: yargs.Argv<unknown>): yargs.Argv<GenerateLogOptions> => y
+      .positional('bracketUrls', {
+        describe: 'URLs for brackets to include. Must all be from the same service.',
+        type: 'string',
+        array: true,
+        demandOption: 'you must provide at least one bracket URL',
+      })
+      .option('vodfile', {
+        describe: 'Log file will be saved to folder based on vod filename',
+        type: 'string',
+        group: 'Output',
+        normalize: true,
+      })
+      .option('folder', {
+        describe: 'Folder to save log file in',
+        type: 'string',
+        group: 'Output',
+        normalize: true,
+      })
   })
   .help('h')
   .alias('h', 'help')
@@ -328,6 +361,23 @@ async function vods(opts: yargs.Arguments<VodOptions>): Promise<void> {
       process.exit(1);
     });
   process.exit();
+}
+
+async function generateLogCommand({
+  bracketUrls,
+  folder,
+  vodfile,
+}: yargs.Arguments<GenerateLogOptions>): Promise<void> {
+  const vodDir = vodfile && join(dirname(vodfile), withoutExtension(vodfile));
+  (await generateLog({
+    bracketProvider: getBracketProvider(),
+    bracketUrls,
+    outputFolder: vodDir ?? folder ?? process.cwd(),
+    vodFile: vodfile ?? '',
+  })).match(
+    file => logger.info(`Log file successfully saved to ${file}`),
+    logger.error,
+  );
 }
 
 function logConfig(): void {

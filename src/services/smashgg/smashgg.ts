@@ -13,6 +13,7 @@ import TournamentSet, {
   nullEntrant,
 } from '@models/tournament-set';
 import BracketService from '@services/bracket-service';
+import { ParsedIds } from '@services/bracket-service-provider';
 import { getCredentials } from '@util/configuration/credentials';
 
 import {
@@ -349,12 +350,17 @@ function getPhaseGroupUrl(
   return getPhaseUrl(e, p) + `/${pg.id}`;
 }
 
-export function parseTournamentSlug(url: string): SmashggSlug | null {
-  const match = TOURNAMENT_URL_REGEX.exec(url);
+export function parseTournamentSlug(
+  url: string,
+): (ParsedIds & { tournamentId: SmashggSlug }) | null {
+  const match = TOURNAMENT_URL_REGEX.exec(decodeURIComponent(url));
   if (!match) {
     return null;
   }
-  return match[1];
+  return {
+    tournamentId: match[1],
+    phaseId: match[2] ?? undefined,
+  };
 }
 
 function fullSmashggUrl(relative: string): string {

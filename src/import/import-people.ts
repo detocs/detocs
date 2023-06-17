@@ -35,10 +35,10 @@ export async function importTournamentEntrants(
     logger.error(`Unable to determine bracket service for URL: ${url}`);
     return;
   }
-  const { serviceName, serviceId } = parsed;
+  const { serviceName, parsedIds } = parsed;
   const bracketService = bracketProvider.get(serviceName);
   logger.info(`Loading people from ${url}`);
-  const entrants = await bracketService.entrantsForTournament(serviceId);
+  const entrants = await bracketService.entrantsForTournament(parsedIds.tournamentId);
   const people = entrants.map(entrantToPerson.bind(null, database));
   await database.saveAll(people).io;
 }

@@ -42,7 +42,7 @@
     "dist": "npm run bin-download && npm run pkg && npm run electron-release",
     "license-check": "license-checker --summary --failOn 'UNKNOWN; UNLICENSED'",
     "postinstall": "patch-package && npm run license-check",
-    "test": "jest --testPathIgnorePatterns='\\.it\\.'",
+    "test": "jest --testPathIgnorePatterns='\\.it\\.' --",
     "test-integration": "jest \\.it\\.",
     "test-all": "npx jest",
     "screenshots": "npm run build screenshots && node build/screenshots/main.js"
