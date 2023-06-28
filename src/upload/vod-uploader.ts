@@ -60,7 +60,7 @@ interface Set {
     alias: string | null;
     characters?: Character[];
   }[];
-  fullRoundText: string;
+  fullRoundText: string | null;
   start: Timestamp | null;
   end: Timestamp | null;
 }
@@ -241,7 +241,7 @@ export class VodUploader {
       videogame,
       phase,
     );
-    Promise.all(metadata.map((m, i) => {
+    await Promise.all(metadata.map((m, i) => {
       const file = path.join(this.dirName, `set-${i.toString().padStart(2, '0')}.yml`);
       const data = yaml.safeDump(m);
       return fs.writeFile(file, data);
@@ -303,7 +303,8 @@ export class VodUploader {
       const players = set.players;
       const p1 = players[0].name;
       const p2 = players[1].name;
-      return `${set.start} - ${p1}${characterList(players[0])} vs ${p2}${characterList(players[1])} (${set.fullRoundText})`;
+      const match = set.fullRoundText ? ` (${set.fullRoundText})` : '';
+      return `${set.start} - ${p1}${characterList(players[0])} vs ${p2}${characterList(players[1])}${match}`;
     }).join('\n');
     const template = await getSingleVideoTemplate();
     const description = videoDescription(
@@ -509,7 +510,7 @@ export class VodUploader {
           return video
             ? ok({video, name: titleQuery})
             : err(
-              new Error(`No video found for query "${titleQuery}`)
+              new Error(`No video found for query "${titleQuery}"`)
             );
         })
           .orElse(e => {
@@ -519,7 +520,7 @@ export class VodUploader {
               return video
                 ? ok({ video, name: filenameQuery })
                 : err(
-                  new Error(`No video found for query "${filenameQuery}`)
+                  new Error(`No video found for query "${filenameQuery}"`)
                 );
             });
           })
@@ -829,7 +830,7 @@ function getSetData(
     logSet?.state?.match?.name ||
     (bracketSet?.match?.smashggId && groupId + bracketSet.match.smashggId) ||
     (bracketSet?.match?.name && groupId + bracketSet.match.name) ||
-    'Unknown';
+    null;
   // TODO: Is this even necessary?
   if (fullRoundText == 'Grand Final Reset' || fullRoundText == 'True Finals') {
     fullRoundText = 'Grand Final';
