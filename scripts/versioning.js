@@ -11,10 +11,17 @@ function getVersion() {
   const versionHash = proc.execSync(`git rev-list -n 1 --abbrev-commit v${version}`)
     .toString()
     .replace(/\W/g, '');
-  console.log(currentHash, versionHash);
+  const changes = proc.execSync('git status --untracked-files=no --porcelain')
+    .toString();
+  console.log(`v${version} commit: ${versionHash}`);
+  console.log(`current commit: ${currentHash}`);
+  console.log(`current changes:\n${changes}`);
   let fullVersion = version;
-  if (currentHash !== versionHash) {
+  if (currentHash !== versionHash || changes) {
     fullVersion = `${version}-${currentHash}`;
+    if (changes) {
+      fullVersion += '-dirty';
+    }
   }
   console.log(`Version: ${fullVersion}`);
   return fullVersion;
