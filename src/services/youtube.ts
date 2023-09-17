@@ -194,7 +194,10 @@ export function updateVideo(
 
 export function titleify(name: string): string {
   // TODO: How do they handle unicode?
-  return name.replace(/[^A-Za-z0-9&']/g, ' ').substring(0, 100).trim();
+  return name.replace(/[\[\]]/g, '')
+    .replace(/[^A-Za-z0-9&#']/g, ' ')
+    .substring(0, 100)
+    .trim();
 }
 
 export function titleSize(title: string): number {
