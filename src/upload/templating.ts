@@ -100,7 +100,9 @@ function formatDate(start?: number | null, end?: number | null, timezone?: strin
   }
 
   const startDate = format(start);
-  const endDate = format(end);
+  // Consider end times between 12am and 6am to correspond to the previous day.
+  const adjustedEnd = Math.max(end - 6 * 3600, start);
+  const endDate = format(adjustedEnd);
 
   if (startDate == endDate) {
     return startDate;
