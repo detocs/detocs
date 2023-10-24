@@ -42,7 +42,7 @@ import { getConfig } from '@util/configuration/config';
 import { KeyframeSource } from '@util/keyframe-source';
 import { getLogger } from '@util/logger';
 import { trimVideo } from '@util/mkvmerge';
-import { nonEmpty, nonNull } from '@util/predicates';
+import { nonEmpty } from '@util/predicates';
 
 import { loadLog } from './loader';
 import { videoDescription, getSingleVideoTemplate, getPerSetTemplate } from './templating';
@@ -325,7 +325,7 @@ export class VodUploader {
       phase,
       players,
       setList.excludedTags || [],
-      (setList.additionalTags || []).concat(phase.name),
+      setList.additionalTags || [],
     );
 
     const filename = filenamify(`${setList.start} `, { replacement: '-' }) +
@@ -411,7 +411,6 @@ export class VodUploader {
         players,
         setList.excludedTags || [],
         [
-          phase.name,
           ...(players[0].characters?.map(c => c.name) || []),
           ...(players[1].characters?.map(c => c.name) || []),
         ],
@@ -750,20 +749,18 @@ function videoTags(
   additionalTags: string[],
 ): SanitizedTag[] {
   const playerTags = players.flatMap(p => [
-    p.prefix && `${p.prefix} ${p.handle}`,
     p.handle,
     p.alias,
   ]);
 
   const tags = [
     videogame.name,
+    videogame.shortName,
     videogame.hashtag,
     ...videogame.additionalTags || [],
-    `${videogame.shortName} ${phase.name}`,
-    ...interpolate(
-      [tournament.shortName, ...tournament.additionalTags],
-      [videogame.name, videogame.hashtag],
-    ),
+    phase.name,
+    tournament.shortName,
+    ...tournament.additionalTags,
     ...playerTags,
     ...additionalTags,
     ...tournamentTags(tournament),
@@ -870,14 +867,6 @@ function tournamentTags(tournament: VodTournament): string[] {
     ret.push(regExpResult[1]);
   }
   return ret;
-}
-
-function* interpolate(arr1: string[], arr2: string[]): Generator<string> {
-  for (const s1 of arr1.filter(nonNull)) {
-    for (const s2 of arr2.filter(nonNull)) {
-      yield `${s1} ${s2}`;
-    }
-  }
 }
 
 function groupTags(): string[] {
