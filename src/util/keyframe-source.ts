@@ -61,7 +61,7 @@ export class KeyframeSource {
 }
 
 function fetchKeyframes(filepath: string): Promise<string[]> {
-  logger.info(`Reading keyframes from ${filepath}`);
+  logger.info(`Reading keyframes from ${filepath} (this might take a while)`);
   return getKeyframes(filepath);
 }
 
