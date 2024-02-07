@@ -102,7 +102,11 @@ const App: FunctionalComponent = (): VNode => {
           />
         </Tab>
         <Tab id="recording">
-          <RecordingDashboard state={recordingState} updateState={updateRecordingState}/>
+          <RecordingDashboard
+            state={recordingState}
+            updateState={updateRecordingState}
+            clipState={clipState}
+          />
         </Tab>
         <Tab id="twitter">
           <TwitterDashboard

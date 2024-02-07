@@ -71,6 +71,10 @@ export default class ObsLegacyClient implements VisionMixer {
     this.on('RecordingStopped', updateRecordingFile);
   }
 
+  public name(): string {
+    return 'OBS';
+  }
+
   public connect(): ResultAsync<void, Error> {
     return ResultAsync.fromPromise(this.obs.connect(), e => e as Error);
   }

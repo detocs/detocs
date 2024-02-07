@@ -17,6 +17,7 @@ export interface VideoInput {
 }
 
 export default interface VisionMixer {
+  name(): string;
   connect(): ResultAsync<void, Error>;
   disconnect(): ResultAsync<void, Error>;
   isConnected(): boolean;

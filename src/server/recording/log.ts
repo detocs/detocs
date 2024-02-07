@@ -1,19 +1,20 @@
-import { mkdir, writeFile } from 'fs';
+import { promises as fs } from 'fs';
 import memoize from "micro-memoize";
 import path from 'path';
-import { promisify } from 'util';
 
+import { Timestamp } from '@models/timestamp';
 import InfoState from '@server/info/state';
 import BracketServiceProvider from '@services/bracket-service-provider';
 import { getVersion } from '@util/meta';
+import { nonNull } from '@util/predicates';
+import { AssignedGroup, Group, groupRecordings, mostRecent } from '@util/recording';
+import { fromMillis } from '@util/timestamp';
 
 import State, { Recording } from "./state";
 
 type FilePath = string;
 
 export const CURRENT_LOG_FORMAT = "1";
-const asyncMkdir = promisify(mkdir);
-const asyncWriteFile = promisify(writeFile);
 
 export interface Log {
   format: string;
@@ -24,12 +25,14 @@ export interface Log {
   phaseId?: string;
   start: string | null;
   end: string | null;
+  thumbnailTimestamp?: string;
   sets: {
     id: string | null;
     displayName: string | null;
     start: string;
-    end: string | null;
-    state: InfoState;
+    end: string;
+    state: InfoState | null;
+    thumbnailTimestamp?: string;
   }[];
 }
 
@@ -50,7 +53,7 @@ export default class RecordingLogger {
           await bracketProvider.get(bracketServiceName).eventIdForPhase(phaseId) :
           undefined;
       },
-      { maxSize: 2, isPromise: true },
+      { maxSize: 20, isPromise: true },
     );
   }
 
@@ -61,71 +64,98 @@ export default class RecordingLogger {
       if (this.lastSaved[filePath] === serialized) {
         continue;
       }
-      await asyncMkdir(path.dirname(filePath), { recursive: true });
-      await asyncWriteFile(filePath, serialized);
+      await fs.mkdir(path.dirname(filePath), { recursive: true });
+      await fs.writeFile(filePath, serialized);
       this.lastSaved[filePath] = serialized;
     }
   }
 
   private async convertToLogs(folder: string, state: State): Promise<Record<FilePath, Log>> {
-    // TODO: This probably isn't how we actually want this to work. Matches from
-    // one phase could potentially get split into two groups if the stream
-    // switches to another game in the middle, in which case we would want to
-    // have two different log files rather than one so that two different
-    // recording files can be cut.
-    const byPhase: Record<string, {
-      gameId: string;
-      recordingFile: FilePath;
-      sets: Log['sets'];
-    }> = {};
-    for (const r of state.recordings.filter(hasMetadata).reverse()) {
-      const phaseIdentifier = r.metadata.set ?
-        `${r.metadata.set.serviceInfo.serviceName}_${r.metadata.set.serviceInfo.phaseId}` :
-        'unknown';
-      const data = byPhase[phaseIdentifier] || {
-        gameId: r.metadata.game.id || 'recordings',
-        recordingFile: r.streamRecordingFile,
-        sets: [],
-      };
-      data.sets.push({
-        id: r.metadata.set?.serviceInfo.id || null,
-        displayName: r.displayName,
-        start: r.startTimestamp,
-        end: r.stopTimestamp,
-        state: r.metadata,
-      });
-      byPhase[phaseIdentifier] = data;
+    return Object.fromEntries(
+      await Promise.all(
+        groupRecordings(state)
+          .filter(hasAtLeastOneCompletedSet)
+          .map(async (group, idx) => {
+            const identifier = [
+              getConsistentField(group.recordings, r => r.metadata?.game.id) || 'recordings',
+              getConsistentField(group.recordings, getPhaseIdentifier) || `group${idx+1}`,
+              (group as AssignedGroup).id,
+              process.pid,
+            ].filter(nonNull).join('_');
+            const logSubfolder = path.basename(
+              group.streamRecordingFile,
+              path.extname(group.streamRecordingFile),
+            );
+            const logFolder = path.join(folder, logSubfolder);
+            const logOutputPath = path.join(logFolder, identifier + '.json');
+            return [logOutputPath, await this.toLog(group, logFolder)];
+          })
+      ),
+    );
+  }
+
+  private async toLog(group: Group, logFolder: string): Promise<Log> {
+    const phaseId = getConsistentField(
+      group.recordings,
+      r => r.metadata?.set?.serviceInfo.phaseId
+    );
+    const serviceName = getConsistentField(
+      group.recordings,
+      r => r.metadata?.set?.serviceInfo.serviceName
+    );
+    const sets: Log['sets'] = group.recordings.filter(hasStopTimestamp).map(r => ({
+      id: r.metadata?.set?.serviceInfo.id || null,
+      displayName: r.displayName,
+      start: r.startTimestamp,
+      end: r.stopTimestamp,
+      state: r.metadata,
+      thumbnailTimestamp: r.vodThumbnailTimestamp || undefined,
+    }));
+    const mostRecentSet = mostRecent(sets);
+    if (!mostRecentSet) {
+      throw new Error('There should be at least one completed set in this group');
     }
-    const byPath: Record<FilePath, Log> = {};
-    for (const [phaseIdentifier, data] of Object.entries(byPhase)) {
-      const { serviceName, phaseId } = data.sets[0].state.set?.serviceInfo || {
-        serviceName: undefined,
-        phaseId: phaseIdentifier,
-      };
-      const phaseStart = data.sets[0].start;
-      const phaseEnd = data.sets[data.sets.length - 1].end;
-      const logFilename = `${data.gameId}-${phaseIdentifier}-${process.pid}`;
-      const logSubfolder = path.basename(data.recordingFile, path.extname(data.recordingFile));
-      const logFolder = path.join(folder, logSubfolder);
-      const logOutputPath = path.join(logFolder, logFilename + '.json');
-      byPath[logOutputPath] = {
-        format: CURRENT_LOG_FORMAT,
-        version: getVersion(),
-        file: path.relative(logFolder, data.recordingFile), // TODO: Control via setting?
-        bracketService: serviceName,
-        phaseId: phaseId,
-        eventId: phaseId === 'unknown' ?
-          undefined :
-          await this.eventIdForPhase(serviceName, phaseId),
-        start: phaseStart,
-        end: phaseEnd,
-        sets: data.sets,
-      };
-    }
-    return byPath;
+    return ({
+      format: CURRENT_LOG_FORMAT,
+      version: getVersion(),
+      file: path.relative(logFolder, group.streamRecordingFile), // TODO: Control whether path is relative via settings?
+      bracketService: serviceName,
+      phaseId,
+      eventId: phaseId
+        ? await this.eventIdForPhase(serviceName, phaseId)
+        : undefined,
+      start: fromMillis(group.startMillis),
+      end: group.stopMillis ? fromMillis(group.stopMillis) : mostRecentSet.end,
+      thumbnailTimestamp: (group as AssignedGroup).vodThumbnailTimestamp || undefined,
+      sets,
+    });
   }
 }
 
-function hasMetadata(r: Recording): r is Recording & { metadata: InfoState } {
-  return !!r.metadata;
+function getPhaseIdentifier(r: Recording): string|null {
+  return r.metadata?.set ?
+    `${r.metadata.set.serviceInfo.serviceName}-${r.metadata.set.serviceInfo.phaseId}` :
+    null;
+}
+
+/**
+ * Returns a field if it's the same for all refordings in the array.
+ */
+function getConsistentField(
+  recordings: Recording[],
+  fn: (r: Recording) => string|null|undefined,
+): string|undefined {
+  const uniqueValues = new Set(recordings.map(fn).filter(nonNull));
+  if (uniqueValues.size === 1) {
+    return uniqueValues.values().next().value;
+  }
+  return undefined;
+}
+
+function hasStopTimestamp(r: Recording): r is Recording & { stopTimestamp: Timestamp } {
+  return !!r.stopTimestamp;
+}
+
+function hasAtLeastOneCompletedSet(g: Group): boolean {
+  return g.recordings.some(hasStopTimestamp);
 }

@@ -25,6 +25,33 @@ export function appWebsocketServer(
   return { appServer, socketServer };
 }
 
+export interface HttpError {
+  send(logger: Logger, res: express.Response): void;
+  log(logger: Logger): void;
+}
+
+export function userError(errOrStr?: Error | string, cause?: Error): HttpError {
+  return ({
+    send(logger: Logger, res: express.Response): void {
+      sendUserError(logger, res, errOrStr, cause);
+    },
+    log(logger: Logger): void {
+      logger.warn(errOrStr ?? '', cause ?? '');
+    },
+  });
+}
+
+export function serverError(errOrStr?: Error | string, cause?: Error): HttpError {
+  return ({
+    send(logger: Logger, res: express.Response): void {
+      sendServerError(logger, res, errOrStr, cause);
+    },
+    log(logger: Logger): void {
+      logger.error(errOrStr ?? '', cause ?? '');
+    },
+  });
+}
+
 export function sendUserError(
   logger: Logger,
   res: express.Response,

@@ -1,4 +1,5 @@
 import { Clip, ImageClip, isImageClip, VideoClip, isVideoClip } from '@models/media';
+import { Id } from '@util/id';
 
 export interface State {
   readonly clips: ClipView[];
@@ -29,4 +30,8 @@ export function isImageClipView(clipView: ClipView): clipView is ClipView<ImageC
 
 export function isVideoClipView(clipView: ClipView): clipView is ClipView<VideoClip> {
   return isVideoClip(clipView.clip);
+}
+
+export function getClipById(state: State, id: Id|null): ClipView|null {
+  return state.clips.find(c => c.clip.id === id) || null;
 }

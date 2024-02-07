@@ -9,7 +9,7 @@ export function toMillis(timestamp: Timestamp): number {
   const millisSplit = timestamp.split('.');
   const millis = millisSplit.length > 1 ? +millisSplit[1] : 0;
   const withoutMillis = millisSplit[0];
-  let [ secondsStr, minutesStr, hoursStr ] = withoutMillis.split(':').reverse();
+  const [ secondsStr, minutesStr, hoursStr ] = withoutMillis.split(':').reverse();
   const seconds = secondsStr ? +secondsStr : 0;
   const minutes = minutesStr ? +minutesStr : 0;
   const hours = hoursStr ? +hoursStr : 0;
@@ -57,6 +57,12 @@ export function subtractTimestamp(a: Timestamp, b: Timestamp): Timestamp {
     return moment.utc(timeA.diff(timeB))
       .format(TIMESTAMP_FORMAT);
   }
+}
+
+export function compareTimestamp(a: Timestamp, b: Timestamp): number {
+  const timeA = moment(a, TIMESTAMP_FORMAT);
+  const timeB = moment(b, TIMESTAMP_FORMAT);
+  return timeA.diff(timeB);
 }
 
 export function sanitizeTimestamp(timestamp: Timestamp): Timestamp {

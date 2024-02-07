@@ -1,4 +1,4 @@
-import { toMillis, fromMillis, truncateTimestamp, sanitizeTimestamp, validateTimestamp, offsetTimestamp, subtractTimestamp } from '@util/timestamp';
+import { toMillis, fromMillis, truncateTimestamp, sanitizeTimestamp, validateTimestamp, offsetTimestamp, subtractTimestamp, compareTimestamp } from '@util/timestamp';
 
 describe(toMillis, () => {
   it('handles hours/minutes/seconds/milliseconds', () => {
@@ -161,6 +161,42 @@ describe(subtractTimestamp, () => {
 
   it.skip('handles negative timestamps', () => {
     expect(subtractTimestamp('-01:00:56.000', '11:34:00.789')).toBe('-12:34:56:789');
+  });
+});
+
+describe(compareTimestamp, () => {
+  it('handles a == b', () => {
+    expect(compareTimestamp('12:34:56.789', '12:34:56.789')).toBe(0);
+  });
+
+  it('handles a > b', () => {
+    expect(compareTimestamp('12:34:56.789', '11:11:11.111')).toBeGreaterThan(0);
+  });
+
+  it('handles a < b', () => {
+    expect(compareTimestamp('01:34:56.789', '12:34:56.789')).toBeLessThan(0);
+  });
+
+  it.skip('handles negative timestamps', () => {
+    expect(compareTimestamp('-11:00:56.000', '01:34:00.789')).toBeLessThan(0);
+  });
+
+  it('sorts properly', () => {
+    const unsorted = [
+      '12:34:56.789',
+      '01:34:56.789',
+      '00:00:00',
+      '02:34:56.789',
+      // '-01:00:56.000',
+    ];
+    const sorted = [
+      // '-01:00:56.000',
+      '00:00:00',
+      '01:34:56.789',
+      '02:34:56.789',
+      '12:34:56.789',
+    ];
+    expect(unsorted.sort(compareTimestamp)).toEqual(sorted);
   });
 });
 

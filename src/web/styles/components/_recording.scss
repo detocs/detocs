@@ -1,11 +1,45 @@
+.recording__group {
+  display: flex;
+  flex-flow: column nowrap;
+  gap: 1rem;
+  padding: var(--margin-medium);
+
+  background-color: var(--bg-area);
+  border-left: var(--margin-small) solid var(--color-accent);
+
+  > ol {
+    margin: 0;
+    padding: 0;
+
+    list-style-type: none;
+    display: flex;
+    flex-flow: column nowrap;
+    gap: 1rem;
+  }
+}
+
+.recording__group-metadata-and-controls {
+  flex: 1 1 min-content;
+
+  display: flex;
+  flex-flow: column wrap;
+  align-items: flex-start;
+}
+
+.recording__group-controls {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: stretch;
+}
+
 .recording__list {
   margin: 0;
   padding: 0;
-  list-style-type: none;
-}
 
-.recording__list-item {
-  margin-top: 1rem;
+  list-style-type: none;
+  display: flex;
+  flex-flow: column nowrap;
+  gap: 1rem;
 }
 
 .recording__block {
@@ -15,6 +49,8 @@
 .recording__editor {
   display: flex;
   flex-flow: row wrap;
+  justify-content: center;
+  gap: var(--margin-medium);
 }
 
 .recording__boundary {
@@ -25,13 +61,33 @@
     flex-flow: row wrap;
     justify-content: space-around;
     align-items: center;
+    gap: var(--margin-medium);
+    padding: var(--margin-medium);
+  }
+
+  .thumbnail {
+    width: 192px;
+    flex: 0 1 auto;
   }
 }
 
-.recording__boundary .thumbnail {
-  width: 240px;
-  height: 135px;
-  flex: 0 1 auto;
+.recording__group-boundary {
+  flex-basis: min-content;
+}
+
+.recording__thumbnail {
+  flex: 0 0 auto;
+
+  > div {
+    display: flex;
+    flex-flow: column wrap;
+    align-items: stretch;
+  }
+
+  .thumbnail {
+    width: 192px;
+    flex: 0 1 auto;
+  }
 }
 
 .recording__controls {
@@ -40,10 +96,10 @@
   margin-inline: var(--margin-small);
 
   flex-flow: row wrap;
-}
 
-.recording__controls > * {
-  flex: 1 0 50%;
+  > * {
+    flex: 1 0 50%;
+  }
 }
 
 .recording__file {

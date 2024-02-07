@@ -75,6 +75,10 @@ export default class ObsClient implements VisionMixer {
     });
   }
 
+  public name(): string {
+    return 'OBS';
+  }
+
   public connect(): ResultAsync<void, Error> {
     return ResultAsync.fromPromise(this.obs.connect(), e => e as Error);
   }

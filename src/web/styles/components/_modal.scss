@@ -50,6 +50,10 @@
     @include focus.focus-border;
     outline: none;
   }
+
+  > .icon {
+    margin: 0;
+  }
 }
 
 .modal__scroll-box {
