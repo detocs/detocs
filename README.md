@@ -11,7 +11,7 @@ If it's any consolation, I use this program on a regular basis so I'm probably b
 ## Features
 
 ### Deep Service Integrations
-- Load matches and players directly from Smash.gg, Challonge, or Battlefy.
+- Load matches and players directly from Start.gg, Challonge, or Battlefy.
 	![The DETOCS bracket tab](docs/images/tab_bracket.png)
 
 - Pull screenshots and replays directly from OBS
@@ -20,13 +20,13 @@ If it's any consolation, I use this program on a regular basis so I'm probably b
 - Share media to Twitter on the fly
 	![The DETOCS Twitter tab](docs/images/tab_twitter.png)
 
-- Upload VODs to YouTube with automatic titles, tags, and timestamps
+- Upload VODs to YouTube with automated titles, tags, and timestamps
 	![DETOCS VOD upload command line output](docs/images/vod_metadata.png)
 
 ### Clip Editor
 Never ask viewers to clip things for you again!
-DETOCS features a lightweight video editor to let you trim clips on the fly.
-The editor includes audio waveforms so that you can pick the perfect start and end points even when you can't listen to the clip.
+DETOCS features a lightweight video editor to let you edit clips on the fly.
+The editor includes audio waveforms so that you can trim clips well even when you can't listen to them.
 ![The DETOCS clip editor](docs/images/tab_clips_video.png)
 
 ### Overlay Compatibility
@@ -51,18 +51,13 @@ You're welcome to host DETOCS wherever you want, but you will never be _required
 
 ## Getting Started
 
-## Dependencies
-- [FFmpeg](https://www.ffmpeg.org/) - Used for media editing features.
-- (optional) [obs-websocket](https://github.com/Palakis/obs-websocket) version 4.7 or later - Used for integration with [OBS](https://obsproject.com/).
-- (optional) [MKVToolNix](https://mkvtoolnix.download/) - Used for VOD editing.
-
 ### Installation
 Head to [the releases page](https://github.com/data-enabler/detocs/releases) to grab the latest release for your platform.
 DETOCS is currently available in two forms:
 - A larger full-sized app that bundles its own UI.
 - A smaller single-file server-only app that requires users to connect to the server via web browser.
 
-Once you've downloaded and unzipped the program, simply run the `.exe` file.
+Once you've downloaded the program (and unzipped if necessary), simply run the `.exe` file.
 
 ### Usage
 Refer to [the usage documentation](docs/index.md) for how to use the program.
@@ -71,10 +66,11 @@ Refer to [the usage documentation](docs/index.md) for how to use the program.
 DETOCS is [licensed under the AGPL V3 license](LICENSE), meaning open access to the source code and the ability to make whatever modifications you want.
 If you distribute modified copies of the program (including allowing others to use the program via a network), you must make the source code available as well.
 
-If you're interested in purchasing DETOCS with a less-restrictive license, feel free to reach out to me directly.
+If you're interested in purchasing DETOCS with a less-restrictive license, feel free to reach out to me directly at `datagram@lunarphase.nyc`.
 
 ## Alternatives
 - [StreamControl (open source)](https://github.com/farpenoodle/StreamControl)
+- [TournamentStreamHelper](https://github.com/joaorb64/TournamentStreamHelper)
 - [PIIO (Production Interface IO)](https://discord.gg/EegKzY4)
 - [Scoreboard Assistant (legacy)](https://obsproject.com/forum/resources/scoreboard-assistant.112/)
 - [Scoreboard Assistant (web)](http://8wr.io/)
