@@ -1,52 +1,130 @@
 # DETOCS Usage Guide
 
-## Setup/Installation
+## Basics
 
-### obs-websocket
+## Service Integrations
+
+### start.gg
+
+To pull match data from start.gg, you'll need to [generate a start.gg authentication token][startgg-api].
+Once you have a token, add it to your [`decocs-credentials.json`](#detocscredentialsjson) file.
+
+[startgg-api]: http://developer.start.gg/docs/authentication
+
+### Challonge
+
+To pull match data from Challonge, you'll need to create an account and then generate an API key on [your Challongs developer settings page][challonge-api].
+Once you have an API key, add it to your [`decocs-credentials.json`](#detocscredentialsjson) file.
+
+[challonge-api]: https://challonge.com/settings/developer
 
 ### Twitter
 
-In order to use DETOCS's Twitter features, you'll need to [create a Twitter developer app][twitter-api].
+To use DETOCS's Twitter features, you'll need to [create a Twitter developer app][twitter-api].
 Once you've created your API app, add its API key and API secret to your [`decocs-credentials.json`](#detocscredentialsjson) file.
 
 [twitter-api]: https://developer.twitter.com/en/docs/twitter-api/getting-started/getting-access-to-the-twitter-api
 
-## YouTube
+### YouTube
 
-In order to use DETOCS's automated VOD upload features, you'll need to [create a Google API app][google-api].
+To use DETOCS's automated VOD upload features, you'll need to [create a Google API app][google-api].
 Once you've created your API app, add its API key and API secret to your [`decocs-credentials.json`](#detocscredentialsjson) file.
 Note that by default, Google API apps are limited to 6 video uploads a day, unless you [request a quota increase][youtube-quota].
 
 [google-api]: https://developers.google.com/youtube/v3/getting-started
 [youtube-quota]: https://developers.google.com/youtube/v3/guides/quota_and_compliance_audits
 
+## Configuration
+
+DETOCS's configuration files are written in JSON, a format that's easy to read for both humans and computers. If you aren't already familiar with it, you can [learn the basics of JSON in this article][json-tutorial].
+
+[json-tutorial]: https://www.digitalocean.com/community/tutorials/an-introduction-to-json
+
 ### detocs-config.json
 
+`detocs-config.json` is the main configuration file for DETOCS, used to control various aspects of the input and output.
+
+This file can be provided in two ways:
+- Automatic: When started, DETOCS will search in the folder with the program, and each parent folder, until it finds a file named `detocs-config.json`.
+- The location of the config file can also be given via the [command-line interface][#command-line-interface].
+  - When provided this way, the file can be given any name you want; this is useful if you want to be able to switch between different configurations.
+
+Example file:
 ```
 {
-  clipDirectory: string;
-  credentialsFile?: string;
-  databaseDirectory: string;
-  ffmpeg: { transcodeVideoInputArgs: string[]; transcodeVideoOutputArgs: string[]; };
-  gameDatabaseFile?: string;
-  logDirectory: string | null;
-  obs: { address: string; password?: string; binPath?: string; };
-  outputs: (WebSocketOutputConfig | FileOutputConfig)[];
-  peopleDatabaseFile: string;
-  ports: { web: number; };
-  tempFileExpirationDays: number;
-  vodKeyframeIntervalSeconds?: number;
-  vodPerSetTemplate: string;
-  vodSingleVideoTemplate: string;
+  "clipDirectory": "./clips";
+  "credentialsFile": "./detocs-credentials.json";
+  "databaseDirectory": string;
+  "ffmpeg": { transcodeVideoInputArgs: string[]; transcodeVideoOutputArgs: string[]; };
+  "gameDatabaseFile": string;
+  "logDirectory": string | null;
+  "obs": { address: string; password: string; binPath: string; };
+  "outputs": (WebSocketOutputConfig | FileOutputConfig)[];
+  "peopleDatabaseFile": string;
+  "ports": { web: number; };
+  "tempFileExpirationDays": number;
+  "vodKeyframeIntervalSeconds": number;
+  "vodPerSetTemplate": string;
+  "vodSingleVideoTemplate": string;
 }
 ```
 
-| Config Property | Type | Description |
+| Property Name | Type | Description |
 | --- | --- | --- |
-| `clipDirectory` | `string` | Temporary folder | The directory in which to store rendered [video clips](#clipstab). Defaults to a temporary folder. |
-| `credentialsFile` | `string` | File from which to load [credentials](#detocs-credentialsjson). By default, DETOCS will search parent directories for the nearest `detocs-credentials.json` file. |
+| `clipDirectory` | `string` | The directory in which to store rendered [video clips](#clipstab). Relative file paths are considered relative to the config file location. Defaults to a temporary folder. |
+| `credentialsFile` | `string` | File from which to load [credentials](#detocs-credentialsjson). Relative file paths are considered relative to the config file location. By default, DETOCS will search parent directories for the nearest `detocs-credentials.json` file. |
+| `databaseDirectory` | `string` | Folder where various database files for DETOCS are stored. Relative file paths are considered relative to the config file location. |
+| `ffmpeg` | `{ transcodeVideoInputArgs: string[]; transcodeVideoOutputArgs: string[]; }` | Advanced use. [FFmpeg parameters][ffmpeg-cli] used for transcoding clips for upload to Twitter. This does not affect vods, which are always losslessly cut. |
+| `ffmpeg.transcodeVideoInputArgs` | `string[]` | FFmpeg CLI options to pass **before** the input file (`-i`). |
+| `ffmpeg.transcodeVideoOutputArgs` | `string[]` | FFmpeg CLI options to pass **after** the input file (`-i`). |
+| `gameDatabaseFile` | `string` | Relative file paths are considered relative to `databaseDirectory`. |
+| `logDirectory` | `string` | Folder in which to store DETOCS log files. Relative file paths are considered relative to the config file location. Defaults to `"./detocs-logs"`. |
+| `obs` | `{ address: string; password: string; webSocketVersion: number; binPath: string; }` | OBS Studio configuration. |
+| `obs.address` | `string` | Address to use for [OBS websocket][obs-websocket] connections. If you're running OBS on the same computer as DETOCS, this should be in the form `"localhost:[websocket port]"`. Defaults to `"localhost:4456"`. |
+| `obs.password` | `string` | If your OBS websocket server is password protected, set the password here. |
+| `obs.webSocket` | `string` | Which version of the OBS websocket protocol to use. Defaults to `5`, but if you are using the legacy version of obs-websocket you should set this to `4`. |
+| `obs.binPath` | `string` | Advanced use. If you are using a relative path for your recording folder in OBS Studio *and* run OBS Studio as administrator, set this path to point to your OBS Studio .exe file.  |
+| `outputs` | (WebSocketOutputConfig | FileOutputConfig)[] |  |
+| `peopleDatabaseFile` | `string` | Relative file paths are considered relative to `databaseDirectory`. |
+| `ports` | `{ web: number; }` | Ports to use for different DETOCS components.  |
+| `ports.web` | `number` | Port to use for the main web interface (accessed at `http://localhost:[port]`). |
+| `tempFileExpirationDays` | `number` | Temporary files that are older than this many days are deleted on startup. Defaults to 5. |
+| `vodKeyframeIntervalSeconds` | `number` | Advanced use. Speed up video editing by assuming a fixed keyframe interval instead of reading keyframes from the video file. Note: having a keyframe interval set in OBS does not guarantee that recordings will follow that interval precisely. |
+| `vodPerSetTemplate` | `string` |  |
+| `vodSingleVideoTemplate` | `string` |  |
+
+[ffmpeg-cli]: https://ffmpeg.org/ffmpeg.html
+[obs-websocket]: https://obsproject.com/kb/remote-control-guide
 
 ### detocs-credentials.json
+
+`detocs-credentials.json` is used to store credential for accessing various services.
+These are kept in a separate file for security reasons: while there's no harm in sharing your configuration file with someone else, anyone with access to credentials in this file will be able
+
+Example file:
+```
+{
+  "startggKey": "[...]",
+  "challongeKey": "[...]",
+  "twitterKey": "[...]",
+  "twitterSecret": "[...]",
+  "twitterToken": { ... },
+  "googleKey": "[...]",
+  "googleSecret": "[...]",
+  "youtubeToken": "[...]"
+}
+```
+
+| Property Name | Type | Description |
+| --- | --- | --- |
+| `startggKey` | `string` | start.gg API authentication token. See [start.gg]. |
+| `challongeKey` | `string` | Challonge API key. See [Challonge]. |
+| `twitterKey` | `string` | Twitter API key. See [Twitter]. |
+| `twitterSecret` | `string` | Twitter API secret. See [Twitter]. |
+| `twitterToken` | `Object` | Twitter authentication token. Generated automatically when signing in to an account. |
+| `googleKey` | `string` | Google API key. See [YouTube]. |
+| `googleSecret` | `string` | Google API key. See [YouTube]. |
+| `youtubeToken` | `Object` | YouTube authentication token. Generated automatically when signing in to an account. |
 
 ### Game Database
 
@@ -54,13 +132,17 @@ Note that by default, Google API apps are limited to 6 video uploads a day, unle
 
 ## User interface
 
+Once DETOCS is running, you can access the user interface via your web browser by navigating to [localhost:8080](http://localhost:8080).
+If something on your system is already making use of port 8080, you can change it to something else in your [detocs-config.json](#detocs-configjson) configuration file.
+
 ### Scoreboard Tab
 
 ![The DETOCS scoreboard tab](images/tab_scoreboard.png)
 
+The scoreboard tab allows you to enter details for the current tournament match, for displaying in an in-game scoreboard.
+
 #### Player fields
 
-The scoreboard tab allows you to enter details for the current tournament match.
 The Handle and Prefix fields are used to enter the player's name and sponsor.
 Typing in the Handle field will automatically search the player database for matching players, which can then be selected from the dropdown.
 Note that player details are stored in a database; you should favor selecting existing database entries from the dropdown over re-entering player details, as doing the latter will result in duplicate entries in the [player database](#player-database).
@@ -179,12 +261,12 @@ Using [browser developer tools][devtools], more technically inclined users can e
 
 Some sample requests that you might find useful:
 - `POST http://localhost:58589/screenshots` takes a screenshot
-- `POST http://localhost:58589/clip?seconds=15` creates a clip that that has the last 15 seconds selected.
+- `POST http://localhost:58589/clip?seconds=15` creates a clip that that has the last 15 seconds pre- selected.
 
 [devtools]: https://developer.chrome.com/docs/devtools/network/
 [sd-webrequests]: https://apps.elgato.com/plugins/gg.datagram.web-requests
 
-## Command Line
+## Command-Line Interface
 
 ### `vod`
 
