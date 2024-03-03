@@ -4,6 +4,11 @@
 
 ## Service Integrations
 
+### OBS Studio
+
+In order to use the [Recording][#Recording-Tab] and [Clips][#Clips-Tab] tabs, you'll need to be using OBS Studio for your streams.
+In OBS Studio, go to Tools > WebSockets Server Settings and add the port and password being used to your [configuration file][#detocs-configjson].
+
 ### start.gg
 
 To pull match data from start.gg, you'll need to [generate a start.gg authentication token][startgg-api].
@@ -191,7 +196,7 @@ The fields here are the same as the scoreboard field, though the Handle, Prefix,
 ![The DETOCS recording tab](images/tab_recording.png)
 
 The recording tab makes it easy to record the start and end times for matches, primarily to make it easy to cut and upload videos.
-In order to use the functions in this tab, you will need to configure [obs-websocket](#obs-websocket) first.
+In order to use the functions in this tab, you will need to [configure the OBS Studio integration](#OBS-Studio) first.
 Note that the controls in this tab will not work unless you have an active recording file in OBS.
 
 The primary controls are the Start and Stop buttons, which set the start and end timestamps for a set.

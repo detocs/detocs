@@ -3,13 +3,9 @@ import path from 'path';
 import { exit } from 'process';
 
 import express from 'express';
-import puppeteer from 'puppeteer';
+import puppeteer, { Browser } from 'puppeteer';
 import { Server } from 'ws';
 
-import { nullMatch } from '@models/match';
-import { getMatchById } from '@models/matches';
-import { nullPerson } from '@models/person';
-import InfoState from '@server/info/state';
 import {
   INFO_PORT,
   RECORDING_PORT,
@@ -99,6 +95,9 @@ interface ScreenshotTask {
 
 async function takeScreenshots(): Promise<void> {
   startServer();
+  const browser = await puppeteer.launch({
+    headless: true,
+  });
   const tasks: ScreenshotTask[] = [
     {
       url: '/#scoreboard',
@@ -109,6 +108,14 @@ async function takeScreenshots(): Promise<void> {
       url: '/#scoreboard',
       viewport: { width: 1120, height: 370 },
       outputPath: 'docs/images/tab_scoreboard_addl-fields.png',
+      actions: async (page) => {
+        const btn1 = await page.waitForSelector('aria/More Fields');
+        await btn1?.click();
+        const btn2 = await page.waitForSelector('aria/More Fields');
+        await btn2?.click();
+        const body = await page.waitForSelector('body');
+        await body?.click();
+      },
     },
     {
       url: '/#commentary',
@@ -176,21 +183,19 @@ still consume a fixed number of characters.
       outputPath: 'docs/images/tab_settings.png',
     },
   ];
-  await Promise.all(tasks.map(takeScreenshot));
+  await Promise.all(tasks.map(task => takeScreenshot(browser, task)));
+  await browser.close();
   exit();
 }
 
-async function takeScreenshot({
+async function takeScreenshot(browser: Browser, {
   url,
   viewport,
   outputPath,
   actions,
 }: ScreenshotTask): Promise<void> {
-  const browser = await puppeteer.launch({
-    defaultViewport: viewport,
-    headless: true,
-  });
   const page = await browser.newPage();
+  await page.setViewport(viewport);
   await page.emulateMediaFeatures([{
     name: 'prefers-reduced-motion',
     value: 'reduce',
@@ -203,7 +208,7 @@ async function takeScreenshot({
   console.log(`Saving ${outputPath}`);
   await fs.mkdir(path.dirname(outputPath), { recursive: true });
   await page.screenshot({ path: outputPath });
-  await browser.close();
+  await page.close();
 }
 
 takeScreenshots();

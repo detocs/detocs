@@ -69,5 +69,12 @@
       },
       "status": "UNCUT"
     }
+  ],
+  "scenes": [
+    "scoreboard",
+    "commentary"
+  ],
+  "mediaSources": [
+    "Replay Video"
   ]
 }
