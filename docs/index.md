@@ -6,8 +6,8 @@
 
 ### OBS Studio
 
-In order to use the [Recording][#Recording-Tab] and [Clips][#Clips-Tab] tabs, you'll need to be using OBS Studio for your streams.
-In OBS Studio, go to Tools > WebSockets Server Settings and add the port and password being used to your [configuration file][#detocs-configjson].
+In order to use the [Recording](#Recording-Tab) and [Clips](#Clips-Tab) tabs, you'll need to be using OBS Studio for your streams.
+In OBS Studio, go to Tools > WebSockets Server Settings and add the port and password being used to your [configuration file](#detocs-configjson).
 
 ### start.gg
 
@@ -41,7 +41,8 @@ Note that by default, Google API apps are limited to 6 video uploads a day, unle
 
 ## Configuration
 
-DETOCS's configuration files are written in JSON, a format that's easy to read for both humans and computers. If you aren't already familiar with it, you can [learn the basics of JSON in this article][json-tutorial].
+DETOCS's configuration files are written in JSON, a format that's easy to read for both humans and computers.
+If you aren't already familiar with it, you can [learn the basics of JSON in this article][json-tutorial].
 
 [json-tutorial]: https://www.digitalocean.com/community/tutorials/an-introduction-to-json
 
@@ -51,26 +52,44 @@ DETOCS's configuration files are written in JSON, a format that's easy to read f
 
 This file can be provided in two ways:
 - Automatic: When started, DETOCS will search in the folder with the program, and each parent folder, until it finds a file named `detocs-config.json`.
-- The location of the config file can also be given via the [command-line interface][#command-line-interface].
+- The location of the config file can also be given via the [command-line interface](#command-line-interface).
   - When provided this way, the file can be given any name you want; this is useful if you want to be able to switch between different configurations.
 
-Example file:
-```
+Minimal example file:
+```json
 {
-  "clipDirectory": "./clips";
-  "credentialsFile": "./detocs-credentials.json";
-  "databaseDirectory": string;
-  "ffmpeg": { transcodeVideoInputArgs: string[]; transcodeVideoOutputArgs: string[]; };
-  "gameDatabaseFile": string;
-  "logDirectory": string | null;
-  "obs": { address: string; password: string; binPath: string; };
-  "outputs": (WebSocketOutputConfig | FileOutputConfig)[];
-  "peopleDatabaseFile": string;
-  "ports": { web: number; };
-  "tempFileExpirationDays": number;
-  "vodKeyframeIntervalSeconds": number;
-  "vodPerSetTemplate": string;
-  "vodSingleVideoTemplate": string;
+}
+```
+
+Full example file:
+```json
+{
+  "clipDirectory": "./clips",
+  "credentialsFile": "./detocs-credentials.json",
+  "databaseDirectory": string,
+  "ffmpeg": { transcodeVideoInputArgs: string[], transcodeVideoOutputArgs: string[], },
+  "gameDatabaseFile": string,
+  "logDirectory": string | null,
+  "obs": { address: string, password: string, binPath: string, },
+  "outputs": [
+    {
+      "type": "file",
+      "path": "./my-overlays/",
+      "templates": [
+        "./templates/scoreboard.json.hbs",
+        {
+          "template": "./templates/commentary_new.json.hbs",
+          "outputName": "commentary.json"
+        },
+      ]
+    }
+  ],
+  "peopleDatabaseFile": string,
+  "ports": { web: number, },
+  "tempFileExpirationDays": number,
+  "vodKeyframeIntervalSeconds": number,
+  "vodPerSetTemplate": string,
+  "vodSingleVideoTemplate": string,
 }
 ```
 
@@ -89,17 +108,39 @@ Example file:
 | `obs.password` | `string` | If your OBS websocket server is password protected, set the password here. |
 | `obs.webSocket` | `string` | Which version of the OBS websocket protocol to use. Defaults to `5`, but if you are using the legacy version of obs-websocket you should set this to `4`. |
 | `obs.binPath` | `string` | Advanced use. If you are using a relative path for your recording folder in OBS Studio *and* run OBS Studio as administrator, set this path to point to your OBS Studio .exe file.  |
-| `outputs` | (WebSocketOutputConfig | FileOutputConfig)[] |  |
+| `outputs` | (FileOutputConfig | WebSocketOutputConfig)[] | See [Output Configuration](#Output-Configuration) |
 | `peopleDatabaseFile` | `string` | Relative file paths are considered relative to `databaseDirectory`. |
 | `ports` | `{ web: number; }` | Ports to use for different DETOCS components.  |
 | `ports.web` | `number` | Port to use for the main web interface (accessed at `http://localhost:[port]`). |
 | `tempFileExpirationDays` | `number` | Temporary files that are older than this many days are deleted on startup. Defaults to 5. |
 | `vodKeyframeIntervalSeconds` | `number` | Advanced use. Speed up video editing by assuming a fixed keyframe interval instead of reading keyframes from the video file. Note: having a keyframe interval set in OBS does not guarantee that recordings will follow that interval precisely. |
-| `vodPerSetTemplate` | `string` |  |
-| `vodSingleVideoTemplate` | `string` |  |
+| `vodPerSetTemplate` | `string` | See [Templates](#Templates). |
+| `vodSingleVideoTemplate` | `string` | See [Templates](#Templates). |
 
 [ffmpeg-cli]: https://ffmpeg.org/ffmpeg.html
 [obs-websocket]: https://obsproject.com/kb/remote-control-guide
+
+### Output Configuration
+
+The `outputs` field in [detocs-config.json](#detocs-configjson) is used to control how DETOCS makes data available for overlays.
+Each object in this array represents an output of one of two types: File Output and WebSocket Output.
+
+#### File Output
+
+Example:
+```json
+{
+  "type": "file",
+  "path": "./my-overlays/",
+  "templates": [
+    "./templates/scoreboard.json.hbs",
+    {
+      "template": "./templates/commentary_new.json.hbs",
+      "outputName": "commentary.json"
+    },
+  ]
+}
+```
 
 ### detocs-credentials.json
 
@@ -107,7 +148,7 @@ Example file:
 These are kept in a separate file for security reasons: while there's no harm in sharing your configuration file with someone else, anyone with access to credentials in this file will be able
 
 Example file:
-```
+```json
 {
   "startggKey": "[...]",
   "challongeKey": "[...]",
@@ -134,6 +175,8 @@ Example file:
 ### Game Database
 
 ### Player Database
+
+### Templates
 
 ## User interface
 
@@ -165,18 +208,27 @@ Lastly, each player has a number field for storing their current score in the se
 ![The DETOCS scoreboard tab's additional fields section](images/tab_scoreboard_addl-fields.png)
 
 Clicking the ellipsis will reveal a few extra fields.
+The Handle field lets you edit the handle for a player.
+The main distinction between this and the primary Handle field is that changing this field will edit the handle on an existing player entry rather than creating a new player entry.
 The Alias field can be used to give a player an alternative handle without changing their main one, useful in scenarios where someone enters a tournament using a joke handle.
-When using an alias, the primary Handle field changes to show both the player's handle and alias; however, there is an separate Handle field here that can be used to update only the player's handle.
+This field gets used automatically if a player changes their handle on start.gg, etc.
+When using an alias, the primary Handle field changes to show both the player's handle and alias.
+The Pronouns field lets you enter pronouns for a player, and the Twitter field lets you set a player's Twitter handle.
+Note that you do not need to include the `@` when entering Twitter handles.
 
 #### Match
 
 The Match field represents what stage of the tournament the current set is for.
-The Game field represents which video game is currently being played. Autocomplete options can be added here by configuring [a game database][#game-database].
 
-#### Set
+#### Game
+
+The Game field represents which video game is currently being played.
+Autocomplete options can be added here by configuring [a game database](#game-database).
+
+#### Bracket Set
 
 The Bracket Set field can be used to pre-populate fields in the scoreboard from a bracket service.
-After loading bracket sets in [the Bracket tab][Bracket Tab], selecting one from this dropdown and pressing the Fill button will populate fields.
+After loading tournament sets in [the Bracket tab][Bracket Tab], selecting one from this dropdown and pressing the Fill button will populate the scoreboard fields accordingly.
 
 #### Controls
 
@@ -191,6 +243,12 @@ Changes can also be saved by hitting the enter key in any field.
 The commentary tab is similar to [the Scoreboard tab](#scoreboard-tab), but for commentators.
 The fields here are the same as the scoreboard field, though the Handle, Prefix, and Twitter fields are shown by default.
 
+#### Tournament and Event
+
+Going by [start.gg's terminology][startgg-glossary], the Tournament field has the name of the overall competition and the Event field has the name of the current bracket or exhibition.
+
+[startgg-glossary]: https://developer.start.gg/docs/glossary/
+
 ### Recording Tab
 
 ![The DETOCS recording tab](images/tab_recording.png)
@@ -200,11 +258,11 @@ In order to use the functions in this tab, you will need to [configure the OBS S
 Note that the controls in this tab will not work unless you have an active recording file in OBS.
 
 The primary controls are the Start and Stop buttons, which set the start and end timestamps for a set.
-When cutting individual videos for each set these will be the start and of the video, and if uploading a single video for the tournament the start times will be used to compute timestamps for the video description.
+When cutting individual videos for each set these will be the start and end of the video, and if uploading a single video for the event the start times will be used to compute timestamps for the video description.
 Pressing the Start button again before pressing the stop button will update the start timestamp for the set.
 This means you never need to worry about hitting Start too early, since you can just hit it again later.
-Similarly, hitting the Stop button till mark the end of the current set, and hitting the Stop button again before starting another set will update that end timestamp.
-So like with the Start button, you don't need to worry too much about hitting the button too early.
+Similarly, hitting the Stop button will mark the end of the current set, and hitting the Stop button again before starting another set will update that end timestamp.
+So like with the Start button, you don't need to worry too much about hitting the Stop button too early.
 When the Stop button is pressed, the current scoreboard information will be saved and associated with the set.
 This is important to remember; you should make sure to hit Stop to end the current set before updating the names in the scoreboard for the next match.
 
@@ -215,29 +273,51 @@ Note that these will also round the timestamp to the nearest second.
 
 An important thing to note is how thumbnails are generated.
 Generating a thumbnail for a given timestamp from the recording file can take a long time, especially if the recording file is very large or on a slow drive (e.g. an HDD instead of an SSD).
-In order to speed this up, DETOCS is able to load create thumbnails from saved replay buffers instead, and will save the replay buffer whenever the Start or Stop buttons are pressed.
+In order to speed this up, DETOCS is able to create thumbnails from saved replay buffers instead, and will save the replay buffer whenever the Start or Stop buttons are pressed.
 In practice, this means that if you hit the Start button late and move the timestamp back a few seconds thumbnails will be generated quickly, but will take significantly longer once you move the timestamp past the range covered by the replay.
 
 ### Twitter Tab
 
-![The DETOCS Twitter tab](images/tab_twitter.png)
+![The DETOCS Twitter tab. "DETOCS correctly calculates tweet character usage, so even long URLs like this still consume a fixed number of characters."](images/tab_twitter.png)
+
+The Twitter tab lets you post on social media, including images and video.
+This tab cannot be used unless you first configure the [Twitter integration](#Twitter).
+Once that has been done, you should see a Log In link that will take you to the Twitter sign in page.
+Once you've logged in, you should see the name of the current account at the top of the tab, as well as a mode toggle to switch between Individual Tweets and Threads.
+
+In threads mode, the Tweet button is replaced with with three button: One-off, Start Thread, and Continue Thread.
+The Start Thread button will start a new tweet thread, and the Continue Thread button will add a tweet to the most recent thread.
+The One-off button can be used to create a tweet outside of the current thread *without* starting a new one.
+An example of typical usage would be to start a new thread for each bracket being streamed, and post clips and highlights as one-off tweets.
+
+**Note:** If you tag someone in a tweet it is currently not possible to untag them from subsequent tweets in the thread, due to limitations in the basic tier for the Twitter API.
+
+Below the mode toggle is a text box for entering the content of your tweet.
+The counter below will accurately show you how many characters you have remaining until you hit the 280 character limit.
+
+Next to the text area are controls for selecting media.
+These will require [integration with OBS](#OBS-Studio) to be configured in order to use.
+The Take Screenshot button will grab a screenshot of the currently active scene in OBS.
+Once DETOCS has connected to OBS, the dropdown menu next to the Take Screenshot will be populated with a list of scenes from OBS.
+Choosing one of these scenes will take a screenshot of that scene instead; this can be very useful for things like taking photos before going live.
+The Select Media button will let you a [previously taken screenshot or rendered clip](#Clips-Tab).
 
 ### Clips Tab
 
 ![The DETOCS clips tab](images/tab_clips_video.png)
 
 The Clips tab lets you save highlight videos and screenshots, mainly for use with [social media](#twitter-tab).
-Video clips require OBS's replay buffer to be enabled.
-Pressing the Screenshot button will take a full-size screenshot of the currently active scene in OBS.
+The functionality requires [integration with OBS](#OBS-Studio) to be configured in order to use, and video clips require OBS's replay buffer to be enabled.
+The Take Screenshot button will grab a screenshot of the currently active scene in OBS.
+Once DETOCS has connected to OBS, the dropdown menu next to the Take Screenshot will be populated with a list of scenes from OBS; choosing one of these scenes will take a screenshot of that scene instead.
 The other buttons will create video clips of the length indicated.
 Note that clips are always created with a length that matches the size of your replay buffer; the clip length simply controls how much of the full length is selected by default in the video editor.
 
 Once a video clip has been created, you can can adjust the start and end times for the highlight using the controls below the preview.
-An underlay of the clip's audio waveform is shown behind the controls, which makes it easy to adjust the star and end times so that they don't interrupt important audio (like commentators talking).j
+An underlay of the clip's audio waveform is shown behind the controls, which makes it easy to adjust the star and end times so that they don't interrupt important audio (like commentary).
 Pressing the Update button will save the current start/end timestamps and the description, and sync them to any other users connected to the DETOCS server.
 Pressing Cut will render the video into a form that is suitable for uploading to social media.
 Un-rendered videos cannot be used in tweets.
-
 
 By default, rendered video clips are stored in a temporary directory.
 If you would like to store them somewhere more permanent, you should set the `clipDirectory` property in your [configuration file](#detocs-configjson).
@@ -246,15 +326,29 @@ If you would like to store them somewhere more permanent, you should set the `cl
 
 ![The DETOCS bracket tab](images/tab_bracket.png)
 
-**Note:** DETOCS currently does not queue smash.gg requests to account for their API rate limits, meaning that very large queries will result in errors (instead of being spread out over several minutes).
-It should be able to handle major tournaments, but probably not super-majors.
+The Bracket tab lets you load data from online bracket services.
+Many of the bracket services supported by DETOCS require API access to use; see [the Configuration section](#Configuration) for instructions on how to set this up.
+
+Tournament URL field.
+For start.gg brackets, instead of entering an entire URL you can instead enter the tournament slug by itself (this is the part that comes after `start.gg/tournament/`) or the short code for the tournament.
+Once you've loaded a tournament, you'll then be able to narrow your selection to a specific game and then phase.
+Once you've loaded some sets, these will be available for selection in the [Scoreboard tab](#Scoreboard-Tab).
+DETOCS will update the set list every couple of minutes.
+
+**Note:** DETOCS currently does not queue start.gg requests to account for their API rate limits, meaning that very large queries will result in errors (instead of being spread out over several minutes).
+It should be able to handle major tournaments but probably not pools at super-majors, unless you have an API token with an increased rate limit.
 See [this relevant roadmap item](https://github.com/data-enabler/detocs/projects/1#card-50089528).
 
 ### Break Tab
 
-Set messages to display on break scenes
+![The DETOCS break tab](images/tab_break.png)
+
+The Break tab lets you set messages to display on break scenes.
+Use the Add and Remove buttons to change the number of message fields available.
 
 ### Settings Tab
+
+![The DETOCS settings tab](images/tab_settings.png)
 
 This tab is currently just used to control a couple of client-side settings.
 Reverse the order of the player or commentator fields to whatever feels more natural.
@@ -273,8 +367,5 @@ Some sample requests that you might find useful:
 
 ## Command-Line Interface
 
-### `vod`
-
-### VOD Upload
-
-![DETOCS VOD upload command line output](images/vod_metadata.png)
+The default action when running the DETOCS application is to start the server, but there are additional commands that can be used via command-line for VOD upload, data import, and data export.
+Run `detocs --help` from your terminal for more info.
