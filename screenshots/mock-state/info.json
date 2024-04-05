@@ -6,6 +6,7 @@
         "handle": "Author",
         "prefix": "LP",
         "alias": "Datagram",
+        "pronouns": "He/Him",
         "serviceIds": {
           "twitter": "gramofdata"
         }
