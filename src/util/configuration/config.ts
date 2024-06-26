@@ -75,7 +75,7 @@ const DEFAULTS: Config = {
     web: 8080,
   },
   obs: {
-    address: 'localhost:4456',
+    address: 'localhost:4455',
     password: undefined,
     webSocketVersion: 5,
   },
