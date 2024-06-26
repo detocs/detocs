@@ -20,6 +20,7 @@ const MAX_RECONNECTION_DELAY = 5 * 60 * 1000;
 const RECONNECTION_DELAY_GROWTH = 5;
 const MAX_RECONNECTION_ATTEMPTS = 3;
 const ERR_NOT_READY = 207;
+const ERR_AUTHENTICATION_FAILED = 4009;
 
 export interface ObsConnection {
   connect(): Promise<void>;
@@ -117,8 +118,11 @@ export class ObsConnectionImpl implements ObsConnection {
         });
         return;
       } catch(error) {
+        if ((error as OBSWebSocketError).code == ERR_AUTHENTICATION_FAILED) {
+          throw new Error(`Unable to connect to ${address}: ${(error as OBSWebSocketError).message}`);
+        }
         if (this.ws.identified) {
-          logger.warn('Error thrown, but we\'re connected');
+          logger.warn(`Error thrown, but we\'re connected? ${error}`);
           return;
         }
         logger.debug(`Unable to connect to ${address}: ${error}`);

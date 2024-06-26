@@ -51,7 +51,7 @@ export class ObsConnectionImpl implements ObsConnection {
     this.off = ws.off.bind(ws);
     this.once = ws.once.bind(ws);
 
-    this.on('ConnectionOpened', () => {
+    this.on('AuthenticationSuccess', () => {
       this.connected = true;
       this.ws.once('ConnectionClosed', this.handleDisconnect);
     });
@@ -106,8 +106,11 @@ export class ObsConnectionImpl implements ObsConnection {
         });
         return;
       } catch(error) {
+        if (((error as ObsWebSocket.ObsError).error || '').toLowerCase().includes('authentication')) {
+          throw new Error(`Unable to connect to ${this.config.address}: ${(error as ObsWebSocket.ObsError).error}`);
+        }
         if (this.connected) {
-          logger.warn('Error thrown, but we\'re connected');
+          logger.warn(`Error thrown, but we\'re connected? ${error}`);
           return;
         }
         logger.debug(`Unable to connect to ${this.config.address}: ${(error as ObsWebSocket.ObsError).error}`);
@@ -120,7 +123,7 @@ export class ObsConnectionImpl implements ObsConnection {
   private readonly handleDisconnect = (): void => {
     this.connected = false;
     logger.warn('Lost connection to OBS');
-    this.connect();
+    this.connect().catch(logger.error);
   };
 
   public readonly disconnect = (): void => {
