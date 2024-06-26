@@ -1,5 +1,5 @@
 // TODO: Remove once neverthrow is upgraded
-import { err, ok, Result, ResultAsync } from 'neverthrow';
+import { Err, err, Ok, ok, Result, ResultAsync } from 'neverthrow';
 
 const appendValueToEndOfList = <T>(value: T) => (list: T[]): T[] => [...list, value];
 
@@ -22,3 +22,20 @@ export const combineAsync = <T, E>(
   ResultAsync.fromSafePromise(Promise.all(asyncResultList)).andThen(
     combineResultList,
   ) as ResultAsync<T[], E>;
+
+export function fromThrowable<A extends readonly any[], R, E>(
+  fn: (...args: A) => Promise<R>,
+  errorFn?: (err: unknown) => E,
+): (...args: A) => ResultAsync<R, E> {
+  return (...args) => {
+    return new ResultAsync(
+      (async () => {
+        try {
+          return new Ok(await fn(...args))
+        } catch (error) {
+          return new Err(errorFn ? errorFn(error) : error as E)
+        }
+      })(),
+    )
+  }
+}

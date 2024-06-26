@@ -2,6 +2,7 @@ import { ResultAsync, okAsync } from 'neverthrow';
 import ObsWebSocket, {
   OBSRequestTypes,
   OBSResponseTypes,
+  OBSWebSocketError,
   RequestBatchOptions,
   RequestBatchRequest,
   ResponseMessage,
@@ -11,12 +12,14 @@ import pLimit from 'p-limit';
 import { getLogger } from '@util/logger';
 import { sleep } from '@util/async';
 import { Config } from '@util/configuration/config';
+import { fromThrowable } from '@util/results';
 
 const logger = getLogger('services/obs/connection');
 const MIN_RECONNECTION_DELAY = 5 * 1000;
 const MAX_RECONNECTION_DELAY = 5 * 60 * 1000;
 const RECONNECTION_DELAY_GROWTH = 5;
 const MAX_RECONNECTION_ATTEMPTS = 3;
+const ERR_NOT_READY = 207;
 
 export interface ObsConnection {
   connect(): Promise<void>;
@@ -69,32 +72,16 @@ export class ObsConnectionImpl implements ObsConnection {
     const connection: ResultAsync<void, Error> = this.ws.identified ?
       okAsync(undefined) :
       this.reconnect();
-    return connection.andThen(() => {
-      return ResultAsync.fromPromise(
-        this.ws.call(requestType, ...args),
-        obsError => {
-          logger.error(obsError);
-          logger.error(typeof obsError);
-          return new Error(`${requestType} failed: ${obsError}`);
-        },
-      );
-    });
+    const sendRequest = () => this.ws.call(requestType, ...args);
+    return connection.andThen(handleNotReady(requestType, sendRequest));
   };
 
   public readonly callBatch: ObsConnection['callBatch'] = (requests, options) => {
     const connection: ResultAsync<void, Error> = this.ws.identified ?
       okAsync(undefined) :
       this.reconnect();
-    return connection.andThen(() => {
-      return ResultAsync.fromPromise(
-        this.ws.callBatch(requests, options),
-        obsError => {
-          logger.error(obsError);
-          logger.error(typeof obsError);
-          return new Error(`Batch request failed: ${obsError}`);
-        },
-      );
-    });
+    const sendRequest = () => this.ws.callBatch(requests, options);
+    return connection.andThen(handleNotReady('Batch request', sendRequest));
   };
 
   public readonly connect: ObsConnection['connect'] = async () => {
@@ -153,6 +140,30 @@ export class ObsConnectionImpl implements ObsConnection {
         logger.info('Disconnected from OBS');
       });
   };
+}
+
+function handleNotReady<T>(requestType: string, sendRequest: () => Promise<T>): (() => ResultAsync<T, Error>) {
+  return fromThrowable(async () => {
+    let obsError = null;
+    let resp = null;
+    do {
+      if (obsError) {
+        logger.warn('OBS is not ready for requests. Waiting 1s before re-attempting request...');
+        obsError = null;
+        await sleep(1000);
+      }
+      try {
+        resp = await sendRequest();
+        return resp;
+      } catch (e) {
+        obsError = e;
+      }
+    } while (obsError instanceof OBSWebSocketError && obsError.code == ERR_NOT_READY);
+
+    logger.error(obsError);
+    logger.error(typeof obsError);
+    throw new Error(`${requestType} failed: ${obsError}`);
+  });
 }
 
 function ensureProtocol(address: string): string {

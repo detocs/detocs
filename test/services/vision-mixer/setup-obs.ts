@@ -69,6 +69,24 @@ export async function setupObs29(): Promise<{
   });
 }
 
+export async function setupObs30(): Promise<{
+  visionMixer: VisionMixer,
+  teardown: () => void,
+}> {
+  const obs = await installObs('obs30-windows.ps1');
+  const config: Config['obs'] = {
+    address: 'localhost:41237',
+    password: 'test1234',
+    webSocketVersion: 5,
+  };
+  const obsConn = new ObsConnectionImpl(new ObsWebSocket(), config);
+  const obsClient = new ObsClient(obsConn, config);
+  return ({
+    visionMixer: obsClient,
+    teardown: () => obs.kill(),
+  });
+}
+
 async function installObs(installScript: string): Promise<child_process.ChildProcess> {
   const script = join(DIR, installScript);
   const output = await exec(script, {
