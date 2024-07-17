@@ -3,7 +3,7 @@
   height: 100%;
   margin-inline: 0.15em;
 
-  flex-flow: column nowrap; 
+  flex-flow: column nowrap;
 }
 
 .bracket__container > * {
@@ -13,7 +13,7 @@
 .bracket__sets {
   display: flex;
   flex: 1 1 auto;
-  flex-flow: column nowrap; 
+  flex-flow: column nowrap;
 }
 
 .bracket__set-list {
@@ -21,4 +21,18 @@
   margin-block: 0.15em;
   overflow: auto;
   background-color: var(--color-bg-inactive);
+}
+
+.bracket__pool-list {
+  display: inline-flex;
+  margin: 0 0.5em;
+
+  flex: 0 0 auto;
+  flex-flow: row wrap;
+  column-gap: 1em;
+  padding: 0;
+  line-height: 1.5;
+
+  font-family: var(--font-monospace);
+  list-style: none;
 }

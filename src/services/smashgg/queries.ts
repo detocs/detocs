@@ -139,6 +139,26 @@ query PhaseQuery($phaseId: ID!, $page: Int, $perPage: Int) {
   }
 }
 `;
+export const PHASEGROUP_SET_QUERY = `
+query PhaseQuery($phaseId: ID!, $phaseGroupIds: [ID], $page: Int, $perPage: Int) {
+  phase(id: $phaseId) {
+    sets(
+      sortType: MAGIC,
+      page: $page,
+      perPage: $perPage,
+      filters: {
+        phaseGroupIds: $phaseGroupIds
+      }
+    ) {
+      nodes {${SET_SUBQUERY}}
+      pageInfo {
+        total
+        totalPages
+      }
+    }
+  }
+}
+`;
 export interface PhaseSetQueryResponse {
   phase: {
     sets: {
@@ -190,7 +210,7 @@ export interface PhaseEventQueryResponse {
   };
 }
 
-const TOURNAMENT_PHASES_BASE_QUERY = `
+const TOURNAMENT_EVENTS_BASE_QUERY = `
     id
     name
     url(tab: "events")
@@ -198,43 +218,60 @@ const TOURNAMENT_PHASES_BASE_QUERY = `
       id
       name
       slug
-      phases {
-        id
-        name
-        phaseGroups(query: {perPage: ${MAX_PAGE_SIZE}}) {
-          nodes {
+    }
+`;
+export const TOURNAMENT_EVENTS_BY_SLUG_QUERY = `
+query TournamentPhasesQuery($slug: String) {
+  tournament(slug: $slug) {
+    ${TOURNAMENT_EVENTS_BASE_QUERY}
+  }
+}
+`;
+export const TOURNAMENT_EVENTS_BY_ID_QUERY = `
+query TournamentPhasesQuery($id: ID!) {
+  tournament(id: $id) {
+    ${TOURNAMENT_EVENTS_BASE_QUERY}
+  }
+}
+`;
+export interface TournamentEventsQueryResponse {
+  tournament: {
+    id: number;
+    name: string;
+    url: string;
+    events: {
+      id: number;
+      name: string;
+      slug: SmashggSlug;
+    }[];
+  } | null;
+}
+
+
+export const EVENT_PHASES_QUERY = `
+query EventQuery($eventId: ID!) {
+  event(id: $eventId) {
+    id
+    name
+    slug
+    phases {
+      id
+      name
+      phaseGroups(query: {perPage: ${MAX_PAGE_SIZE}}) {
+        nodes {
+          id
+          displayIdentifier
+          wave {
             id
-            displayIdentifier
-            wave {
-              id
-            }
           }
         }
       }
     }
-`;
-export const TOURNAMENT_PHASES_BY_SLUG_QUERY = `
-query TournamentPhasesQuery($slug: String) {
-  tournament(slug: $slug) {
-    ${TOURNAMENT_PHASES_BASE_QUERY}
   }
 }
 `;
-export const TOURNAMENT_PHASES_BY_ID_QUERY = `
-query TournamentPhasesQuery($id: ID!) {
-  tournament(id: $id) {
-    ${TOURNAMENT_PHASES_BASE_QUERY}
-  }
-}
-`;
-export interface TournamentPhasesQueryResponse {
-  tournament: TournamentPhases | null;
-}
-export interface TournamentPhases {
-  id: number;
-  name: string;
-  url: string;
-  events: {
+export interface EventPhasesQueryResponse {
+  event: {
     id: number;
     name: string;
     slug: SmashggSlug;
@@ -248,7 +285,7 @@ export interface TournamentPhases {
         }[];
       };
     }[];
-  }[];
+  } | null;
 }
 
 export const EVENT_QUERY = `

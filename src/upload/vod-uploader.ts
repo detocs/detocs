@@ -98,6 +98,9 @@ interface VodUploaderParams {
 interface PhaseGroupNameMapping {
   get: (phaseGroupId?: string | null) => string | undefined;
 }
+const EMPTY_PHASE_GROUP_MAPPING: PhaseGroupNameMapping = Object.freeze({
+  get: () => undefined,
+})
 
 export class VodUploader {
   private readonly bracketProvider: BracketServiceProvider;
@@ -264,10 +267,13 @@ export class VodUploader {
       throw new Error('No end timestamp on log');
     }
 
+    // TODO: Fetch sets for individual pools instead of the whole phase
     const backetsSets = isValidPhase(setList.phaseId) &&
       await bracketService?.upcomingSetsByPhase(setList.phaseId) ||
       [];
-    const phaseGroupNames = await getPhaseGroupNameMapping(tournament, bracketService);
+    const phaseGroupNames = (tournament.id && setList.eventId)
+      ? await getPhaseGroupNameMapping(tournament.id, setList.eventId, bracketService)
+      : EMPTY_PHASE_GROUP_MAPPING;
 
     let sets;
     if (setList.sets) {
@@ -350,10 +356,13 @@ export class VodUploader {
     videogame: VodVideogame,
     phase: VodPhase,
   ): Promise<Metadata[]> {
+    // TODO: Fetch sets for individual pools instead of the whole phase
     const bracketSets = isValidPhase(setList.phaseId) &&
       await bracketService?.upcomingSetsByPhase(setList.phaseId) ||
       [];
-    const phaseGroupNames = await getPhaseGroupNameMapping(tournament, bracketService);
+    const phaseGroupNames = (tournament.id && setList.eventId)
+      ? await getPhaseGroupNameMapping(tournament.id, setList.eventId, bracketService)
+      : EMPTY_PHASE_GROUP_MAPPING;
     const template = await getPerSetTemplate();
     const promises = setList.sets.map(async (timestampedSet, index) => {
       if (!timestampedSet.start || !timestampedSet.end) {
@@ -711,11 +720,12 @@ function getGameFromState(setList: Log): Game | null {
 }
 
 async function getPhaseGroupNameMapping(
-  tournament: VodTournament,
+  tournamentId: string,
+  eventId: string,
   bracketService: BracketService | null,
 ): Promise<PhaseGroupNameMapping> {
-  const tournamentPhaseGroups = isValidTournament(tournament.id) &&
-    await bracketService?.phasesForTournament(tournament.id).then(t => t.phaseGroups) ||
+  const tournamentPhaseGroups = await bracketService?.phasesForEvent(tournamentId, eventId)
+      .then(t => t.phaseGroups) ||
     [];
   return {
     get(phaseGroupId) {

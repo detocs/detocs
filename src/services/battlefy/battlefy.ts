@@ -12,7 +12,6 @@ import { ParsedIds } from '@services/bracket-service-provider';
 import { parseEntrantName } from '@services/challonge/challonge';
 import { checkResponseStatus } from '@util/ajax';
 import { getLogger } from '@util/logger';
-import { nonNull } from '@util/predicates';
 
 import { BASE_URL, BATTLEFY_SERVICE_NAME, TOURNAMENT_URL_REGEX } from './constants';
 import {
@@ -101,17 +100,19 @@ export default class BattlefyClient implements BracketService {
       });
   }
 
+  public async upcomingSetsByPhaseGroup(phaseId: string, phaseGroupIds: string[]): Promise<TournamentSet[]> {
+    return this.upcomingSetsByPhase(phaseId);
+  }
+
   public async eventIdForPhase(stageId: string): Promise<string> {
     return stageId;
   }
 
-  public async phasesForTournament(
+  public async eventsForTournament(
     tournamentId: string,
   ): Promise<{
       tournament: Tournament;
       events: TournamentEvent[];
-      phases: TournamentPhase[];
-      phaseGroups: TournamentPhaseGroup[];
     }> {
     const resp = await fetch(apiTournamentUrl(tournamentId))
       .then(checkResponseStatus)
@@ -122,6 +123,22 @@ export default class BattlefyClient implements BracketService {
     return {
       tournament,
       events: stages,
+    };
+  }
+
+  public async phasesForEvent(
+    tournamentId: string,
+    eventId: string,
+  ): Promise<{
+      phases: TournamentPhase[];
+      phaseGroups: TournamentPhaseGroup[];
+    }> {
+    const resp = await fetch(apiTournamentUrl(tournamentId))
+      .then(checkResponseStatus)
+      .then(resp => resp.json() as Promise<TournamentsResponse>);
+    const apiTournament = resp[0];
+    const stages = apiTournament.stages.map(s => convertStage(apiTournament, s));
+    return {
       phases: stages.map(s => ({
         ...s,
         name: 'Bracket',

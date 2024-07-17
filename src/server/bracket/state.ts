@@ -12,6 +12,7 @@ export default interface State {
   phases: TournamentPhase[];
   phaseId: string | null;
   phaseGroups: TournamentPhaseGroup[];
+  phaseGroupIds: string[];
   unfinishedSets: TournamentSet[];
 }
 
@@ -23,5 +24,6 @@ export const nullState: State = Object.freeze({
   phases: [],
   phaseId: null,
   phaseGroups: [],
+  phaseGroupIds: [],
   unfinishedSets: [],
 });

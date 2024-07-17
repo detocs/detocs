@@ -34,10 +34,13 @@ import {
   PhaseSetQueryResponse,
   PHASE_EVENT_QUERY,
   PhaseEventQueryResponse,
-  TOURNAMENT_PHASES_BY_ID_QUERY,
-  TOURNAMENT_PHASES_BY_SLUG_QUERY,
-  TournamentPhasesQueryResponse,
+  TOURNAMENT_EVENTS_BY_ID_QUERY,
+  TOURNAMENT_EVENTS_BY_SLUG_QUERY,
+  TournamentEventsQueryResponse,
+  EVENT_PHASES_QUERY,
+  EventPhasesQueryResponse,
   SET_QUERY,
+  PHASEGROUP_SET_QUERY,
   SetQueryResponse,
   EVENT_QUERY,
   EventQueryResponse,
@@ -83,7 +86,7 @@ export default class SmashggClient implements BracketService {
       extractor: (resp: PhasePhaseGroupQueryResponse) => resp.phase.phaseGroups,
       defaultPageSize: MAX_PAGE_SIZE,
     });
-    const phaseGroupNameMaping = new Map(phaseGroups.map(
+    const phaseGroupNameMapping = new Map(phaseGroups.map(
       ({ id, displayIdentifier }) => [ id, displayIdentifier ]
     ));
     const sets = await paginatedQuery({
@@ -96,8 +99,34 @@ export default class SmashggClient implements BracketService {
     return sets.map(s => this.convertSet(
       phaseId,
       s,
-      phaseGroupNameMaping.get(s.phaseGroup.id) as string,
-      phaseGroupNameMaping.size > 1,
+      phaseGroupNameMapping.get(s.phaseGroup.id) as string,
+      phaseGroupNameMapping.size > 1,
+    ));
+  }
+
+  public async upcomingSetsByPhaseGroup(phaseId: string, phaseGroupIds: string[]): Promise<TournamentSet[]> {
+    const phaseGroups = await paginatedQuery({
+      client: this.client,
+      query: PHASE_PHASEGROUP_QUERY,
+      params: { phaseId },
+      extractor: (resp: PhasePhaseGroupQueryResponse) => resp.phase.phaseGroups,
+      defaultPageSize: MAX_PAGE_SIZE,
+    });
+    const phaseGroupNameMapping = new Map(phaseGroups.map(
+      ({ id, displayIdentifier }) => [ id, displayIdentifier ]
+    ));
+    const sets = await paginatedQuery({
+      client: this.client,
+      query: PHASEGROUP_SET_QUERY,
+      params: { phaseId, phaseGroupIds },
+      extractor: (resp: PhaseSetQueryResponse) => resp.phase.sets,
+      complexityAdjuster: setComplexityAdjuster,
+    });
+    return sets.map(s => this.convertSet(
+      phaseId,
+      s,
+      phaseGroupNameMapping.get(s.phaseGroup.id) as string,
+      phaseGroupNameMapping.size > 1,
     ));
   }
 
@@ -159,17 +188,15 @@ export default class SmashggClient implements BracketService {
     return resp.phase.event.id.toString();
   }
 
-  public async phasesForTournament(
+  public async eventsForTournament(
     slugOrId: string,
   ): Promise<{
       tournament: Tournament;
       events: TournamentEvent[];
-      phases: TournamentPhase[];
-      phaseGroups: TournamentPhaseGroup[];
     }> {
-    const resp: TournamentPhasesQueryResponse = +slugOrId
-      ? await this.client.request(TOURNAMENT_PHASES_BY_ID_QUERY, { id: +slugOrId })
-      : await this.client.request(TOURNAMENT_PHASES_BY_SLUG_QUERY, { slug: slugOrId });
+    const resp: TournamentEventsQueryResponse = +slugOrId
+      ? await this.client.request(TOURNAMENT_EVENTS_BY_ID_QUERY, { id: +slugOrId })
+      : await this.client.request(TOURNAMENT_EVENTS_BY_SLUG_QUERY, { slug: slugOrId });
     if (!resp.tournament) {
       throw new Error(`tournament "${slugOrId}" not found`);
     }
@@ -185,28 +212,43 @@ export default class SmashggClient implements BracketService {
         name: e.name,
         url: fullSmashggUrl(e.slug),
       })),
-      phases: t.events.flatMap<TournamentPhase>(
-        e => e.phases.map(
-          p => ({
-            id: p.id.toString(),
-            name: p.name,
-            eventId: e.id.toString(),
-            url: getPhaseUrl(e, p),
-            startAt: null,
-          })
-        )
+    };
+  }
+
+  public async phasesForEvent(
+    tournmentId: string,
+    eventId: string,
+  ): Promise<{
+      phases: TournamentPhase[];
+      phaseGroups: TournamentPhaseGroup[];
+    }> {
+    const resp: EventPhasesQueryResponse = await this.client.request(
+      EVENT_PHASES_QUERY,
+      { eventId: +eventId },
+    );
+    if (!resp.event) {
+      throw new Error(`event "${eventId}" not found`);
+    }
+    const e = resp.event;
+    return {
+      phases: e.phases.map(
+        p => ({
+          id: p.id.toString(),
+          name: p.name,
+          eventId: e.id.toString(),
+          url: getPhaseUrl(e, p),
+          startAt: null,
+        })
       ),
-      phaseGroups: t.events.flatMap<TournamentPhaseGroup>(
-        e => e.phases.flatMap(
-          p => p.phaseGroups.nodes.flatMap(
-            pg => ({
-              id: pg.id.toString(),
-              phaseId: p.id.toString(),
-              eventId: e.id.toString(),
-              name: pg.displayIdentifier,
-              url: getPhaseGroupUrl(e, p, pg),
-            })
-          )
+      phaseGroups: e.phases.flatMap(
+        p => p.phaseGroups.nodes.flatMap(
+          pg => ({
+            id: pg.id.toString(),
+            phaseId: p.id.toString(),
+            eventId: e.id.toString(),
+            name: pg.displayIdentifier,
+            url: getPhaseGroupUrl(e, p, pg),
+          })
         )
       ),
     };

@@ -109,18 +109,20 @@ export default class ChallongeClient implements BracketService {
     );
   }
 
+  public async upcomingSetsByPhaseGroup(phaseId: string, phaseGroupIds: string[]): Promise<TournamentSet[]> {
+    return this.upcomingSetsByPhase(phaseId);
+  }
+
   public async eventIdForPhase(tournamentId: string): Promise<string> {
     // The Challonge API doesn't support multi-stage tournaments yet
     return tournamentId;
   }
 
-  public async phasesForTournament(
+  public async eventsForTournament(
     tournamentId: string,
   ): Promise<{
       tournament: Tournament;
       events: TournamentEvent[];
-      phases: TournamentPhase[];
-      phaseGroups: TournamentPhaseGroup[];
     }> {
     const url = `${BASE_URL}/tournaments/${tournamentId}.json?api_key=${this.apiKey}`;
     const resp = await fetch(url)
@@ -131,6 +133,23 @@ export default class ChallongeClient implements BracketService {
     return {
       tournament,
       events: [ tournament ],
+    };
+  }
+
+  public async phasesForEvent(
+    tournamentId: string,
+    eventId: string,
+  ): Promise<{
+      phases: TournamentPhase[];
+      phaseGroups: TournamentPhaseGroup[];
+    }> {
+    const url = `${BASE_URL}/tournaments/${tournamentId}.json?api_key=${this.apiKey}`;
+    const resp = await fetch(url)
+      .then(checkResponseStatus)
+      .then(resp => resp.json() as Promise<TournamentResponse>);
+    const t = resp.tournament;
+    const tournament = convertTournament(t);
+    return {
       phases: [{
         ...tournament,
         name: 'Bracket',

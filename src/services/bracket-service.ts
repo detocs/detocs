@@ -9,12 +9,18 @@ import TournamentSet, { TournamentEntrant } from '@models/tournament-set';
 export default interface BracketService {
   name(): string;
   upcomingSetsByPhase(phaseId: string): Promise<TournamentSet[]>;
+  upcomingSetsByPhaseGroup(phaseId: string, phaseGroupIds: string[]): Promise<TournamentSet[]>;
   eventIdForPhase(phaseId: string): Promise<string>;
-  phasesForTournament(
+  eventsForTournament(
     id: string,
   ): Promise<{
     tournament: Tournament;
     events: TournamentEvent[];
+  }>;
+  phasesForEvent(
+    tournamentId: string,
+    eventId: string,
+  ): Promise<{
     phases: TournamentPhase[];
     phaseGroups: TournamentPhaseGroup[];
   }>;

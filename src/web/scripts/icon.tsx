@@ -2,10 +2,11 @@ import { h, VNode } from 'preact';
 import { JSXInternal } from 'preact/src/jsx';
 
 const ICON_NAME_MAPPING = Object.freeze({
-  'more': 'dots-circle-horizontal',
+  'close': 'x-circle',
   'dropdown-closed': 'chevron-down',
   'dropdown-open': 'chevron-up',
-  'close': 'x-circle',
+  'external': 'external-link',
+  'more': 'dots-circle-horizontal',
 });
 
 export type Props = JSXInternal.SVGAttributes<SVGSVGElement> & {

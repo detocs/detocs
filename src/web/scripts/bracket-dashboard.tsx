@@ -8,6 +8,7 @@ import { submitForm } from '@util/forms';
 
 import { bracketEndpoint } from './api';
 import ExternalLink from './external-link';
+import Icon from './icon';
 import { logError } from './log';
 
 interface Props {
@@ -39,6 +40,7 @@ const BracketDashboard: FunctionalComponent<Props> = ({ state, updateState }): V
     updateState(nullState);
     ajaxReset();
   };
+  // TODO: Local state?
   const tournament = state.tournament;
   const event = state.eventId ? state.events.find(e => e.id === state.eventId) : null;
   const phase = state.phaseId ? state.phases.find(p => p.id === state.phaseId) : null;
@@ -126,12 +128,24 @@ const BracketDashboard: FunctionalComponent<Props> = ({ state, updateState }): V
       {phaseGroups.length > 1 &&
         <div>
           Pools:
-          {phaseGroups.map(pg =>
-            <Fragment>
-              {' '}
-              <ExternalLink href={pg.url}>{pg.name}</ExternalLink>
-            </Fragment>
-          )}
+          <ul class="bracket__pool-list">
+            {phaseGroups.map(pg =>
+              <li>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="phaseGroupIds[]"
+                    id={`pool-${pg.id}`}
+                    value={pg.id}
+                    checked={state.phaseGroupIds.includes(pg.id)}
+                  />
+                  {' '}
+                  {pg.name}
+                </label>
+                <ExternalLink href={pg.url}><Icon name="external" label={`Pool ${pg.name}`} /></ExternalLink>
+              </li>
+            )}
+          </ul>
         </div>
       }
       {state.unfinishedSets.length > 0 && <div class="bracket__sets">
