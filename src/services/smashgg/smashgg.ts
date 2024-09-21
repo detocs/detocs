@@ -322,7 +322,7 @@ export default class SmashggClient implements BracketService {
       throw new Error(`Unable to get participants for tournament "${slugOrId}"`);
     }
     entrants = entrants.concat(apiParticipants.map(p => ({
-      name: p.player.gamerTag,
+      name: p.gamerTag,
       participants: [parseParticipant(serviceName, p)],
     })));
 
@@ -353,7 +353,7 @@ function parseParticipant(serviceName: string, participant: ApiParticipant): Tou
   return {
     serviceName,
     serviceId: participant.player.id.toString(),
-    handle: participant.player.gamerTag,
+    handle: participant.gamerTag,
     prefix: getParticipantPrefix(participant),
     pronouns: participant.user?.genderPronoun || undefined,
     serviceIds: {
@@ -366,13 +366,17 @@ function getEntrantName(entrant: ApiEntrant): string {
   if (entrant?.participants.length == 1) {
     const p = entrant.participants[0];
     const prefix = getParticipantPrefix(p);
-    return prefix ? `${prefix} | ${p.player.gamerTag}` : p.player.gamerTag;
+    return prefix ? `${prefix} | ${p.gamerTag}` : p.gamerTag;
   } else {
     return entrant.name;
   }
 }
 
 function getParticipantPrefix(p: ApiParticipant): string | null {
+  // Ideally we would just use the participant prefix, but in my experience
+  // when the player has a prefix set that's not present on their participant
+  // it's usually not intentional. I suspect this happens if someone adds their
+  // prefix after registering for a tournament.
   const prefix = p.prefix || (p.player.prefix || null);
   return prefix && prefix.replace(/\s*\|+$/, '');
 }

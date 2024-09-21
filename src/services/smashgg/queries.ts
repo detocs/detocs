@@ -12,9 +12,9 @@ export interface PageInfo {
 
 const PARTICIPANT_SUBQUERY = `
   prefix
+  gamerTag
   player {
     id
-    gamerTag
     prefix
   }
   user {
@@ -78,9 +78,9 @@ export interface ApiEntrant {
 
 export interface ApiParticipant {
   prefix: string | null;
+  gamerTag: string;
   player: {
     id: number;
-    gamerTag: string;
     prefix: string | null;
   };
   user: {
