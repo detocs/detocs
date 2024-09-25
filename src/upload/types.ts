@@ -27,6 +27,7 @@ export type LogSet = (Omit<RecordingLogSet, 'state'> & Partial<Pick<RecordingLog
   commentary?: string,
   commentators?: string, // backwards-compatibility
   userData?: VodUserData;
+  uploadId?: string;
 });
 
 export type Log = Omit<RecordingLog, 'sets'> & {
@@ -46,6 +47,7 @@ export type Log = Omit<RecordingLog, 'sets'> & {
   additionalTags?: string[];
   excludedTags?: string[];
   userData?: VodUserData;
+  uploadId?: string;
 };
 
 export interface Set {
@@ -62,4 +64,5 @@ export interface Set {
   start: Timestamp | null;
   end: Timestamp | null;
   userData?: VodUserData;
+  uploadId?: string;
 }

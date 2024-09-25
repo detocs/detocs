@@ -50,6 +50,7 @@ import { Log, Set, VodTournament, VodVideogame, VodPhase } from './types';
 const logger = getLogger('upload');
 
 interface Metadata {
+  index: number | null;
   sourcePath: string;
   start: Timestamp;
   end: Timestamp;
@@ -57,6 +58,7 @@ interface Metadata {
   title: SanitizedTitle;
   description: SanitizedDescription;
   tags: SanitizedTag[];
+  uploadId: string | null;
 }
 
 export enum Command {
@@ -132,7 +134,7 @@ export class VodUploader {
     }
 
     await fs.mkdir(this.dirName, { recursive: true });
-    const setList: Log = await loadLog(this.logFile);
+    const setList: Readonly<Log> = await loadLog(this.logFile);
     const bracketService = setList.bracketService != null ?
       this.bracketProvider.get(setList.bracketService) :
       null;
@@ -193,13 +195,23 @@ export class VodUploader {
 
     if (this.command == Command.Upload) {
       for (const m of metadata) {
-        await this.upload(youtubeOauthClient as OAuth2Client, m);
+        await this.upload(youtubeOauthClient as OAuth2Client, m)
+          .andThen(uploadId => updateLogUploadId(this.logFile, uploadId, m.index))
+          .match(
+            x => x,
+            logger.error,
+          );
       }
     }
 
     if (this.command == Command.Update) {
       for (const m of metadata) {
-        await this.update(youtubeOauthClient as OAuth2Client, m);
+        await this.update(youtubeOauthClient as OAuth2Client, m)
+          .andThen(uploadId => updateLogUploadId(this.logFile, uploadId, m.index))
+          .match(
+            x => x,
+            logger.error,
+          );
       }
     }
   }
@@ -207,7 +219,7 @@ export class VodUploader {
   private async writeSingleVideoMetadata(
     bracketService: BracketService | null,
     keyframeSource: KeyframeSource,
-    setList: Log,
+    setList: Readonly<Log>,
     tournament: VodTournament,
     videogame: VodVideogame,
     phase: VodPhase,
@@ -228,7 +240,7 @@ export class VodUploader {
 
   private async writePerSetMetadata(
     bracketService: BracketService | null,
-    setList: Log,
+    setList: Readonly<Log>,
     tournament: VodTournament,
     videogame: VodVideogame,
     phase: VodPhase,
@@ -251,7 +263,7 @@ export class VodUploader {
   private async singleVideoMetadata(
     bracketService: BracketService | null,
     keyframeSource: KeyframeSource,
-    setList: Log,
+    setList: Readonly<Log>,
     tournament: VodTournament,
     videogame: VodVideogame,
     phase: VodPhase,
@@ -324,6 +336,7 @@ export class VodUploader {
     );
 
     return {
+      index: null,
       sourcePath: setList.file,
       start: setList.start,
       end: setList.end,
@@ -331,12 +344,13 @@ export class VodUploader {
       title: sanitizeTitle(title),
       description: sanitizeDescription(description),
       tags,
+      uploadId: setList.uploadId ?? null,
     };
   }
 
   private async perSetMetadata(
     bracketService: BracketService | null,
-    setList: Log,
+    setList: Readonly<Log>,
     tournament: VodTournament,
     videogame: VodVideogame,
     phase: VodPhase,
@@ -402,6 +416,7 @@ export class VodUploader {
       const indexStr = index.toString().padStart(2, '0')
       const playersStr = `${players[0].name}_vs_${players[1].name}`;
       return {
+        index,
         sourcePath: setList.file,
         start: timestampedSet.start,
         end: timestampedSet.end,
@@ -409,52 +424,57 @@ export class VodUploader {
         title: sanitizeTitle(title),
         description: sanitizeDescription(description),
         tags,
+        uploadId: set.uploadId ?? null,
       };
     });
     return Promise.all(promises);
   }
 
-  private async upload(auth: OAuth2Client, m: Metadata): Promise<void> {
-    if (!auth.credentials['access_token']) {
-      throw new Error('No credentials on OAuth client');
-    }
-    const accessToken = auth.credentials['access_token'];
+  private upload(auth: OAuth2Client, m: Metadata): ResultAsync<string, Error> {
+    return ResultAsync.fromPromise((async() => {
+      if (!auth.credentials['access_token']) {
+        throw new Error('No credentials on OAuth client');
+      }
+      const accessToken = auth.credentials['access_token'];
 
-    checkMetadataSize(m);
+      checkMetadataSize(m);
 
-    const videoFile = path.join(this.dirName, m.filename);
-    const uploadFile = videoFile + '.upload.json';
-    try {
-      await fs.access(uploadFile);
-      logger.info(`Upload log already found for "${m.filename}"`);
-    } catch {
-      // File does not exist
-      logger.info(`Uploading "${m.filename}"...`);
-      const data: youtubeV3.Schema$Video = {
-        snippet: {
-          title: m.title,
-          description: m.description,
-          tags: m.tags,
-          categoryId: GAMING_CATEGORY_ID,
-        },
-        status: {
-          privacyStatus: 'private',
-        },
-      };
-      const resumable = new ResumableUpload();
-      resumable.tokens = { 'access_token': accessToken };
-      resumable.filepath = videoFile;
-      resumable.metadata = data;
-      resumable.monitor = true;
-      resumable.retry = -1;
-      resumable.notifySubscribers = !this.skipNotification;
-      const video = await runUpload(resumable);
-      logger.info(`Video "${m.filename}" uploaded with id ${video.id}`);
-      await fs.writeFile(uploadFile, JSON.stringify(video, null, 2));
-    }
+      const videoFile = path.join(this.dirName, m.filename);
+      const uploadFile = videoFile + '.upload.json';
+      try {
+        const video = JSON.parse(await fs.readFile(uploadFile, { encoding: 'utf8' })) as youtubeV3.Schema$Video;
+        logger.info(`Upload log already found for "${m.filename}"`);
+        return video.id as string;
+      } catch {
+        // File does not exist
+        logger.info(`Uploading "${m.filename}"...`);
+        const data: youtubeV3.Schema$Video = {
+          snippet: {
+            title: m.title,
+            description: m.description,
+            tags: m.tags,
+            categoryId: GAMING_CATEGORY_ID,
+          },
+          status: {
+            privacyStatus: 'private',
+          },
+        };
+        const resumable = new ResumableUpload();
+        resumable.tokens = { 'access_token': accessToken };
+        resumable.filepath = videoFile;
+        resumable.metadata = data;
+        resumable.monitor = true;
+        resumable.retry = -1;
+        resumable.notifySubscribers = !this.skipNotification;
+        const video = await runUpload(resumable);
+        logger.info(`Video "${m.filename}" uploaded with id ${video.id}`);
+        await fs.writeFile(uploadFile, JSON.stringify(video, null, 2));
+        return video.id as string;
+      }
+    })(), e => e as Error);
   }
 
-  private async update(auth: OAuth2Client, m: Metadata): Promise<void> {
+  private update(auth: OAuth2Client, m: Metadata): ResultAsync<string, Error> {
     checkMetadataSize(m);
 
     const videoFile = path.join(this.dirName, m.filename);
@@ -534,10 +554,11 @@ export class VodUploader {
           .then(() => video),
         e => e as Error,
       ))
-      .match(
-        video => logger.info(`Video "${video.id}" updated`),
-        logger.error,
-      );
+      .map(
+        video => {
+          logger.info(`Video "${video.id}" updated`);
+          return video.id as string;
+      });
   }
 }
 
@@ -551,7 +572,7 @@ async function loadDatabases(): Promise<void> {
   await loadGameDatabase();
 }
 
-async function getKeyframeSource(workingDir: string, setList: Log): Promise<KeyframeSource> {
+async function getKeyframeSource(workingDir: string, setList: Readonly<Log>): Promise<KeyframeSource> {
   const keyframeIntervalSeconds = setList.keyframeInterval ||
     getConfig().vodKeyframeIntervalSeconds ||
     undefined;
@@ -616,7 +637,7 @@ function runUpload(resumable: ResumableUpload): Promise<youtubeV3.Schema$Video> 
 
 async function getEventInfo(
   bracketService: BracketService | null,
-  setList: Log,
+  setList: Readonly<Log>,
 ): Promise<{
     tournament: VodTournament;
     videogame: VodVideogame;
@@ -670,13 +691,13 @@ async function getEventInfo(
   };
 }
 
-function getTournamentFromState(setList: Log): Pick<Tournament, 'name'> | null {
+function getTournamentFromState(setList: Readonly<Log>): Pick<Tournament, 'name'> | null {
   const names = setList.sets.map(s => s.state?.tournament).filter(nonEmpty);
   const mostFrequent = mode(names);
   return mostFrequent ? { name: mostFrequent } : null;
 }
 
-function getGameFromState(setList: Log): Game | null {
+function getGameFromState(setList: Readonly<Log>): Game | null {
   const ids = setList.sets.map(s => s.state?.game.id).filter(nonEmpty);
   const mostFrequentId = mode(ids);
   if (mostFrequentId) {
@@ -878,4 +899,41 @@ function characterList(player: Set['players'][0]): string {
     return '';
   }
   return ` (${player.characters.map(c => c.name).join(', ')})`;
+}
+
+function updateLogUploadId(logFile: string, uploadId: string, index: number | null): ResultAsync<void, Error> {
+  return ResultAsync.fromPromise((async () => {
+    let log: Log = JSON.parse(await fs.readFile(logFile, { encoding: 'utf8' }));
+    if (index == null) {
+      if (log.uploadId === uploadId) {
+        return;
+      }
+
+      const uploadIdKey: keyof Log = 'uploadId';
+      const keys = Object.keys(log);
+      if (keys.indexOf(uploadIdKey) < 0) {
+        keys.unshift(uploadIdKey);
+      }
+      log = {
+        uploadId,
+        ...log,
+      };
+      await fs.writeFile(
+        logFile,
+        JSON.stringify(log, null, 2),
+      );
+    } else {
+      if (log.sets[index].uploadId === uploadId) {
+        return;
+      }
+      log.sets[index] = {
+        uploadId,
+        ...log.sets[index],
+      }
+      await fs.writeFile(
+        logFile,
+        JSON.stringify(log, null, 2),
+      );
+    }
+  })(), e => e as Error);
 }
