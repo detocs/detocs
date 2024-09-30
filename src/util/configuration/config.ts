@@ -17,8 +17,20 @@ export interface Config {
   clipDirectory: string;
   tempFileExpirationDays: number;
   vodKeyframeIntervalSeconds?: number;
-  vodSingleVideoTemplate: string;
-  vodPerSetTemplate: string;
+  vodSingleVideoTemplate?: never; // backwards-compatibility
+  vodPerSetTemplate?: never; // backwards-compatibility
+  templates: {
+    vod: {
+      singleVideo: {
+        title: string;
+        description: string;
+      },
+      perSet: {
+        title: string;
+        description: string;
+      },
+    }
+  }
   outputs: (WebSocketOutputConfig | FileOutputConfig)[];
   ports: {
     web: number;
@@ -60,8 +72,18 @@ const DEFAULTS: Config = {
   logDirectory: './detocs-logs',
   clipDirectory: tmpDir('clips'),
   tempFileExpirationDays: 5,
-  vodSingleVideoTemplate: '$builtin/single-video.hbs',
-  vodPerSetTemplate: '$builtin/per-set.hbs',
+  templates: {
+    vod: {
+      singleVideo: {
+        title: '$builtin/single-video-title.hbs',
+        description: '$builtin/single-video.hbs',
+      },
+      perSet: {
+        title: '$builtin/per-set-title.hbs',
+        description: '$builtin/per-set.hbs',
+      },
+    },
+  },
   outputs: [
     {
       type: 'file',
@@ -105,9 +127,23 @@ export async function loadConfig(configPath?: string): Promise<void> {
     logger.info(`Using default config`);
   }
   let config = parseConfig(data, DEFAULTS);
+  config = updateTemplateFields(config);
   config = resolveConfigDirectories(config, configDir);
   currentConfig = config;
 }
+
+const CONFIG_RELATIVE: Set<string> = new Set<keyof Config>([
+  'credentialsFile',
+  'logDirectory',
+  'clipDirectory',
+  'databaseDirectory',
+]);
+CONFIG_RELATIVE.add('binPath');
+
+const DATABASE_RELATIVE: Set<string> = new Set<keyof Config>([
+  'peopleDatabaseFile',
+  'gameDatabaseFile',
+]);
 
 function resolveConfigDirectories(config: Config, fileDir: string): Config {
   const resolvedConfig = cloneDeep(config);
@@ -115,19 +151,28 @@ function resolveConfigDirectories(config: Config, fileDir: string): Config {
   const configRelative = <T extends string | null | undefined>(path: T): string | T =>
     path &&
     resolve(fileDir, path ?? '');
-  resolvedConfig.credentialsFile = configRelative(resolvedConfig.credentialsFile);
-  resolvedConfig.logDirectory = configRelative(resolvedConfig.logDirectory);
-  resolvedConfig.clipDirectory = configRelative(resolvedConfig.clipDirectory);
-  resolvedConfig.vodSingleVideoTemplate = configRelative(resolvedConfig.vodSingleVideoTemplate);
-  resolvedConfig.vodPerSetTemplate = configRelative(resolvedConfig.vodPerSetTemplate);
-  resolvedConfig.databaseDirectory = configRelative(resolvedConfig.databaseDirectory);
-  resolvedConfig.obs.binPath = configRelative(resolvedConfig.obs.binPath);
+  walkObject(
+    resolvedConfig as unknown as Record<string, string>,
+    (keyPath, original) => {
+      const firstKey = keyPath[0];
+      const lastKey = keyPath[keyPath.length - 1];
+      return (firstKey === 'templates' && typeof original === 'string')
+      || CONFIG_RELATIVE.has(lastKey);
+    },
+    configRelative,
+  );
 
   const databaseRelative = <T extends string | null | undefined>(path: T): string | T =>
     path &&
     resolve(resolvedConfig.databaseDirectory, path ?? '');
-  resolvedConfig.peopleDatabaseFile = databaseRelative(resolvedConfig.peopleDatabaseFile);
-  resolvedConfig.gameDatabaseFile = databaseRelative(resolvedConfig.gameDatabaseFile);
+  walkObject(
+    resolvedConfig as unknown as Record<string, string>,
+    (keyPath) => {
+      const lastKey = keyPath[keyPath.length - 1];
+      return DATABASE_RELATIVE.has(lastKey);
+    },
+    databaseRelative,
+  );
 
   for (const output of resolvedConfig.outputs) {
     if (output.type == 'file') {
@@ -143,4 +188,37 @@ function resolveConfigDirectories(config: Config, fileDir: string): Config {
     });
   }
   return resolvedConfig;
+}
+
+function walkObject<T>(
+  obj: Record<string, T | object>,
+  test: (keyPath: string[], original: unknown) => boolean,
+  replaceFn: (original: T) => T,
+  keyPath: string[] = [],
+) {
+  for (const key of Object.keys(obj)) {
+    const newPath = [...keyPath, key];
+    if (test(newPath, obj[key])) {
+      obj[key] = replaceFn(obj[key] as T);
+    }
+    if (typeof obj[key] === 'object') {
+      walkObject(obj[key] as Record<string, T>, test, replaceFn, newPath);
+    }
+  }
+}
+
+/**
+ * Backwards-compatibility for old fields
+ */
+function updateTemplateFields(originalConfig: Config): Config {
+  const config = cloneDeep(originalConfig);
+  if (config.vodSingleVideoTemplate) {
+    config.templates.vod.singleVideo.description = config.vodSingleVideoTemplate;
+    delete config.vodSingleVideoTemplate;
+  }
+  if (config.vodPerSetTemplate) {
+    config.templates.vod.perSet.description = config.vodPerSetTemplate;
+    delete config.vodPerSetTemplate;
+  }
+  return config;
 }

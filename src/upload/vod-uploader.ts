@@ -9,7 +9,6 @@ import { err, ok, ResultAsync } from 'neverthrow';
 import ResumableUpload from 'node-youtube-resumable-upload';
 import path from 'path';
 
-import Character from '@models/character';
 import Game from '@models/game';
 import { getGameById, getGameByServiceId, loadGameDatabase } from '@models/games';
 import Person, { getPrefixedAlias } from '@models/person';
@@ -45,25 +44,10 @@ import { trimVideo } from '@util/mkvmerge';
 import { nonEmpty } from '@util/predicates';
 
 import { loadLog } from './loader';
-import { videoDescription, getSingleVideoTemplate, getPerSetTemplate } from './templating';
-import { Log, VodTournament, VodVideogame, VodPhase } from './types';
+import { getSingleVideoTemplate, getPerSetTemplate, getSingleVideoTitleTemplate, RawTemplateData, renderVodTemplate, getPerSetTitleTemplate } from './templating';
+import { Log, Set, VodTournament, VodVideogame, VodPhase } from './types';
 
 const logger = getLogger('upload');
-
-interface Set {
-  id: string | null;
-  phaseGroupId: string | null;
-  players: {
-    name: string;
-    prefix: string | null;
-    handle: string;
-    alias: string | null;
-    characters?: Character[];
-  }[];
-  fullRoundText: string | null;
-  start: Timestamp | null;
-  end: Timestamp | null;
-}
 
 interface Metadata {
   sourcePath: string;
@@ -105,6 +89,7 @@ const EMPTY_PHASE_GROUP_MAPPING: PhaseGroupNameMapping = Object.freeze({
 export class VodUploader {
   private readonly bracketProvider: BracketServiceProvider;
   private readonly logFile: string;
+  private readonly logName: string;
   private readonly dirName: string;
   private readonly command: Command;
   private readonly style: Style;
@@ -113,9 +98,10 @@ export class VodUploader {
   public constructor({ bracketProvider, logFile, command, style, videoNum }: VodUploaderParams) {
     this.bracketProvider = bracketProvider;
     this.logFile = logFile;
+    this.logName = path.basename(logFile, path.extname(logFile));
     this.dirName = path.join(
       path.dirname(logFile),
-      path.basename(logFile, path.extname(logFile))
+      this.logName,
     );
     this.command = command;
     this.style = style;
@@ -294,17 +280,6 @@ export class VodUploader {
     };
     sets.forEach(set => set.start = set.start ? offsetTimestamp(set.start) : '0:00:00');
 
-    const defaultTitle = [
-      `${tournament.shortName}:`,
-      videogame.name,
-      phase.name,
-    ].filter(nonEmpty).join(' ');
-    const title = setList.title || defaultTitle;
-
-    const commentators = setList.commentators ??
-      getCommentators(setList.sets) ??
-      '';
-
     const matchDescs = sets.map(set => {
       const players = set.players;
       const p1 = players[0].name;
@@ -312,16 +287,20 @@ export class VodUploader {
       const match = set.fullRoundText ? ` (${set.fullRoundText})` : '';
       return `${set.start} - ${p1}${characterList(players[0])} vs ${p2}${characterList(players[1])}${match}`;
     }).join('\n');
-    const template = await getSingleVideoTemplate();
-    const description = videoDescription(
-      template,
+    const templateData: RawTemplateData = {
       tournament,
       videogame,
       phase,
-      setList.matchDescription || matchDescs,
-      commentators,
-      setList.userData || {},
-    );
+      matchDesc: setList.matchDescription || matchDescs,
+      commentary: setList.commentary ?? setList.commentators ?? getCommentary(setList.sets) ?? '',
+      userData: setList.userData,
+    };
+
+    const titleTemplate = await getSingleVideoTitleTemplate();
+    const title = setList.title || renderVodTemplate(titleTemplate, templateData);
+
+    const descriptionTemplate = await getSingleVideoTemplate();
+    const description = renderVodTemplate(descriptionTemplate, templateData);
 
     const players = sets.map(s => s.players)
       .reduce((acc, val) => acc.concat(val), []);
@@ -334,15 +313,11 @@ export class VodUploader {
       setList.additionalTags || [],
     );
 
-    const filename = filenamify(`${setList.start} `, { replacement: '-' }) +
-        filenamify(defaultTitle, { replacement: ' ' }) +
-        '.mkv';
-
     return {
       sourcePath: setList.file,
       start: setList.start,
       end: setList.end,
-      filename,
+      filename: `${this.logName}.mkv`,
       title: sanitizeTitle(title),
       description: sanitizeDescription(description),
       tags,
@@ -363,7 +338,8 @@ export class VodUploader {
     const phaseGroupNames = (tournament.id && setList.eventId)
       ? await getPhaseGroupNameMapping(tournament.id, setList.eventId, bracketService)
       : EMPTY_PHASE_GROUP_MAPPING;
-    const template = await getPerSetTemplate();
+    const titleTemplate = await getPerSetTitleTemplate();
+    const descriptionTemplate = await getPerSetTemplate();
     const promises = setList.sets.map(async (timestampedSet, index) => {
       if (!timestampedSet.start || !timestampedSet.end) {
         throw new Error(`set ${index} is missing timestamps`);
@@ -374,27 +350,12 @@ export class VodUploader {
       const players = set.players;
 
       const fullVsText = `${players[0].name}${characterList(players[0])} vs ${players[1].name}${characterList(players[1])}`;
-      const basicTitle = [
-        `${tournament.shortName}:`,
-        `${players[0].name} vs ${players[1].name}`,
-        '-',
-        videogame.shortName,
-        phase.name,
-        set.fullRoundText,
-      ].filter(nonEmpty).join(' ');
-      const defaultTitle = [
-        `${tournament.shortName}:`,
-        fullVsText,
-        '-',
-        videogame.shortName,
-        phase.name,
-        set.fullRoundText,
-      ].filter(nonEmpty).join(' ');
-      const title = timestampedSet.title || defaultTitle;
 
-      const commentators = timestampedSet.commentators ??
+      const commentary = timestampedSet.commentary ??
+        timestampedSet.commentators ??
+        setList.commentary ??
         setList.commentators ??
-        getCommentators([timestampedSet]) ??
+        getCommentary([timestampedSet]) ??
         '';
 
       const matchDesc = [
@@ -403,15 +364,18 @@ export class VodUploader {
         `${set.fullRoundText}:`,
         fullVsText,
       ].filter(nonEmpty).join(' ');
-      const description = videoDescription(
-        template,
+
+      const templateData: RawTemplateData = {
         tournament,
         videogame,
         phase,
         matchDesc,
-        commentators,
-        setList.userData || {},
-      );
+        commentary,
+        userData: setList.userData,
+        set,
+      };
+      const title = timestampedSet.title || renderVodTemplate(titleTemplate, templateData);
+      const description = renderVodTemplate(descriptionTemplate, templateData);
 
       const tags = videoTags(
         tournament,
@@ -425,15 +389,13 @@ export class VodUploader {
         ],
       );
 
-      const filename = filenamify(`${timestampedSet.start} `, { replacement: '-' }) +
-          filenamify(basicTitle, { replacement: ' ' }) +
-          '.mkv';
-
+      const indexStr = index.toString().padStart(2, '0')
+      const playersStr = `${players[0].name}_vs_${players[1].name}`;
       return {
         sourcePath: setList.file,
         start: timestampedSet.start,
         end: timestampedSet.end,
-        filename,
+        filename: filenamify(`${this.logName}_${indexStr}_${playersStr}.mkv`),
         title: sanitizeTitle(title),
         description: sanitizeDescription(description),
         tags,
@@ -458,7 +420,7 @@ export class VodUploader {
     } catch {
       // File does not exist
       logger.info(`Uploading "${m.filename}"...`);
-      const data = {
+      const data: youtubeV3.Schema$Video = {
         snippet: {
           title: m.title,
           description: m.description,
@@ -568,7 +530,7 @@ export class VodUploader {
   }
 }
 
-function getCommentators(sets: Log['sets']): string | undefined {
+function getCommentary(sets: Log['sets']): string | undefined {
   return [...new Set(
     sets.flatMap(set => set.state?.commentators?.map(c => getPrefixedAlias(c.person)))
   )].filter(nonEmpty).join(', ');

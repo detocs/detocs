@@ -1,0 +1,5 @@
+{
+  "vodSingleVideoTemplate": "./test-single-video.hbs",
+  "vodPerSetTemplate": "./test-per-set.hbs"
+}
+
