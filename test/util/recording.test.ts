@@ -117,32 +117,38 @@ function summarize(group: Group): GroupSummary {
   return summary;
 }
 
-function recording(partial: Partial<Recording> & Pick<Recording, 'id'|'streamRecordingFile'|'startTimestamp'>): Recording {
+function recording(
+  partial: Partial<Recording> & Pick<Recording, 'id'|'streamRecordingFile'|'startTimestamp'>,
+): Recording {
+  const nullRecording: Omit<Recording, 'id'|'streamRecordingFile'|'startTimestamp'> = {
+    recordingFile: null,
+    stopTimestamp: null,
+    startThumbnail: null,
+    stopThumbnail: null,
+    vodThumbnailTimestamp: null,
+    displayName: '',
+    metadata: null,
+  };
   return Object.assign(
     {},
-    {
-      recordingFile: null,
-      stopTimestamp: null,
-      startThumbnail: null,
-      stopThumbnail: null,
-      vodThumbnail: null,
-      displayName: '',
-      metadata: null,
-    },
+    nullRecording,
     partial,
   );
 }
 
 
-function recordingGroup(partial: Partial<RecordingGroup> & Pick<RecordingGroup, 'id'|'streamRecordingFile'|'startTimestamp'>): RecordingGroup {
+function recordingGroup(
+  partial: Partial<RecordingGroup> & Pick<RecordingGroup, 'id'|'streamRecordingFile'|'startTimestamp'>,
+): RecordingGroup {
+  const nullRecordingGroup: Omit<RecordingGroup, 'id'|'streamRecordingFile'|'startTimestamp'> = {
+    stopTimestamp: null,
+    startThumbnail: null,
+    stopThumbnail: null,
+    vodThumbnailTimestamp: null,
+  };
   return Object.assign(
     {},
-    {
-      stopTimestamp: null,
-      startThumbnail: null,
-      stopThumbnail: null,
-      vodThumbnail: null,
-    },
+    nullRecordingGroup,
     partial,
   );
 }
