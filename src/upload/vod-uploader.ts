@@ -626,6 +626,9 @@ function runUpload(resumable: ResumableUpload): Promise<youtubeV3.Schema$Video> 
       process.title = `Uploading: ${percentage}%`;
     });
     resumable.on('error', function(error: unknown) {
+      logger.warn(error);
+    });
+    resumable.on('fail', function(error: unknown) {
       reject(error);
     });
     resumable.on('success', function(resp: string) {
