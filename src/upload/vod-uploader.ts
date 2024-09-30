@@ -77,6 +77,7 @@ interface VodUploaderParams {
   command: Command;
   style: Style;
   videoNum: number | undefined;
+  skipNotification: boolean | undefined;
 }
 
 interface PhaseGroupNameMapping {
@@ -94,8 +95,16 @@ export class VodUploader {
   private readonly command: Command;
   private readonly style: Style;
   private readonly videoNum: number | undefined;
+  private readonly skipNotification: boolean;
 
-  public constructor({ bracketProvider, logFile, command, style, videoNum }: VodUploaderParams) {
+  public constructor({
+    bracketProvider,
+    logFile,
+    command,
+    style,
+    videoNum,
+    skipNotification,
+  }: VodUploaderParams) {
     this.bracketProvider = bracketProvider;
     this.logFile = logFile;
     this.logName = path.basename(logFile, path.extname(logFile));
@@ -106,6 +115,7 @@ export class VodUploader {
     this.command = command;
     this.style = style;
     this.videoNum = videoNum;
+    this.skipNotification = skipNotification ?? false;
   }
 
   public async run(): Promise<void> {
@@ -437,6 +447,7 @@ export class VodUploader {
       resumable.metadata = data;
       resumable.monitor = true;
       resumable.retry = -1;
+      resumable.notifySubscribers = !this.skipNotification;
       const video = await runUpload(resumable);
       logger.info(`Video "${m.filename}" uploaded with id ${video.id}`);
       await fs.writeFile(uploadFile, JSON.stringify(video, null, 2));

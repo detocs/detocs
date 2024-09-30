@@ -106,7 +106,7 @@
     "moment": "^2.29.3",
     "moment-timezone": "^0.5.31",
     "neverthrow": "^4.0.1",
-    "node-youtube-resumable-upload": "git+https://github.com/data-enabler/node-youtube-resumable-upload.git",
+    "node-youtube-resumable-upload": "github:data-enabler/node-youtube-resumable-upload",
     "oauth-1.0a": "^2.2.6",
     "obs-websocket-js": "^5.0.2",
     "obs-websocket-js-4": "npm:obs-websocket-js@^4.0.3",

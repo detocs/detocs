@@ -9,6 +9,7 @@ declare module 'node-youtube-resumable-upload' {
     public metadata: youtubeV3.Schema$Video;
     public monitor: boolean;
     public retry: number;
+    public notifySubscribers: boolean;
     public upload(): void;
     public on(event: 'progress', callback: (progress: string) => void): void;
     public on(event: 'error', callback: (error: Error) => void): void;

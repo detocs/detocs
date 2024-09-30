@@ -70,6 +70,7 @@ interface VodOptions {
   command: string;
   ps: boolean;
   n?: number;
+  'skip-notifs'?: boolean;
 }
 
 interface GenerateLogOptions {
@@ -194,6 +195,10 @@ const parser = yargs
         describe: 'Which set to cut/upload/update (1-indexed)',
         type: 'number',
         group: 'Options',
+      })
+      .option('skip-notifs', {
+        describe: 'Whether to skip notifying subscribers when the video is published. Can only be set at the time of upload.',
+        type: 'boolean',
       }),
   })
   .command({
@@ -354,6 +359,7 @@ async function vods(opts: yargs.Arguments<VodOptions>): Promise<void> {
     command,
     style: opts.ps ? Style.PerSet : Style.Full,
     videoNum: opts.n,
+    skipNotification: opts['skip-notifs'],
   });
   await uploader.run()
     .catch(err => {
