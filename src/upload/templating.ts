@@ -11,6 +11,7 @@ import { handleBuiltin } from '@util/path';
 
 export interface RawTemplateData {
   tournament: VodTournament,
+  event: string | null;
   videogame: VodVideogame,
   phase: VodPhase,
   matchDesc: string,
@@ -28,6 +29,7 @@ interface TemplateData {
   tournamentName: string;
   tournamentVenue: string;
   tournamentUrl?: string;
+  eventName?: string;
   phase: VodPhase;
   date: string;
   videogame: VodVideogame;
@@ -114,6 +116,7 @@ export function renderVodTemplate(
   template: VodTemplate,
   {
     tournament,
+    event,
     videogame,
     phase,
     matchDesc,
@@ -138,6 +141,7 @@ export function renderVodTemplate(
     tournamentName: tournament.name,
     tournamentVenue: [tournament.venueName, tournament.venueAddress].filter(nonEmpty).join(' - '),
     tournamentUrl: tournament.url,
+    eventName: event || undefined,
     videogame,
     phase,
     date,

@@ -37,6 +37,7 @@ export type Log = Omit<RecordingLog, 'sets'> & {
   sets: LogSet[],
   phaseName?: string;
   event?: Partial<{
+    name?: string;
     tournament?: Partial<VodTournament>;
     videogame?: {
       id?: string | number;
