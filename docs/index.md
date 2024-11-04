@@ -2,6 +2,8 @@
 
 ## Basics
 
+
+
 ## Service Integrations
 
 ### OBS Studio
@@ -123,7 +125,7 @@ Full example file:
 ### Output Configuration
 
 The `outputs` field in [detocs-config.json](#detocs-configjson) is used to control how DETOCS makes data available for overlays.
-Each object in this array represents an output of one of two types: File Output and WebSocket Output.
+Each object in this array represents an output of one of two types: File Output or WebSocket Output.
 
 #### File Output
 
@@ -163,16 +165,37 @@ Example file:
 
 | Property Name | Type | Description |
 | --- | --- | --- |
-| `startggKey` | `string` | start.gg API authentication token. See [start.gg]. |
-| `challongeKey` | `string` | Challonge API key. See [Challonge]. |
-| `twitterKey` | `string` | Twitter API key. See [Twitter]. |
-| `twitterSecret` | `string` | Twitter API secret. See [Twitter]. |
+| `startggKey` | `string` | start.gg API authentication token. See [start.gg](#start.gg). |
+| `challongeKey` | `string` | Challonge API key. See [Challonge](#Challonge). |
+| `twitterKey` | `string` | Twitter API key. See [Twitter](#Twitter). |
+| `twitterSecret` | `string` | Twitter API secret. See [Twitter](#Twitter). |
 | `twitterToken` | `Object` | Twitter authentication token. Generated automatically when signing in to an account. |
-| `googleKey` | `string` | Google API key. See [YouTube]. |
-| `googleSecret` | `string` | Google API key. See [YouTube]. |
-| `youtubeToken` | `Object` | YouTube authentication token. Generated automatically when signing in to an account. |
+| `googleKey` | `string` | Google API key. See [YouTube](#YouTube). |
+| `googleSecret` | `string` | Google API key. See [YouTube](#YouTube). |
+| `youtubeToken` | `Object` | YouTube authentication token. Generated automatically when signing in to an account. Remove this field if you'd like to log in to a different account. |
 
 ### Game Database
+
+Example file:
+```json
+{
+  "id" string,
+  "name" string,
+  "shortNames" string[],
+  "hashtags" string[],
+  "additionalTags": string[],
+  "serviceInfo" {
+    ["serviceName" string]: {
+      "id" string;
+    } | undefined;
+  }
+}
+```
+
+| Property Name | Type | Description |
+| --- | --- | --- |
+
+If you'd like to see an example, you can check out [Lunar Phase's game database](https://github.com/lunar-phase/game-database).
 
 ### Player Database
 
@@ -350,8 +373,14 @@ Use the Add and Remove buttons to change the number of message fields available.
 
 ![The DETOCS settings tab](images/tab_settings.png)
 
-This tab is currently just used to control a couple of client-side settings.
-Reverse the order of the player or commentator fields to whatever feels more natural.
+This tab is currently just used to control a couple of client-side settings. These settings only apply in the current browser, so feel free to adjust them to your personal preference.
+
+* **Reverse player order**/**Reverse commentator order**: Reverse the order of the player or commentator fields in the UI. Set this to whatever feels more intuitive.
+* **Enable video thumbnails**: Causes video clips to play when you hover over the thumbnail. This has the potential to cause frame drops if you're viewing DETOCS on the same computer where OBS is running, so it's disabled by default.
+
+### Tips
+
+* You can zoom the UI in and out to whatever size you want! Just use `CTRL` `+` or `CTRL` `-` like any other web page. The default size is a little on the large side for accessibility reasons; personally I usually use DETOCS at 90% scale.
 
 ## API Control
 
@@ -360,7 +389,7 @@ Using [browser developer tools][devtools], more technically inclined users can e
 
 Some sample requests that you might find useful:
 - `POST http://localhost:58589/screenshots` takes a screenshot
-- `POST http://localhost:58589/clip?seconds=15` creates a clip that that has the last 15 seconds pre- selected.
+- `POST http://localhost:58589/clip?seconds=15` creates a clip that that has the last 15 seconds pre-selected.
 
 [devtools]: https://developer.chrome.com/docs/devtools/network/
 [sd-webrequests]: https://apps.elgato.com/plugins/gg.datagram.web-requests
@@ -368,4 +397,5 @@ Some sample requests that you might find useful:
 ## Command-Line Interface
 
 The default action when running the DETOCS application is to start the server, but there are additional commands that can be used via command-line for VOD upload, data import, and data export.
-Run `detocs --help` from your terminal for more info.
+
+Run `detocs --help` or `detocs [command] --help` in your terminal for more info.
