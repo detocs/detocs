@@ -43,7 +43,7 @@ Stream producers generally have better things to do with their screen space than
 DETOCS's UI is designed to easily reflow and resize, and should be usable on mobile phone screens, desktop monitors, and everything in-between.
 
 ### Network Access
-DETOCS's UI is web-based, meaning any device with a web browser and network access to the machine DETOCS is running on can control the app.
+DETOCS's UI is web-based, meaning any device with a web browser and network access to the computer DETOCS is running on can control the app.
 
 ### Local Executable
 Event streamers constantly have to worry about having their broadcast ruined by things outside their control, and I'd rather not add "Datagram's DNS configuration" and "Datagram's web hosting" to the list of potentials.
