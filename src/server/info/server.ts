@@ -1,9 +1,10 @@
 import { getLogger } from '@util/logger';
 
 import cors from 'cors';
-import express from 'express';
+import express, { Application, Request, Response } from 'express';
 import formidable from 'express-formidable';
 import { createServer } from 'http';
+import updateImmutable from 'immutability-helper';
 import isEqual from 'lodash.isequal';
 import ws from 'ws';
 
@@ -72,6 +73,12 @@ interface LowerThirdForm {
 
 interface FillBracketForm {
   set: SetLocator;
+}
+
+interface IncrementScoreParams {
+  index?: string,
+  player?: string, // 1-indexed instead of 0-indexed
+  amount?: string,
 }
 
 // TODO: InfoServer class
@@ -167,6 +174,8 @@ export default async function start({ port, personDatabase }: {
   app.get('/matches', (_, res) => {
     res.send(matchList);
   });
+  app.post('/incrementScore', incrementScore.bind(null, outputs) as Application);
+  app.get('/incrementScore', incrementScore.bind(null, outputs) as Application);
 
   const httpServer = createServer(app);
   socketServer = new ws.Server({
@@ -403,4 +412,51 @@ function parseBool(value: string | undefined): boolean {
 function getBracketState(): Promise<BracketState> {
   return fetch(`http://localhost:${BRACKETS_PORT}/state`)
     .then(resp => resp.json());
+}
+
+async function incrementScore(outputs: Output[], req: Request, res: Response): Promise<void> {
+  logger.debug(`Score increment request received:\n`, req.query);
+  if (!req.fields) {
+    res.sendStatus(400);
+    return;
+  }
+  const {
+    index: indexStr,
+    player: playerStr,
+    amount: amountStr,
+  } = req.query as IncrementScoreParams;
+  if (
+    (indexStr != null && isNaN(parseInt(indexStr)))
+    || (playerStr != null && isNaN(parseInt(playerStr)))
+    || (amountStr != null && isNaN(parseInt(amountStr)))
+  ) {
+    res.sendStatus(400);
+    return;
+  }
+  if (indexStr == null && playerStr == null) {
+    res.sendStatus(400);
+    return;
+  }
+  const index = playerStr != null ? parseInt(playerStr) - 1 : parseInt(indexStr as string);
+  const amount = amountStr != null ? parseInt(amountStr) : 1;
+  if (index < 0 || index >= state.players.length) {
+    res.sendStatus(400);
+    return;
+  }
+  const newScore = state.players[index].score + amount;
+  Object.assign(
+    state,
+    updateImmutable(state, {
+      players: {
+        [index]: {
+          score: {
+            $set: newScore,
+          },
+        },
+      },
+    }),
+  );
+  res.sendStatus(200);
+  broadcastState(state);
+  outputs.forEach(o => o.update(state));
 }
