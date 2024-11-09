@@ -100,7 +100,10 @@ export default class BattlefyClient implements BracketService {
       });
   }
 
-  public async upcomingSetsByPhaseGroup(phaseId: string, phaseGroupIds: string[]): Promise<TournamentSet[]> {
+  public async upcomingSetsByPhaseGroup(
+    phaseId: string,
+    phaseGroupIds: string[],
+  ): Promise<TournamentSet[]> {
     return this.upcomingSetsByPhase(phaseId);
   }
 

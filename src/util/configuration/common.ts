@@ -44,7 +44,7 @@ export function emptyConfigData(): LoadedConfigData {
 }
 
 export function parseConfig<T>(data: string, defaults: T): T {
-  let parsed: Partial<T> = JSON.parse(data);
+  const parsed: Partial<T> = JSON.parse(data);
   // TODO: This is fine for now, but will likely need to be revisited
   const config = mergeWith({}, defaults, parsed, replaceArrays);
   return config;

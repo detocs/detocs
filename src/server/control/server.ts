@@ -4,7 +4,7 @@ import { getLogger } from '@util/logger';
 
 const logger = getLogger('server/control');
 
-export default function start(port: number) {
+export default function start(port: number): void {
   logger.info('Initializing overlay control server');
   const controlServer = new ws.Server({ port });
 
@@ -19,4 +19,4 @@ export default function start(port: number) {
       });
     });
   });
-};
+}

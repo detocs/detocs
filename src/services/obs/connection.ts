@@ -146,7 +146,10 @@ export class ObsConnectionImpl implements ObsConnection {
   };
 }
 
-function handleNotReady<T>(requestType: string, sendRequest: () => Promise<T>): (() => ResultAsync<T, Error>) {
+function handleNotReady<T>(
+  requestType: string,
+  sendRequest: () => Promise<T>,
+): (() => ResultAsync<T, Error>) {
   return fromThrowable(async () => {
     let obsError = null;
     let resp = null;

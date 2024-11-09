@@ -104,7 +104,10 @@ export default class SmashggClient implements BracketService {
     ));
   }
 
-  public async upcomingSetsByPhaseGroup(phaseId: string, phaseGroupIds: string[]): Promise<TournamentSet[]> {
+  public async upcomingSetsByPhaseGroup(
+    phaseId: string,
+    phaseGroupIds: string[],
+  ): Promise<TournamentSet[]> {
     const phaseGroups = await paginatedQuery({
       client: this.client,
       query: PHASE_PHASEGROUP_QUERY,

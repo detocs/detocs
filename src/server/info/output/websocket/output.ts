@@ -8,7 +8,6 @@ import State from '@server/info/state';
 import Output from '@server/info/output/output';
 import { OutputTemplate, parseTemplateFile } from '@server/info/output/templates';
 import { Ok } from 'neverthrow';
-import { string } from 'yargs';
 
 const logger = getLogger('output/websocket');
 

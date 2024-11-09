@@ -87,7 +87,7 @@ interface PhaseGroupNameMapping {
 }
 const EMPTY_PHASE_GROUP_MAPPING: PhaseGroupNameMapping = Object.freeze({
   get: () => undefined,
-})
+});
 
 export class VodUploader {
   private readonly bracketProvider: BracketServiceProvider;
@@ -127,7 +127,7 @@ export class VodUploader {
     if (this.command == Command.Upload || this.command == Command.Update) {
       // Get YouTube credentials first, so that the rest can be done unattended
       const res = await getYoutubeAuthClient();
-      res.mapErr(e => {throw e});
+      res.mapErr(e => {throw e;});
       youtubeOauthClient = res._unsafeUnwrap();
     }
 
@@ -194,16 +194,16 @@ export class VodUploader {
     if (this.command == Command.Upload) {
       for (const m of metadata) {
         const res = await this.upload(youtubeOauthClient as OAuth2Client, m)
-          .andThen(uploadId => updateLogUploadId(this.logFile, uploadId, m.index))
-        res.mapErr(e => {throw e});
+          .andThen(uploadId => updateLogUploadId(this.logFile, uploadId, m.index));
+        res.mapErr(e => {throw e;});
       }
     }
 
     if (this.command == Command.Update) {
       for (const m of metadata) {
         const res = await this.update(youtubeOauthClient as OAuth2Client, m)
-          .andThen(uploadId => updateLogUploadId(this.logFile, uploadId, m.index))
-        res.mapErr(e => {throw e});
+          .andThen(uploadId => updateLogUploadId(this.logFile, uploadId, m.index));
+        res.mapErr(e => {throw e;});
       }
     }
   }
@@ -414,7 +414,7 @@ export class VodUploader {
         ],
       );
 
-      const indexStr = index.toString().padStart(2, '0')
+      const indexStr = index.toString().padStart(2, '0');
       const playersStr = `${players[0].name}_vs_${players[1].name}`;
       return {
         index,
@@ -507,7 +507,8 @@ export class VodUploader {
         video => {
           logger.info(`Video "${video.id}" updated`);
           return video.id as string;
-      });
+        }
+      );
   }
 
   private getUploadId(
@@ -548,22 +549,22 @@ export class VodUploader {
         const titleQuery = m.title;
         return getVideoByName(auth, filenameQuery)
           .andThen<{ video: youtubeV3.Schema$Video; name: string; }>(video => {
-            return video
-              ? ok({ video, name: filenameQuery })
-              : err(
-                new Error(`No video found for query "${filenameQuery}"`)
-              );
-          })
+          return video
+            ? ok({ video, name: filenameQuery })
+            : err(
+              new Error(`No video found for query "${filenameQuery}"`)
+            );
+        })
           .orElse(e => {
             logger.warn(e);
             return getVideoByName(auth, titleQuery)
               .andThen<{ video: youtubeV3.Schema$Video; name: string; }>(video => {
-                return video
-                  ? ok({ video, name: titleQuery })
-                  : err(
-                    new Error(`No video found for query "${titleQuery}"`)
-                  );
-              });
+              return video
+                ? ok({ video, name: titleQuery })
+                : err(
+                  new Error(`No video found for query "${titleQuery}"`)
+                );
+            });
           })
           .andThen(({ video, name }) => {
             if (!video.id) {
@@ -586,7 +587,10 @@ async function loadDatabases(): Promise<void> {
   await loadGameDatabase();
 }
 
-async function getKeyframeSource(workingDir: string, setList: Readonly<Log>): Promise<KeyframeSource> {
+async function getKeyframeSource(
+  workingDir: string,
+  setList: Readonly<Log>,
+): Promise<KeyframeSource> {
   const keyframeIntervalSeconds = setList.keyframeInterval ||
     getConfig().vodKeyframeIntervalSeconds ||
     undefined;
@@ -736,7 +740,7 @@ async function getPhaseGroupNameMapping(
   bracketService: BracketService | null,
 ): Promise<PhaseGroupNameMapping> {
   const tournamentPhaseGroups = await bracketService?.phasesForEvent(tournamentId, eventId)
-      .then(t => t.phaseGroups) ||
+    .then(t => t.phaseGroups) ||
     [];
   return {
     get(phaseGroupId) {
@@ -903,10 +907,6 @@ function isValidPhase(phaseId: string | null | undefined): phaseId is string {
   return !!phaseId && phaseId !== 'unknown';
 }
 
-function isValidTournament(tournamentId: string | null | undefined): tournamentId is string {
-  return tournamentId != null;
-}
-
 function makePrefix(str?: string): string {
   return str && str + ' ' || '';
 }
@@ -918,7 +918,11 @@ function characterList(player: Set['players'][0]): string {
   return ` (${player.characters.map(c => c.name).join(', ')})`;
 }
 
-function updateLogUploadId(logFile: string, uploadId: string, index: number | null): ResultAsync<void, Error> {
+function updateLogUploadId(
+  logFile: string,
+  uploadId: string,
+  index: number | null,
+): ResultAsync<void, Error> {
   return ResultAsync.fromPromise((async () => {
     let log: Log = JSON.parse(await fs.readFile(logFile, { encoding: 'utf8' }));
     if (index == null) {
@@ -946,7 +950,7 @@ function updateLogUploadId(logFile: string, uploadId: string, index: number | nu
       log.sets[index] = {
         uploadId,
         ...log.sets[index],
-      }
+      };
       await fs.writeFile(
         logFile,
         JSON.stringify(log, null, 2),

@@ -195,7 +195,7 @@ function walkObject<T>(
   test: (keyPath: string[], original: unknown) => boolean,
   replaceFn: (original: T) => T,
   keyPath: string[] = [],
-) {
+): void {
   for (const key of Object.keys(obj)) {
     const newPath = [...keyPath, key];
     if (test(newPath, obj[key])) {

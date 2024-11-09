@@ -13,4 +13,4 @@ export default function({ port, mediaServer }: { port: number; mediaServer: Medi
   app.use(express.static(path.join(getAppRoot(), '../public')));
   app.use(`/${mediaServer.getDirName()}`, express.static(mediaServer.getDir()));
   app.listen(port, () => logger.info(`Listening on port ${port}`));
-};
+}

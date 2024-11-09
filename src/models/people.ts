@@ -1,5 +1,4 @@
 import { promises as fs, existsSync } from 'fs';
-import merge from 'lodash.merge';
 import { dirname } from 'path';
 
 import { getId } from '@util/id';

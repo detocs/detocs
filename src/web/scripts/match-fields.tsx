@@ -17,5 +17,5 @@ export default class MatchFields extends AutocompleteFields<Match> {
 function loadMatchList(): Promise<Match[]> {
   return fetch(infoEndpoint('/matches').href)
     .then(checkResponseStatus)
-    .then(resp => resp.json() as Promise<Match[]>)
+    .then(resp => resp.json() as Promise<Match[]>);
 }

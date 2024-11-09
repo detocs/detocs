@@ -8,7 +8,9 @@ export type FormControlElement = HTMLInputElement | HTMLSelectElement | HTMLText
 export function massagedFormData(data: FormData): FormData {
   const keyCounts = new Map();
   const ret = new FormData();
-  for (let [key, value] of data.entries()) {
+  for (const entry of data.entries()) {
+    let [key] = entry;
+    const [, value] = entry;
     if (key.includes('[]')) {
       const count = keyCounts.get(key) || 0;
       keyCounts.set(key, count + 1);

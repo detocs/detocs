@@ -1,4 +1,4 @@
-import { h, FunctionalComponent, VNode, Fragment } from 'preact';
+import { h, FunctionalComponent, VNode } from 'preact';
 import { StateUpdater, useRef, useEffect } from 'preact/hooks';
 
 import BracketState, { nullState } from '@server/bracket/state';

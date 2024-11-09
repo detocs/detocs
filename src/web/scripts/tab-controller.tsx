@@ -29,7 +29,9 @@ const TAB_SHORTCUTS: Shortcut[] = [
   [ '^8', 'Eigth', () => 7 ],
 ];
 
-const TabController: FunctionalComponent = ({ children }: RenderableProps<{}>): VNode => {
+const TabController: FunctionalComponent = (
+  { children }: RenderableProps<unknown>,
+): VNode => {
   // TODO: Support changing number of children
   const numChildren = Array.isArray(children) ?
     children.length :
@@ -54,7 +56,7 @@ function selectFirstTab(node: Element | null): void {
       move(node, 0);
     }
   }
-};
+}
 
 function selectTabForHash(root: Element | null): boolean {
   if (!root) {
@@ -113,7 +115,7 @@ function move(root: Element, index: number): void {
       const section = tab.closest('.js-tabbable-section') as HTMLElement;
       section.scrollIntoView({ behavior: 'smooth' });
       const content = section.querySelector('.js-tabbable-section-content') as HTMLElement;
-      let input = content.querySelector<HTMLElement>(AUTOFOCUS_SELECTOR) ||
+      const input = content.querySelector<HTMLElement>(AUTOFOCUS_SELECTOR) ||
         content.querySelector<HTMLElement>(INTERACTIVE_SELECTOR);
       if (input) {
         input.focus();

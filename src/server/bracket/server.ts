@@ -91,7 +91,7 @@ class BracketServer {
     try {
       const result = await this.update(req.fields);
       result.match(
-        code => {res.sendStatus(code)},
+        code => {res.sendStatus(code);},
         e => e.send(logger, res),
       );
     } catch(e) {
@@ -106,7 +106,10 @@ class BracketServer {
       return ok(400);
     }
     const fields = parseFormData(rawFields) as UpdateRequest;
-    const [ parsedTournamentSlug, bracketService ] = this.parseUrlOrSlug(fields.tournamentUrl || null);
+    const [
+      parsedTournamentSlug,
+      bracketService,
+    ] = this.parseUrlOrSlug(fields.tournamentUrl || null);
     this.bracketService = bracketService;
     const parsedIds = {
       tournamentId: emptyToNull(fields.tournamentId),
@@ -136,7 +139,6 @@ class BracketServer {
       return err(httpUtil.userError('Invalid pool ID'));
     }
 
-    const originalTournamentId = this.state.tournamentId;
     const originalEventId = this.state.eventId;
     const originalPhaseGroupIds = new Set(this.state.phaseGroupIds);
 
@@ -161,8 +163,17 @@ class BracketServer {
       }
     }
 
-    if (this.bracketService && this.state.tournamentId && this.state.eventId && this.state.eventId !== originalEventId) {
-      const [update, error] = await fetchEventPhases(this.bracketService, this.state.tournamentId, this.state.eventId)
+    if (
+      this.bracketService
+      && this.state.tournamentId
+      && this.state.eventId
+      && this.state.eventId !== originalEventId
+    ) {
+      const [update, error] = await fetchEventPhases(
+        this.bracketService,
+        this.state.tournamentId,
+        this.state.eventId,
+      )
         .match(
           update => {
             return [update, null as httpUtil.HttpError | null];
@@ -231,7 +242,10 @@ class BracketServer {
     const tournamentChanged = update.tournamentId != this.state.tournamentId;
     const eventChanged = update.eventId != this.state.eventId;
     const phaseChanged = update.phaseId != this.state.phaseId;
-    const phaseGroupsChanged = !isEqual(new Set(update.phaseGroupIds), new Set(this.state.phaseGroupIds));
+    const phaseGroupsChanged = !isEqual(
+      new Set(update.phaseGroupIds),
+      new Set(this.state.phaseGroupIds),
+    );
     if (parsedSlug) {
       update.tournamentId = undefined;
       update.tournament = null;
@@ -276,7 +290,7 @@ class BracketServer {
         this.broadcastState();
         return true;
       })
-      .catch(err => {logger.error(err); return true});
+      .catch(err => {logger.error(err); return true;});
   }
 
   private startSetRefresh = (): void => {
@@ -304,15 +318,15 @@ function fetchTournament(
   return ResultAsync.fromPromise(
     bracketService.eventsForTournament(tournamentSlug)
       .then(resp => ({
-          tournament: resp.tournament,
-          tournamentId: resp.tournament.id,
-          events: resp.events,
-          eventId: resp.events.length === 1 ? resp.events[0].id : null,
-          phases: [],
-          phaseId: null,
-          phaseGroups: [],
-          phaseGroupIds: [],
-          unfinishedSets: [],
+        tournament: resp.tournament,
+        tournamentId: resp.tournament.id,
+        events: resp.events,
+        eventId: resp.events.length === 1 ? resp.events[0].id : null,
+        phases: [],
+        phaseId: null,
+        phaseGroups: [],
+        phaseGroupIds: [],
+        unfinishedSets: [],
       })),
     // TODO: Distinguish between 404 and other errors
     e => new ChainableError(`Unable to load tournament ${tournamentSlug}`, e as Error)

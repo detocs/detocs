@@ -2,7 +2,6 @@ import express, { Request, Response } from 'express';
 
 import * as httpUtil from '@util/http-server';
 import { getLogger } from '@util/logger';
-import { nonEmpty } from '@util/predicates';
 
 interface ErrorReportRequest {
   message?: string;
@@ -43,7 +42,7 @@ class ErrorServer {
       res.sendStatus(400);
       return;
     }
-    const { message, stack } = req.fields as ErrorReportRequest;
+    const { message } = req.fields as ErrorReportRequest;
     if (!message) {
       sendUserError(res, 'Error message is required');
       return;

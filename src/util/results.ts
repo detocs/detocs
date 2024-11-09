@@ -31,11 +31,11 @@ export function fromThrowable<A extends readonly any[], R, E>(
     return new ResultAsync(
       (async () => {
         try {
-          return new Ok(await fn(...args))
+          return new Ok(await fn(...args));
         } catch (error) {
-          return new Err(errorFn ? errorFn(error) : error as E)
+          return new Err(errorFn ? errorFn(error) : error as E);
         }
       })(),
-    )
-  }
+    );
+  };
 }

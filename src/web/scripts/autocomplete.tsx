@@ -76,4 +76,4 @@ export default class Autocomplete<T> extends Component<AutocompleteProps<T>> {
       </datalist>
     );
   }
-};
+}
