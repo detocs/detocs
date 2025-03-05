@@ -364,10 +364,13 @@ async function endRecordingGroup(_req: Request, res: Response): Promise<void> {
         logger.debug(`Ending group at ${timestamp}`);
         res.sendStatus(200);
         broadcastState(state);
-        saveLogs(state);
+        if (!recordingIdToUpdate) {
+          saveLogs(state);
+        }
 
         const groupId = recordingGroup.id;
         if (recordingIdToUpdate) {
+          setMetadata(recordingIdToUpdate, timestamp);
           getCurrentThumbnail(
             'stopThumbnail',
             () => getRecordingGroupById(groupId),
