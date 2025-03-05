@@ -9,6 +9,10 @@
 
 .timestamp__input {
   text-align: center;
+
+  &::placeholder {
+    text-align: center;
+  }
 }
 
 .timestamp__controls {
