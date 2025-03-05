@@ -96,7 +96,7 @@ const BracketDashboard: FunctionalComponent<Props> = ({ state, updateState }): V
             value={state.eventId || undefined}
             onKeyDown={submitOnEnter}
           >
-            <option>Select Event</option>
+            <option value="">Select Event</option>
             {state.events.map(e =>
               <option value={e.id}>{e.name}</option>
             )}
@@ -117,7 +117,7 @@ const BracketDashboard: FunctionalComponent<Props> = ({ state, updateState }): V
             value={state.phaseId || undefined}
             onKeyDown={submitOnEnter}
           >
-            <option>Select Phase</option>
+            <option value="">Select Phase</option>
             {state.phases
               .filter(e => e.eventId === state.eventId)
               .map(e => <option value={e.id}>{e.name}</option>)
