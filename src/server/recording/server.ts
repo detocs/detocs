@@ -22,10 +22,11 @@ import { getId } from '@util/id';
 import { getLogger } from '@util/logger';
 import { mostRecent } from '@util/recording';
 import { combineAsync } from '@util/results';
-import { sanitizeTimestamp, validateTimestamp } from '@util/timestamp';
+import { compareTimestamp, sanitizeTimestamp, validateTimestamp } from '@util/timestamp';
 
 import RecordingLogger from './log';
 import State, { Recording, RecordingGroup } from './state';
+import { getConfig } from '@util/configuration/config';
 
 const logger = getLogger('server/recording');
 const asyncMkdir = promisify(fs.mkdir);
@@ -192,8 +193,50 @@ async function stopRecording(callback?: () => void): Promise<void> {
   callback && callback();
   broadcastState(state);
   saveLogs(state);
-  getCurrentThumbnail('stopThumbnail', () => getRecordingById(recordingId));
-  setMetadata(recordingId, timestamps.recordingTimestamp);
+
+  let createdGroup: RecordingGroup|undefined = undefined;
+  getCurrentThumbnail('stopThumbnail', () => getRecordingById(recordingId), () => createdGroup);
+  setMetadata(recordingId, timestamps.recordingTimestamp)
+    .then(() => {
+      if (!getConfig().recording.splitOnGameChange || state.recordings.length <= 1) {
+        return;
+      }
+
+      const prevRecording = state.recordings[state.recordings.length - 2];
+      const currRecording = state.recordings[state.recordings.length - 1];
+      const prevStop = prevRecording.stopTimestamp;
+      const currStart = currRecording.startTimestamp;
+      if (!prevStop) {
+        return;
+      }
+
+      const prevGame = prevRecording.metadata?.game;
+      const currGame = currRecording.metadata?.game;
+      const prevGameId = prevGame?.id || prevGame?.name;
+      const currGameId = currGame?.id || currGame?.name;
+      if (prevGameId === currGameId) {
+        return;
+      }
+
+      if (state.recordingGroups.some(rg => {
+        const vsPrev = compareTimestamp(rg.startTimestamp, prevStop);
+        const vsCurr = compareTimestamp(rg.startTimestamp, currStart);
+
+        return vsPrev >= 0 && vsCurr <= 0;
+      })) {
+        return;
+      }
+
+      logger.info(`Starting group at ${currStart} due to game change. Set splitOnGameChange to false to disable this behavior.`);
+      const latestGroup = mostRecent(state.recordingGroups);
+      if (latestGroup && !latestGroup?.stopTimestamp) {
+        latestGroup.stopTimestamp = prevStop;
+        latestGroup.stopThumbnail = prevRecording.stopThumbnail;
+      }
+      createdGroup = newRecordingGroup(currRecording.streamRecordingFile, currStart);
+      createdGroup.startThumbnail = currRecording.startThumbnail;
+      state.recordingGroups.push(createdGroup);
+    });
 }
 
 async function setMetadata(recordingId: string, stopTimestamp: Timestamp): Promise<void> {
@@ -408,7 +451,6 @@ async function stopInProgressRecordingGroup(): Promise<void> {
 
 async function updateRecordingGroup(req: Request, res: Response): Promise<void> {
   const fields = req.fields as UpdateGroupRequest;
-  console.log('fields :>> ', fields);
   const recordingGroupId = fields['id'];
   const start = fields['start-timestamp'] || null;
   const stop = fields['stop-timestamp'] || null;
