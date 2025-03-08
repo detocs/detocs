@@ -23,7 +23,7 @@ export default class WebSocketOutput implements Output {
     this.templateFiles = templates;
   }
 
-  public async init(): Promise<void> {
+  public async init(initState: State): Promise<void> {
     this.templates = await Promise.all(this.templateFiles.map(parseTemplateFile));
 
     logger.info(`Initializing websocket output adapter on port ${this.port}`);
@@ -33,6 +33,7 @@ export default class WebSocketOutput implements Output {
 User Agent: ${req.headers['user-agent']}`);
       sendAllData(ws, this.currentData);
     });
+    this.update(initState);
   }
 
   public update(state: State): void {

@@ -30,6 +30,7 @@ import FileOutput from './output/file/output';
 import Output from './output/output';
 import WebSocketOutput from './output/websocket/output';
 import State, { nullState } from './state';
+import merge from 'lodash.merge';
 
 const logger = getLogger('server/info');
 const state: State = Object.assign({}, nullState);
@@ -89,9 +90,10 @@ export default async function start({ port, personDatabase }: {
   personDb = personDatabase;
   await loadDatabases();
 
-  const outputs = loadOutputs();
-  Promise.all(outputs.map(o => o.init()));
   logger.info('Initializing overlay info server');
+  loadDefaultState();
+  const outputs = loadOutputs();
+  Promise.all(outputs.map(o => o.init(state)));
 
   const app = express();
   // TODO: Security?
@@ -219,6 +221,10 @@ function loadOutputs(): Output[] {
         throw new Error('Output type not supported');
     }
   });
+}
+
+function loadDefaultState(): void {
+  Object.assign(state, merge(state, getConfig().defaultState));
 }
 
 // TODO: Subscribe to player id?

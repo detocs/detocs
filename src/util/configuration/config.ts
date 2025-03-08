@@ -5,6 +5,7 @@ import { getLogger } from '@util/logger';
 
 import { loadConfigData, findConfigData, emptyConfigData, parseConfig } from './common';
 import cloneDeep from 'lodash.clonedeep';
+import State from '@server/info/state';
 
 const logger = getLogger('config');
 
@@ -19,6 +20,7 @@ export interface Config {
   vodKeyframeIntervalSeconds?: number;
   vodSingleVideoTemplate?: never; // backwards-compatibility
   vodPerSetTemplate?: never; // backwards-compatibility
+  defaultState: Partial<State>,
   templates: {
     vod: {
       singleVideo: {
@@ -72,6 +74,7 @@ const DEFAULTS: Config = {
   logDirectory: './detocs-logs',
   clipDirectory: tmpDir('clips'),
   tempFileExpirationDays: 5,
+  defaultState: {},
   templates: {
     vod: {
       singleVideo: {

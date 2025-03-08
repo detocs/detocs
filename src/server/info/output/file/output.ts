@@ -3,7 +3,7 @@ import { extname, join } from 'path';
 
 import { ok, okAsync, Result, ResultAsync } from 'neverthrow';
 
-import State, { nullState } from '@server/info/state';
+import State from '@server/info/state';
 import Output from '@server/info/output/output';
 import { OutputTemplate, parseTemplateFile } from '@server/info/output/templates';
 import { FileOutputConfig, OutputTemplateConfig } from '@util/configuration/config';
@@ -35,11 +35,11 @@ export default class FileOutput implements Output {
     this.templateFiles = templates;
   }
 
-  public async init(): Promise<void> {
+  public async init(initState: State): Promise<void> {
     this.templates = await Promise.all(this.templateFiles.map(parseTemplateFile));
     await fs.mkdir(this.path, { recursive: true });
     logger.info(`Initializing file output adapter for ${this.path}`);
-    this.update(nullState);
+    this.update(initState);
     for (const template of this.templates) {
       const path = this.getTemplatePath(template);
       const mergeFn = MERGE_FUNCTIONS_BY_EXTENSION[extname(template.name)];

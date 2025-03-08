@@ -7,7 +7,7 @@ import LowerThird from '@models/lower-third';
 import { nonEmpty } from '@util/predicates';
 
 export default interface Output {
-  init(): Promise<void>;
+  init(state: State): Promise<void>;
   update(state: State): void;
 }
 
