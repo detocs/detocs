@@ -1,6 +1,10 @@
+import { promises as fs } from 'fs';
+import { extname } from 'path';
+
 import { Error as ChainableError } from 'chainable-error';
 import { err, ok, okAsync, Result, ResultAsync } from 'neverthrow';
-import { SendTweetV2Params, TweetV2, TwitterApiReadWrite } from 'twitter-api-v2';
+import { EUploadMimeType, SendTweetV2Params, TweetV2, TwitterApiReadWrite } from 'twitter-api-v2';
+import { MediaV2MediaCategory } from 'twitter-api-v2/dist/esm/types/v2/media.v2.types';
 import { DataV2 } from 'twitter-api-v2/dist/esm/types/v2/shared.v2.types';
 
 import { User } from '@services/twitter/types';
@@ -77,15 +81,57 @@ export function uploadMedia(
   client: TwitterApiReadWrite,
   mediaPath: string,
 ): ResultAsync<string, Error> {
-  logger.debug(`Uploading ${mediaPath}`);
+  const media_type = extentionToMimeType(extname(mediaPath));
+  const media_category = mediaTypeToCategory(media_type);
+  logger.debug(`Uploading ${mediaPath} with type ${media_type} and category ${media_category}`);
 
-  // TODO: Is there a way to get progress updates?
+  // TODO: Get progress updates?
   return ResultAsync.fromPromise(
-    client.v1.uploadMedia(mediaPath),
+    fs.readFile(mediaPath),
     e => e as Error,
   )
+    .andThen(buffer => ResultAsync.fromPromise(
+      client.v2.uploadMedia(buffer, {media_type, media_category}),
+      e => e as Error,
+    ))
     .map(mediaId => {
       logger.debug(`Upload of ${mediaPath} complete with ID ${mediaId}`);
       return mediaId;
     });
 }
+
+function extentionToMimeType(ext: string): EUploadMimeType {
+  switch (ext) {
+    case '.jpg':
+    case '.jpeg':
+      return EUploadMimeType.Jpeg;
+    case '.png':
+      return EUploadMimeType.Png;
+    case '.webp':
+      return EUploadMimeType.Webp;
+    case '.gif':
+      return EUploadMimeType.Gif;
+    case '.mp4':
+      return EUploadMimeType.Mp4;
+    case '.mov':
+      return EUploadMimeType.Mov;
+    default:
+      return "application/octet-stream" as EUploadMimeType;
+  }
+}
+function mediaTypeToCategory(media_type: string): MediaV2MediaCategory|undefined {
+  switch (media_type) {
+    case EUploadMimeType.Jpeg:
+    case EUploadMimeType.Png:
+    case EUploadMimeType.Webp:
+      return 'tweet_image';
+    case EUploadMimeType.Gif:
+      return 'tweet_gif';
+    case EUploadMimeType.Mp4:
+    case EUploadMimeType.Mov:
+      return 'tweet_video';
+    default:
+      return undefined;
+  }
+}
+
