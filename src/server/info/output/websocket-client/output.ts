@@ -14,14 +14,23 @@ const logger = getLogger('output/websocket-client');
 
 export default class WebSocketClientOutput implements Output {
   private readonly url: string;
+  private readonly pingInterval: number;
+  private readonly reconnectionDelay: number;
   private readonly templateFiles: OutputTemplateConfig[];
   private templates: OutputTemplate[] = [];
   private client?: ReconnectingWebSocket;
   private currentData: string[] = [];
 
-  public constructor({ templates, url }: WebSocketClientOutputConfig) {
+  public constructor({
+    templates,
+    url,
+    pingIntervalSeconds,
+    reconnectionDelaySeconds,
+  }: WebSocketClientOutputConfig) {
     this.templateFiles = templates;
     this.url = url;
+    this.pingInterval = (pingIntervalSeconds ?? 0) * 1000;
+    this.reconnectionDelay = (reconnectionDelaySeconds ?? 5) * 1000;
   }
 
   public async init(initState: State): Promise<void> {
@@ -30,6 +39,8 @@ export default class WebSocketClientOutput implements Output {
     logger.info(`Initializing WebSocket client output adapter with address ${this.url}`);
     const client = new ReconnectingWebSocket(this.url, [], {
       WebSocket,
+      minReconnectionDelay: this.reconnectionDelay,
+      maxReconnectionDelay: this.reconnectionDelay,
     });
     client.addEventListener('open', () => {
       logger.info(`Connection opened to ${this.url}`);
@@ -37,6 +48,13 @@ export default class WebSocketClientOutput implements Output {
     });
     this.client = client;
     this.update(initState);
+    if (this.pingInterval > 0) {
+      setInterval(() => {
+        if (client.readyState === WebSocket.OPEN) {
+          (client['_ws'] as WebSocket).ping();
+        }
+      }, this.pingInterval);
+    }
   }
 
   public update(state: State): void {

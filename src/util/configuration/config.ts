@@ -79,6 +79,8 @@ export type FileOutputConfig = OutputConfig & {
 export type WebSocketClientOutputConfig = OutputConfig & {
   type: 'websocketClient';
   url: string;
+  pingIntervalSeconds?: number;
+  reconnectionDelaySeconds?: number;
 };
 
 export type HttpClientOutputConfig = OutputConfig & {
