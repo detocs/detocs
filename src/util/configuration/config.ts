@@ -36,7 +36,12 @@ export interface Config {
       },
     }
   }
-  outputs: (WebSocketOutputConfig | FileOutputConfig)[];
+  outputs: (
+    WebSocketOutputConfig
+    | FileOutputConfig
+    | WebSocketClientOutputConfig
+    | HttpClientOutputConfig
+  )[];
   ports: {
     web: number;
   };
@@ -69,6 +74,21 @@ export type WebSocketOutputConfig = OutputConfig & {
 export type FileOutputConfig = OutputConfig & {
   type: 'file';
   path: string;
+};
+
+export type WebSocketClientOutputConfig = OutputConfig & {
+  type: 'websocketClient';
+  url: string;
+};
+
+export type HttpClientOutputConfig = OutputConfig & {
+  type: 'httpClient';
+  url: string;
+  method?: string;
+  headers?: Record<string, string>;
+  // TODO: Figure out a flexible and reasonable elegant method for body
+  // formatting. Templating?
+  formDataName: string;
 };
 
 const DEFAULTS: Config = {

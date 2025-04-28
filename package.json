@@ -79,6 +79,7 @@
     "ffprobe-static": "^3.1.0",
     "filenamify": "^4.1.0",
     "find-process": "^1.4.2",
+    "form-data": "^4.0.2",
     "front-matter": "^3.0.2",
     "google-auth-library": "^6.0.6",
     "graphql": "^15.5.0",
@@ -112,6 +113,7 @@
     "obs-websocket-js-4": "npm:obs-websocket-js@^4.0.3",
     "open": "^7.0.3",
     "p-limit": "^3.0.2",
+    "reconnecting-websocket": "^4.4.0",
     "twitter-api-v2": "^1.22.0",
     "ws": "^6.2.2",
     "yargs": "^17.5.1"
@@ -182,7 +184,6 @@
     "puppeteer": "^15.1.1",
     "react-popper": "^2.3.0",
     "react-toastify": "^9.0.5",
-    "reconnecting-websocket": "^4.4.0",
     "rollup": "^2.18.0",
     "rollup-plugin-bundle-size": "^1.0.3",
     "rollup-plugin-visualizer": "^5.6.0",

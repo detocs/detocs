@@ -27,8 +27,10 @@ import { mapValues } from '@util/object';
 import { parseFormData } from '@util/parsing';
 
 import FileOutput from './output/file/output';
+import HttpClientOutput from './output/http-client/output';
 import Output from './output/output';
 import WebSocketOutput from './output/websocket/output';
+import WebSocketClientOutput from './output/websocket-client/output';
 import State, { nullState } from './state';
 import merge from 'lodash.merge';
 
@@ -213,10 +215,12 @@ function loadOutputs(): Output[] {
     switch (conf.type) {
       case 'websocket':
         return new WebSocketOutput(conf);
-        break;
       case 'file':
         return new FileOutput(conf);
-        break;
+      case 'websocketClient':
+        return new WebSocketClientOutput(conf);
+      case 'httpClient':
+        return new HttpClientOutput(conf);
       default:
         throw new Error('Output type not supported');
     }

@@ -1,44 +1,47 @@
 import { getLogger } from '@util/logger';
 
-import * as WebSocket from 'ws';
+import ReconnectingWebSocket from 'reconnecting-websocket';
+import WebSocket from 'ws';
 
-import { WebSocketOutputConfig, OutputTemplateConfig } from '@util/configuration/config';
-import { broadcastAllData, sendAllData } from '@util/websocket';
+import { WebSocketClientOutputConfig, OutputTemplateConfig } from '@util/configuration/config';
+import { sendAllData } from '@util/websocket';
 import State from '@server/info/state';
 import Output from '@server/info/output/output';
 import { OutputTemplate, parseTemplateFile } from '@server/info/output/templates';
 import { Ok } from 'neverthrow';
 
-const logger = getLogger('output/websocket');
+const logger = getLogger('output/websocket-client');
 
-export default class WebSocketOutput implements Output {
-  private readonly port: number;
+export default class WebSocketClientOutput implements Output {
+  private readonly url: string;
   private readonly templateFiles: OutputTemplateConfig[];
   private templates: OutputTemplate[] = [];
-  private server: WebSocket.Server | undefined;
+  private client?: ReconnectingWebSocket;
   private currentData: string[] = [];
 
-  public constructor({ port, templates }: WebSocketOutputConfig) {
-    this.port = port;
+  public constructor({ templates, url }: WebSocketClientOutputConfig) {
     this.templateFiles = templates;
+    this.url = url;
   }
 
   public async init(initState: State): Promise<void> {
     this.templates = await Promise.all(this.templateFiles.map(parseTemplateFile));
 
-    logger.info(`Initializing WebSocket server output adapter on port ${this.port}`);
-    this.server = new WebSocket.Server({ port: this.port });
-    this.server.on('connection', (ws, req) => {
-      logger.info(`New client; Address: ${req.connection.remoteAddress}
-User Agent: ${req.headers['user-agent']}`);
-      sendAllData(ws, this.currentData);
+    logger.info(`Initializing WebSocket client output adapter with address ${this.url}`);
+    const client = new ReconnectingWebSocket(this.url, [], {
+      WebSocket,
     });
+    client.addEventListener('open', () => {
+      logger.info(`Connection opened to ${this.url}`);
+      sendAllData(client, this.currentData);
+    });
+    this.client = client;
     this.update(initState);
   }
 
   public update(state: State): void {
-    if (!this.server) {
-      throw new Error('Server not initialized');
+    if (!this.client) {
+      throw new Error('Client not initialized');
     }
     const files = this.templates.map(t => t.render(state));
     files.forEach(data => data.match(
@@ -48,6 +51,6 @@ User Agent: ${req.headers['user-agent']}`);
     this.currentData = files.filter(data => data.isOk())
       .map(data => (data as Ok<string, Error>).value);
     logger.debug(`Sending update:\n`, this.currentData.join('\n'));
-    broadcastAllData(this.server, this.currentData);
+    sendAllData(this.client, this.currentData);
   }
 }

@@ -42,11 +42,16 @@ export const sampleState: State = Object.freeze({
         id: 'd202008190602063570000',
         handle: "Nymphs Blitz",
         prefix: "VEX JOG",
+        alias: "VJ",
+        pronouns: "he/him",
         serviceIds: {
           twitter: "VJ_NymphsBlitz",
         },
       },
       score: 2,
+      characters: [{ name: "Ryu" }],
+      comment: 'red',
+      inLosers: true,
     },
   ],
   match: {
@@ -87,6 +92,8 @@ export const sampleState: State = Object.freeze({
         id: 'd202008190602063570000',
         handle: "Nymphs Blitz",
         prefix: "VEX JOG",
+        alias: "VJ",
+        pronouns: "he/him",
         serviceIds: {
           twitter: "VJ_NymphsBlitz",
         },
