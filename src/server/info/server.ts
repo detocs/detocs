@@ -326,7 +326,7 @@ function parseLowerThird(form: LowerThirdForm): LowerThird {
 function parseBreak(fields: Record<string, unknown>): Break {
   const messages = [];
   for (let i = 0; i < 4; i++) {
-    const msg = parseOptionalString(fields[`messages[${i}]`]);
+    const msg = parseRawString(fields[`messages[${i}]`]);
     if (msg != null) {
       messages[i] = msg;
     }
@@ -396,6 +396,10 @@ function parseSet(
   unfinishedSets: TournamentSet[],
 ): TournamentSet | undefined {
   return unfinishedSets.find(s => isEqual(s.serviceInfo, locator));
+}
+
+function parseRawString(value: unknown): string | undefined {
+  return typeof value === 'string' ? value.trim() : undefined;
 }
 
 function parseOptionalString(value: unknown): string | undefined {
