@@ -1,4 +1,4 @@
-import debounce from 'lodash.debounce';
+import throttle from 'lodash.throttle';
 import { h, FunctionalComponent, Fragment, VNode } from 'preact';
 import { StateUpdater, useRef, useState, Ref, useEffect } from 'preact/hooks';
 
@@ -19,7 +19,9 @@ import { fromMillis } from '@util/timestamp';
 
 import { clipEndpoint } from './api';
 import { ClipSelector } from './clip-selector';
+import useId from './hooks/id';
 import { useLocalState } from './hooks/local-state';
+import Icon from './icon';
 import { logError } from './log';
 import { SceneScreenshotMenu } from './screenshot-menu';
 
@@ -56,7 +58,7 @@ const CLIP_RANGE_STEP_MS = 250;
 /**
  * Limits the rate at which values get updated while dragging range sliders
  */
-const EDITOR_DEBOUNCE_TIME = 100;
+const EDITOR_DEBOUNCE_TIME = 250;
 
 const updateEndpoint = clipEndpoint('/update').href;
 const cutEndpoint = clipEndpoint('/cut').href;
@@ -124,11 +126,18 @@ const VideoEditor: FunctionalComponent<VideoEditorProps> = (props) => {
   const durationMs = media.durationMs;
 
   const videoRef = useRef<HTMLVideoElement>(null);
+  const trimmerRef = useRef<HTMLDivElement>(null);
   const [ currentTime, updateCurrentTime ] = useState(0);
+  const [ playing, updatePlaying ] = useState(false);
+  const [ playbackRate, updatePlaybackRate ] = useState(1.0);
+  const [ muted, updateMuted ] = useState(true);
+  const [ volume, updateVolume ] = useState(0.0);
+  const [ fullscreen, updateFullscreen ] = useState(false);
   const startMaximum = endMs;
   const startRangePercentage = `${startMaximum / durationMs * 100}%`;
   const endMinimum = quantizedCeilFromEnd(startMs, durationMs, CLIP_RANGE_STEP_MS);
   const endRangePercentage = `${(durationMs - endMinimum) / durationMs * 100}%`;
+
   useEffect(() => {
     if (status === ClipStatus.Rendering && videoRef.current) {
       videoRef.current.pause();
@@ -136,24 +145,126 @@ const VideoEditor: FunctionalComponent<VideoEditorProps> = (props) => {
     }
   }, [ status ]);
 
+  const togglePlay = (): void => {
+    if (videoRef.current) {
+      if (videoRef.current.paused) {
+        videoRef.current.play();
+      } else {
+        videoRef.current.pause();
+      }
+    }
+  };
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) {
+      return;
+    }
+    updatePlaying(!video.paused);
+    function updatePlayState(e: Event): void {
+      const video = e.target as HTMLVideoElement;
+      updatePlaying(!video.paused);
+    }
+    video.addEventListener('play', updatePlayState);
+    video.addEventListener('pause', updatePlayState);
+    return function cleanup() {
+      video.removeEventListener('play', updatePlayState);
+      video.removeEventListener('pause', updatePlayState);
+    };
+  }, []);
+
+  const setPlaybackRate = (value: number): void => {
+    if (videoRef.current) {
+      videoRef.current.playbackRate = value;
+    }
+  };
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) {
+      return;
+    }
+    updatePlaybackRate(video.playbackRate);
+    function updatePlaybackRateState(e: Event): void {
+      const video = e.target as HTMLVideoElement;
+      updatePlaybackRate(video.playbackRate);
+    }
+    video.addEventListener('ratechange', updatePlaybackRateState);
+    return function cleanup() {
+      video.removeEventListener('ratechange', updatePlaybackRateState);
+    };
+  }, []);
+
+  const toggleMute = (): void => {
+    if (videoRef.current) {
+      videoRef.current.muted = !videoRef.current.muted;
+    }
+  };
+  const setVolume = (value: number): void => {
+    if (videoRef.current) {
+      videoRef.current.volume = value;
+      videoRef.current.muted = false;
+    }
+  };
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) {
+      return;
+    }
+    updateMuted(video.muted);
+    updateVolume(video.volume);
+    function updateVolumeState(e: Event): void {
+      const video = e.target as HTMLVideoElement;
+      updateMuted(video.muted);
+      updateVolume(video.volume);
+    }
+    video.addEventListener('volumechange', updateVolumeState);
+    return function cleanup() {
+      video.removeEventListener('volumechange', updateVolumeState);
+    };
+  }, []);
+
+  const toggleFullscreen = (): void => {
+    if (trimmerRef.current) {
+      if (document.fullscreenElement === trimmerRef.current) {
+        document.exitFullscreen();
+      } else {
+        trimmerRef.current.requestFullscreen();
+      }
+    }
+  };
+  useEffect(() => {
+    function handler(): void {
+      updateFullscreen(document.fullscreenElement === trimmerRef.current);
+    }
+    document.addEventListener('fullscreenchange', handler);
+    return function cleanup() {
+      document.removeEventListener('fullscreenchange', handler);
+    };
+  }, []);
+
   const prevTimestamp = useRef(startMs);
   const handleTimeUpdate = (e: Event): void => {
     const video = e.target as HTMLVideoElement;
     const timestamp = video.currentTime * 1000;
     updateCurrentTime(timestamp);
 
-    // Loop selected range
-    if (prevTimestamp.current != timestamp &&
-      prevTimestamp.current < endMs &&
-      (timestamp > endMs || timestamp === 0))
-    {
+    // I checked to see if the requestVideoFrameCallback method might allow for faster detection of
+    // the video element looping, but it looks like it happens at the same time as the `timeupdate`
+    // event. The API would allow for more accurate looping for segments that don't end at the end
+    // of the video, but I don't think it's worth the effort.
+
+    const prevInRange = prevTimestamp.current >= startMs && prevTimestamp.current <= endMs;
+    const currentOutOfRange = timestamp < startMs || timestamp > endMs;
+    if (prevInRange && currentOutOfRange) {
+      updateCurrentTime(startMs);
       video.currentTime = startMs / 1000;
     }
     prevTimestamp.current = timestamp;
   };
+
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.currentTime = startMs / 1000;
+      videoRef.current.muted = true;
     }
   // We only want this to happen on first render
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -168,16 +279,19 @@ const VideoEditor: FunctionalComponent<VideoEditorProps> = (props) => {
     updateCurrentTime(timestampMs);
   };
 
-  const rangeStartUpdater = debounce(
+  const rangeStartUpdater = throttle(
     rangeUpdateHandler(videoRef, updateStartMs, playbackUpdater),
     EDITOR_DEBOUNCE_TIME,
+    { leading: true, trailing: true },
   );
 
-  const playbackPositionUpdater = debounce(
+  const playbackPositionUpdater = throttle(
     playbackUpdateHandler(videoRef, playbackUpdater),
-    EDITOR_DEBOUNCE_TIME);
+    EDITOR_DEBOUNCE_TIME,
+    { leading: true, trailing: true },
+  );
 
-  const rangeEndUpdater = debounce(
+  const rangeEndUpdater = throttle(
     rangeUpdateHandler(
       videoRef,
       updateEndMs,
@@ -186,6 +300,7 @@ const VideoEditor: FunctionalComponent<VideoEditorProps> = (props) => {
       startMs,
     ),
     EDITOR_DEBOUNCE_TIME,
+    { leading: true, trailing: true },
   );
 
   return (
@@ -195,19 +310,33 @@ const VideoEditor: FunctionalComponent<VideoEditorProps> = (props) => {
       class="video-editor"
       autocomplete="off"
     >
-      <div class="video-editor__trimmer" aria-busy={status === ClipStatus.Rendering}>
+      <div class="video-editor__trimmer" ref={trimmerRef} aria-busy={status === ClipStatus.Rendering}>
         <video
           class="video-editor__video"
           ref={videoRef}
           src={media.url}
           onTimeUpdate={handleTimeUpdate}
+          onClick={togglePlay}
           autoPlay={autoplay && !isRendering}
           preload={'metadata'}
-          controls={true}
+          controls={false}
           loop={true}
-          muted={true}
         >
         </video>
+        <VideoControls
+          currentTime={currentTime}
+          durationMs={durationMs}
+          playing={playing}
+          togglePlay={togglePlay}
+          playbackRate={playbackRate}
+          setPlaybackRate={setPlaybackRate}
+          muted={muted}
+          toggleMute={toggleMute}
+          volume={volume}
+          setVolume={setVolume}
+          fullscreen={fullscreen}
+          toggleFullscreen={toggleFullscreen}
+        />
         <div class="video-editor__range">
           <img class="video-editor__waveform" src={waveform.url} />
           <progress
@@ -245,6 +374,8 @@ const VideoEditor: FunctionalComponent<VideoEditorProps> = (props) => {
             disabled={isRendering}
             onInput={playbackPositionUpdater}
             onChange={playbackPositionUpdater}
+            onMouseDown={e => (e.target as HTMLInputElement).step = "1"}
+            onMouseUp={e => (e.target as HTMLInputElement).step = CLIP_RANGE_STEP_MS.toString()}
           />
           {!isRendered && <input
             type="range"
@@ -302,6 +433,129 @@ const VideoEditor: FunctionalComponent<VideoEditorProps> = (props) => {
     </form>
   );
 };
+
+function VideoControls({
+  currentTime,
+  durationMs,
+  playing,
+  togglePlay,
+  playbackRate,
+  setPlaybackRate,
+  muted,
+  toggleMute,
+  volume,
+  setVolume,
+  fullscreen,
+  toggleFullscreen,
+}: {
+  currentTime: number;
+  durationMs: number;
+  playing: boolean;
+  togglePlay: () => void;
+  playbackRate: number;
+  setPlaybackRate: (value: number) => void;
+  muted: boolean;
+  toggleMute: () => void;
+  volume: number;
+  setVolume: (value: number) => void;
+  fullscreen: boolean;
+  toggleFullscreen: () => void;
+}): VNode|null {
+  const [rateId, rateListId, volumeId, volumeListId] = useId(4, 'video-editor__controls-');
+  const rateMin = -3;
+  const rateMax = 3;
+
+  const onPlaybackRateChange = (e: Event): void => {
+    const exponent = +(e.target as HTMLInputElement).value;
+    setPlaybackRate(Math.pow(2, exponent));
+  };
+  const onVolumeChange = (e: Event): void => {
+    const newVolume = +(e.target as HTMLInputElement).value;
+    setVolume(newVolume);
+  };
+
+  const includeMinutes = durationMs >= 60 * 1000;
+  function formatDuration(ms: number): VNode {
+    const str = new Date(ms).toISOString();
+    const milliseconds = str.slice(-5, -1);
+    const seconds = str.slice(includeMinutes ? 14 : 17, 19);
+    return (
+      <span class="video-editor__control-time">
+        {seconds}
+        <span class="video-editor__control-milliseconds">{milliseconds}</span>
+      </span>
+    );
+  }
+
+  return (
+    <div class="video-editor__controls">
+      <span class="video-editor__control-group">
+        <button onClick={togglePlay}>
+          {playing ? <Icon name="pause" label="Pause" /> : <Icon name="play" label="Play" />}
+        </button>
+        {formatDuration(currentTime)} / {formatDuration(durationMs)}
+        <span class="video-editor__control-subgroup">
+          <input
+            id={rateId}
+            type="range"
+            class="video-editor__control-range"
+            value={Math.log2(playbackRate)}
+            onInput={onPlaybackRateChange}
+            onChange={onPlaybackRateChange}
+            min={rateMin}
+            max={rateMax}
+            step="0.5"
+            list={rateListId}
+            title="Playback Rate"
+            aria-label="Playback Rate"
+          />
+          <datalist id={rateListId}>
+            {Array.from({ length: rateMax - rateMin + 1 }, (_, i) => rateMin + i).map(i =>
+              <option key={i} value={i} label={`${Math.pow(2, i).toFixed(2)}x`} />
+            )}
+          </datalist>
+          <output for={rateId}>
+            {playbackRate.toPrecision(3)}x
+          </output>
+        </span>
+      </span>
+      <span class="video-editor__control-group">
+        <span class="video-editor__control-subgroup">
+          <button onClick={toggleMute}>
+            {muted ? <Icon name="mute" label="Unmute"/> : <Icon name="volume" label="Mute" />}
+          </button>
+          <input
+            type="range"
+            class="video-editor__control-range"
+            value={muted ? 0 : volume}
+            onInput={onVolumeChange}
+            onChange={onVolumeChange}
+            min="0"
+            max="1"
+            step="0.05"
+            list={volumeListId}
+            title="Volume"
+            aria-label="Volume"
+          />
+          <datalist id={volumeListId}>
+            {Array.from({ length: 5 }, (_, i) => i * 25).map(i =>
+              <option key={i} value={i/100} label={`${i}%`} />
+            )}
+          </datalist>
+          <output for={volumeId}>
+            {((muted ? 0 : volume) * 100).toFixed(0).padStart(3, "0")}%
+          </output>
+        </span>
+        <button onClick={toggleFullscreen}>
+          {fullscreen
+            ? <Icon name="windowed" label="Exit Fullscreen" />
+            : <Icon name="fullscreen" label="Fullscreen" />
+          }
+        </button>
+      </span>
+    </div>
+  );
+}
 
 function rangeUpdateHandler(
   videoRef: Ref<HTMLVideoElement>,
@@ -442,6 +696,16 @@ const ClipDashboard: FunctionalComponent<Props> = ({
           </button>
         )}
       </div>
+      { state.clips.length > 0 &&
+        <div class="clips__clip-selector">
+          <ClipSelector
+            clips={state.clips}
+            onSelect={updateCurrentId}
+            currentClipId={currentClipId}
+            includeNone={false}
+          />
+        </div>
+      }
       { state.clips
         .filter(isImageClipView)
         .map(clipView =>
@@ -464,14 +728,6 @@ const ClipDashboard: FunctionalComponent<Props> = ({
           />
         )
       }
-      <div class="clips__clip-selector">
-        <ClipSelector
-          clips={state.clips}
-          onSelect={updateCurrentId}
-          currentClipId={currentClipId}
-          includeNone={false}
-        />
-      </div>
     </div>
   );
 };

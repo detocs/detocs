@@ -33,9 +33,12 @@ $cursor-width: 2px;
 
 .clips__clip-selector {
   flex: 0 0 auto;
+  margin-bottom: calc(2 * var(--margin-small));
+
+  background: var(--bg-area);
 
   .clip-selector__list {
-    /* TODO: Make vertical on tall viewports */
+    /* TODO: Make vertical on tall viewports? */
     width: auto;
     flex-wrap: nowrap;
     justify-content: flex-start;
@@ -87,12 +90,65 @@ $cursor-width: 2px;
 
   flex-flow: column nowrap;
   align-content: center;
+  isolation: isolate;
 }
 
 .video-editor__video {
   flex: 1 0 auto;
   height: $min-editor-height - $video-track-height;
   width: 100%;
+  z-index: 1;
+
+  background: black;
+}
+
+.video-editor__controls {
+  display: flex;
+
+  flex-flow: row wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--margin-medium);
+  padding: var(--margin-small) var(--margin-medium);
+
+  background: black;
+  color: white;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-monospace);
+
+  button {
+    background: transparent;
+    border: none;
+    color: inherit;
+  }
+}
+
+.video-editor__control-group {
+  display: flex;
+
+  flex-flow: row nowrap;
+  align-items: center;
+  gap: var(--margin-medium);
+}
+
+.video-editor__control-subgroup {
+  display: flex;
+
+  flex-flow: row nowrap;
+  align-items: center;
+  gap: 0;
+}
+
+.video-editor__control-milliseconds {
+  font-size: 0.75em;
+}
+
+.video-editor__control-range {
+  flex: 0 1 auto;
+  width: 10em;
+  box-sizing: border-box;
+
+  outline-offset: -0.2em;
 }
 
 .video-editor__range {

@@ -1,0 +1,46 @@
+{
+  "close": {
+    "name": "x-circle",
+    "path": "node_modules/heroicons/24/outline/x-circle.svg"
+  },
+  "dropdown-closed": {
+    "name": "chevron-down",
+    "path": "node_modules/heroicons/24/solid/chevron-down.svg"
+  },
+  "dropdown-open": {
+    "name": "chevron-up",
+    "path": "node_modules/heroicons/24/solid/chevron-up.svg"
+  },
+  "external": {
+    "name": "arrow-top-right-on-square",
+    "path": "node_modules/heroicons/24/outline/arrow-top-right-on-square.svg"
+  },
+  "more": {
+    "name": "ellipsis-horizontal-circle",
+    "path": "node_modules/heroicons/24/outline/ellipsis-horizontal-circle.svg"
+  },
+  "play": {
+    "name": "play",
+    "path": "node_modules/heroicons/24/solid/play.svg"
+  },
+  "pause": {
+    "name": "pause",
+    "path": "node_modules/heroicons/24/solid/pause.svg"
+  },
+  "volume": {
+    "name": "speaker-wave",
+    "path": "node_modules/heroicons/24/solid/speaker-wave.svg"
+  },
+  "mute": {
+    "name": "speaker-x-mark",
+    "path": "node_modules/heroicons/24/solid/speaker-x-mark.svg"
+  },
+  "fullscreen": {
+    "name": "arrows-pointing-out",
+    "path": "node_modules/heroicons/24/solid/arrows-pointing-out.svg"
+  },
+  "windowed": {
+    "name": "arrows-pointing-in",
+    "path": "node_modules/heroicons/24/solid/arrows-pointing-in.svg"
+  }
+}

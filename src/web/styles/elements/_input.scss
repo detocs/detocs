@@ -1,5 +1,9 @@
 @use 'settings/opacity';
 
+input {
+  accent-color: var(--color-accent);
+}
+
 input:invalid {
   background-color: var(--color-bg-error);
 }

@@ -3,6 +3,8 @@ const fs = require('fs').promises;
 const { series, parallel, src, dest } = require('gulp');
 const run = require('gulp-run');
 
+const ICONS = require('../src/web/scripts/icons.json');
+
 const clean = () =>
   fs.rmdir('build', { recursive: true, force: true });
 
@@ -11,7 +13,7 @@ const builtinAssets = () =>
     .pipe(dest('build/templates/'));
 
 const tsc = () =>
-  run('npm run tsc').exec();
+  run('npm run tsc', {}).exec();
 
 const webCss = require('./webcss');
 
@@ -20,17 +22,17 @@ const webHtml = () =>
     .pipe(dest('build/public/'));
 
 const webIcons = () =>
-  run('npm run webicons').exec();
+  run(`npm run webicons ${Object.values(ICONS).map(v => v.path).join(' ')}`, {}).exec();
 
 const webImages = () =>
   src('assets/images/**/*')
     .pipe(dest('build/public/images/'));
 
 const rollup = () =>
-  run('npm run webjs').exec();
+  run('npm run webjs', {}).exec();
 
 const screenshotJs = () =>
-  run('npm run screenshotjs').exec();
+  run('npm run screenshotjs', {}).exec();
 
 const build = series(
   clean,
@@ -55,5 +57,6 @@ module.exports = {
   webCss,
   webJs: series(tsc, rollup),
   webHtml,
+  webIcons,
   screenshots,
 };

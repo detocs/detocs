@@ -24,7 +24,7 @@
   flex-flow: column nowrap;
   padding-top: 1rem;
 
-  background: var(--color-bg);
+  background: var(--bg-area);
   box-shadow: 0 0 0.5rem var(--color-shadow);
 
   @supports not (width: max-content) {

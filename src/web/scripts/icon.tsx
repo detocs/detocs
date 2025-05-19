@@ -1,13 +1,6 @@
 import { h, VNode } from 'preact';
 import { JSXInternal } from 'preact/src/jsx';
-
-const ICON_NAME_MAPPING = Object.freeze({
-  'close': 'x-circle',
-  'dropdown-closed': 'chevron-down',
-  'dropdown-open': 'chevron-up',
-  'external': 'external-link',
-  'more': 'dots-circle-horizontal',
-});
+import ICON_NAME_MAPPING from './icons.json';
 
 export type Props = JSXInternal.SVGAttributes<SVGSVGElement> & {
   name: keyof typeof ICON_NAME_MAPPING;
@@ -28,7 +21,7 @@ export default function Icon({
       aria-label={label}
     >
       {label && <title>{label}</title>}
-      <use href={`/icons/symbol/icons.svg#${ICON_NAME_MAPPING[name]}`}></use>
+      <use href={`/icons/symbol/icons.svg#${ICON_NAME_MAPPING[name].name}`}></use>
     </svg>
   );
 }
