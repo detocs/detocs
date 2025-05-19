@@ -17,8 +17,11 @@ export function useLocalState<T>(
   } = DEFAULT_OPTIONS,
 ): [ T, StateUpdater<T> ] {
   const [ localState, updateLocalState ] = useState(() => transform(state));
+  const key = keyGenerator(state);
   useEffect(() => {
     updateLocalState(transform(state));
-  }, [ keyGenerator(state) ]);
+  // Omitting transform and state from the dependency array is intentional
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ key ]);
   return [ localState, updateLocalState ];
 }

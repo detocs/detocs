@@ -154,6 +154,8 @@ export const PersonSelector: FunctionalComponent<PersonFieldProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteId = useAutocompleteId();
 
+  // `debounce` isnt' doing anything weird here
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const updateAutocomplete = useCallback(
     debounce(
       (val: string): Promise<void> => {
@@ -172,7 +174,7 @@ export const PersonSelector: FunctionalComponent<PersonFieldProps> = ({
 
   useEffect(() => {
     updateAutocomplete(person.handle || '');
-  }, [ person.handle ]);
+  }, [ person.handle, updateAutocomplete ]);
 
   const handleHandleInput = (updater: PersonUpdater, event: Event): void => {
     const val = (event.target as HTMLInputElement).value;

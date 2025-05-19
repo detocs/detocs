@@ -1,5 +1,5 @@
 import { h, FunctionalComponent, RenderableProps, VNode } from 'preact';
-import { useCallback } from 'preact/hooks';
+import { useEffect, useRef } from 'preact/hooks';
 
 import { INTERACTIVE_SELECTOR } from '@util/dom';
 
@@ -32,15 +32,28 @@ const TAB_SHORTCUTS: Shortcut[] = [
 const TabController: FunctionalComponent = (
   { children }: RenderableProps<unknown>,
 ): VNode => {
-  // TODO: Support changing number of children
   const numChildren = Array.isArray(children) ?
     children.length :
     children != null ? 1 : 0;
-  const ref = useCallback((node: Element | null) => {
-    selectFirstTab(node);
-    window.addEventListener('hashchange', selectTabForHash.bind(null, node));
-    registerKeyboardShortcuts(node, numChildren);
+  const ref = useRef<HTMLElement|null>(null);
+  useEffect(() => {
+    if (ref.current) {
+      selectFirstTab(ref.current);
+      const handleHashChange = selectTabForHash.bind(null, ref.current);
+      window.addEventListener('hashchange', handleHashChange);
+      return function cleanup() {
+        window.removeEventListener('hashchange', handleHashChange);
+      };
+    }
   }, []);
+  useEffect(() => {
+    if (ref.current) {
+      const shortcuts = registerKeyboardShortcuts(ref.current, numChildren);
+      return function cleanup() {
+        shortcuts.forEach(unregister => unregister());
+      };
+    }
+  }, [ numChildren ]);
 
   return (
     <main class="tab-controller" role="tablist" ref={ref}>

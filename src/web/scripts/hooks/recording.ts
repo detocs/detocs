@@ -4,7 +4,7 @@ import { StateUpdater } from 'preact/hooks';
 import RecordingState, { Recording, RecordingGroup } from '@server/recording/state';
 
 import { useLocalState } from './local-state';
-import { useSubstate } from './substate';
+import { createSubstatehook } from './substate';
 import { Id } from '@util/id';
 
 export const useRecording = (
@@ -12,7 +12,7 @@ export const useRecording = (
   updater: StateUpdater<RecordingState>,
   id: Id,
 ): [Recording, StateUpdater<Recording>] =>
-  useSubstate<RecordingState, Recording>(
+  createSubstatehook<RecordingState, Recording>(
     state => {
       const rec = state.recordings.find(r => r.id === id);
       if (!rec) {
@@ -32,7 +32,7 @@ export const useRecording = (
     },
   )(value, updater);
 
-const useStartTimestampSubstate = useSubstate<Recording, string>(
+const useStartTimestampSubstate = createSubstatehook<Recording, string>(
   recording => recording.startTimestamp,
   (recording, value) => updateImmutable(
     recording,
@@ -45,7 +45,7 @@ export const useStartTimestamp: typeof useStartTimestampSubstate = (state, updat
   );
 };
 
-const useStopTimestampSubstate = useSubstate<Recording, string | null>(
+const useStopTimestampSubstate = createSubstatehook<Recording, string | null>(
   recording => recording.stopTimestamp,
   (recording, value) => updateImmutable(
     recording,
@@ -63,7 +63,7 @@ export const useRecordingGroup = (
   updater: StateUpdater<RecordingState>,
   id: Id,
 ): [RecordingGroup, StateUpdater<RecordingGroup>] =>
-  useSubstate<RecordingState, RecordingGroup>(
+  createSubstatehook<RecordingState, RecordingGroup>(
     state => {
       const rec = state.recordingGroups.find(r => r.id === id);
       if (!rec) {
@@ -83,7 +83,7 @@ export const useRecordingGroup = (
     },
   )(value, updater);
 
-const useGroupStartTimestampSubstate = useSubstate<RecordingGroup, string>(
+const useGroupStartTimestampSubstate = createSubstatehook<RecordingGroup, string>(
   group => group.startTimestamp,
   (group, value) => updateImmutable(
     group,
@@ -99,7 +99,7 @@ export const useGroupStartTimestamp: typeof useGroupStartTimestampSubstate = (
   );
 };
 
-const useGroupStopTimestampSubstate = useSubstate<RecordingGroup, string | null>(
+const useGroupStopTimestampSubstate = createSubstatehook<RecordingGroup, string | null>(
   group => group.stopTimestamp,
   (group, value) => updateImmutable(
     group,

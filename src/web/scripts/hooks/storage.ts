@@ -33,7 +33,7 @@ function useStorage<T>(
     };
     window.addEventListener('storage', handleEvent);
     return () => window.removeEventListener('storage', handleEvent);
-  }, []);
+  }, [ key, defaultValue ]);
 
   return [ val, storageUpdater ];
 }

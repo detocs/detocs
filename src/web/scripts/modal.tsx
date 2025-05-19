@@ -24,13 +24,13 @@ export const Modal: FunctionalComponent<ModalProps> = ({
 }): VNode | null => {
   // TODO: Trap keyboard focus
   const modalPortal = useMemo(() => document.getElementById('modals'), []) as HTMLDivElement;
-  if (!isOpen) {
-    return null;
-  }
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     ref.current?.querySelector<HTMLElement>(INTERACTIVE_SELECTOR)?.focus();
   });
+  if (!isOpen) {
+    return null;
+  }
   return createPortal(
     <div
       className="modal__wrapper"

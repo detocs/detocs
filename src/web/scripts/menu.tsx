@@ -1,6 +1,6 @@
 import { ComponentChildren, Fragment, h, RefObject, VNode } from 'preact';
 import { CSSProperties } from 'preact/compat';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { JSXInternal } from 'preact/src/jsx';
 import { usePopper } from 'react-popper';
 
@@ -42,12 +42,12 @@ export function Menu({
     setShow(true);
   }
 
-  function closeMenu(): void {
+  const closeMenu = useCallback((): void => {
     if (dropdownRef.current && dropdownRef.current.contains(document.activeElement)) {
       triggerRef.current?.focus();
     }
     setShow(false);
-  }
+  }, []);
 
   function handleTriggerKeyboard(event: KeyboardEvent): void {
     switch (event.key) {
@@ -310,17 +310,17 @@ function useFocusOutside(callback: () => void): JSXInternal.DOMAttributes<HTMLEl
       timeout.current = null;
     }
   }
-  function enqueueCallback(): void {
+  const enqueueCallback = useCallback((): void => {
     cancelCallback();
     timeout.current = window.setTimeout(() => {
       callback();
     });
-  }
+  }, [ callback ]);
 
   useEffect(() => {
     document.addEventListener('click', enqueueCallback, { capture: true });
     return () => document.removeEventListener('click', enqueueCallback, { capture: true });
-  }, []);
+  }, [ enqueueCallback ]);
 
   return ({
     onBlurCapture: enqueueCallback,

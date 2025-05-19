@@ -3,7 +3,7 @@ import { StateUpdater } from 'preact/hooks';
 export type SubstateTransformer<Full, Subset> =
   (state: Full, updateState: StateUpdater<Full>) => [Subset, StateUpdater<Subset>];
 
-export function useSubstate<Full, Subset>(
+export function createSubstatehook<Full, Subset>(
   getter: (state: Readonly<Full>) => Subset,
   setter: (state: Readonly<Full>, value: Subset) => Full,
 ): SubstateTransformer<Full, Subset> {

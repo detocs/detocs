@@ -22,6 +22,6 @@ export function useServerState<T>(endpoint: URL, initialState: T): [ T, StateUpd
     };
     ws.onerror = showWarning;
     return ws.close.bind(ws);
-  }, []);
+  }, [ endpoint.href ]);
   return [ state, updateState ];
 }

@@ -155,6 +155,8 @@ const VideoEditor: FunctionalComponent<VideoEditorProps> = (props) => {
     if (videoRef.current) {
       videoRef.current.currentTime = startMs / 1000;
     }
+  // We only want this to happen on first render
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const playbackUpdater = (timestampMs: number): void => {
@@ -414,7 +416,7 @@ const ClipDashboard: FunctionalComponent<Props> = ({
     if (selectedMediaSource != null && !state.mediaSources.includes(selectedMediaSource)) {
       updateSelectedMediaSource(undefined);
     }
-  }, [ state.mediaSources ]);
+  }, [ state.mediaSources, selectedMediaSource ]);
   const mediaSourceSelector = <MediaSourceSelector
     mediaSources={state.mediaSources}
     selectedMediaSource={selectedMediaSource}

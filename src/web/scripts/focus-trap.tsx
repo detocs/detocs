@@ -9,22 +9,23 @@ JSXInternal.HTMLAttributes<HTMLDivElement>;
 
 const FocusTrap: FunctionalComponent<FocusTrapProps> = ({ children, ...attributes }): VNode => {
   const ref = useRef<HTMLDivElement>(null);
-  let firstInteractible: HTMLElement | undefined;
-  let lastInteractible: HTMLElement | undefined;
+  const firstInteractible = useRef<HTMLElement|null>(null);
+  const lastInteractible = useRef<HTMLElement|null>(null);
   useEffect(() => {
     const interactibles = ref.current?.querySelectorAll<HTMLElement>(INTERACTIVE_SELECTOR);
     if (interactibles && interactibles.length > 0) {
-      firstInteractible = interactibles[0];
-      lastInteractible = interactibles[interactibles.length - 1];
+      firstInteractible.current = interactibles[0];
+      lastInteractible.current = interactibles[interactibles.length - 1];
     }
   }, [ children ]);
   const handleTab = (evt: KeyboardEvent): void => {
-    if (!evt.shiftKey && document.activeElement === lastInteractible) {
-      firstInteractible?.focus();
+    // TODO: This approach doesn't work with radio buttons, should switch to one using canaries
+    if (!evt.shiftKey && document.activeElement === lastInteractible.current) {
+      firstInteractible.current?.focus();
       evt.preventDefault();
     }
-    if (evt.shiftKey && document.activeElement === firstInteractible) {
-      lastInteractible?.focus();
+    if (evt.shiftKey && document.activeElement === firstInteractible.current) {
+      lastInteractible.current?.focus();
       evt.preventDefault();
     }
   };

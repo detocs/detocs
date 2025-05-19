@@ -148,9 +148,10 @@ const ThumbVid: FC<{ media: VideoFile }> = ({ media }): VNode => {
       console.warn('Unable to observe <video> element for thumbnail');
       return;
     }
-    getVideoObserver().observe(videoRef.current);
-    return () => {
-      videoRef.current && getVideoObserver().unobserve(videoRef.current);
+    const videoElem = videoRef.current;
+    getVideoObserver().observe(videoElem);
+    return function cleanup() {
+      getVideoObserver().unobserve(videoElem);
     };
   }, []);
   useEffect(() => {
@@ -173,20 +174,6 @@ const ThumbVid: FC<{ media: VideoFile }> = ({ media }): VNode => {
 };
 
 const ImageThumbnail: FC<ImageThumbnailProps> = ({ media, ...additionalProps }): VNode => {
-  const imageRef = useRef<HTMLImageElement>();
-  useEffect(() => {
-    if (!imageRef.current) {
-      console.warn('Unable to observe <object> element for thumbnail');
-      return;
-    }
-    getImageObserver().observe(imageRef.current);
-    return () => {
-      imageRef.current && getImageObserver().unobserve(imageRef.current);
-    };
-  }, []);
-  useEffect(() => {
-    imageRef.current && updateImage(imageRef.current);
-  }, [ media.url ]);
   return (
     <div className="thumbnail" {...additionalProps}>
       <ThumbImg media={media} />
@@ -198,12 +185,13 @@ const ThumbImg: FC<{ media: ImageFile }> = ({ media }): VNode => {
   const imageRef = useRef<HTMLImageElement>(null);
   useEffect(() => {
     if (!imageRef.current) {
-      console.warn('Unable to observe <object> element for thumbnail');
+      console.warn('Unable to observe image element for thumbnail');
       return;
     }
-    getImageObserver().observe(imageRef.current);
+    const imageElem = imageRef.current;
+    getImageObserver().observe(imageElem);
     return () => {
-      imageRef.current && getImageObserver().unobserve(imageRef.current);
+      getImageObserver().unobserve(imageElem);
     };
   }, []);
   useEffect(() => {
