@@ -61,6 +61,7 @@ const CLIP_RANGE_STEP_MS = 250;
 const EDITOR_DEBOUNCE_TIME = 250;
 
 const updateEndpoint = clipEndpoint('/update').href;
+const deleteEndpoint = clipEndpoint('/delete').href;
 const cutEndpoint = clipEndpoint('/cut').href;
 const sendEndpoint = clipEndpoint('/send').href;
 const clipEndpoints = [
@@ -97,12 +98,28 @@ const ClipMetadata: FunctionalComponent<Clip> = (clip) => {
 
 const ImageViewer: FunctionalComponent<ImageViewerProps> = ({ clipView }) => {
   return (
-    <div class="image-viewer">
+    <form
+      class="image-viewer"
+      autocomplete="off"
+    >
       <div class="image-viewer__image">
         <img src={clipView.clip.media.url} />
       </div>
-      <ClipMetadata {...clipView.clip}/>
-    </div>
+      <div class="image-viewer__buttons">
+        <input type="hidden" name="id" value={clipView.clip.id} />
+        <ClipMetadata {...clipView.clip}/>
+        <div class="action-row">
+          <button
+            type="submit"
+            class="warning"
+            formAction={deleteEndpoint}
+            formMethod="DELETE"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </form>
   );
 };
 
@@ -415,6 +432,15 @@ const VideoEditor: FunctionalComponent<VideoEditorProps> = (props) => {
           <button type="submit" disabled={isRendering || isRendered} formAction={cutEndpoint}>
             Cut
           </button>
+          <button
+            type="submit"
+            disabled={isRendering}
+            class="warning"
+            formAction={deleteEndpoint}
+            formMethod="DELETE"
+          >
+            Delete
+          </button>
         </div>
         {isRendered && mediaSourceSelector &&
           <form
@@ -664,13 +690,24 @@ const ClipDashboard: FunctionalComponent<Props> = ({
   recentScenes,
   addRecentScene,
 }) => {
-  const [ currentClipId, updateCurrentId ] = useState<Id | null>(null);
+  const [ currentClipId, updateCurrentId ] = useState<Id|null>(null);
   const [ selectedMediaSource, updateSelectedMediaSource ] = useState<string|undefined>(undefined);
+  const selectorRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (selectedMediaSource != null && !state.mediaSources.includes(selectedMediaSource)) {
       updateSelectedMediaSource(undefined);
     }
   }, [ state.mediaSources, selectedMediaSource ]);
+  useEffect(() => {
+    if (currentClipId != null &&
+      !state.clips.map<Id|null>(clipView => clipView.clip.id).includes(currentClipId))
+    {
+      updateCurrentId(null);
+      selectorRef.current?.focus();
+    }
+  }, [ state.clips, currentClipId ]);
+
   const mediaSourceSelector = <MediaSourceSelector
     mediaSources={state.mediaSources}
     selectedMediaSource={selectedMediaSource}
@@ -696,16 +733,16 @@ const ClipDashboard: FunctionalComponent<Props> = ({
           </button>
         )}
       </div>
-      { state.clips.length > 0 &&
-        <div class="clips__clip-selector">
+      <div class="clips__clip-selector" ref={selectorRef} tabIndex={-1}>
+        { state.clips.length > 0 &&
           <ClipSelector
             clips={state.clips}
             onSelect={updateCurrentId}
             currentClipId={currentClipId}
             includeNone={false}
           />
-        </div>
-      }
+        }
+      </div>
       { state.clips
         .filter(isImageClipView)
         .map(clipView =>

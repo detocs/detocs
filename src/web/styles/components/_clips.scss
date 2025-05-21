@@ -33,7 +33,7 @@ $cursor-width: 2px;
 
 .clips__clip-selector {
   flex: 0 0 auto;
-  margin-bottom: calc(2 * var(--margin-small));
+  margin-bottom: var(--margin-small);
 
   background: var(--bg-area);
 
@@ -53,7 +53,10 @@ $cursor-width: 2px;
 .image-viewer, .video-editor {
   display: flex;
   flex: 1 1 auto;
+  margin: var(--margin-small);
+
   flex-flow: row wrap;
+  gap: var(--margin-small);
 }
 
 .image-viewer {
@@ -76,12 +79,23 @@ $cursor-width: 2px;
     left: 0;
     width: 100%;
     height: 100%;
-
     box-sizing: border-box;
+
     /* doiuse-disable object-fit */
     object-fit: contain;
     /* doiuse-enable object-fit */
+
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' style='background-color:hsl(180 4 13)' viewBox='0 0 100 100'%3E%3Cpath fill='hsl(180 4 20)' d='M0 0h50v50H0zM50 50h50v50H50z'/%3E%3C/svg%3E");
+    background-size: 50px 50px;
+    background-repeat: repeat;
   }
+}
+
+.image-viewer__buttons {
+  align-self: center;
+  margin-bottom: 0.55rem; // extra bottom padding to align with video editor and dodge version number
+
+  padding: 0 var(--margin-medium);
 }
 
 .video-editor__trimmer {
@@ -156,10 +170,13 @@ $cursor-width: 2px;
   display: flex;
   flex: 0 0 auto;
   height: $video-track-height;
+  box-sizing: border-box;
 
   flex-flow: column nowrap;
 
   overflow-x: hidden;
+  border: 2px solid black;
+  border-top: none;
 }
 
 .video-editor__waveform {
@@ -297,6 +314,7 @@ $cursor-width: 2px;
 .video-editor__buttons {
   display: flex;
   flex: 1 0 13em;
+  margin-bottom: 0.55rem; // extra bottom padding to align with video editor and dodge version number
 
   flex-flow: column nowrap;
   overflow: hidden; // input-row seems to be causing overflow

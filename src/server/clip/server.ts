@@ -33,6 +33,10 @@ interface UpdateRequest {
   description?: string;
 }
 
+interface DeleteRequest {
+  id?: string;
+}
+
 interface ClipUpdate {
   id: string;
   startMs: number;
@@ -110,11 +114,13 @@ class ClipServer {
   }
 
   public registerHandlers(): void {
+    // TODO: RESTify URLs
     this.appServer.post('/screenshot', this.getScreenshot);
     this.appServer.get('/screenshot', this.getScreenshot);
     this.appServer.post('/clip', this.getClip);
     this.appServer.get('/clip', this.getClip);
     this.appServer.post('/update', this.updateClip);
+    this.appServer.delete('/delete', this.deleteClip);
     this.appServer.post('/cut', this.cutClip);
     this.appServer.post('/send', this.sendClip);
     this.appServer.get('/state', (_, res) => {
@@ -253,6 +259,16 @@ class ClipServer {
       );
   };
 
+  private deleteClip = async (req: Request, res: Response): Promise<void> => {
+    return this.deleteMediaClip(req.fields as DeleteRequest)
+      .match(
+        () => {
+          res.sendStatus(200);
+        },
+        err => sendUserError(res, err),
+      );
+  };
+
   private cutClip = async (req: Request, res: Response): Promise<void> => {
     return this.updateVideoClip(req.fields as UpdateRequest, ClipStatus.Rendering)
       .match(
@@ -339,7 +355,7 @@ class ClipServer {
       const { id, startMs, endMs, description } = update;
       const { index, clipView } = this.getVideoClipById(id);
       if (clipView == null) {
-        return err(new Error(`No recording matches ID ${id}`));
+        return err(new Error(`No clip matches ID ${id}`));
       }
       if (endMs > clipView.clip.media.durationMs) {
         return err(new Error('Invalid bounds'));
@@ -366,6 +382,23 @@ class ClipServer {
         }}});
       this.broadcastState();
       return ok(this.state.clips[index] as ClipView<VideoClip>);
+    });
+  }
+
+  private deleteMediaClip(
+    data: DeleteRequest,
+  ): Result<ClipView, Error> {
+    return validateDeleteRequest(data).andThen(id => {
+      const { index, clipView } = this.getClipById(id);
+      if (clipView == null) {
+        return err(new Error(`No clip matches ID ${id}`));
+      }
+      this.state = updateImmutable(
+        this.state,
+        { clips: { $splice: [[index, 1]] }},
+      );
+      this.broadcastState();
+      return ok(clipView);
     });
   }
 
@@ -473,6 +506,14 @@ function validateUpdateRequest(req: UpdateRequest): Result<ClipUpdate, Error> {
     return err(new Error('Invalid bounds'));
   }
   return ok({ id, startMs, endMs, description: description || '' });
+}
+
+function validateDeleteRequest(req: DeleteRequest): Result<string, Error> {
+  const { id } = req;
+  if (!id) {
+    return err(new Error('id is required'));
+  }
+  return ok(id);
 }
 
 function validateSendRequest(req: SendRequest): Result<SendParams, Error> {
