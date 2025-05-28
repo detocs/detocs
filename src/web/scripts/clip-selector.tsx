@@ -30,7 +30,7 @@ export const ClipSelector: FunctionalComponent<ClipSelectorModalProps> = ({
   };
   return (
     <CallbackForm<{ clipId: string }>
-      class="clip-selector js-manual-form"
+      class="clip-selector"
       formRef={formRef}
       onSubmit={data => {
         onSelect(data.clipId || null);

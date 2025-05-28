@@ -10,6 +10,7 @@ export function CallbackForm<T>({
   children,
   onSubmit,
   formRef,
+  class: className,
   ...attributes
 }: CallbackFormProps<T>): VNode {
   const submitHandler = (event: Event): void => {
@@ -18,7 +19,12 @@ export function CallbackForm<T>({
     const data = Object.fromEntries(new FormData(form).entries());
     onSubmit(data as unknown as T);
   };
-  return (<form {...attributes} onSubmit={submitHandler} ref={formRef}>
+  return (<form
+    {...attributes}
+    class={`${className ?? ''} js-manual-form`}
+    onSubmit={submitHandler}
+    ref={formRef}
+  >
     {children}
   </form>);
 }

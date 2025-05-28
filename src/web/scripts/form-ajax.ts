@@ -29,14 +29,20 @@ export function bindSubmitHandler(): void {
     if (form.classList.contains('js-manual-form')) {
       return;
     }
+    event.preventDefault();
+  }, { capture: true });
+  document.addEventListener('submit', (event: Event) => {
+    const form = event.target as HTMLFormElement;
+    if (form.classList.contains('js-manual-form')) {
+      return;
+    }
     const { action, method } = getFormRoute(form);
     const body = massagedFormData(new FormData(form));
     fetch(action, { method, body })
       .then(checkResponseStatus)
       .catch(logError);
 
-    event.preventDefault();
-  }, { capture: true });
+  });
 }
 
 function setFormRoute(form: HTMLFormElement, attributes: NamedNodeMap): void {
@@ -58,8 +64,12 @@ function setFormRoute(form: HTMLFormElement, attributes: NamedNodeMap): void {
   }
 }
 
-function getFormRoute(form: HTMLFormElement): { action: string; method: string; } {
+export function getFormRoute(form: HTMLFormElement): { action: string; method: string; } {
   const action = form.dataset[ACTION_ATTR] || form.action;
   const method = form.dataset[METHOD_ATTR] || form.method;
-  return { action, method };
+  return { action, method: method.toLowerCase() };
+}
+
+export function cancelFormSubmission(event: Event): void {
+  event.stopPropagation();
 }

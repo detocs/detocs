@@ -19,6 +19,7 @@ import { fromMillis } from '@util/timestamp';
 
 import { clipEndpoint } from './api';
 import { ClipSelector } from './clip-selector';
+import { cancelFormSubmission, getFormRoute } from './form-ajax';
 import useId from './hooks/id';
 import { useLocalState } from './hooks/local-state';
 import Icon from './icon';
@@ -101,6 +102,7 @@ const ImageViewer: FunctionalComponent<ImageViewerProps> = ({ clipView }) => {
     <form
       class="image-viewer"
       autocomplete="off"
+      onSubmit={confirmDelete}
     >
       <div class="image-viewer__image">
         <img src={clipView.clip.media.url} />
@@ -113,7 +115,8 @@ const ImageViewer: FunctionalComponent<ImageViewerProps> = ({ clipView }) => {
             type="submit"
             class="warning"
             formAction={deleteEndpoint}
-            formMethod="DELETE"
+            // Non-standard
+            formMethod="delete"
           >
             Delete
           </button>
@@ -326,6 +329,7 @@ const VideoEditor: FunctionalComponent<VideoEditorProps> = (props) => {
       action={updateEndpoint}
       class="video-editor"
       autocomplete="off"
+      onSubmit={confirmDelete}
     >
       <div class="video-editor__trimmer" ref={trimmerRef} aria-busy={status === ClipStatus.Rendering}>
         <video
@@ -437,7 +441,8 @@ const VideoEditor: FunctionalComponent<VideoEditorProps> = (props) => {
             disabled={isRendering}
             class="warning"
             formAction={deleteEndpoint}
-            formMethod="DELETE"
+            // Non-standard
+            formMethod="delete"
           >
             Delete
           </button>
@@ -815,4 +820,13 @@ function quantizedFloorFromEnd(time: number, totalDuration: number, step: number
 function quantizedCeilFromEnd(time: number, totalDuration: number, step: number): number {
   const timeToEnd = totalDuration - time;
   return totalDuration - quantizedFloorFromBeginning(timeToEnd, step);
+}
+
+function confirmDelete(e: Event): void {
+  const { method } = getFormRoute(e.target as HTMLFormElement);
+  if (method === 'delete') {
+    if (!window.confirm('Are you sure you want to delete this?')) {
+      cancelFormSubmission(e);
+    }
+  }
 }
