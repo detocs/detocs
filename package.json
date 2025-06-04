@@ -115,7 +115,7 @@
     "open": "^7.0.3",
     "p-limit": "^3.0.2",
     "reconnecting-websocket": "^4.4.0",
-    "twitter-api-v2": "^1.22.0",
+    "twitter-api-v2": "^1.23.2",
     "ws": "^6.2.2",
     "yargs": "^17.5.1"
   },
