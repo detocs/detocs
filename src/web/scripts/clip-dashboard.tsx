@@ -1,5 +1,5 @@
 import throttle from 'lodash.throttle';
-import { h, FunctionalComponent, Fragment, VNode } from 'preact';
+import { h, FunctionalComponent, Fragment, VNode, ComponentChild } from 'preact';
 import { StateUpdater, useRef, useState, Ref, useEffect } from 'preact/hooks';
 
 import { ImageClip, VideoClip, isVideoClip, Clip } from '@models/media';
@@ -42,7 +42,8 @@ type VideoEditorProps = VideoClip & Omit<ClipView, 'clip'> & {
   updateEndMs: StateUpdater<number>;
   updateDescription: StateUpdater<string>;
   autoplay: boolean;
-  mediaSourceSelector: VNode|null;
+  mediaSourceSelector: ComponentChild;
+  visionMixerName: string|null;
 };
 
 /**
@@ -140,6 +141,7 @@ const VideoEditor: FunctionalComponent<VideoEditorProps> = (props) => {
     updateDescription,
     autoplay,
     mediaSourceSelector,
+    visionMixerName,
   } = props;
   const isRendering = status === ClipStatus.Rendering;
   const isRendered = status === ClipStatus.Rendered;
@@ -323,6 +325,8 @@ const VideoEditor: FunctionalComponent<VideoEditorProps> = (props) => {
     { leading: true, trailing: true },
   );
 
+  console.log('mediaSourceSelector', mediaSourceSelector);
+
   return (
     <form
       method="post"
@@ -448,17 +452,18 @@ const VideoEditor: FunctionalComponent<VideoEditorProps> = (props) => {
           </button>
         </div>
         {isRendered && mediaSourceSelector &&
-          <form
-            method="post"
-            action={sendEndpoint}
+          <div
             class="action-row"
           >
-            <input type="hidden" name="id" value={id} />
             {mediaSourceSelector}
-            <button type="submit">
-              Send to program
+            <button
+              type="submit"
+              formMethod="post"
+              formAction={sendEndpoint}
+            >
+              Send to {visionMixerName}
             </button>
-          </form>
+          </div>
         }
       </div>
     </form>
@@ -643,7 +648,8 @@ function removeMs(timestamp: Timestamp): string {
 interface ClipEditorProps<T extends Clip> {
   clipView: ClipView<T>;
   selected: boolean;
-  mediaSourceSelector: VNode|null;
+  mediaSourceSelector: ComponentChild;
+  visionMixerName: string|null;
 }
 
 const ImageClipEditor: FunctionalComponent<ClipEditorProps<ImageClip>> = ({
@@ -657,6 +663,7 @@ const VideoClipEditor: FunctionalComponent<ClipEditorProps<VideoClip>> = ({
   clipView: { clip, status },
   selected,
   mediaSourceSelector,
+  visionMixerName,
 }) => {
   const durationMs = clip.media.durationMs;
   const [ startMs, updateStartMs ] = useLocalState(
@@ -687,6 +694,7 @@ const VideoClipEditor: FunctionalComponent<ClipEditorProps<VideoClip>> = ({
     updateDescription={updateDescription}
     autoplay={false}
     mediaSourceSelector={mediaSourceSelector}
+    visionMixerName={visionMixerName}
   />;
 };
 
@@ -700,10 +708,12 @@ const ClipDashboard: FunctionalComponent<Props> = ({
   const selectorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (selectedMediaSource != null && !state.mediaSources.includes(selectedMediaSource)) {
+    if (selectedMediaSource != null &&
+      !state.visionMixer.mediaSources.includes(selectedMediaSource)
+    ) {
       updateSelectedMediaSource(undefined);
     }
-  }, [ state.mediaSources, selectedMediaSource ]);
+  }, [ state.visionMixer.mediaSources, selectedMediaSource ]);
   useEffect(() => {
     if (currentClipId != null &&
       !state.clips.map<Id|null>(clipView => clipView.clip.id).includes(currentClipId))
@@ -713,11 +723,11 @@ const ClipDashboard: FunctionalComponent<Props> = ({
     }
   }, [ state.clips, currentClipId ]);
 
-  const mediaSourceSelector = <MediaSourceSelector
-    mediaSources={state.mediaSources}
-    selectedMediaSource={selectedMediaSource}
-    updateSelectedMediaSource={updateSelectedMediaSource}
-  />;
+  const mediaSourceSelector = renderMediaSourceSelector({
+    mediaSources: state.visionMixer.mediaSources,
+    selectedMediaSource,
+    updateSelectedMediaSource,
+  });
 
   return (
     <div class="clips">
@@ -756,6 +766,7 @@ const ClipDashboard: FunctionalComponent<Props> = ({
             clipView={clipView}
             selected={clipView.clip.id === currentClipId}
             mediaSourceSelector={mediaSourceSelector}
+            visionMixerName={state.visionMixer.name}
           />
         )
       }
@@ -767,6 +778,7 @@ const ClipDashboard: FunctionalComponent<Props> = ({
             clipView={clipView}
             selected={clipView.clip.id === currentClipId}
             mediaSourceSelector={mediaSourceSelector}
+            visionMixerName={state.visionMixer.name}
           />
         )
       }
@@ -775,7 +787,7 @@ const ClipDashboard: FunctionalComponent<Props> = ({
 };
 export default ClipDashboard;
 
-function MediaSourceSelector({
+function renderMediaSourceSelector({
   mediaSources,
   selectedMediaSource,
   updateSelectedMediaSource,
@@ -783,9 +795,9 @@ function MediaSourceSelector({
   mediaSources: string[],
   selectedMediaSource: string|undefined,
   updateSelectedMediaSource: StateUpdater<string|undefined>,
-}): VNode|null {
+}): ComponentChild {
   if (mediaSources.length === 0) {
-    return null;
+    return false;
   }
   return (
     <select

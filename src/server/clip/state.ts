@@ -3,14 +3,20 @@ import { Id } from '@util/id';
 
 export interface State {
   readonly clips: ClipView[];
-  readonly scenes: string[],
-  readonly mediaSources: string[],
+  readonly scenes: string[];
+  readonly visionMixer: {
+    readonly name: string|null;
+    readonly mediaSources: string[];
+  };
 }
 
 export const nullState: State = {
   clips: [],
   scenes: [],
-  mediaSources: [],
+  visionMixer: {
+    name: null,
+    mediaSources: [],
+  },
 };
 
 export interface ClipView<T extends Clip = Clip> {

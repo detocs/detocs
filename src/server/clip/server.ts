@@ -152,15 +152,19 @@ class ClipServer {
   public getMediaSources(): void {
     const update = (inputs: VideoInput[]): void => {
       const newSources = inputs.map(i => i.name);
-      if (isEqual(new Set(newSources), new Set(this.state.mediaSources))) {
+      if (isEqual(new Set(newSources), new Set(this.state.visionMixer.mediaSources))) {
         return;
       }
       this.state = updateImmutable(
         this.state,
-        { mediaSources: { $set: newSources } },
+        { visionMixer: { mediaSources: { $set: newSources } } },
       );
       this.broadcastState();
     };
+    this.state = updateImmutable(
+      this.state,
+      { visionMixer: { name: { $set: this.visionMixer.name() } } },
+    );
     this.visionMixer.getVideoInputList().match(update, logger.error);
     this.visionMixer.onVideoInputListUpdate(update);
   }
