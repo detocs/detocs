@@ -18,6 +18,7 @@ module.exports = function webCss() {
     outFile: sassOut,
     includePaths: [ 'node_modules/', 'src/web/styles' ],
     sourceMap: true,
+    sourceMapContents: true,
   });
 
   return postCss([
@@ -38,13 +39,13 @@ module.exports = function webCss() {
     .process(sassResult.css.toString('utf8'), {
       from: sassOut,
       to: outFile,
-      map: { prev: sassResult.map.toString('utf8') },
+      map: { prev: sassResult.map?.toString('utf8') },
     })
     .then(async result => {
       await fs.mkdir(path.dirname(outFile), { recursive: true });
       return Promise.all([
         fs.writeFile(outFile, result.css),
-        fs.writeFile(outFile + '.map', result.map),
+        fs.writeFile(outFile + '.map', result.map.toString()),
       ]);
     });
 };
