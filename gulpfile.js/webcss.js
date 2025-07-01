@@ -39,7 +39,7 @@ module.exports = function webCss() {
     .process(sassResult.css.toString('utf8'), {
       from: sassOut,
       to: outFile,
-      map: { prev: sassResult.map?.toString('utf8') },
+      map: { prev: sassResult.map && sassResult.map.toString('utf8') },
     })
     .then(async result => {
       await fs.mkdir(path.dirname(outFile), { recursive: true });
