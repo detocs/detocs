@@ -6,7 +6,8 @@ const run = require('gulp-run');
 const ICONS = require('../src/web/scripts/icons.json');
 
 const clean = () =>
-  fs.rmdir('build', { recursive: true, force: true });
+  fs.rmdir('build', { recursive: true, force: true })
+    .catch(() => { /* Ignore error if the directory does not exist */ });
 
 const builtinAssets = () =>
   src('assets/templates/**/*')
