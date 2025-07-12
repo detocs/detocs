@@ -351,8 +351,15 @@ export default class ObsLegacyClient implements VisionMixer {
     const glob = join(folder, OBS_REPLAY_PREFIX) + '*';
     let watcher: Watcher | undefined;
     const promise = new Promise<string>((resolve, reject) => {
-      watcher = waitForFile(glob, resolve, reject);
-      setTimeout(() => reject(new Error('Timed out while waiting for replay file')), 30 * 1000);
+      const timeout = setTimeout(
+        () => reject(new Error('Timed out while waiting for replay file')),
+        30 * 1000,
+      );
+      watcher = waitForFile(
+        glob,
+        path => { clearTimeout(timeout); resolve(path); },
+        reject,
+      );
     })
       .finally(() => watcher && watcher.close());
     return ResultAsync.fromPromise(

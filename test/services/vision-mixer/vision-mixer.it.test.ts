@@ -3,7 +3,7 @@ import { sleep, toPromise, waitUntil } from '@util/async';
 import { parseHeight, parseWidth } from '@util/png';
 import { toMillis, validateTimestamp } from '@util/timestamp';
 
-import { setupObs27, setupObs28, setupObs29, setupObs30 } from './setup-obs';
+import { setupObs27, setupObs28, setupObs29, setupObs30, setupObs31 } from './setup-obs';
 
 type SetupFn = () => Promise<{
   visionMixer: VisionMixer,
@@ -15,6 +15,7 @@ describe.each([
   ['OBS 28', setupObs28],
   ['OBS 29', setupObs29],
   ['OBS 30', setupObs30],
+  ['OBS 31', setupObs31],
 ])('%s integration', (name: string, setupFn: SetupFn) => {
   let vm: VisionMixer;
   let teardown: () => void;

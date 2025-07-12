@@ -1,4 +1,5 @@
 $name = 'obs28'
+$port = 41235
 $urls =
   'https://github.com/obsproject/obs-studio/releases/download/28.1.2/OBS-Studio-28.1.2-Full-x64.zip'
 $tempDir = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath "detocs-testing\$name"
@@ -91,7 +92,7 @@ RecFilePath=$tempDir
 [OBSWebSocket]
 FirstLoad=false
 ServerEnabled=true
-ServerPort=41235
+ServerPort=$port
 AlertsEnabled=false
 AuthRequired=true
 ServerPassword=test1234

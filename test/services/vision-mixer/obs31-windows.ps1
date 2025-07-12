@@ -1,8 +1,7 @@
-$name = 'obs27'
-$port = 41234
+$name = 'obs31'
+$port = 41238
 $urls =
-  'https://github.com/obsproject/obs-studio/releases/download/27.2.4/OBS-Studio-27.2.4-Full-x64.zip',
-  'https://github.com/obsproject/obs-websocket/releases/download/4.9.0/obs-websocket-4.9.0-Windows.zip'
+  'https://github.com/obsproject/obs-studio/releases/download/31.1.0/OBS-Studio-31.1.0-Windows-x64.zip'
 $tempDir = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath "detocs-testing\$name"
 mkdir $tempDir -ErrorAction SilentlyContinue | Out-Null
 
@@ -78,10 +77,6 @@ AuthRequired=true
 AuthSecret=2Z19PaSap1xha70O7N217ZAycGDhzySNUzNkEh97kkw=
 AuthSalt=w5QVXwuapwVFqIWNioM56VbIt8joxOYM64xcflVKacA=
 
-[Hotkeys]
-OBSBasic.StartReplayBuffer={"bindings":[{"alt":true,"key":"OBS_KEY_F8"}]}
-OBSBasic.StopReplayBuffer={"bindings":[{"alt":true,"key":"OBS_KEY_F8"}]}
-
 [Output]
 Mode=Advanced
 
@@ -102,4 +97,13 @@ VodTrackIndex=2
 RecRB=true
 RecRBTime=60
 RecFilePath=$tempDir
+"@ `
+  -ObsGlobal @"
+[OBSWebSocket]
+FirstLoad=false
+ServerEnabled=true
+ServerPort=$port
+AlertsEnabled=false
+AuthRequired=true
+ServerPassword=test1234
 "@

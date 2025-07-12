@@ -1,4 +1,5 @@
 $name = 'obs30'
+$port = 41237
 $urls =
   'https://cdn-fastly.obsproject.com/downloads/OBS-Studio-30.1.2.zip'
 $tempDir = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath "detocs-testing\$name"
@@ -68,7 +69,7 @@ OutputCY=720
 
 [WebsocketAPI]
 ServerEnabled=true
-ServerPort=41236
+ServerPort=$port
 LockToIPv4=false
 DebugEnabled=false
 AlertsEnabled=false
@@ -101,7 +102,7 @@ RecFilePath=$tempDir
 [OBSWebSocket]
 FirstLoad=false
 ServerEnabled=true
-ServerPort=41237
+ServerPort=$port
 AlertsEnabled=false
 AuthRequired=true
 ServerPassword=test1234

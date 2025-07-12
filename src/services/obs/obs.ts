@@ -375,8 +375,11 @@ export default class ObsClient implements VisionMixer {
 
   public saveReplayBuffer(): ResultAsync<string, Error> {
     const promise = new Promise<string>((resolve, reject) => {
-      setTimeout(() => reject(new Error('Timed out while waiting for replay file')), 30 * 1000);
-      this.obs.once('ReplayBufferSaved', evt => resolve(evt.savedReplayPath));
+      const timeout = setTimeout(() => reject(new Error('Timed out while waiting for replay file')), 30 * 1000);
+      this.obs.once('ReplayBufferSaved', evt => {
+        clearTimeout(timeout);
+        resolve(evt.savedReplayPath);
+      });
       this.obs.call('SaveReplayBuffer');
     });
     return ResultAsync.fromPromise(
