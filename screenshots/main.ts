@@ -6,6 +6,7 @@ import express from 'express';
 import puppeteer, { Browser } from 'puppeteer';
 import { Server } from 'ws';
 
+import BracketState from '@server/bracket/state';
 import {
   INFO_PORT,
   RECORDING_PORT,
@@ -13,6 +14,8 @@ import {
   BRACKETS_PORT,
   MEDIA_DASHBOARD_PORT,
 } from '@server/ports';
+import RecordingState from '@server/recording/state';
+import TwitterState from '@server/twitter/client-state';
 import { sleep } from '@util/async';
 import * as httpUtil from '@util/http-server';
 
@@ -68,15 +71,15 @@ function mockInfoServer(): void {
 }
 
 function mockRecordingServer(): void {
-  mockServer(RECORDING_PORT, recordingState);
+  mockServer(RECORDING_PORT, recordingState as RecordingState);
 }
 
 function mockTwitterServer(): void {
-  mockServer(TWITTER_PORT, twitterState);
+  mockServer(TWITTER_PORT, twitterState as TwitterState);
 }
 
 function mockBracketServer(): void {
-  mockServer(BRACKETS_PORT, bracketState);
+  mockServer(BRACKETS_PORT, bracketState as BracketState);
 }
 
 function mockClipServer(): void {
@@ -96,7 +99,7 @@ interface ScreenshotTask {
 async function takeScreenshots(): Promise<void> {
   startServer();
   const browser = await puppeteer.launch({
-    headless: true,
+    headless: false,
   });
   const tasks: ScreenshotTask[] = [
     {
@@ -148,6 +151,8 @@ still consume a fixed number of characters.
       viewport: { width: 1120, height: 500 },
       outputPath: 'docs/images/tab_clips.png',
       actions: async (page) => {
+        await sleep(200000);
+        debugger;
         const clip = await page.waitForSelector('aria/First Screenshot');
         await clip?.click();
         await page.waitForNetworkIdle();
@@ -183,7 +188,7 @@ still consume a fixed number of characters.
       outputPath: 'docs/images/tab_settings.png',
     },
   ];
-  await Promise.all(tasks.map(task => takeScreenshot(browser, task)));
+  await Promise.all(tasks.slice(5,6).map(task => takeScreenshot(browser, task)));
   await browser.close();
   exit();
 }

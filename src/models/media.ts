@@ -32,7 +32,7 @@ export interface Replay {
 
 export interface Clip {
   id: Id;
-  media: MediaFile;
+  media: ImageFile | VideoFile;
   description: string;
   recordingTimestampMs?: number;
   streamTimestampMs?: number;

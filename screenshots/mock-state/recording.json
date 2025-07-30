@@ -19,7 +19,8 @@
         "height": 135
       },
       "displayName": "ls: Player3 vs Player4",
-      "metadata": {}
+      "metadata": {},
+      "vodThumbnailTimestamp": "01:11:56.626"
     },
     {
       "id": "d202201170222331640000",
@@ -40,7 +41,29 @@
         "height": 135
       },
       "displayName": "wf: Player1 vs Player2",
-      "metadata": {}
+      "metadata": {},
+      "vodThumbnailTimestamp": "01:02:20.349"
+    }
+  ],
+  "recordingGroups": [
+    {
+      "id": "d202201170222031640000",
+      "streamRecordingFile": "",
+      "startTimestamp": "00:56:17.167",
+      "stopTimestamp": "01:25:09.817",
+      "startThumbnail": {
+        "filename": "thumb2_1.png",
+        "url": "/media/thumb2_1.png",
+        "type": "image",
+        "height": 135
+      },
+      "stopThumbnail": {
+        "filename": "thumb1_3.png",
+        "url": "/media/thumb1_3.png",
+        "type": "image",
+        "height": 135
+      },
+      "vodThumbnailTimestamp": "01:02:20.349"
     }
   ]
 }
