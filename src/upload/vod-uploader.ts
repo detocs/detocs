@@ -289,10 +289,7 @@ export class VodUploader {
 
     // Make timestamps relative to the start of the video
     const phaseStart = keyframeSource.closestPrecedingKeyframe(setList.start);
-    const offsetTimestamp = (t: Timestamp): Timestamp => {
-      return subtractTimestamp(keyframeSource.closestPrecedingKeyframe(t), phaseStart);
-    };
-    sets.forEach(set => set.start = set.start ? offsetTimestamp(set.start) : '0:00:00');
+    sets.forEach(set => set.start = set.start ? offsetTimestamp(set.start, phaseStart) : '0:00:00');
 
     const matchDescs = sets.map((set, i) => {
       const players = set.players;
@@ -871,9 +868,10 @@ function getSetData(
   };
 }
 
-function subtractTimestamp(a: Timestamp, b: Timestamp): Timestamp {
+function offsetTimestamp(a: Timestamp, b: Timestamp): Timestamp {
   const duration = moment.duration(a).subtract(moment.duration(b));
-  const seconds = duration.asSeconds();
+  // No negative timestamps
+  const seconds = Math.max(duration.asSeconds(), 0);
   return moment.utc(seconds * 1000).format('H:mm:ss');
 }
 
