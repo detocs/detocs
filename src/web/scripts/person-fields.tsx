@@ -7,6 +7,8 @@ import { JSXInternal } from 'preact/src/jsx';
 
 import Person, { PersonUpdate, getPrefixedNameWithAlias, getNameWithAlias } from '@models/person';
 import { checkResponseStatus } from '@util/ajax';
+import { Key, keyHandler } from '@util/dom';
+import { submitForm } from '@util/forms';
 import { capitalize } from '@util/string';
 
 import { infoEndpoint } from './api';
@@ -14,6 +16,7 @@ import Autocomplete, { useAutocompleteId, isAutocompleteValue } from './autocomp
 import Icon from './icon';
 import { logError } from './log';
 import TextInput from './text-input';
+import { getCountries, getStates } from '@util/localities';
 
 export enum FieldName {
   HandleOrAlias = 'handleOrAlias',
@@ -22,9 +25,25 @@ export enum FieldName {
   Prefix = 'prefix',
   Twitter = 'twitter',
   Pronouns = 'pronouns',
+  Country = 'country',
+  State = 'state',
+  City = 'city',
 }
 
 type PersonUpdater = (p: PersonUpdate, val: string) => PersonUpdate;
+
+interface Option {
+  name: string;
+  value: string;
+}
+
+const countryList: Option[] = [{ name: '[Country]', value: ''}].concat(
+  getCountries().map(({ code, name }) => ({ name, value: code }))
+);
+
+const submitOnEnter = keyHandler({
+  [Key.Enter]: submitForm,
+});
 
 interface FieldMapping {
   formName: string | null;
@@ -99,6 +118,42 @@ const fieldMappings: Record<FieldName, FieldMapping> = {
       },
     }),
   },
+  'country': {
+    formName: '[location][country]',
+    label: 'Country',
+    getValue: p => p.location?.country,
+    updatedWithValue: (p, val) => updateImmutable(p, {
+      location: location => updateImmutable(location || {}, {
+        country: {
+          $set: val,
+        },
+      }),
+    }),
+  },
+  'state': {
+    formName: '[location][state]',
+    label: 'State/Province',
+    getValue: p => p.location?.state,
+    updatedWithValue: (p, val) => updateImmutable(p, {
+      location: {
+        state: {
+          $set: val,
+        },
+      },
+    }),
+  },
+  'city': {
+    formName: '[location][city]',
+    label: 'City',
+    getValue: p => p.location?.city,
+    updatedWithValue: (p, val) => updateImmutable(p, {
+      location: {
+        city: {
+          $set: val,
+        },
+      },
+    }),
+  },
 };
 
 export interface PersonFieldProps {
@@ -130,6 +185,30 @@ export const PersonFieldInput = forwardRef<HTMLInputElement, PersonFieldInputPro
     // TODO: Just pass updater?
     onUpdatePerson(mapping.updatedWithValue(person, val));
   };
+
+  let options: Option[] = [];
+  if (fieldName === FieldName.State && person.location?.country) {
+    options = [{ name: '[State]', value: ''}].concat(
+      getStates(person.location.country)
+        .map(s => ({ name: s.name, value: s.code }))
+    );
+  } else if (fieldName === FieldName.Country) {
+    options = countryList;
+  }
+
+  if (options.length > 0) {
+    return <select
+      name={mapping.formName ? `${prefix}${mapping.formName}` : undefined}
+      value={mapping.getValue(person) || ''}
+      onChange={handler}
+      onKeyDown={submitOnEnter}
+      class={fieldName}
+      {...additionalAttributes}
+    >
+      {options.map(opt => <option value={opt.value}>{opt.name}</option>)}
+    </select>;
+  }
+
   return <TextInput
     name={mapping.formName ? `${prefix}${mapping.formName}` : undefined}
     value={mapping.getValue(person) || ''}
@@ -237,9 +316,7 @@ export function PersonAdditionalFields({ children }: RenderableProps<unknown>): 
           <Icon name="close" label="Hide Additional Fields" />
         </span>
       </summary>
-      <div class="input-row">
-        {children}
-      </div>
+      {children}
     </details>
   );
 }

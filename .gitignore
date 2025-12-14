@@ -14,5 +14,7 @@ detocs-config.json
 detocs-credentials.json
 detocs-logs
 /detocs-output.*
+/people.json
+/people.json.bak
 TWITTER_API_KEY
 TWITTER_API_KEY_SECRET

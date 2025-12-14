@@ -1,11 +1,14 @@
 import _isEqual from 'lodash.isequal';
 
+import Locality from '@models/locality';
+
 export default interface Person {
   id: string;
   handle: string;
   alias?: string;
   prefix: string | null;
   pronouns?: string;
+  location?: Locality;
   serviceIds: {
     [serviceName: string]: string | undefined;
   }

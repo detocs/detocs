@@ -73,17 +73,20 @@ export default function PlayerFields({
             />
             <PersonAdditionalFields>
               {[
-                FieldName.Handle,
-                FieldName.Alias,
-                FieldName.Pronouns,
-                FieldName.Twitter,
-              ].map(fieldName =>
-                <PersonFieldInput
-                  fieldName={fieldName}
-                  prefix={prefix}
-                  person={person}
-                  onUpdatePerson={onUpdatePerson}
-                />
+                [ FieldName.Handle, FieldName.Alias, FieldName.Pronouns ],
+                [ FieldName.Country, FieldName.State, FieldName.City ],
+                [ FieldName.Twitter ],
+              ].map(fieldNames =>
+                <div class="input-row">
+                  {fieldNames.map(fieldName =>
+                    <PersonFieldInput
+                      fieldName={fieldName}
+                      prefix={prefix}
+                      person={person}
+                      onUpdatePerson={onUpdatePerson}
+                    />
+                  )}
+                </div>
               )}
             </PersonAdditionalFields>
           </div>

@@ -29,7 +29,7 @@
 }
 
 .twitter {
-  inline-size: 7em;
+  inline-size: 9em;
 
   > .textInput__input {
     text-indent: 1em;
@@ -56,13 +56,17 @@
   inline-size: 6em;
 }
 
+.country, .state, .city {
+  inline-size: 9em;
+}
+
 .person__additional-fields .details--open {
   display: flex;
   justify-content: space-between;
 }
 
 .comment {
-  inline-size: 5em;
+  inline-size: 6em;
 }
 
 .score {

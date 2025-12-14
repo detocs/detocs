@@ -32,6 +32,10 @@
   div {
     flex-grow: flex.$hackGrow;
   }
+
+  select {
+    min-width: 0;
+  }
 }
 
 fieldset > .input-row {

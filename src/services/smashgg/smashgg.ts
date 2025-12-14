@@ -15,6 +15,7 @@ import TournamentSet, {
 import BracketService from '@services/bracket-service';
 import { ParsedIds } from '@services/bracket-service-provider';
 import { getCredentials } from '@util/configuration/credentials';
+import { getCountryCodeFromName, getStateCodeFromName } from '@util/localities';
 
 import {
   TOURNAMENT_URL_REGEX,
@@ -353,6 +354,13 @@ function parseEntrant(serviceName: string, entrant: ApiEntrant): TournamentEntra
 }
 
 function parseParticipant(serviceName: string, participant: ApiParticipant): TournamentParticipant {
+  const apiLoc = participant.user?.location;
+  const country = getCountryCodeFromName(apiLoc?.country) || undefined;
+  const state = getStateCodeFromName(country, apiLoc?.state) || undefined;
+  const city = apiLoc?.city || undefined;
+  const location = country || state || city
+    ? { country, state, city }
+    : undefined;
   return {
     serviceName,
     serviceId: participant.player.id.toString(),
@@ -362,6 +370,7 @@ function parseParticipant(serviceName: string, participant: ApiParticipant): Tou
     serviceIds: {
       'twitter': participant.user?.authorizations?.[0]?.externalUsername || undefined,
     },
+    location,
   };
 }
 
