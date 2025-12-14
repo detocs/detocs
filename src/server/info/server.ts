@@ -11,6 +11,7 @@ import ws from 'ws';
 import Break from '@models/break';
 import Game, { nullGame } from '@models/game';
 import * as Games from '@models/games';
+import Locality from '@models/locality';
 import LowerThird from '@models/lower-third';
 import Match, { nullMatch } from '@models/match';
 import matchList from '@models/matches';
@@ -347,6 +348,7 @@ const FORM_MAPPINGS: {
   serviceIds: serviceIds => serviceIds
     ? mapValues(serviceIds, id => id || undefined)
     : {},
+  location: parseLocation,
 };
 
 function parsePerson(form: PersonForm): Person {
@@ -421,6 +423,24 @@ function parseNumber(value: unknown): number {
 
 function parseBool(value: string | undefined): boolean {
   return !!value;
+}
+
+function parseLocation(value: unknown): Locality | undefined {
+  if (value && typeof value !== 'object') {
+    return undefined;
+  }
+  const loc = value as Record<string, unknown>;
+  const country = parseOptionalString(loc.country);
+  const state = parseOptionalString(loc.state);
+  const city = parseOptionalString(loc.city);
+  if (!country && !state && !city) {
+    return undefined;
+  }
+  return ({
+    country,
+    state,
+    city,
+  });
 }
 
 function getBracketState(): Promise<BracketState> {

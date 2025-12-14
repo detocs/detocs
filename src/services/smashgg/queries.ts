@@ -22,6 +22,11 @@ const PARTICIPANT_SUBQUERY = `
     authorizations(types: [TWITTER]) {
       externalUsername
     }
+    location {
+      country
+      state
+      city
+    }
   }
 `;
 
@@ -88,6 +93,11 @@ export interface ApiParticipant {
     authorizations: {
       externalUsername: string;
     }[] | null;
+    location: {
+      country: string | null;
+      state: string | null;
+      city: string | null;
+    } | null;
   } | null;
 }
 
