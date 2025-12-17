@@ -325,8 +325,6 @@ const VideoEditor: FunctionalComponent<VideoEditorProps> = (props) => {
     { leading: true, trailing: true },
   );
 
-  console.log('mediaSourceSelector', mediaSourceSelector);
-
   return (
     <form
       method="post"
