@@ -1,26 +1,45 @@
 import countries from 'i18n-iso-countries/index';
 import countriesEn from 'i18n-iso-countries/langs/en.json';
 import { iso31662 } from 'iso-3166';
+import groupBy from 'lodash.groupby';
+
+interface RegionData {
+  code: string;
+  name: string;
+}
 
 countries.registerLocale(countriesEn);
 
 // This will need to be redone to support i18n
-const countryNames: { code: string; name: string }[] = Object.entries(
-  countries.getNames('en', { select: 'alias' })
-).map(([code, name]) => ({ code, name, }));
+const codeToAlias = countries.getNames('en', { select: 'alias' });
+codeToAlias['GB'] = 'United Kingdom';
+codeToAlias['CG'] = 'Congo Republic';
+codeToAlias['CD'] = 'DR Congo';
+const countryNames: RegionData[] = Object.entries(codeToAlias)
+  .sort((a, b) => a[1].localeCompare(b[1]))
+  .map(([code, name]) => ({ code, name }));
 
 export function getCountries(): { code: string; name: string }[] {
   return countryNames;
 }
 
-export function getStates(countryCode: string): { code: string; name: string }[] {
-  return iso31662.filter(e => e.parent === countryCode);
+const statesByCountry = Object.fromEntries(
+  Object.entries(groupBy(iso31662, s => s.parent))
+    .map(([countryCode, states]) => {
+      return [countryCode, states.sort((a, b) => a.name.localeCompare(b.name))];
+    })
+);
+export function getStates(countryCode: string): RegionData[] {
+  return statesByCountry[countryCode] || [];
 }
 
-// TODO: Congo is an alias for both CG and CD
-const nameToCountryCode = new Map(Object.entries(
-  countries.getNames('en', { select: 'all' })
-).flatMap(([code, names]) => names.map(name => [name.toLowerCase(), code])));
+const allNames = countries.getNames('en', { select: 'all' });
+allNames['CG'].push('Congo Republic');
+allNames['CD'].push('DR Congo');
+const nameToCountryCode = new Map(
+  Object.entries(allNames)
+    .flatMap(([code, names]) => names.map(name => [name.toLowerCase(), code]))
+);
 
 export function getCountryCodeFromName(name: string | null | undefined): string | null {
   if (!name) {
