@@ -1,6 +1,8 @@
-import { h, VNode } from 'preact';
+import { ComponentChild, Fragment, h, VNode } from 'preact';
 import { StateUpdater } from 'preact/hooks';
 
+import Game from '@models/game';
+import GameTeam from '@models/game-team';
 import { nullPerson } from '@models/person';
 import { inputHandler, INTERACTIVE_SELECTOR } from '@util/dom';
 
@@ -22,6 +24,9 @@ export type Props = PersonFieldProps & {
   onUpdateInLosers: StateUpdater<boolean | undefined>;
   comment: string;
   onUpdateComment: StateUpdater<string | undefined>;
+  teams: GameTeam[];
+  onUpdateTeams: StateUpdater<GameTeam[] | undefined>;
+  game: Game;
 };
 
 export default function PlayerFields({
@@ -35,6 +40,9 @@ export default function PlayerFields({
   onUpdateInLosers,
   comment,
   onUpdateComment,
+  teams,
+  onUpdateTeams,
+  game,
 }: Props): VNode {
   const toggleInLosers = onUpdateInLosers.bind(null, !inLosers);
   const changeComment = inputHandler(onUpdateComment);
@@ -111,6 +119,12 @@ export default function PlayerFields({
             />
           </div>
         </fieldset>
+        <TeamEditor
+          prefix={prefix}
+          teams={teams}
+          onUpdateTeams={onUpdateTeams}
+          game={game}
+        />
         <input
           type="number"
           name={`${prefix}[score]`}
@@ -122,6 +136,90 @@ export default function PlayerFields({
       </div>
     </fieldset>
   );
+}
+
+function TeamEditor({
+  prefix,
+  teams,
+  onUpdateTeams,
+  game,
+}: {
+  prefix: string;
+  teams: GameTeam[];
+  onUpdateTeams: StateUpdater<GameTeam[] | undefined>;
+  game: Game;
+}): VNode | null {
+  if (!game.characters?.length) {
+    return null;
+  }
+
+  const numCharacters = game?.teamSize || 1;
+  const charOptions = [<option value="">[Character]</option>].concat(
+    (game?.characters || [])
+      .map(char => <option value={char.id}>{char.name}</option>)
+  );
+
+  const setChar = function(teamIdx: number, charIdx: number, charId: string): void {
+    onUpdateTeams(teams => {
+      const newTeams = teams ? teams.slice() : [];
+      while (newTeams.length <= teamIdx) {
+        newTeams.push({ characters: [] });
+      }
+      const team = Object.assign({}, newTeams[teamIdx]);
+      const characters = team.characters.slice();
+      while (characters.length <= charIdx) {
+        characters.push({ id: '' });
+      }
+      const character = Object.assign({}, characters[charIdx]);
+      character.id = charId;
+      characters[charIdx] = character;
+      team.characters = characters;
+      newTeams[teamIdx] = team;
+      return newTeams;
+    });
+  };
+
+  return (
+    <fieldset name="characters">
+      <legend>Characters</legend>
+      <div class="input-row">
+        {[...teams, { characters: [] }].map((team, idx) => {
+          const chars = range(numCharacters)
+            .map(i => team.characters[i]?.id || '')
+            .map((charId, idx2) => (
+              <select
+                name={charId ? `${prefix}[teams][${idx}][characters][${idx2}][id]` : undefined}
+                value={charId}
+                onChange={e => setChar(idx, idx2, (e.target as HTMLSelectElement).value)}
+              >
+                {charOptions}
+              </select>
+            ));
+          return (
+            <Fragment>
+              {
+                joinNodes(chars, '/')
+              }
+            </Fragment>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+}
+
+function range(count: number): number[] {
+  return Array.from({ length: count }, (_, i) => i);
+}
+
+function joinNodes(nodes: VNode[], node: ComponentChild): ComponentChild[] {
+  return nodes.reduce((acc, curr) => {
+    if (acc.length > 0) {
+      acc.push(node);
+    }
+    acc.push(curr);
+    return acc;
+  }, [] as ComponentChild[]);
 }
 
 function resetPlayer(

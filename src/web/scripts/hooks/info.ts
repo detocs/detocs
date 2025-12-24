@@ -1,6 +1,7 @@
 import updateImmutable from 'immutability-helper';
 
 import Game from '@models/game';
+import GameTeam from '@models/game-team';
 import Match from '@models/match';
 import Person, { PersonUpdate } from '@models/person';
 import InfoState from '@server/info/state';
@@ -116,6 +117,32 @@ const useInLosers2Substate = createSubstatehook<InfoState, boolean | undefined>(
 export const useInLosers2: typeof useInLosers2Substate = (state, updateState) => {
   return useLocalState(
     useInLosers2Substate(state, updateState)[0],
+  );
+};
+
+const useTeams1Substate = createSubstatehook<InfoState, GameTeam[] | undefined>(
+  state => state.players[0].teams,
+  (state, value) => updateImmutable(
+    state,
+    { players: { 0: { teams: { $set: value } } } },
+  ),
+);
+export const useTeams1: typeof useTeams1Substate = (state, updateState) => {
+  return useLocalState(
+    useTeams1Substate(state, updateState)[0],
+  );
+};
+
+const useTeams2Substate = createSubstatehook<InfoState, GameTeam[] | undefined>(
+  state => state.players[1].teams,
+  (state, value) => updateImmutable(
+    state,
+    { players: { 1: { teams: { $set: value } } } },
+  ),
+);
+export const useTeams2: typeof useTeams2Substate = (state, updateState) => {
+  return useLocalState(
+    useTeams2Substate(state, updateState)[0],
   );
 };
 

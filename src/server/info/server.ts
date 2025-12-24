@@ -10,6 +10,7 @@ import ws from 'ws';
 
 import Break from '@models/break';
 import Game, { nullGame } from '@models/game';
+import GameTeam from '@models/game-team';
 import * as Games from '@models/games';
 import Locality from '@models/locality';
 import LowerThird from '@models/lower-third';
@@ -48,6 +49,7 @@ type PlayerForm = PersonForm & {
   score: string;
   inLosers: string;
   comment: string;
+  teams?: GameTeam[];
 };
 
 interface MatchLocator {
@@ -258,8 +260,10 @@ function parseScoreboard(
     const score = parseNumber(player.score);
     const inLosers = parseBool(player.inLosers);
     const comment = parseString(player.comment);
-    return { person, score, inLosers, comment };
+    const teams = parseTeams(player.teams);
+    return { person, score, inLosers, comment, teams };
   });
+  console.log('Parsed players:', JSON.stringify(players, null, 2));
 
   const match = parseMatch(form.match);
   const game = parseGame(form.game);
@@ -308,7 +312,7 @@ function playersFromSet(set: TournamentSet): Required<Player>[] {
     score: 0,
     inLosers: set.entrants[idx].inLosers ?? false,
     comment: '',
-    characters: [],
+    teams: [],
   }));
 }
 
@@ -441,6 +445,15 @@ function parseLocation(value: unknown): Locality | undefined {
     state,
     city,
   });
+}
+
+function parseTeams(value: unknown): GameTeam[] | undefined {
+  console.log('Parsing teams:', JSON.stringify(value, null, 2));
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+  // FIXME: Actual validation
+  return value as GameTeam[];
 }
 
 function getBracketState(): Promise<BracketState> {

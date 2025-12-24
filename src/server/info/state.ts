@@ -52,6 +52,10 @@ export const sampleState: State = Object.freeze({
       characters: [{ name: "Ryu" }],
       comment: 'red',
       inLosers: true,
+      teams: [
+        { characters: [{ id: "hyde" }] },
+        { characters: [{ id: "waldstein" }] },
+      ],
     },
   ],
   match: {

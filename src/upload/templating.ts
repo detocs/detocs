@@ -88,13 +88,14 @@ export const TEST_DATA: TemplateData = {
         alias: 'Player Uno',
         name: 'ABC | Player 1',
         characters: [
-          {
-            name: 'Character 1',
-          },
-          {
-            name: 'Character 2',
-          },
+          { id: "char1", name: "Character 1" },
+          { id: "char2", name: "Character 2" },
         ],
+        // FIXME
+        // teams: [
+        //   { characters: [{ id: "char1", name: "Character 1" }] },
+        //   { characters: [{ id: "char2", name: "Character 2" }] },
+        // ],
       },
       {
         handle: 'Player 2',

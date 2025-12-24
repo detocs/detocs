@@ -14,6 +14,7 @@ import {
   useScore1, useScore2,
   useComment1, useComment2,
   useInLosers1, useInLosers2,
+  useTeams1, useTeams2,
   useMatch,
   useGame,
 } from './hooks/info';
@@ -37,10 +38,12 @@ const PlayerDashboard: FunctionalComponent<Props> = ({
   const [ score1, updateScore1 ] = useScore1(state, updateState);
   const [ comment1, updateComment1 ] = useComment1(state, updateState);
   const [ inLosers1, updateInLosers1 ] = useInLosers1(state, updateState);
+  const [ teams1, updateTeams1 ] = useTeams1(state, updateState);
   const [ player2, updatePlayer2 ] = usePlayer2(state, updateState);
   const [ score2, updateScore2 ] = useScore2(state, updateState);
   const [ comment2, updateComment2 ] = useComment2(state, updateState);
   const [ inLosers2, updateInLosers2 ] = useInLosers2(state, updateState);
+  const [ teams2, updateTeams2 ] = useTeams2(state, updateState);
   const [ match, updateMatch ] = useMatch(state, updateState);
   const [ game, updateGame ] = useGame(state, updateState);
   const players = [
@@ -55,6 +58,9 @@ const PlayerDashboard: FunctionalComponent<Props> = ({
       onUpdateComment={updateComment1}
       inLosers={!!inLosers1}
       onUpdateInLosers={updateInLosers1}
+      teams={teams1 || []}
+      onUpdateTeams={updateTeams1}
+      game={game}
     />,
     <PlayerFields
       prefix="players[1]"
@@ -67,6 +73,9 @@ const PlayerDashboard: FunctionalComponent<Props> = ({
       onUpdateComment={updateComment2}
       inLosers={!!inLosers2}
       onUpdateInLosers={updateInLosers2}
+      teams={teams2 || []}
+      onUpdateTeams={updateTeams2}
+      game={game}
     />
   ];
   if (reversed) {

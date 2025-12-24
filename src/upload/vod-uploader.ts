@@ -9,7 +9,7 @@ import { err, ok, okAsync, ResultAsync } from 'neverthrow';
 import ResumableUpload from 'node-youtube-resumable-upload';
 import path from 'path';
 
-import Game from '@models/game';
+import Game, { GameOption } from '@models/game';
 import { getGameById, getGameByServiceId, loadGameDatabase } from '@models/games';
 import Person, { getPrefixedAlias } from '@models/person';
 import { Timestamp } from '@models/timestamp';
@@ -406,8 +406,9 @@ export class VodUploader {
         players,
         setList.excludedTags || [],
         [
-          ...(players[0].characters?.map(c => c.name) || []),
-          ...(players[1].characters?.map(c => c.name) || []),
+          // FIXME
+          // ...(players[0].characters?.map(c => c.name) || []),
+          // ...(players[1].characters?.map(c => c.name) || []),
         ],
       );
 
@@ -834,7 +835,7 @@ function getSetData(
   for (let i = 0; i < numPlayers; i++) {
     const logPerson = logSet?.state?.players[i].person;
     const bracketEntrant = bracketSet?.entrants[i];
-    const characters = logSet?.state?.players[i].characters;
+    const characters: GameOption[] = []; // FIXME: logSet?.state?.players[i].characters;
     if (logPerson) {
       players.push(Object.assign(parseLogPlayer(logPerson), { characters }));
     } else if (bracketEntrant) {
