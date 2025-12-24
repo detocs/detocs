@@ -7,8 +7,7 @@ import { JSXInternal } from 'preact/src/jsx';
 
 import Person, { PersonUpdate, getPrefixedNameWithAlias, getNameWithAlias } from '@models/person';
 import { checkResponseStatus } from '@util/ajax';
-import { Key, keyHandler } from '@util/dom';
-import { submitForm } from '@util/forms';
+import { submitOnEnter } from '@util/forms';
 import { capitalize } from '@util/string';
 
 import { infoEndpoint } from './api';
@@ -40,10 +39,6 @@ interface Option {
 const countryList: Option[] = [{ name: '[Country]', value: ''}].concat(
   getCountries().map(({ code, name }) => ({ name, value: code }))
 );
-
-const submitOnEnter = keyHandler({
-  [Key.Enter]: submitForm,
-});
 
 interface FieldMapping {
   formName: string | null;

@@ -1,3 +1,5 @@
+import { Key, keyHandler } from "@util/dom";
+
 export type FormControlElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
 /**
@@ -34,6 +36,10 @@ export function submitForm(event: Event): void {
   const form = target.form || target.closest('form');
   form?.requestSubmit();
 }
+
+export const submitOnEnter = keyHandler({
+  [Key.Enter]: submitForm,
+});
 
 export function fieldSetFormData(fieldSet: HTMLFieldSetElement): FormData {
   const data = new FormData();

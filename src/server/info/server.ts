@@ -10,6 +10,7 @@ import ws from 'ws';
 
 import Break from '@models/break';
 import Game, { nullGame } from '@models/game';
+import GameTeam from '@models/game-team';
 import * as Games from '@models/games';
 import Locality from '@models/locality';
 import LowerThird from '@models/lower-third';
@@ -48,6 +49,7 @@ type PlayerForm = PersonForm & {
   score: string;
   inLosers: string;
   comment: string;
+  teams?: GameTeam[];
 };
 
 interface MatchLocator {
@@ -102,7 +104,7 @@ export default async function start({ port, personDatabase }: {
   // TODO: Security?
   app.use(cors());
   app.use(formidable());
-  app.get('/state', (req, res) => {
+  app.get('/state', (_req, res) => {
     res.send(state);
   });
   app.post('/scoreboard', async (req, res) => {
@@ -250,20 +252,32 @@ function parseScoreboard(
   form: ScoreboardForm,
   unfinishedSets: TournamentSet[],
 ): Scoreboard {
+  const match = parseMatch(form.match);
+  const game = parseGame(form.game);
+  const set = parseSet(form.set, unfinishedSets);
+
   const formPlayers = [0, 1].map(i => form.players[i]);
+  const playerTeams = formPlayers.map(player => parseTeams(player.teams));
   const parsedPeople = formPlayers.map(parsePerson);
+  if (game.id) {
+    parsedPeople.forEach((person, i) => {
+      const teams = playerTeams[i];
+      if (teams && teams.length) {
+        person.teams = person.teams || {};
+        person.teams[game.id] = teams;
+      }
+    });
+  }
   const people = personDb.saveAll(parsedPeople).people;
-  const players = formPlayers.map((player, i) => {
+  const players = formPlayers.map((player, i): Player => {
     const person = people[i];
     const score = parseNumber(player.score);
     const inLosers = parseBool(player.inLosers);
     const comment = parseString(player.comment);
     return { person, score, inLosers, comment };
   });
+  console.log('Parsed players:', JSON.stringify(players, null, 2));
 
-  const match = parseMatch(form.match);
-  const game = parseGame(form.game);
-  const set = parseSet(form.set, unfinishedSets);
   // TODO: Reload people from datastore?
 
   return {
@@ -308,7 +322,7 @@ function playersFromSet(set: TournamentSet): Required<Player>[] {
     score: 0,
     inLosers: set.entrants[idx].inLosers ?? false,
     comment: '',
-    characters: [],
+    teams: [],
   }));
 }
 
@@ -441,6 +455,15 @@ function parseLocation(value: unknown): Locality | undefined {
     state,
     city,
   });
+}
+
+function parseTeams(value: unknown): GameTeam[] | undefined {
+  console.log('Parsing teams:', JSON.stringify(value, null, 2));
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+  // TODO: Actual validation?
+  return value as GameTeam[];
 }
 
 function getBracketState(): Promise<BracketState> {

@@ -11,8 +11,23 @@ import { AssignedGroup, Group, groupRecordings, mostRecent } from '@util/recordi
 import { fromMillis } from '@util/timestamp';
 
 import State, { Recording } from "./state";
+import GameTeam from '@models/game-team';
 
 type FilePath = string;
+
+// I might regret this in the long run, but for now this stops the log files
+// from ballooning in size and makes them easier to work with.
+type TrimmedState = Omit<InfoState, 'players' | 'commentators' | 'game' | 'set'> & {
+  players: (Omit<InfoState['players'][0], 'person'> & {
+    person: Omit<InfoState['players'][0]['person'], 'teams'>;
+    teams?: GameTeam[];
+  })[];
+  commentators: (Omit<InfoState['commentators'][0], 'person'> & {
+    person: Omit<InfoState['commentators'][0]['person'], 'teams'>;
+  })[];
+  game: Omit<InfoState['game'], 'characters' | 'characterConfigs' | 'teamConfigs'>;
+  set: Omit<InfoState['set'], 'videogame'>;
+};
 
 export const CURRENT_LOG_FORMAT = "1";
 
@@ -31,7 +46,7 @@ export interface Log {
     displayName: string | null;
     start: string;
     end: string;
-    state: InfoState | null;
+    state: TrimmedState | null;
     thumbnailTimestamp?: string;
   }[];
 }
@@ -103,14 +118,53 @@ export default class RecordingLogger {
       group.recordings,
       r => r.metadata?.set?.serviceInfo.serviceName
     );
-    const sets: Log['sets'] = group.recordings.filter(hasStopTimestamp).map(r => ({
-      id: r.metadata?.set?.serviceInfo.id || null,
-      displayName: r.displayName,
-      start: r.startTimestamp,
-      end: r.stopTimestamp,
-      state: r.metadata,
-      thumbnailTimestamp: r.vodThumbnailTimestamp || undefined,
-    }));
+    const sets: Log['sets'] = group.recordings.filter(hasStopTimestamp).map(r => {
+      let state: TrimmedState | null = null;
+      if (r.metadata) {
+        const gameId = r.metadata.game.id;
+        const players: TrimmedState['players'] = r.metadata.players.map(
+          (p): TrimmedState['players'][0] => {
+            const teams = p.person.teams?.[gameId];
+            const { teams: _, ...person } = p.person;
+            return ({
+              ...p,
+              person,
+              teams,
+            });
+          }
+        );
+        const commentators: TrimmedState['commentators'] = r.metadata.commentators.map(
+          (p): TrimmedState['commentators'][0] => {
+            const { teams: _t, ...person } = p.person;
+            return ({
+              person,
+            });
+          }
+        );
+        const {
+          characters: _c,
+          characterConfigs: _cc,
+          teamConfigs: _tc,
+          ...game
+        } = r.metadata.game;
+        const { videogame: _v, ...set } = r.metadata.set || {};
+        state = {
+          ...r.metadata,
+          players,
+          commentators,
+          game,
+          set,
+        };
+      }
+      return ({
+        id: r.metadata?.set?.serviceInfo.id || null,
+        displayName: r.displayName,
+        start: r.startTimestamp,
+        end: r.stopTimestamp,
+        state,
+        thumbnailTimestamp: r.vodThumbnailTimestamp || undefined,
+      });
+    });
     const mostRecentSet = mostRecent(sets);
     if (!mostRecentSet) {
       throw new Error('There should be at least one completed set in this group');

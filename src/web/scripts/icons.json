@@ -42,5 +42,13 @@
   "windowed": {
     "name": "arrows-pointing-in",
     "path": "node_modules/heroicons/24/solid/arrows-pointing-in.svg"
+  },
+  "minus": {
+    "name": "minus",
+    "path": "node_modules/heroicons/24/solid/minus.svg"
+  },
+  "plus": {
+    "name": "plus",
+    "path": "node_modules/heroicons/24/solid/plus.svg"
   }
 }

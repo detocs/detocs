@@ -1,5 +1,4 @@
-import Character from '@models/character';
-import Game from '@models/game';
+import Game, { GameOption } from '@models/game';
 import { Timestamp } from '@models/timestamp';
 import Tournament from '@models/tournament';
 import TournamentPhase from '@models/tournament-phase';
@@ -59,11 +58,24 @@ export interface Set {
     prefix: string | null;
     handle: string;
     alias: string | null;
-    characters?: Character[];
+    teams?: SetTeam[];
   }[];
   fullRoundText: string | null;
   start: Timestamp | null;
   end: Timestamp | null;
   userData?: VodUserData;
   uploadId?: string;
+}
+
+export interface SetTeam {
+  characters: SetCharacter[];
+  options?: {
+    [configId: string]: GameOption;
+  };
+}
+
+export interface SetCharacter extends GameOption {
+  options?: {
+    [configId: string]: GameOption;
+  };
 }

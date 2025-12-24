@@ -45,6 +45,7 @@ import {
 } from '@util/meta';
 import { withoutExtension } from '@util/path';
 import web from '@web/server';
+import { loadGameDatabase } from '@models/games';
 
 interface ConfigOptions {
   config?: string;
@@ -353,6 +354,7 @@ async function vods(opts: yargs.Arguments<VodOptions>): Promise<void> {
       command = Command.Video;
       break;
   }
+  await loadGameDatabase();
   const uploader = new VodUploader({
     bracketProvider: getBracketProvider(),
     logFile: opts.logFile,

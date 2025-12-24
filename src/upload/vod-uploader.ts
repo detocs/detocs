@@ -9,7 +9,8 @@ import { err, ok, okAsync, ResultAsync } from 'neverthrow';
 import ResumableUpload from 'node-youtube-resumable-upload';
 import path from 'path';
 
-import Game from '@models/game';
+import Game, { GameOption } from '@models/game';
+import GameTeam from '@models/game-team';
 import { getGameById, getGameByServiceId, loadGameDatabase } from '@models/games';
 import Person, { getPrefixedAlias } from '@models/person';
 import { Timestamp } from '@models/timestamp';
@@ -41,11 +42,11 @@ import { getConfig } from '@util/configuration/config';
 import { KeyframeSource } from '@util/keyframe-source';
 import { getLogger } from '@util/logger';
 import { trimVideo } from '@util/mkvmerge';
-import { nonEmpty } from '@util/predicates';
+import { nonEmpty, nonNull } from '@util/predicates';
 
 import { loadLog } from './loader';
 import { getSingleVideoTemplate, getPerSetTemplate, getSingleVideoTitleTemplate, RawTemplateData, renderVodTemplate, getPerSetTitleTemplate } from './templating';
-import { Log, Set, VodTournament, VodVideogame, VodPhase } from './types';
+import { Log, Set, VodTournament, VodVideogame, VodPhase, SetTeam } from './types';
 
 const logger = getLogger('upload');
 
@@ -298,8 +299,8 @@ export class VodUploader {
       }
       const p1 = players[0].name;
       const p2 = players[1].name;
-      const match = set.fullRoundText ? ` (${set.fullRoundText})` : '';
-      return `${set.start} - ${p1}${characterList(players[0])} vs ${p2}${characterList(players[1])}${match}`;
+      const match = set.fullRoundText ? `${set.fullRoundText}: ` : '';
+      return `${set.start} - ${match}${p1}${characterList(players[0])} vs ${p2}${characterList(players[1])}`;
     }).join('\n');
 
     const event = setList.event?.name || mode(setList.sets.map(s => s.state?.event ?? '')) || null;
@@ -398,6 +399,8 @@ export class VodUploader {
       };
       const title = timestampedSet.title || renderVodTemplate(titleTemplate, templateData);
       const description = renderVodTemplate(descriptionTemplate, templateData);
+      const p1Chars = players[0].teams?.flatMap(t => t.characters.map(c => c.name)) || [];
+      const p2Chars = players[1].teams?.flatMap(t => t.characters.map(c => c.name)) || [];
 
       const tags = videoTags(
         tournament,
@@ -406,8 +409,8 @@ export class VodUploader {
         players,
         setList.excludedTags || [],
         [
-          ...(players[0].characters?.map(c => c.name) || []),
-          ...(players[1].characters?.map(c => c.name) || []),
+          ...p1Chars,
+          ...p2Chars,
         ],
       );
 
@@ -691,7 +694,11 @@ async function getEventInfo(
   }
   videogame.shortName = videogame.shortNames[0] || videogame.name;
   videogame.hashtag = videogame.hashtags[0] || undefined;
-  logger.debug('Videogame:', videogame);
+  logger.debug('Videogame:', {
+    id: videogame.id,
+    name: videogame.name,
+    serviceInfo: videogame.serviceInfo,
+  });
 
   const phaseId = setList.phaseId;
   const phase = Object.assign(
@@ -834,11 +841,15 @@ function getSetData(
   for (let i = 0; i < numPlayers; i++) {
     const logPerson = logSet?.state?.players[i].person;
     const bracketEntrant = bracketSet?.entrants[i];
-    const characters = logSet?.state?.players[i].characters;
+    const gameId = logSet?.state?.game?.id || bracketSet?.videogame?.id || '';
+    const game = getGameById(gameId) || logSet?.state?.game || bracketSet?.videogame || null;
+    const teams = logSet?.state?.players?.[i].teams?.map(
+      t => convertTeam(game, t),
+    ).filter(nonNull) || [];
     if (logPerson) {
-      players.push(Object.assign(parseLogPlayer(logPerson), { characters }));
+      players.push(Object.assign(parseLogPlayer(logPerson), { teams }));
     } else if (bracketEntrant) {
-      players.push(Object.assign(parseBracketPlayer(bracketEntrant), { characters }));
+      players.push(Object.assign(parseBracketPlayer(bracketEntrant), { teams }));
     }
   }
 
@@ -866,6 +877,49 @@ function getSetData(
     start,
     end,
   };
+}
+
+function convertTeam(game: Game | null, team: GameTeam): SetTeam | undefined {
+  if (!game) {
+    return undefined;
+  }
+
+  function convertOptions(
+    gameConfig: GameOption[] | undefined,
+    selectedOptions: { [configId: string]: string } | undefined,
+  ): SetTeam['options'] {
+    if (!gameConfig || !selectedOptions) {
+      return {};
+    }
+    return Object.fromEntries(
+      Object.entries(selectedOptions).map(([configId, optionId]) => {
+        const config = gameConfig.find(c => c.id === optionId);
+        return [configId, config];
+      }).filter(([, config]) => !!config)
+    );
+  }
+  function convertCharacter(charId: string): GameOption | undefined {
+    return game?.characters?.find(c => c.id === charId);
+  }
+  const convertedTeam = {
+    characters: team.characters.map(c => ({
+      character: convertCharacter(c.id),
+      options: convertOptions(game.characterConfigs, c.options),
+    }))
+      .filter(characterNonNull)
+      .map(c => ({ ...c.character, options: c.options })),
+    options: convertOptions(game.teamConfigs, team.options),
+  };
+  if (!convertedTeam.characters.length) {
+    return undefined;
+  }
+  return convertedTeam;
+}
+
+function characterNonNull(
+  c: { character?: GameOption | undefined; options: SetTeam['options']; },
+): c is { character: GameOption; options: SetTeam['options']; } {
+  return !!c.character;
 }
 
 function offsetTimestamp(a: Timestamp, b: Timestamp): Timestamp {
@@ -910,10 +964,11 @@ function makePrefix(str?: string): string {
 }
 
 function characterList(player: Set['players'][0]): string {
-  if (!player.characters || !player.characters.length) {
+  if (!player.teams?.length) {
     return '';
   }
-  return ` (${player.characters.map(c => c.name).join(', ')})`;
+
+  return ` (${player.teams.map(t => t.characters.map(c => c.name).join('/')).join(', ')})`;
 }
 
 function updateLogUploadId(

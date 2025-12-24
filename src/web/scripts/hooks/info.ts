@@ -1,6 +1,7 @@
 import updateImmutable from 'immutability-helper';
 
 import Game from '@models/game';
+import GameTeam from '@models/game-team';
 import Match from '@models/match';
 import Person, { PersonUpdate } from '@models/person';
 import InfoState from '@server/info/state';
@@ -116,6 +117,60 @@ const useInLosers2Substate = createSubstatehook<InfoState, boolean | undefined>(
 export const useInLosers2: typeof useInLosers2Substate = (state, updateState) => {
   return useLocalState(
     useInLosers2Substate(state, updateState)[0],
+  );
+};
+
+const useTeams1Substate = createSubstatehook<InfoState, GameTeam[] | undefined>(
+  state => {
+    if (!state.game.id) {
+      return [];
+    }
+    return state.players[0].person.teams?.[state.game.id] || [];
+  },
+  (state, value) => {
+    if (!state.game.id) {
+      return state;
+    }
+    const newTeams = {
+      [state.game.id]: value
+    };
+    return updateImmutable(
+      state,
+      { players: { 0: { person: { teams: { $merge: newTeams } } } } },
+    );
+  },
+);
+export const useTeams1: typeof useTeams1Substate = (state, updateState) => {
+  return useLocalState(
+    useTeams1Substate(state, updateState)[0],
+    { keyGenerator: JSON.stringify },
+  );
+};
+
+const useTeams2Substate = createSubstatehook<InfoState, GameTeam[] | undefined>(
+  state => {
+    if (!state.game.id) {
+      return [];
+    }
+    return state.players[1].person.teams?.[state.game.id] || [];
+  },
+  (state, value) => {
+    if (!state.game.id) {
+      return state;
+    }
+    const newTeams = {
+      [state.game.id]: value
+    };
+    return updateImmutable(
+      state,
+      { players: { 1: { person: { teams: { $merge: newTeams } } } } },
+    );
+  },
+);
+export const useTeams2: typeof useTeams2Substate = (state, updateState) => {
+  return useLocalState(
+    useTeams2Substate(state, updateState)[0],
+    { keyGenerator: JSON.stringify },
   );
 };
 

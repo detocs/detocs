@@ -87,12 +87,21 @@ export const TEST_DATA: TemplateData = {
         prefix: 'ABC',
         alias: 'Player Uno',
         name: 'ABC | Player 1',
-        characters: [
+        teams: [
           {
-            name: 'Character 1',
+            characters: [{
+              id: 'char1',
+              name: 'Character 1',
+              options: {
+                pallette: { id: 'color1', name: 'Color 1' },
+              },
+            }],
+            options: {
+              mode: { id: 'stylish', name: 'Stylish', shortNames: ['S'] },
+            },
           },
           {
-            name: 'Character 2',
+            characters: [{ id: 'char2', name: 'Character 2' }],
           },
         ],
       },

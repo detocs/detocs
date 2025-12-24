@@ -1,5 +1,6 @@
 import _isEqual from 'lodash.isequal';
 
+import GameTeam from '@models/game-team';
 import Locality from '@models/locality';
 
 export default interface Person {
@@ -11,7 +12,10 @@ export default interface Person {
   location?: Locality;
   serviceIds: {
     [serviceName: string]: string | undefined;
-  }
+  };
+  teams?: {
+    [gameId: string]: GameTeam[];
+  };
 }
 
 export type PersonUpdate = Partial<Person>;
