@@ -1,11 +1,15 @@
+import updateImmutable from 'immutability-helper';
 import { ComponentChild, Fragment, h, VNode } from 'preact';
-import { StateUpdater } from 'preact/hooks';
+import { StateUpdater, useEffect } from 'preact/hooks';
 
 import Game from '@models/game';
+import GameCharacter from '@models/game-character';
 import GameTeam from '@models/game-team';
 import { nullPerson } from '@models/person';
 import { inputHandler, INTERACTIVE_SELECTOR } from '@util/dom';
+import { submitOnEnter } from '@util/forms';
 
+import Icon from './icon';
 import { PersistentCheckbox } from './persistent-checkbox';
 import {
   PersonFieldInput,
@@ -26,6 +30,8 @@ export type Props = PersonFieldProps & {
   onUpdateComment: StateUpdater<string | undefined>;
   teams: GameTeam[];
   onUpdateTeams: StateUpdater<GameTeam[] | undefined>;
+  teamsLength: number;
+  onUpdateTeamsLength: StateUpdater<number>;
   game: Game;
 };
 
@@ -42,17 +48,20 @@ export default function PlayerFields({
   onUpdateComment,
   teams,
   onUpdateTeams,
+  teamsLength,
+  onUpdateTeamsLength,
   game,
 }: Props): VNode {
   const toggleInLosers = onUpdateInLosers.bind(null, !inLosers);
   const changeComment = inputHandler(onUpdateComment);
   const changeScore = inputHandler(val => onUpdateScore(parseInt(val)));
-  const reset = resetPlayer.bind(
-    null,
+  const reset = (e: UIEvent): void => resetPlayer(
     onUpdatePerson,
     onUpdateScore,
     onUpdateInLosers,
     onUpdateComment,
+    onUpdateTeams,
+    e,
   );
 
   return (
@@ -123,6 +132,8 @@ export default function PlayerFields({
           prefix={prefix}
           teams={teams}
           onUpdateTeams={onUpdateTeams}
+          teamsLength={teamsLength}
+          onUpdateTeamsLength={onUpdateTeamsLength}
           game={game}
         />
         <input
@@ -142,13 +153,21 @@ function TeamEditor({
   prefix,
   teams,
   onUpdateTeams,
+  teamsLength,
+  onUpdateTeamsLength,
   game,
 }: {
   prefix: string;
   teams: GameTeam[];
   onUpdateTeams: StateUpdater<GameTeam[] | undefined>;
+  teamsLength: number;
+  onUpdateTeamsLength: StateUpdater<number>;
   game: Game;
 }): VNode | null {
+  useEffect(() => {
+    onUpdateTeamsLength(teams.length);
+  }, [teams.length, game.id, onUpdateTeamsLength]);
+
   if (!game.characters?.length) {
     return null;
   }
@@ -159,6 +178,7 @@ function TeamEditor({
       .map(char => <option value={char.id}>{char.name}</option>)
   );
 
+  // TODO: Use immutability-helper throughout
   const setChar = function(teamIdx: number, charIdx: number, charId: string): void {
     onUpdateTeams(teams => {
       const newTeams = teams ? teams.slice() : [];
@@ -178,37 +198,131 @@ function TeamEditor({
       return newTeams;
     });
   };
+  const setCharOption = function(
+    teamIdx: number,
+    charIdx: number,
+    configId: string,
+    value: string,
+  ): void {
+    onUpdateTeams(teams => {
+      return updateImmutable(
+        teams,
+        {
+          $push: range(teamIdx + 1 - (teams?.length || 0))
+            .map(() => ({ characters: [] })),
+          [teamIdx]: {
+            characters: {
+              $push: range(charIdx + 1 - (teams?.[charIdx]?.characters.length || 0))
+                .map(() => ({ id: '' })),
+              [charIdx]: {
+                options: {
+                  $apply: (opts: GameCharacter['options']) => Object.assign({}, opts, { [configId]: value })
+                }
+              }
+            }
+          }
+        }
+      );
+    });
+  };
+  const setTeamOption = function(
+    teamIdx: number,
+    configId: string,
+    value: string,
+  ): void {
+    onUpdateTeams(teams => {
+      const newTeams = teams ? teams.slice() : [];
+      while (newTeams.length <= teamIdx) {
+        newTeams.push({ characters: [] });
+      }
+      const team = Object.assign({}, newTeams[teamIdx]);
+      team.options = team.options || {};
+      team.options[configId] = value;
+      newTeams[teamIdx] = team;
+      return newTeams;
+    });
+  };
+  const removeTeam = function(teamIdx: number): void {
+    onUpdateTeams(teams => {
+      const newTeams = teams ? teams.slice() : [];
+      newTeams.splice(teamIdx, 1);
+      return newTeams;
+    });
+  };
 
+  const editorTeams = [...teams];
+  for (let i = 0; i < teamsLength - teams.length; i++) {
+    editorTeams.push({ characters: [] });
+  }
   return (
     <fieldset name="characters">
       <legend>Characters</legend>
       <div class="input-row">
-        {[...teams, { characters: [] }].map((team, idx) => {
+        {editorTeams.map((team, idx) => {
           const chars = range(numCharacters)
-            .map(i => team.characters[i]?.id || '')
-            .map((charId, idx2) => (
-              <select
-                name={charId ? `${prefix}[teams][${idx}][characters][${idx2}][id]` : undefined}
-                value={charId}
-                onChange={e => setChar(idx, idx2, (e.target as HTMLSelectElement).value)}
-              >
-                {charOptions}
-              </select>
+            .map(i => team.characters[i] || { id: '' })
+            .map((char, idx2) => (
+              <Fragment>
+                <select
+                  name={char.id ? `${prefix}[teams][${idx}][characters][${idx2}][id]` : undefined}
+                  value={char.id}
+                  onChange={e => setChar(idx, idx2, (e.target as HTMLSelectElement).value)}
+                  onKeyDown={submitOnEnter}
+                >
+                  {charOptions}
+                </select>
+                {game.characterConfigs && game.characterConfigs.map(config => (
+                  <select
+                    name={char.id ? `${prefix}[teams][${idx}][characters][${idx2}][options][${config.id}]` : undefined}
+                    value={char.options?.[config.id] || ''}
+                    onChange={e => setCharOption(
+                      idx,
+                      idx2,
+                      config.id,
+                      (e.target as HTMLSelectElement).value,
+                    )}
+                    onKeyDown={submitOnEnter}
+                  >
+                    {[<option value="">{`[${config.name}]`}</option>].concat(
+                      config.options.map(option => <option value={option.id}>{option.name}</option>)
+                    )}
+                  </select>
+                ))}
+              </Fragment>
             ));
           return (
             <Fragment>
-              {
-                joinNodes(chars, '/')
-              }
+              {joinNodes(chars, '/')}
+              {game.teamConfigs && game.teamConfigs.map(config => (
+                <select
+                  name={`${prefix}[teams][${idx}][options][${config.id}]`}
+                  value={team.options?.[config.id] || ''}
+                  onChange={e => setTeamOption(
+                    idx,
+                    config.id,
+                    (e.target as HTMLSelectElement).value,
+                  )}
+                  onKeyDown={submitOnEnter}
+                >
+                  {[<option value="">{`[${config.name}]`}</option>].concat(
+                    config.options.map(option => <option value={option.id}>{option.name}</option>)
+                  )}
+                </select>
+              ))}
+              <button type="button" onClick={() => removeTeam(idx)}><Icon name="minus" /></button>
             </Fragment>
           );
         })}
+        <button type="button" onClick={() => onUpdateTeamsLength(n => n+1)}><Icon name="plus" /></button>
       </div>
     </fieldset>
   );
 }
 
 function range(count: number): number[] {
+  if (count <= 0) {
+    return [];
+  }
   return Array.from({ length: count }, (_, i) => i);
 }
 
@@ -227,12 +341,14 @@ function resetPlayer(
   scoreUpdater: Props['onUpdateScore'],
   inLosersUpdater: Props['onUpdateInLosers'],
   commentUpdater: Props['onUpdateComment'],
+  teamsUpdater: Props['onUpdateTeams'],
   event: UIEvent,
 ): void {
   personUpdater(nullPerson);
   scoreUpdater(0);
   inLosersUpdater(false);
   commentUpdater('');
+  teamsUpdater([]);
   const button = event.target as HTMLButtonElement;
   button?.closest('fieldset')
     ?.querySelector<HTMLInputElement>(INTERACTIVE_SELECTOR)

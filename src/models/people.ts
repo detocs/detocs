@@ -128,7 +128,8 @@ export default class PersonDatabase {
 
   update(old: Person, upd: PersonUpdate): DatabaseUpdateResult {
     const serviceIds = Object.assign(old.serviceIds, upd.serviceIds);
-    const updated: Person = Object.assign({}, old, upd, { serviceIds });
+    const teams = Object.assign({}, old.teams, upd.teams);
+    const updated: Person = Object.assign({}, old, upd, { serviceIds, teams });
     const i = this.database.people.findIndex(p => p.id === old.id);
     if (i == -1) {
       // This shouldn't really happen

@@ -3,8 +3,7 @@ import { StateUpdater, useRef, useEffect } from 'preact/hooks';
 
 import BracketState, { nullState } from '@server/bracket/state';
 import { checkResponseStatus } from '@util/ajax';
-import { keyHandler, Key } from '@util/dom';
-import { submitForm } from '@util/forms';
+import { submitOnEnter } from '@util/forms';
 
 import { bracketEndpoint } from './api';
 import ExternalLink from './external-link';
@@ -15,10 +14,6 @@ interface Props {
   state: BracketState;
   updateState: StateUpdater<BracketState>;
 }
-
-const submitOnEnter = keyHandler({
-  [Key.Enter]: submitForm,
-});
 
 async function ajaxReset(): Promise<void> {
   fetch(updateEndpoint,

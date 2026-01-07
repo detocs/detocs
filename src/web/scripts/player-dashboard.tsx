@@ -1,5 +1,5 @@
 import { h, FunctionalComponent, VNode } from 'preact';
-import { StateUpdater } from 'preact/hooks';
+import { StateUpdater, useState } from 'preact/hooks';
 
 import { nullMatch } from '@models/match';
 import { nullPerson } from '@models/person';
@@ -34,18 +34,28 @@ const PlayerDashboard: FunctionalComponent<Props> = ({
   bracketState,
   reversed,
 }): VNode => {
+  const [ match, updateMatch ] = useMatch(state, updateState);
+  const [ game, updateGame ] = useGame(state, updateState);
+
+  // This feels criminal...
+  const stateWithUpdatedGame = Object.assign({}, state, { game });
+
   const [ player1, updatePlayer1 ] = usePlayer1(state, updateState);
   const [ score1, updateScore1 ] = useScore1(state, updateState);
   const [ comment1, updateComment1 ] = useComment1(state, updateState);
   const [ inLosers1, updateInLosers1 ] = useInLosers1(state, updateState);
-  const [ teams1, updateTeams1 ] = useTeams1(state, updateState);
+  const [ teams1, updateTeams1 ] = useTeams1(stateWithUpdatedGame, updateState);
+  // const [ teams1, updateTeams1 ] = [[], () => {/* noop */}];
+  const [ teamsLength1, updateTeamsLength1 ] = useState(teams1?.length || 0);
+
   const [ player2, updatePlayer2 ] = usePlayer2(state, updateState);
   const [ score2, updateScore2 ] = useScore2(state, updateState);
   const [ comment2, updateComment2 ] = useComment2(state, updateState);
   const [ inLosers2, updateInLosers2 ] = useInLosers2(state, updateState);
-  const [ teams2, updateTeams2 ] = useTeams2(state, updateState);
-  const [ match, updateMatch ] = useMatch(state, updateState);
-  const [ game, updateGame ] = useGame(state, updateState);
+  const [ teams2, updateTeams2 ] = useTeams2(stateWithUpdatedGame, updateState);
+  // const [ teams2, updateTeams2 ] = [[], () => {/* noop */}];
+  const [ teamsLength2, updateTeamsLength2 ] = useState(teams2?.length || 0);
+
   const players = [
     <PlayerFields
       prefix="players[0]"
@@ -60,6 +70,8 @@ const PlayerDashboard: FunctionalComponent<Props> = ({
       onUpdateInLosers={updateInLosers1}
       teams={teams1 || []}
       onUpdateTeams={updateTeams1}
+      teamsLength={teamsLength1}
+      onUpdateTeamsLength={updateTeamsLength1}
       game={game}
     />,
     <PlayerFields
@@ -75,6 +87,8 @@ const PlayerDashboard: FunctionalComponent<Props> = ({
       onUpdateInLosers={updateInLosers2}
       teams={teams2 || []}
       onUpdateTeams={updateTeams2}
+      teamsLength={teamsLength2}
+      onUpdateTeamsLength={updateTeamsLength2}
       game={game}
     />
   ];
@@ -106,7 +120,11 @@ const PlayerDashboard: FunctionalComponent<Props> = ({
         <button type="button" onClick={resetScores.bind({}, state, updateState)}>
           Reset Scores
         </button>
-        <button type="button" onClick={swapPlayers.bind({}, state, updateState)}>
+        <button type="button" onClick={() => {
+          swapPlayers(state, updateState);
+          updateTeamsLength1(teamsLength2);
+          updateTeamsLength2(teamsLength1);
+        }}>
           Swap
         </button>
         <button type="submit">Update</button>

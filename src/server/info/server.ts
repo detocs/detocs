@@ -35,6 +35,7 @@ import WebSocketOutput from './output/websocket/output';
 import WebSocketClientOutput from './output/websocket-client/output';
 import State, { nullState } from './state';
 import merge from 'lodash.merge';
+import { parse } from 'yargs';
 
 const logger = getLogger('server/info');
 const state: State = Object.assign({}, nullState);
@@ -252,22 +253,33 @@ function parseScoreboard(
   form: ScoreboardForm,
   unfinishedSets: TournamentSet[],
 ): Scoreboard {
+  const match = parseMatch(form.match);
+  const game = parseGame(form.game);
+  const set = parseSet(form.set, unfinishedSets);
+
   const formPlayers = [0, 1].map(i => form.players[i]);
+  const playerTeams = formPlayers.map(player => parseTeams(player.teams));
   const parsedPeople = formPlayers.map(parsePerson);
+  if (game.id) {
+    parsedPeople.forEach((person, i) => {
+      const teams = playerTeams[i];
+      if (teams && teams.length) {
+        person.teams = person.teams || {};
+        person.teams[game.id] = teams;
+      }
+    });
+  }
   const people = personDb.saveAll(parsedPeople).people;
   const players = formPlayers.map((player, i) => {
     const person = people[i];
     const score = parseNumber(player.score);
     const inLosers = parseBool(player.inLosers);
     const comment = parseString(player.comment);
-    const teams = parseTeams(player.teams);
+    const teams = playerTeams[i];
     return { person, score, inLosers, comment, teams };
   });
   console.log('Parsed players:', JSON.stringify(players, null, 2));
 
-  const match = parseMatch(form.match);
-  const game = parseGame(form.game);
-  const set = parseSet(form.set, unfinishedSets);
   // TODO: Reload people from datastore?
 
   return {
