@@ -41,6 +41,18 @@ module.exports = {
       'warn',
       { allowExpressions: true },
     ],
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "args": "all",
+        "argsIgnorePattern": "^_",
+        "caughtErrors": "all",
+        "caughtErrorsIgnorePattern": "^_",
+        "destructuredArrayIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "ignoreRestSiblings": false
+      }
+    ],
     '@typescript-eslint/no-use-before-define': [
       'error',
       { functions: false, classes: false, variables: false },
