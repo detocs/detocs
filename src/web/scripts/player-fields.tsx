@@ -205,22 +205,36 @@ function TeamEditor({
     value: string,
   ): void {
     onUpdateTeams(teams => {
-      return updateImmutable(
+      const filledTeams = updateImmutable(
         teams,
         {
           $push: range(teamIdx + 1 - (teams?.length || 0))
             .map(() => ({ characters: [] })),
+        }
+      );
+      const filledChars = updateImmutable(
+        filledTeams,
+        {
           [teamIdx]: {
             characters: {
-              $push: range(charIdx + 1 - (teams?.[charIdx]?.characters.length || 0))
+              $push: range(charIdx + 1 - (filledTeams?.[teamIdx]?.characters.length || 0))
                 .map(() => ({ id: '' })),
+            }
+          },
+        }
+      );
+      return updateImmutable(
+        filledChars,
+        {
+          [teamIdx]: {
+            characters: {
               [charIdx]: {
                 options: {
                   $apply: (opts: GameCharacter['options']) => Object.assign({}, opts, { [configId]: value })
                 }
-              }
+              },
             }
-          }
+          },
         }
       );
     });

@@ -37,7 +37,7 @@ const PlayerDashboard: FunctionalComponent<Props> = ({
   const [ match, updateMatch ] = useMatch(state, updateState);
   const [ game, updateGame ] = useGame(state, updateState);
 
-  // This feels criminal...
+  // This feels mildly criminal...
   const stateWithUpdatedGame = Object.assign({}, state, { game });
 
   const [ player1, updatePlayer1 ] = usePlayer1(state, updateState);
@@ -45,7 +45,6 @@ const PlayerDashboard: FunctionalComponent<Props> = ({
   const [ comment1, updateComment1 ] = useComment1(state, updateState);
   const [ inLosers1, updateInLosers1 ] = useInLosers1(state, updateState);
   const [ teams1, updateTeams1 ] = useTeams1(stateWithUpdatedGame, updateState);
-  // const [ teams1, updateTeams1 ] = [[], () => {/* noop */}];
   const [ teamsLength1, updateTeamsLength1 ] = useState(teams1?.length || 0);
 
   const [ player2, updatePlayer2 ] = usePlayer2(state, updateState);
@@ -53,7 +52,6 @@ const PlayerDashboard: FunctionalComponent<Props> = ({
   const [ comment2, updateComment2 ] = useComment2(state, updateState);
   const [ inLosers2, updateInLosers2 ] = useInLosers2(state, updateState);
   const [ teams2, updateTeams2 ] = useTeams2(stateWithUpdatedGame, updateState);
-  // const [ teams2, updateTeams2 ] = [[], () => {/* noop */}];
   const [ teamsLength2, updateTeamsLength2 ] = useState(teams2?.length || 0);
 
   const players = [

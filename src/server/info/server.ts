@@ -10,7 +10,7 @@ import ws from 'ws';
 
 import Break from '@models/break';
 import Game, { nullGame } from '@models/game';
-import GameTeam from '@models/game-team';
+import GameTeam, { nullGameTeam } from '@models/game-team';
 import * as Games from '@models/games';
 import Locality from '@models/locality';
 import LowerThird from '@models/lower-third';
@@ -276,7 +276,6 @@ function parseScoreboard(
     const comment = parseString(player.comment);
     return { person, score, inLosers, comment };
   });
-  console.log('Parsed players:', JSON.stringify(players, null, 2));
 
   // TODO: Reload people from datastore?
 
@@ -458,12 +457,19 @@ function parseLocation(value: unknown): Locality | undefined {
 }
 
 function parseTeams(value: unknown): GameTeam[] | undefined {
-  console.log('Parsing teams:', JSON.stringify(value, null, 2));
   if (!Array.isArray(value)) {
     return undefined;
   }
-  // TODO: Actual validation?
-  return value as GameTeam[];
+
+  // Probably enough validation
+  const parsed = value as (GameTeam|null)[];
+  for (let i = 0; i < value.length; i++) {
+    if (!value[i]) {
+      value[i] = null;
+    }
+  }
+
+  return parsed.map(team => team || nullGameTeam);
 }
 
 function getBracketState(): Promise<BracketState> {
