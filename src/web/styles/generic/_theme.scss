@@ -11,6 +11,7 @@
   --color-bg-control-active: hsl(180, 100%, 15%);
   --color-border-control: rgb(120, 120, 120); // Match browser default
   --color-border-control-active: hsl(180, 100%, 15%);
+  --color-button-border: rgb(176, 176, 176);
   --color-text: #ddd;
   --color-text-focus: #ddd;
   --color-text-inverted: black;
@@ -30,6 +31,7 @@
   --margin-large: 2rem;
   --tab-height: 1.5rem;
   --width-border: 2px;
+  --width-border-radius: 4px;
   --stream-aspect-ratio: 16/9;
   --font-default: serif;
   --font-monospace: monospace;

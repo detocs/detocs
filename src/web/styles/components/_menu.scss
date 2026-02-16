@@ -37,7 +37,7 @@
 
   background: var(--bg-area);
   box-shadow: 0 0 0.5rem var(--color-shadow);
-  border-radius: 4px;
+  border-radius: var(--width-border-radius);
 }
 
 .menu__list, .menu__group-inner {

@@ -1,0 +1,45 @@
+.number-input {
+  display: inline-flex;
+  flex-flow: row nowrap;
+}
+
+.number-input__buttons {
+  display: flex;
+  flex-flow: column nowrap;
+}
+
+.number-input__input, .number-input__button {
+  border-radius: var(--width-border-radius);
+}
+
+.number-input__input {
+  appearance: textfield;
+  border: var(--width-border) solid var(--color-button-border);
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+  border-inline-end-width: 0;
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    appearance: none;
+  }
+}
+
+.number-input__button {
+  flex: 1 1 auto;
+  min-height: 0;
+
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+  font-size: 0.4em;
+}
+
+.number-input__button--increment {
+  border-end-end-radius: 0;
+  border-block-end-width: calc(0.5 * var(--width-border));
+}
+
+.number-input__button--decrement {
+  border-start-end-radius: 0;
+  border-block-start-width: calc(0.5 * var(--width-border));
+}

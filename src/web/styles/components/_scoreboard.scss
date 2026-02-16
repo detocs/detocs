@@ -71,10 +71,12 @@
 
 .score {
   margin-top: 0.55ex; // Account for fieldset siblings
-  inline-size: 2em;
-
   font-size: 2em;
-  text-align: center;
+
+  input {
+    inline-size: 2ch;
+    text-align: center;
+  }
 }
 
 fieldset[name="match"] {

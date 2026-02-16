@@ -10,6 +10,7 @@ import { inputHandler, INTERACTIVE_SELECTOR } from '@util/dom';
 import { submitOnEnter } from '@util/forms';
 
 import Icon from './icon';
+import NumberInput from './number-input';
 import { PersistentCheckbox } from './persistent-checkbox';
 import {
   PersonFieldInput,
@@ -136,8 +137,7 @@ export default function PlayerFields({
           onUpdateTeamsLength={onUpdateTeamsLength}
           game={game}
         />
-        <input
-          type="number"
+        <NumberInput
           name={`${prefix}[score]`}
           value={score}
           onInput={changeScore}

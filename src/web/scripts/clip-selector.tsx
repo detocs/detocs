@@ -9,6 +9,7 @@ import { Id } from '@util/id';
 
 import { CallbackForm } from './forms';
 import { Modal, useModalState } from './modal';
+import { mergeRefs } from './refs';
 import { Thumbnail } from './thumbnail';
 
 export interface ClipSelectorProps {
@@ -116,14 +117,3 @@ export const ClipSelectorModal = forwardRef<HTMLButtonElement, ClipSelectorModal
     </Fragment>
   );
 });
-
-function mergeRefs<T>(...refs: (Ref<T> | null | undefined)[]): Ref<T> {
-  return (element) => refs.forEach(ref => {
-    if (typeof ref === 'function') {
-      ref(element);
-    } else if (ref) {
-      ref.current = element;
-    }
-  });
-}
-
