@@ -524,7 +524,7 @@ function VideoControls({
   return (
     <div class="video-editor__controls">
       <span class="video-editor__control-group">
-        <button onClick={togglePlay}>
+        <button type="button" onClick={togglePlay}>
           {playing ? <Icon name="pause" label="Pause" /> : <Icon name="play" label="Play" />}
         </button>
         {formatDuration(currentTime)} / {formatDuration(durationMs)}
@@ -555,7 +555,7 @@ function VideoControls({
       </span>
       <span class="video-editor__control-group">
         <span class="video-editor__control-subgroup">
-          <button onClick={toggleMute}>
+          <button type="button" onClick={toggleMute}>
             {muted ? <Icon name="mute" label="Unmute"/> : <Icon name="volume" label="Mute" />}
           </button>
           <input
@@ -580,7 +580,7 @@ function VideoControls({
             {((muted ? 0 : volume) * 100).toFixed(0).padStart(3, "0")}%
           </output>
         </span>
-        <button onClick={toggleFullscreen}>
+        <button type="button" onClick={toggleFullscreen}>
           {fullscreen
             ? <Icon name="windowed" label="Exit Fullscreen" />
             : <Icon name="fullscreen" label="Fullscreen" />

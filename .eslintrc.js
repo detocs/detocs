@@ -57,6 +57,7 @@ module.exports = {
       'error',
       { functions: false, classes: false, variables: false },
     ],
+    'react/button-has-type': 'error',
     'react/jsx-filename-extension': [1, {
       'extensions': ['.ts', '.tsx', '.js', '.jsx']
     }],
