@@ -74,69 +74,71 @@ export default function PlayerFields({
           Reset
         </button>
       </legend>
-      <div class="input-row">
-        <fieldset name="competitor" class="competitor">
-          <legend>Competitor</legend>
-          <div class="input-row">
-            <PersonSelector
-              prefix={prefix}
-              person={person}
-              onUpdatePerson={onUpdatePerson}
-            />
-            <PersonFieldInput
-              fieldName={FieldName.Prefix}
-              prefix={prefix}
-              person={person}
-              onUpdatePerson={onUpdatePerson}
-            />
-            <PersonAdditionalFields>
-              {[
-                [ FieldName.Handle, FieldName.Alias, FieldName.Pronouns ],
-                [ FieldName.Country, FieldName.State, FieldName.City ],
-                [ FieldName.Twitter ],
-              ].map(fieldNames =>
-                <div class="input-row">
-                  {fieldNames.map(fieldName =>
-                    <PersonFieldInput
-                      fieldName={fieldName}
-                      prefix={prefix}
-                      person={person}
-                      onUpdatePerson={onUpdatePerson}
-                    />
-                  )}
-                </div>
-              )}
-            </PersonAdditionalFields>
-          </div>
-        </fieldset>
-        <fieldset name="extra">
-          <legend>Extra</legend>
-          <div class="input-row">
-            <label>
-              [L]
-              <PersistentCheckbox
-                name={`${prefix}[inLosers]`}
-                checked={inLosers}
-                onChange={toggleInLosers}
+      <div class="player__container">
+        <div class="player__fields input-row">
+          <fieldset name="competitor" class="competitor">
+            <legend>Competitor</legend>
+            <div class="input-row">
+              <PersonSelector
+                prefix={prefix}
+                person={person}
+                onUpdatePerson={onUpdatePerson}
               />
-            </label>
-            <TextInput
-              name={`${prefix}[comment]`}
-              value={comment}
-              onInput={changeComment}
-              class="comment"
-              label="Comment"
-            />
-          </div>
-        </fieldset>
-        <TeamEditor
-          prefix={prefix}
-          teams={teams}
-          onUpdateTeams={onUpdateTeams}
-          teamsLength={teamsLength}
-          onUpdateTeamsLength={onUpdateTeamsLength}
-          game={game}
-        />
+              <PersonFieldInput
+                fieldName={FieldName.Prefix}
+                prefix={prefix}
+                person={person}
+                onUpdatePerson={onUpdatePerson}
+              />
+              <PersonAdditionalFields>
+                {[
+                  [ FieldName.Handle, FieldName.Alias, FieldName.Pronouns ],
+                  [ FieldName.Country, FieldName.State, FieldName.City ],
+                  [ FieldName.Twitter ],
+                ].map(fieldNames =>
+                  <div class="input-row">
+                    {fieldNames.map(fieldName =>
+                      <PersonFieldInput
+                        fieldName={fieldName}
+                        prefix={prefix}
+                        person={person}
+                        onUpdatePerson={onUpdatePerson}
+                      />
+                    )}
+                  </div>
+                )}
+              </PersonAdditionalFields>
+            </div>
+          </fieldset>
+          <fieldset name="extra">
+            <legend>Extra</legend>
+            <div class="input-row">
+              <label>
+                [L]
+                <PersistentCheckbox
+                  name={`${prefix}[inLosers]`}
+                  checked={inLosers}
+                  onChange={toggleInLosers}
+                />
+              </label>
+              <TextInput
+                name={`${prefix}[comment]`}
+                value={comment}
+                onInput={changeComment}
+                class="comment"
+                label="Comment"
+              />
+            </div>
+          </fieldset>
+          <TeamEditor
+            prefix={prefix}
+            teams={teams}
+            onUpdateTeams={onUpdateTeams}
+            teamsLength={teamsLength}
+            onUpdateTeamsLength={onUpdateTeamsLength}
+            game={game}
+          />
+        </div>
         <NumberInput
           name={`${prefix}[score]`}
           value={score}

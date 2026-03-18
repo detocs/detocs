@@ -13,6 +13,8 @@
 }
 
 .number-input__input {
+  flex: 1 0 auto;
+
   appearance: textfield;
   border: var(--width-border) solid var(--color-button-border);
   border-start-end-radius: 0;

@@ -10,9 +10,19 @@
   margin-inline: var(--margin-small);
 }
 
-.player:nth-child(2n) .score {
-  // TODO: Make scores symmetric
-  order: 1;
+.player__container {
+  display: flex;
+  flex-flow: row wrap-reverse;
+  align-items: flex-end;
+}
+
+.player:nth-child(2n) .player__container {
+  flex-direction: row-reverse;
+}
+
+.player__fields {
+  flex: flex.$hackGrow 1 15rem;
+  min-width: 0;
 }
 
 .competitor {
@@ -70,7 +80,9 @@
 }
 
 .score {
-  margin-top: 0.55ex; // Account for fieldset siblings
+  flex: 1 0 auto;
+  margin-inline: var(--margin-small);
+  margin-top: 0.75ex; // Account for fieldset siblings
   font-size: 2em;
 
   input {
