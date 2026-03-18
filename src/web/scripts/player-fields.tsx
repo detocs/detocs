@@ -1,6 +1,6 @@
 import updateImmutable from 'immutability-helper';
-import { ComponentChild, Fragment, h, VNode } from 'preact';
-import { StateUpdater, useEffect } from 'preact/hooks';
+import { ComponentChild, h, VNode } from 'preact';
+import { StateUpdater, useEffect, useRef } from 'preact/hooks';
 
 import Game from '@models/game';
 import GameCharacter from '@models/game-character';
@@ -168,6 +168,23 @@ function TeamEditor({
     onUpdateTeamsLength(teams.length);
   }, [teams.length, game.id, onUpdateTeamsLength]);
 
+  const rowRef = useRef<HTMLDivElement>(null);
+  const focusIndexRef = useRef<number|null>(null);
+  useEffect(() => {
+    if (rowRef.current && focusIndexRef.current != null) {
+      const addButton = rowRef.current.querySelector<HTMLButtonElement>('.js-add-team');
+      if (focusIndexRef.current == -1) {
+        addButton?.focus();
+      } else {
+        const teamElem = rowRef.current.querySelector<HTMLSelectElement>(
+          `.js-team:nth-child(${focusIndexRef.current + 1}) :is(${INTERACTIVE_SELECTOR})`,
+        );
+        (teamElem || addButton)?.focus();
+      }
+      focusIndexRef.current = null;
+    }
+  });
+
   if (!game.characters?.length) {
     return null;
   }
@@ -178,24 +195,24 @@ function TeamEditor({
       .map(char => <option value={char.id}>{char.name}</option>)
   );
 
-  // TODO: Use immutability-helper throughout
   const setChar = function(teamIdx: number, charIdx: number, charId: string): void {
     onUpdateTeams(teams => {
-      const newTeams = teams ? teams.slice() : [];
-      while (newTeams.length <= teamIdx) {
-        newTeams.push({ characters: [] });
-      }
-      const team = Object.assign({}, newTeams[teamIdx]);
-      const characters = team.characters.slice();
-      while (characters.length <= charIdx) {
-        characters.push({ id: '' });
-      }
-      const character = Object.assign({}, characters[charIdx]);
-      character.id = charId;
-      characters[charIdx] = character;
-      team.characters = characters;
-      newTeams[teamIdx] = team;
-      return newTeams;
+      const filledTeams = fillTeams(teams || [], teamIdx);
+      const filledChars = fillChars(filledTeams, teamIdx, charIdx);
+      return updateImmutable(
+        filledChars,
+        {
+          [teamIdx]: {
+            characters: {
+              [charIdx]: {
+                id: {
+                  $set: charId,
+                },
+              },
+            },
+          },
+        },
+      );
     });
   };
   const setCharOption = function(
@@ -205,24 +222,8 @@ function TeamEditor({
     value: string,
   ): void {
     onUpdateTeams(teams => {
-      const filledTeams = updateImmutable(
-        teams,
-        {
-          $push: range(teamIdx + 1 - (teams?.length || 0))
-            .map(() => ({ characters: [] })),
-        }
-      );
-      const filledChars = updateImmutable(
-        filledTeams,
-        {
-          [teamIdx]: {
-            characters: {
-              $push: range(charIdx + 1 - (filledTeams?.[teamIdx]?.characters.length || 0))
-                .map(() => ({ id: '' })),
-            }
-          },
-        }
-      );
+      const filledTeams = fillTeams(teams || [], teamIdx);
+      const filledChars = fillChars(filledTeams, teamIdx, charIdx);
       return updateImmutable(
         filledChars,
         {
@@ -230,12 +231,12 @@ function TeamEditor({
             characters: {
               [charIdx]: {
                 options: {
-                  $apply: (opts: GameCharacter['options']) => Object.assign({}, opts, { [configId]: value })
-                }
+                  $apply: (opts: GameCharacter['options']) => Object.assign({}, opts, { [configId]: value }),
+                },
               },
-            }
+            },
           },
-        }
+        },
       );
     });
   };
@@ -245,15 +246,17 @@ function TeamEditor({
     value: string,
   ): void {
     onUpdateTeams(teams => {
-      const newTeams = teams ? teams.slice() : [];
-      while (newTeams.length <= teamIdx) {
-        newTeams.push({ characters: [] });
-      }
-      const team = Object.assign({}, newTeams[teamIdx]);
-      team.options = team.options || {};
-      team.options[configId] = value;
-      newTeams[teamIdx] = team;
-      return newTeams;
+      const filledTeams = fillTeams(teams || [], teamIdx);
+      return updateImmutable(
+        filledTeams,
+        {
+          [teamIdx]: {
+            options: {
+              $apply: (opts: GameTeam['options']) => Object.assign({}, opts, { [configId]: value }),
+            },
+          },
+        },
+      );
     });
   };
   const removeTeam = function(teamIdx: number): void {
@@ -269,14 +272,14 @@ function TeamEditor({
     editorTeams.push({ characters: [] });
   }
   return (
-    <fieldset name="characters">
+    <fieldset name="characters" class="team-editor">
       <legend>Characters</legend>
-      <div class="input-row">
+      <div class="input-row" ref={rowRef}>
         {editorTeams.map((team, idx) => {
           const chars = range(numCharacters)
             .map(i => team.characters[i] || { id: '' })
             .map((char, idx2) => (
-              <Fragment>
+              <span class="team-editor__char">
                 <select
                   name={char.id ? `${prefix}[teams][${idx}][characters][${idx2}][id]` : undefined}
                   value={char.id}
@@ -302,11 +305,11 @@ function TeamEditor({
                     )}
                   </select>
                 ))}
-              </Fragment>
+              </span>
             ));
           return (
-            <Fragment>
-              {joinNodes(chars, '/')}
+            <span class="team-editor__team js-team">
+              {joinNodes(chars, ' / ')}
               {game.teamConfigs && game.teamConfigs.map(config => (
                 <select
                   name={`${prefix}[teams][${idx}][options][${config.id}]`}
@@ -323,13 +326,63 @@ function TeamEditor({
                   )}
                 </select>
               ))}
-              <button type="button" onClick={() => removeTeam(idx)}><Icon name="minus" /></button>
-            </Fragment>
+              <button
+                type="button"
+                class="warning"
+                onClick={() => {
+                  focusIndexRef.current = Math.max(idx - 1, 0);
+                  removeTeam(idx);
+                  onUpdateTeamsLength(n => n-1);
+                }}
+              >
+                <Icon name="minus" />
+              </button>
+              {idx < editorTeams.length - 1 ? ', ' : null}
+            </span>
           );
         })}
-        <button type="button" onClick={() => onUpdateTeamsLength(n => n+1)}><Icon name="plus" /></button>
+        <button
+          type="button"
+          class="team-editor__add-team js-add-team"
+          onClick={() => onUpdateTeamsLength(n => {
+            focusIndexRef.current = n;
+            return n+1;
+          })}
+        >
+          <Icon name="plus" />
+        </button>
       </div>
     </fieldset>
+  );
+}
+
+function fillTeams(teams: GameTeam[], teamIdx: number): GameTeam[] {
+  if (teamIdx < teams.length) {
+    return teams;
+  }
+  return updateImmutable(
+    teams,
+    {
+      $push: range(teamIdx + 1 - teams.length)
+        .map(() => ({ characters: [] })),
+    }
+  );
+}
+
+function fillChars(teams: GameTeam[], teamIdx: number, charIdx: number): GameTeam[] {
+  if (charIdx < teams[teamIdx].characters.length) {
+    return teams;
+  }
+  return updateImmutable(
+    teams,
+    {
+      [teamIdx]: {
+        characters: {
+          $push: range(charIdx + 1 - teams[teamIdx].characters.length)
+            .map(() => ({ id: '' })),
+        }
+      },
+    }
   );
 }
 
