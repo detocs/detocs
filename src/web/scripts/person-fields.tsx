@@ -52,7 +52,7 @@ const fieldMappings: Record<FieldName, FieldMapping> = {
   'handleOrAlias': {
     formName: null,
     getValue: p => getNameWithAlias(p),
-    updatedWithValue: (p, val) => {
+    updatedWithValue: (_, val) => {
       return ({
         handle: val,
         prefix: null,
@@ -301,9 +301,20 @@ export const PersonSelector: FunctionalComponent<PersonFieldProps> = ({
   );
 };
 
-export function PersonAdditionalFields({ children }: RenderableProps<unknown>): VNode {
+export function PersonAdditionalFields({
+  children,
+  isOpen,
+  updateOpen,
+}: RenderableProps<{
+  isOpen: boolean;
+  updateOpen: StateUpdater<boolean>;
+}>): VNode {
   return (
-    <details class="person__additional-fields">
+    <details
+      class="person__additional-fields"
+      open={isOpen}
+      onToggle={e => updateOpen((e.target as HTMLDetailsElement).open)}
+    >
       <summary>
         <span class="details--closed"><Icon name="more" label="More Fields" /></span>
         <span class="details--open">

@@ -36,6 +36,7 @@ const PlayerDashboard: FunctionalComponent<Props> = ({
 }): VNode => {
   const [ match, updateMatch ] = useMatch(state, updateState);
   const [ game, updateGame ] = useGame(state, updateState);
+  const [ addlFieldsOpen, setAddlFieldsOpen ] = useState(false);
 
   // This feels mildly criminal...
   const stateWithUpdatedGame = Object.assign({}, state, { game });
@@ -70,6 +71,8 @@ const PlayerDashboard: FunctionalComponent<Props> = ({
       onUpdateTeams={updateTeams1}
       teamsLength={teamsLength1}
       onUpdateTeamsLength={updateTeamsLength1}
+      addlFieldsOpen={addlFieldsOpen}
+      setAddlFieldsOpen={setAddlFieldsOpen}
       game={game}
     />,
     <PlayerFields
@@ -87,6 +90,8 @@ const PlayerDashboard: FunctionalComponent<Props> = ({
       onUpdateTeams={updateTeams2}
       teamsLength={teamsLength2}
       onUpdateTeamsLength={updateTeamsLength2}
+      addlFieldsOpen={addlFieldsOpen}
+      setAddlFieldsOpen={setAddlFieldsOpen}
       game={game}
     />
   ];

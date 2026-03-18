@@ -33,6 +33,8 @@ export type Props = PersonFieldProps & {
   onUpdateTeams: StateUpdater<GameTeam[] | undefined>;
   teamsLength: number;
   onUpdateTeamsLength: StateUpdater<number>;
+  addlFieldsOpen: boolean;
+  setAddlFieldsOpen: StateUpdater<boolean>;
   game: Game;
 };
 
@@ -51,6 +53,8 @@ export default function PlayerFields({
   onUpdateTeams,
   teamsLength,
   onUpdateTeamsLength,
+  addlFieldsOpen,
+  setAddlFieldsOpen,
   game,
 }: Props): VNode {
   const toggleInLosers = onUpdateInLosers.bind(null, !inLosers);
@@ -90,7 +94,10 @@ export default function PlayerFields({
                 person={person}
                 onUpdatePerson={onUpdatePerson}
               />
-              <PersonAdditionalFields>
+              <PersonAdditionalFields
+                isOpen={addlFieldsOpen}
+                updateOpen={setAddlFieldsOpen}
+              >
                 {[
                   [ FieldName.Handle, FieldName.Alias, FieldName.Pronouns ],
                   [ FieldName.Country, FieldName.State, FieldName.City ],

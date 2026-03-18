@@ -1,5 +1,5 @@
 import { h, FunctionalComponent, VNode } from 'preact';
-import { StateUpdater } from 'preact/hooks';
+import { StateUpdater, useState } from 'preact/hooks';
 
 import { nullPerson, PersonUpdate } from '@models/person';
 import InfoState from '@server/info/state';
@@ -30,18 +30,23 @@ const CommentaryDashboard: FunctionalComponent<Props> = ({
   const [ com2, updateCom2 ] = useCommentator2(state, updateState);
   const [ tournament, updateTournament ] = useTournament(state, updateState);
   const [ event, updateEvent ] = useEvent(state, updateState);
+  const [ addlFieldsOpen, setAddlFieldsOpen ] = useState(false);
   const commentators = [
     <Commentator
       index={0}
       prefix="players[0]"
       person={com1}
       onUpdatePerson={updateCom1}
+      addlFieldsOpen={addlFieldsOpen}
+      setAddlFieldsOpen={setAddlFieldsOpen}
     />,
     <Commentator
       index={1}
       prefix="players[1]"
       person={com2}
       onUpdatePerson={updateCom2}
+      addlFieldsOpen={addlFieldsOpen}
+      setAddlFieldsOpen={setAddlFieldsOpen}
     />
   ];
   if (reversed) {
@@ -101,9 +106,18 @@ export default CommentaryDashboard;
 
 type CommentatorProps = PersonFieldProps & {
   index: number;
+  addlFieldsOpen: boolean;
+  setAddlFieldsOpen: StateUpdater<boolean>;
 };
 
-function Commentator({ index, prefix, person, onUpdatePerson }: CommentatorProps): VNode {
+function Commentator({
+  index,
+  prefix,
+  person,
+  onUpdatePerson,
+  addlFieldsOpen,
+  setAddlFieldsOpen,
+}: CommentatorProps): VNode {
   return (
     <fieldset name="commentator" class="commentator js-commentator">
       <legend>
@@ -131,7 +145,10 @@ function Commentator({ index, prefix, person, onUpdatePerson }: CommentatorProps
           person={person}
           onUpdatePerson={onUpdatePerson}
         />
-        <PersonAdditionalFields>
+        <PersonAdditionalFields
+          isOpen={addlFieldsOpen}
+          updateOpen={setAddlFieldsOpen}
+        >
           {[
             [ FieldName.Handle, FieldName.Alias, FieldName.Pronouns ],
             [ FieldName.Country, FieldName.State, FieldName.City ],
