@@ -793,7 +793,7 @@ function videoTags(
     ...playerTags,
     ...additionalTags,
     ...tournamentTags(tournament),
-    ...groupTags(),
+    ...getConfig().vodTags,
   ].filter(nonEmpty).map(sanitizeTag).filter(nonEmpty);
 
   const tagsSet = new Set(tags);
@@ -944,15 +944,6 @@ function tournamentTags(tournament: VodTournament): string[] {
     ret.push(regExpResult[1]);
   }
   return ret;
-}
-
-function groupTags(): string[] {
-  return [
-    'LP',
-    'LunarPhase',
-    'Lunar Phase',
-    'LunarPhaseLive',
-  ];
 }
 
 function isValidPhase(phaseId: string | null | undefined): phaseId is string {

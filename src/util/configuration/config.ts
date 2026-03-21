@@ -21,6 +21,7 @@ export interface Config {
   vodSingleVideoTemplate?: never; // backwards-compatibility
   vodPerSetTemplate?: never; // backwards-compatibility
   defaultState: Partial<State>,
+  vodTags: string[],
   recording: {
     splitOnGameChange: boolean;
   },
@@ -100,6 +101,7 @@ const DEFAULTS: Config = {
   clipDirectory: tmpDir('clips'),
   tempFileExpirationDays: 5,
   defaultState: {},
+  vodTags: [],
   recording: {
     splitOnGameChange: true,
   },
