@@ -28,6 +28,7 @@ const NumberInput = forwardRef<HTMLInputElement, Props>(({
         <button
           type="button"
           class="number-input__button number-input__button--increment"
+          tabIndex={-1}
           onClick={() => {
             if (ref.current) {
               ref.current.stepUp();
@@ -41,6 +42,7 @@ const NumberInput = forwardRef<HTMLInputElement, Props>(({
         <button
           type="button"
           class="number-input__button number-input__button--decrement"
+          tabIndex={-1}
           onClick={() => {
             if (ref.current) {
               ref.current.stepDown();
