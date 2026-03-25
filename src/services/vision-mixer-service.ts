@@ -8,6 +8,13 @@ export interface ImageData {
   data: Buffer;
 }
 
+export interface TimestampData {
+  recordingTimestamp: Timestamp | null;
+  streamTimestamp: Timestamp | null;
+}
+
+export type ScreenshotData = ImageData & TimestampData;
+
 export interface Scene {
   name: string;
 }
@@ -37,20 +44,17 @@ export default interface VisionMixer {
   onRecordingStart(cb: () => void): void;
   onRecordingStop(cb: () => void): void;
   isRecording(): ResultAsync<boolean, Error>;
-  getTimestamps(): ResultAsync<{
-    recordingTimestamp: Timestamp | null;
-    streamTimestamp: Timestamp | null;
-  }, Error>;
+  getTimestamps(): ResultAsync<TimestampData, Error>;
   getRecordingFolder(): ResultAsync<string, Error>;
   getRecordingFile(): ResultAsync<string | null, Error>;
 
   saveReplayBuffer(): ResultAsync<string, Error>;
 
-  getCurrentThumbnail(
+  getCurrentScreenshot(
     dimensions?: { height?: number; width?: number },
-  ): ResultAsync<ImageData, Error>;
-  getSourceThumbnail(
+  ): ResultAsync<ScreenshotData, Error>;
+  getSourceScreenshot(
     sourceName: string,
     dimensions?: { height?: number; width?: number },
-  ): ResultAsync<ImageData, Error>;
+  ): ResultAsync<ScreenshotData, Error>;
 }

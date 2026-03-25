@@ -7,7 +7,7 @@ import pLimit from 'p-limit';
 import { dirname, extname, isAbsolute, join, basename } from 'path';
 
 import { Timestamp } from '@models/timestamp';
-import VisionMixer, { ImageData, Scene, VideoInput } from '@services/vision-mixer-service';
+import VisionMixer, { Scene, ScreenshotData, VideoInput } from '@services/vision-mixer-service';
 import { Config, getConfig } from '@util/configuration/config';
 import { getLogger } from '@util/logger';
 import * as png from '@util/png';
@@ -207,7 +207,8 @@ export default class ObsClient implements VisionMixer {
       ) {
         cb();
       }
-      this.obs.call('GetRecordStatus').map(s => logger.debug('status after event', s));
+      this.obs.call('GetRecordStatus')
+        .map(s => logger.debug('Status after recording state change', s));
       // Ensure that all event handlers called within this tick are treated the same
       setTimeout(() => this.previousRecordingState = evt.outputState);
     });
@@ -239,7 +240,7 @@ export default class ObsClient implements VisionMixer {
         { requestType: 'GetStreamStatus' },
         { requestType: 'GetRecordStatus' },
       ],
-      { executionType: RequestBatchExecutionType.SerialRealtime },
+      { executionType: RequestBatchExecutionType.SerialFrame },
     ).map(responses => {
       const [
         { responseData: streamResp },
@@ -330,28 +331,49 @@ export default class ObsClient implements VisionMixer {
     });
   }
 
-  public getCurrentThumbnail(
+  public getCurrentScreenshot(
     dimensions?: { height?: number; width?: number },
-  ): ResultAsync<ImageData, Error> {
+  ): ResultAsync<ScreenshotData, Error> {
     return this.obs.call('GetCurrentProgramScene')
-      .andThen(resp => this.getSourceThumbnail(resp.currentProgramSceneName, dimensions));
+      .andThen(resp => this.getSourceScreenshot(resp.currentProgramSceneName, dimensions));
   }
 
-  public getSourceThumbnail(
+  public getSourceScreenshot(
     sourceName: string,
     dimensions?: { height?: number; width?: number },
-  ): ResultAsync<ImageData, Error> {
-    return this.obs.call('GetSourceScreenshot', {
-      sourceName,
-      imageFormat: 'png',
-      imageWidth: dimensions?.width,
-      imageHeight: dimensions?.height,
-    }).map(resp => {
-      const data = png.decodeBase64(resp.imageData);
+  ): ResultAsync<ScreenshotData, Error> {
+    return this.obs.callBatch(
+      [
+        { requestType: 'GetStreamStatus' },
+        { requestType: 'GetRecordStatus' },
+        {
+          requestType: 'GetSourceScreenshot',
+          requestData: {
+            sourceName,
+            imageFormat: 'png',
+            imageWidth: dimensions?.width,
+            imageHeight: dimensions?.height,
+          }
+        },
+      ],
+      { executionType: RequestBatchExecutionType.SerialFrame },
+    ).map(resps => {
+      const [
+        { responseData: streamResp },
+        { responseData: recResp },
+        { responseData: imgResp },
+      ] = resps as [
+        ResponseMessage<'GetStreamStatus'>,
+        ResponseMessage<'GetRecordStatus'>,
+        ResponseMessage<'GetSourceScreenshot'>,
+      ];
+      const imgData = png.decodeBase64(imgResp.imageData);
       return ({
-        width: png.parseWidth(data),
-        height: png.parseHeight(data),
-        data,
+        width: png.parseWidth(imgData),
+        height: png.parseHeight(imgData),
+        data: imgData,
+        streamTimestamp: streamResp.outputActive ? streamResp.outputTimecode : null,
+        recordingTimestamp: recResp.outputActive ? recResp.outputTimecode : null,
       });
     });
   }

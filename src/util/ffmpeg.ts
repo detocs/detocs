@@ -85,7 +85,6 @@ export async function getVideoFrame(
   const args = [
     '-v', 'warning',
     '-ss', timestamp,
-    '-noaccurate_seek',
     '-an',
     '-i', file,
     '-frames:v', '1',

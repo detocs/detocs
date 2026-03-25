@@ -3,7 +3,6 @@ import { h, FunctionalComponent, Fragment, VNode, ComponentChild } from 'preact'
 import { StateUpdater, useRef, useState, Ref, useEffect } from 'preact/hooks';
 
 import { ImageClip, VideoClip, isVideoClip, Clip } from '@models/media';
-import { Timestamp } from '@models/timestamp';
 import { GetClipResponse } from '@server/clip/server';
 import {
   State,
@@ -15,7 +14,7 @@ import {
 import { checkResponseStatus } from '@util/ajax';
 import { inputHandler } from '@util/dom';
 import { Id } from '@util/id';
-import { fromMillis } from '@util/timestamp';
+import { fromMillis, splitTimestamp } from '@util/timestamp';
 
 import { clipEndpoint } from './api';
 import { ClipSelector } from './clip-selector';
@@ -627,20 +626,24 @@ function playbackUpdateHandler(
   };
 }
 
-function formatTimestampRange(clip: Clip, startMillis: number | undefined): string | undefined {
+function formatTimestampRange(clip: Clip, startMillis: number | undefined): VNode | null {
   if (startMillis == null) {
-    return undefined;
+    return null;
   }
-  // NOTE: Milliseconds are omitted to avoid giving the impression of greater
-  // precision than we actually have. Also takes up less space.
-  const startTs = startMillis >= 0 ? removeMs(fromMillis(startMillis)) : 'N/A';
+  const startTs = formatTimestamp(startMillis);
   return isVideoClip(clip) ?
-    `${startTs}–${removeMs(fromMillis(startMillis + clip.media.durationMs))}` :
+    <Fragment>{startTs}–{formatTimestamp(startMillis + clip.media.durationMs)}</Fragment> :
     startTs;
 }
 
-function removeMs(timestamp: Timestamp): string {
-  return timestamp.slice(0, -4);
+function formatTimestamp(millis: number): VNode {
+  if (millis < 0) {
+    return <span>{'N/A'}</span>;
+  }
+  // NOTE: Milliseconds are hidden to avoid giving the impression of greater
+  // precision than we actually have. Also takes up less space.
+  const [ secs, ms ] = splitTimestamp(fromMillis(millis));
+  return <span class='timestamp'>{secs}<span class='sr-only'>{ms}</span></span>;
 }
 
 interface ClipEditorProps<T extends Clip> {

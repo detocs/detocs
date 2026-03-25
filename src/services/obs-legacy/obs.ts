@@ -7,11 +7,12 @@ import { dirname, extname, isAbsolute, join, basename } from 'path';
 import pLimit from 'p-limit';
 
 import { Timestamp } from '@models/timestamp';
-import VisionMixer, { ImageData, Scene, VideoInput } from '@services/vision-mixer-service';
+import VisionMixer, { ImageData, Scene, ScreenshotData, TimestampData, VideoInput } from '@services/vision-mixer-service';
 import { Config, getConfig } from '@util/configuration/config';
 import { Watcher, waitForFile } from '@util/fs';
 import { getLogger } from '@util/logger';
 import * as png from '@util/png';
+import { combineAsync } from '@util/results';
 
 import { ObsConnection, ObsConnectionImpl } from './connection';
 
@@ -192,29 +193,39 @@ export default class ObsLegacyClient implements VisionMixer {
     });
   }
 
-  public getCurrentThumbnail(
+  public getCurrentScreenshot(
     dimensions?: { height?: number; width?: number },
-  ): ResultAsync<ImageData, Error> {
+  ): ResultAsync<ScreenshotData, Error> {
     return this.obs.send('GetCurrentScene', true)
-      .andThen(resp => this.getSourceThumbnail(resp.name, dimensions));
+      .andThen(resp => this.getSourceScreenshot(resp.name, dimensions));
   }
 
-  public getSourceThumbnail(
+  public getSourceScreenshot(
     sourceName: string,
     dimensions?: { height?: number; width?: number },
-  ): ResultAsync<ImageData, Error> {
-    return this.obs.send('TakeSourceScreenshot', true, {
-      sourceName,
-      embedPictureFormat: 'png',
-      ...dimensions,
-    }).map(resp => {
-      const data = png.decodeBase64(resp.img);
-      return ({
-        width: png.parseWidth(data),
-        height: png.parseHeight(data),
-        data,
+  ): ResultAsync<ScreenshotData, Error> {
+    const screenshotResult: ResultAsync<ImageData, Error> =
+      this.obs.send('TakeSourceScreenshot', true, {
+        sourceName,
+        embedPictureFormat: 'png',
+        ...dimensions,
+      }).map(resp => {
+        const data = png.decodeBase64(resp.img);
+        return ({
+          width: png.parseWidth(data),
+          height: png.parseHeight(data),
+          data,
+        });
       });
-    });
+    const timestampResult: ResultAsync<TimestampData, Error> =
+      this.getTimestamps();
+    return combineAsync<ImageData | TimestampData, Error>([
+      screenshotResult,
+      timestampResult,
+    ]).map(([screenshotImage, screenshotTimestamp]) => ({
+      ...screenshotImage as ImageData,
+      ...screenshotTimestamp as TimestampData,
+    }));
   }
 
   public getOutputDimensions(): ResultAsync<{ width: number; height: number }, Error> {

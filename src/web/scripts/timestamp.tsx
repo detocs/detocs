@@ -26,7 +26,7 @@ export const TimestampInput: FunctionalComponent<{
   };
 
   return (
-    <fieldset class="timestamp__container">
+    <fieldset class="timestamp-input__container">
       <div>
         <input
           name={name}
@@ -37,9 +37,9 @@ export const TimestampInput: FunctionalComponent<{
           placeholder="00:00:00:000"
           size={12}
           title="Timestamp in the form HH:mm:ss.SSS"
-          class="timestamp__input"
+          class="timestamp-input__input"
         />
-        <div className="timestamp__controls">
+        <div className="timestamp-input__controls">
           <button type="button" onClick={backwardMedium}>-3</button>
           <button type="button" onClick={backwardSmall}>-1</button>
           <button type="button" onClick={forwardSmall}>+1</button>

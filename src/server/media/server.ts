@@ -84,49 +84,39 @@ export class MediaServer {
     this.replayCache = new ReplayCache(REPLAY_CACHE_LENIENCY_MS);
   }
 
-  private async getCurrentScreenshot({
+  private getCurrentScreenshot({
     height,
     sourceName,
   }: {
     height?: number,
     sourceName?: string,
-  }): Promise<Screenshot> {
-    const timestampPromise = this.visMixer.getTimestamps()
-      .match(
-        t => t,
-        e => { throw e; },
+  }): ResultAsync<Screenshot, Error> {
+    const result = sourceName
+      ? this.visMixer.getSourceScreenshot(sourceName, height ? { height } : undefined)
+      : this.visMixer.getCurrentScreenshot(height ? { height } : undefined);
+    return result.map(async (screenshotData) => {
+      const filename = await this.saveImageFile(
+        screenshotData.recordingTimestamp,
+        screenshotData.height,
+        screenshotData.data,
       );
-    const imgPromise = (sourceName
-      ? this.visMixer.getSourceThumbnail(sourceName, height ? { height } : undefined)
-      : this.visMixer.getCurrentThumbnail(height ? { height } : undefined))
-      .match(
-        t => t,
-        e => { throw e; },
-      );
-    const [ timestamps, imgData ] = await Promise.all([timestampPromise, imgPromise]);
-    if (!imgData) {
-      throw new Error('Couldn\'t get screenshot');
-    }
-
-    const filename = await this.saveImageFile(
-      timestamps.recordingTimestamp,
-      imgData.height,
-      imgData.data,
-    );
-    return {
-      image: {
-        filename,
-        url: this.getUrl(filename),
-        type: 'image',
-        height: imgData.height,
-      },
-      recordingTimestampMs: timestamps.recordingTimestamp ?
-        toMillis(timestamps.recordingTimestamp) :
-        undefined,
-      streamTimestampMs: timestamps.streamTimestamp ?
-        toMillis(timestamps.streamTimestamp) :
-        undefined,
-    };
+      return { screenshotData, filename };
+    }).map(({ screenshotData, filename }) => {
+      return {
+        image: {
+          filename,
+          url: this.getUrl(filename),
+          type: 'image',
+          height: screenshotData.height,
+        },
+        recordingTimestampMs: screenshotData.recordingTimestamp ?
+          toMillis(screenshotData.recordingTimestamp) :
+          undefined,
+        streamTimestampMs: screenshotData.streamTimestamp ?
+          toMillis(screenshotData.streamTimestamp) :
+          undefined,
+      };
+    });
   }
 
   private getVideoFrameFromMainRecording(
@@ -169,24 +159,36 @@ export class MediaServer {
 
   public async getCurrentFullScreenshot(): Promise<Screenshot> {
     return this.getCurrentScreenshot({})
-      .then(s => {
+      .map(s => {
         this.fullScreenshotCache.add(s);
         this.thumbnailCache.add(s);
         return s;
-      });
+      })
+      .match(
+        r => r,
+        e => { throw e; },
+      );
   }
 
   public async getCurrentThumbnail(): Promise<Screenshot> {
     this.getReplay().mapErr(logger.warn);
     return this.getCurrentScreenshot({ height: THUMBNAIL_SIZE })
-      .then(s => {
+      .map(s => {
         this.thumbnailCache.add(s);
         return s;
-      });
+      })
+      .match(
+        r => r,
+        e => { throw e; },
+      );
   }
 
   public async getSceneFullScreenshot(sourceName: string): Promise<Screenshot> {
-    return this.getCurrentScreenshot({ sourceName });
+    return this.getCurrentScreenshot({ sourceName })
+      .match(
+        r => r,
+        e => { throw e; },
+      );
   }
 
   public getFullScreenshot(timestamp: Timestamp): ResultAsync<Screenshot, Error> {

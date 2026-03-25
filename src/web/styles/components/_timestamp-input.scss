@@ -1,0 +1,28 @@
+.timestamp-input__container {
+  display: contents;
+
+  > div {
+    display: flex;
+    flex-flow: column nowrap;
+  }
+}
+
+.timestamp-input__input {
+  text-align: center;
+
+  &::placeholder {
+    text-align: center;
+  }
+}
+
+.timestamp-input__controls {
+  display: flex;
+  flex-flow: row nowrap;
+}
+
+.timestamp-input__controls > button {
+  flex: 1 0 0;
+  min-width: 2em;
+
+  padding: 0 0.1em;
+}

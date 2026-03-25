@@ -68,3 +68,10 @@ export function compareTimestamp(a: Timestamp, b: Timestamp): number {
 export function sanitizeTimestamp(timestamp: Timestamp): Timestamp {
   return timestamp.replace(/:/g, '-');
 }
+
+export function splitTimestamp(timestamp: Timestamp): [string, string] {
+  return [
+    timestamp.slice(0, -4),
+    timestamp.slice(-4),
+  ];
+}
