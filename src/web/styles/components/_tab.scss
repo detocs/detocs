@@ -4,6 +4,7 @@
   padding: 0 1em;
 
   background-color: var(--color-bg-inactive);
+  scrollbar-width: thin;
 }
 
 .tabbable-section {
@@ -44,7 +45,7 @@
 
 .tabbable-section__control:focus:focus ~ .tabbable-section__tab {
   border-color: var(--color-focus);
-} 
+}
 
 .tabbable-section__content {
   position: fixed;
@@ -61,4 +62,4 @@
 
 .tabbable-section__control:not(:checked) ~ .tabbable-section__content {
   display: none;
-} 
+}
