@@ -1,6 +1,5 @@
 import { execFile } from 'child_process';
-import ffmpegStatic from 'ffmpeg-static';
-import ffprobeStatic from 'ffprobe-static';
+import { ffmpegPath, ffprobePath } from 'detocs-vendored-binaries';
 import path from 'path';
 import { promisify } from 'util';
 
@@ -17,8 +16,8 @@ export interface VideoStats {
 const logger = getLogger('util/ffmpeg');
 const pExecFile = promisify(execFile);
 export const WAVEFORM_HEIGHT = 80;
-export const FFMPEG_BIN = copyBundledFile(ffmpegStatic);
-export const FFPROBE_BIN = copyBundledFile(ffprobeStatic.path);
+export const FFMPEG_BIN = copyBundledFile(ffmpegPath);
+export const FFPROBE_BIN = copyBundledFile(ffprobePath);
 const WAVEFORM_PIXELS_PER_MS = 0.06; // 1 pixel per frame
 const WAVEFORM_MAX_WIDTH = 1920;
 
@@ -105,19 +104,18 @@ export async function getVideoFrame(
 }
 
 export async function getVideoStats(file: string): Promise<VideoStats> {
-  const durationRegex = /duration=([\d.]+|N\/A)/;
   const args = [
     '-v', 'error',
     '-show_entries', 'format=duration',
-    '-of', 'default=noprint_wrappers=1',
+    '-print_format', 'json',
     file,
   ];
   logger.debug(FFPROBE_BIN, args.join(' '));
   const { stdout, stderr } = await pExecFile(FFPROBE_BIN, args, { encoding: 'utf8' });
-  const match = durationRegex.exec(stdout.trim());
-  if (stderr.length && !match) {
+  const format = JSON.parse(stdout)['format'];
+  if (stderr.length && !format) {
     throw new Error(stderr);
-  } else if (!match) {
+  } else if (!format) {
     throw new Error(`Unexpected output when getting stats for ${file}: ${stdout}`);
   } else if (stderr.length) {
     // Some errors, like "co located POCs unavailable" don't seem to affect our
@@ -125,13 +123,13 @@ export async function getVideoStats(file: string): Promise<VideoStats> {
     logger.warn(`Non-fatal error when getting stats for ${file}: ${stderr}`);
   }
 
-  if (match[1] === 'N/A') {
+  if (!format['duration']) {
     return {
       durationMs: undefined,
     };
   }
 
-  const seconds = +match[1];
+  const seconds = +format['duration'];
   return {
     durationMs: Math.trunc(seconds * 1000),
   };
@@ -200,9 +198,9 @@ export async function getKeyframes(file: string): Promise<Timestamp[]> {
     '-v', 'error',
     '-select_streams', 'v',
     '-skip_frame', 'nokey',
-    '-show_entries', 'frame=pkt_pts_time',
+    '-show_entries', 'frame=pts_time',
     '-sexagesimal',
-    '-print_format', 'csv=p=0',
+    '-print_format', 'csv=print_section=0',
     file,
   ];
   logger.debug(FFPROBE_BIN, args.join(' '));
