@@ -1,7 +1,6 @@
-import { ComponentChildren, Fragment, h, RefObject, VNode } from 'preact';
+import { ComponentChildren, Fragment, h, JSX, RefObject, VNode } from 'preact';
 import { CSSProperties } from 'preact/compat';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
-import { JSXInternal } from 'preact/src/jsx';
 import { usePopper } from 'react-popper';
 
 import useId from './hooks/id';
@@ -301,7 +300,7 @@ function isMenuSection(a: MenuSection|MenuAction): a is MenuSection {
   return !!(a as MenuSection).actions;
 }
 
-function useFocusOutside(callback: () => void): JSXInternal.DOMAttributes<HTMLElement> {
+function useFocusOutside(callback: () => void): JSX.DOMAttributes<HTMLElement> {
   const timeout = useRef<number|null>(null);
 
   function cancelCallback(): void {

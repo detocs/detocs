@@ -1,7 +1,6 @@
 import clsx from 'clsx';
-import { h, FunctionalComponent, VNode, createRef, Fragment, Ref } from 'preact';
+import { h, FunctionalComponent, VNode, createRef, Fragment, Ref, JSX } from 'preact';
 import { forwardRef } from 'preact/compat';
-import { JSXInternal } from 'preact/src/jsx';
 
 import { isVideoClip } from '@models/media';
 import { ClipView, ClipStatus } from '@server/clip/state';
@@ -84,7 +83,7 @@ export const ClipSelector: FunctionalComponent<ClipSelectorModalProps> = ({
 };
 
 export type ClipSelectorModalProps = ClipSelectorProps &
-Omit<JSXInternal.HTMLAttributes<HTMLButtonElement>, 'onSelect'>;
+Omit<JSX.HTMLAttributes<HTMLButtonElement>, 'onSelect'>;
 
 export const ClipSelectorModal = forwardRef<HTMLButtonElement, ClipSelectorModalProps>(({
   children,

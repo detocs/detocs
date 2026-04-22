@@ -1,13 +1,12 @@
 import memoize from 'micro-memoize';
-import { h, VNode, FunctionalComponent as FC } from 'preact';
+import { h, VNode, FunctionalComponent as FC, JSX } from 'preact';
 import { useRef, useEffect, useState, useContext } from 'preact/hooks';
-import { JSXInternal } from 'preact/src/jsx';
 
 import { MediaFile, VideoFile, ImageFile } from '@models/media';
 import { fromMillis } from '@util/timestamp';
 import { ThumbnailSettingsContext } from './hooks/settings';
 
-interface ThumbnailProps extends Omit<JSXInternal.HTMLAttributes, 'media'> {
+interface ThumbnailProps extends Omit<JSX.HTMLAttributes, 'media'> {
   media?: MediaFile | null;
   thumbnail?: ImageFile;
 }

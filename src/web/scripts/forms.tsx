@@ -1,7 +1,6 @@
-import { h, VNode, RenderableProps, Ref } from 'preact';
-import { JSXInternal } from 'preact/src/jsx';
+import { h, VNode, RenderableProps, Ref, JSX } from 'preact';
 
-type CallbackFormProps<T> = Omit<JSXInternal.HTMLAttributes, 'onSubmit'> & RenderableProps<{
+type CallbackFormProps<T> = Omit<JSX.HTMLAttributes, 'onSubmit'> & RenderableProps<{
   onSubmit: (formData: T) => void;
   formRef: Ref<HTMLFormElement>;
 }>;

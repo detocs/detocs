@@ -1,8 +1,7 @@
-import { h, VNode } from 'preact';
-import { JSXInternal } from 'preact/src/jsx';
+import { h, JSX, VNode } from 'preact';
 import ICON_NAME_MAPPING from './icons.json';
 
-export type Props = JSXInternal.SVGAttributes<SVGSVGElement> & {
+export type Props = JSX.SVGAttributes<SVGSVGElement> & {
   name: keyof typeof ICON_NAME_MAPPING;
   label?: string;
 };

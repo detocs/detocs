@@ -1,13 +1,12 @@
 import clsx from 'clsx';
-import { h } from 'preact';
+import { h, JSX } from 'preact';
 import { forwardRef } from 'preact/compat';
 import { useRef } from 'preact/hooks';
-import { JSXInternal } from 'preact/src/jsx';
 
 import Icon from './icon';
 import { mergeRefs } from './refs';
 
-export type Props = JSXInternal.HTMLAttributes<HTMLInputElement>;
+export type Props = JSX.HTMLAttributes<HTMLInputElement>;
 
 const NumberInput = forwardRef<HTMLInputElement, Props>(({
   'class': className,

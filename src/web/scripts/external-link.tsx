@@ -1,7 +1,6 @@
-import { h, FunctionalComponent } from 'preact';
-import { JSXInternal } from 'preact/src/jsx';
+import { h, FunctionalComponent, JSX } from 'preact';
 
-const ExternalLink: FunctionalComponent<JSXInternal.HTMLAttributes> = ({
+const ExternalLink: FunctionalComponent<JSX.HTMLAttributes> = ({
   children,
   ...attributes
 }) => {

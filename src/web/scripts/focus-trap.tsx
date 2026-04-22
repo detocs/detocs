@@ -1,11 +1,10 @@
-import { h, RenderableProps, FunctionalComponent, VNode } from 'preact';
+import { h, RenderableProps, FunctionalComponent, VNode, JSX } from 'preact';
 import { useRef, useEffect } from 'preact/hooks';
-import { JSXInternal } from 'preact/src/jsx';
 
 import { INTERACTIVE_SELECTOR, keyHandler, Key } from '@util/dom';
 
 type FocusTrapProps = RenderableProps<Record<string, unknown>> &
-JSXInternal.HTMLAttributes<HTMLDivElement>;
+JSX.HTMLAttributes<HTMLDivElement>;
 
 const FocusTrap: FunctionalComponent<FocusTrapProps> = ({ children, ...attributes }): VNode => {
   const ref = useRef<HTMLDivElement>(null);

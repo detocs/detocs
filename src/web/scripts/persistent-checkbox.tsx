@@ -1,7 +1,6 @@
-import { h, VNode, FunctionalComponent, Fragment } from 'preact';
-import { JSXInternal } from 'preact/src/jsx';
+import { h, VNode, FunctionalComponent, Fragment, JSX } from 'preact';
 
-interface Props extends JSXInternal.HTMLAttributes {
+interface Props extends JSX.HTMLAttributes {
   name: string;
   checked: boolean;
   onChange: () => void;

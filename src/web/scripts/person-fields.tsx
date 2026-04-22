@@ -1,9 +1,8 @@
 import updateImmutable from 'immutability-helper';
 import debounce from 'lodash.debounce';
-import { h, Fragment, RenderableProps, VNode, FunctionalComponent } from 'preact';
+import { h, Fragment, RenderableProps, VNode, FunctionalComponent, JSX } from 'preact';
 import { forwardRef } from 'preact/compat';
 import { useState, useRef, StateUpdater, useCallback, useEffect } from 'preact/hooks';
-import { JSXInternal } from 'preact/src/jsx';
 
 import Person, { PersonUpdate, getPrefixedNameWithAlias, getNameWithAlias } from '@models/person';
 import { checkResponseStatus } from '@util/ajax';
@@ -161,7 +160,7 @@ export type PersonFieldInputProps = RenderableProps<PersonFieldProps & {
   fieldName: FieldName;
   label?: string;
 }> &
-JSXInternal.HTMLAttributes;
+JSX.HTMLAttributes;
 
 export const PersonFieldInput = forwardRef<HTMLInputElement, PersonFieldInputProps>(({
   fieldName,
