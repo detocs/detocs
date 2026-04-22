@@ -69,6 +69,8 @@ if (process.env.ANALYZE) {
   })));
 }
 
+
+/** @type {import('rollup').RollupOptions[]} */
 export default [
   {
     input: 'build/src/web/scripts/app.js',
@@ -76,8 +78,15 @@ export default [
       name: 'detocs',
       file: 'build/public/detocs.js',
       format: 'iife',
+      inlineDynamicImports: true,
     },
     plugins: appPlugins,
+    onwarn(warning, warn) {
+      if (warning.code === "MODULE_LEVEL_DIRECTIVE") {
+        return;
+      }
+      warn(warning);
+    },
   },
   {
     input: 'build/src/web/scripts/polyfill.js',
