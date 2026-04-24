@@ -5,7 +5,7 @@ import moment from 'moment-timezone';
 
 import { nonEmpty } from '@util/predicates';
 
-import { VodTournament, VodVideogame, VodPhase, VodUserData, Set } from './types';
+import { VodTournament, VodVideogame, VodPhase, VodUserData, SetData } from './types';
 import { getConfig } from '@util/configuration/config';
 import { handleBuiltin } from '@util/path';
 
@@ -17,7 +17,7 @@ export interface RawTemplateData {
   matchDesc: string,
   commentary: string,
   userData?: VodUserData,
-  set?: Set & {
+  set?: SetData & {
     userData?: VodUserData;
   }
 }
@@ -37,7 +37,7 @@ interface TemplateData {
   commentary: string;
   commentators: string; // backwards-compatibility
   userData: VodUserData;
-  set?: Set & {
+  set?: SetData & {
     userData: VodUserData;
   }
 }

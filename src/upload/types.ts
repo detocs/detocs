@@ -50,7 +50,7 @@ export type Log = Omit<RecordingLog, 'sets'> & {
   uploadId?: string;
 };
 
-export interface Set {
+export interface SetData {
   id: string | null;
   phaseGroupId: string | null;
   players: {

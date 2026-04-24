@@ -46,7 +46,7 @@ import { nonEmpty, nonNull } from '@util/predicates';
 
 import { loadLog } from './loader';
 import { getSingleVideoTemplate, getPerSetTemplate, getSingleVideoTitleTemplate, RawTemplateData, renderVodTemplate, getPerSetTitleTemplate } from './templating';
-import { Log, Set, VodTournament, VodVideogame, VodPhase, SetTeam } from './types';
+import { Log, SetData, VodTournament, VodVideogame, VodPhase, SetTeam } from './types';
 
 const logger = getLogger('upload');
 
@@ -773,7 +773,7 @@ function videoTags(
   tournament: VodTournament,
   videogame: VodVideogame,
   phase: VodPhase,
-  players: Set['players'],
+  players: SetData['players'],
   excludedTags: string[],
   additionalTags: string[],
 ): SanitizedTag[] {
@@ -806,24 +806,24 @@ function getSetData(
   logSet: Log['sets'][0] | undefined,
   bracketSet: TournamentSet | undefined,
   phaseGroupNames: PhaseGroupNameMapping,
-): Set {
+): SetData {
   // ID
   const id = logSet?.id || bracketSet?.serviceInfo?.id || null;
   const phaseGroupId = bracketSet?.serviceInfo?.phaseGroupId || null;
 
   // Players
-  const players: Set['players'] = [];
+  const players: SetData['players'] = [];
   const numPlayers = Math.max(
     logSet?.state?.players?.length ?? 0,
     bracketSet?.entrants?.length ?? 0,
   );
-  const parseLogPlayer = (p: Person): Set['players'][0] => ({
+  const parseLogPlayer = (p: Person): SetData['players'][0] => ({
     name: getPrefixedAlias(p),
     handle: p.handle,
     prefix: p.prefix,
     alias: p.alias || null,
   });
-  const parseBracketPlayer = (entrant: TournamentEntrant): Set['players'][0] => {
+  const parseBracketPlayer = (entrant: TournamentEntrant): SetData['players'][0] => {
     let name;
     let handle;
     let prefix = null;
@@ -954,7 +954,7 @@ function makePrefix(str?: string): string {
   return str && str + ' ' || '';
 }
 
-function characterList(player: Set['players'][0]): string {
+function characterList(player: SetData['players'][0]): string {
   if (!player.teams?.length) {
     return '';
   }

@@ -3,7 +3,7 @@ import { useEffect, useRef, StateUpdater } from 'preact/hooks';
 
 import { Timestamp } from '@models/timestamp';
 import { State as ClipState, isImageClipView, getClipById } from '@server/clip/state';
-import ServerState, { Recording } from '@server/recording/state';
+import ServerState from '@server/recording/state';
 import { checkResponseStatus } from '@util/ajax';
 import { Id } from '@util/id';
 import { AssignedGroup, groupRecordings, isAssignedGroup, mostRecent, UnassignedGroup } from '@util/recording';

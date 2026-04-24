@@ -1,2 +1,2 @@
 import { Credentials } from 'google-auth-library';
-export { Credentials };
+export type { Credentials };
