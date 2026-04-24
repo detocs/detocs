@@ -1,4 +1,4 @@
-import memoize from 'micro-memoize';
+import { memoize } from 'micro-memoize';
 import { Result, ok, err, ResultAsync } from 'neverthrow';
 
 import { Error as ChainableError } from 'chainable-error';

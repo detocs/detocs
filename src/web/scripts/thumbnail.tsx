@@ -1,4 +1,4 @@
-import memoize from 'micro-memoize';
+import { memoize } from 'micro-memoize';
 import { h, VNode, FunctionalComponent as FC, JSX } from 'preact';
 import { useRef, useEffect, useState, useContext } from 'preact/hooks';
 

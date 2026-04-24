@@ -1,5 +1,5 @@
 import { promises as fs } from 'fs';
-import memoize from "micro-memoize";
+import { memoize } from 'micro-memoize';
 import path from 'path';
 
 import { Timestamp } from '@models/timestamp';

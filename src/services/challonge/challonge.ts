@@ -1,4 +1,4 @@
-import memoize from 'micro-memoize';
+import { memoize } from 'micro-memoize';
 import moment from 'moment';
 
 import Game, { nullGame } from '@models/game';
@@ -48,7 +48,7 @@ export default class ChallongeClient implements BracketService {
     );
     this.memoizedGetGame = memoize(
       this.getGame.bind(this),
-      { isPromise: true },
+      { async: true },
     );
   }
 
