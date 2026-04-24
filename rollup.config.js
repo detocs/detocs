@@ -73,6 +73,7 @@ export default [
   {
     input: 'build/src/web/scripts/app.js',
     output: {
+      name: 'detocs',
       file: 'build/public/detocs.js',
       format: 'iife',
     },
@@ -81,6 +82,7 @@ export default [
   {
     input: 'build/src/web/scripts/polyfill.js',
     output: {
+      name: 'polyfill',
       file: 'build/public/polyfill.js',
       format: 'iife',
     },
