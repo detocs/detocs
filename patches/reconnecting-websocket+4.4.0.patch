@@ -1,0 +1,9 @@
+diff --git a/node_modules/reconnecting-websocket/dist/reconnecting-websocket.d.ts b/node_modules/reconnecting-websocket/dist/reconnecting-websocket.d.ts
+index f4c2425..090d96e 100644
+--- a/node_modules/reconnecting-websocket/dist/reconnecting-websocket.d.ts
++++ b/node_modules/reconnecting-websocket/dist/reconnecting-websocket.d.ts
+@@ -139,3 +139,4 @@ export default class ReconnectingWebSocket {
+     private _addListeners;
+     private _clearTimeouts;
+ }
++export = ReconnectingWebSocket;
