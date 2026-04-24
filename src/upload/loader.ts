@@ -1,9 +1,9 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 
-import { SMASHGG_SERVICE_NAME } from '@services/smashgg/constants';
+import { SMASHGG_SERVICE_NAME } from '@services/smashgg/constants.ts';
 
-import { Log } from './types';
+import { Log } from './types.ts';
 
 export async function loadLog(logPath: string): Promise<Log> {
   const log: Log = JSON.parse(await fs.readFile(logPath, { encoding: 'utf8' }));

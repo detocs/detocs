@@ -5,9 +5,9 @@ import ObsWebSocket, {
 } from 'obs-websocket-js-4';
 import pLimit from 'p-limit';
 
-import { getLogger } from '@util/logger';
-import { sleep } from '@util/async';
-import { Config } from '@util/configuration/config';
+import { getLogger } from '@util/logger.ts';
+import { sleep } from '@util/async.ts';
+import { Config } from '@util/configuration/config.ts';
 
 const logger = getLogger('services/obs-legacy/connection');
 const MIN_RECONNECTION_DELAY = 5 * 1000;

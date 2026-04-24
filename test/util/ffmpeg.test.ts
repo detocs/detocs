@@ -1,4 +1,4 @@
-import { parseKeyframes } from '@util/ffmpeg';
+import { parseKeyframes } from '@util/ffmpeg.ts';
 
 describe(parseKeyframes, () => {
   it('pads ms correctly', () => {

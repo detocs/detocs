@@ -1,10 +1,10 @@
 import { GraphQLClient } from 'graphql-request';
 import range from 'lodash.range';
 
-import { getLogger } from '@util/logger';
+import { getLogger } from '@util/logger.ts';
 
-import { MAX_COMPLEXITY, RATE_LIMIT, MAX_PAGE_SIZE } from './constants';
-import { PageInfo } from './queries';
+import { MAX_COMPLEXITY, RATE_LIMIT, MAX_PAGE_SIZE } from './constants.ts';
+import { PageInfo } from './queries.ts';
 
 const logger = getLogger('services/smashgg/pagination');
 const COMPLEXITY_SAFETY = 0.95;

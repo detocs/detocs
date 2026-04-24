@@ -3,8 +3,8 @@ import { CSSProperties } from 'preact/compat';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { usePopper } from 'react-popper';
 
-import useId from './hooks/id';
-import Icon from './icon';
+import useId from './hooks/id.ts';
+import Icon from './icon.tsx';
 
 export interface MenuAction {
   label: ComponentChildren;

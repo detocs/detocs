@@ -1,8 +1,8 @@
-import Game, { GameOption } from '@models/game';
-import { Timestamp } from '@models/timestamp';
-import Tournament from '@models/tournament';
-import TournamentPhase from '@models/tournament-phase';
-import { Log as RecordingLog } from '@server/recording/log';
+import Game, { GameOption } from '@models/game.ts';
+import { Timestamp } from '@models/timestamp.ts';
+import Tournament from '@models/tournament.ts';
+import TournamentPhase from '@models/tournament-phase.ts';
+import { Log as RecordingLog } from '@server/recording/log.ts';
 
 export type VodTournament = Partial<Tournament> &
 Pick<Tournament, 'name'> & {

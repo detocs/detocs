@@ -1,9 +1,9 @@
 import { promises as fs } from 'fs';
 
-import { getConfig } from '@util/configuration/config';
-import { getLogger } from '@util/logger';
+import { getConfig } from '@util/configuration/config.ts';
+import { getLogger } from '@util/logger.ts';
 
-import Game from './game';
+import Game from './game.ts';
 
 type ParsedGame = Partial<Omit<Game, 'id' | 'name'>> &
 Required<Pick<Game, 'id' | 'name'>>;

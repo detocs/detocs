@@ -1,5 +1,5 @@
 import { h, FunctionalComponent, RenderableProps, VNode } from 'preact';
-import { capitalize } from '@util/string';
+import { capitalize } from '@util/string.ts';
 
 interface Props {
   id: string;

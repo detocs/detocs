@@ -2,10 +2,10 @@ import updateImmutable from 'immutability-helper';
 import { h, FunctionalComponent, RenderableProps, VNode, Fragment } from 'preact';
 import { useRef } from 'preact/hooks';
 
-import TournamentSet, { nullSet, getTournamentSetIdString } from '@models/tournament-set';
-import { inputHandler } from '@util/dom';
+import TournamentSet, { nullSet, getTournamentSetIdString } from '@models/tournament-set.ts';
+import { inputHandler } from '@util/dom.ts';
 
-import Autocomplete, { useAutocompleteId, isAutocompleteValue } from './autocomplete';
+import Autocomplete, { useAutocompleteId, isAutocompleteValue } from './autocomplete.tsx';
 
 export interface Props {
   set?: TournamentSet;

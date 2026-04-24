@@ -5,9 +5,9 @@ import { Result, ok, err, ResultAsync } from 'neverthrow';
 import open from 'open';
 import url from 'url';
 
-import { getCredentials, saveCredentials } from '@util/configuration/credentials';
-import { getLogger } from '@util/logger';
-import { youtube_v3 } from '@google/youtube/v3';
+import { getCredentials, saveCredentials } from '@util/configuration/credentials.ts';
+import { getLogger } from '@util/logger.ts';
+import { youtube_v3 } from '@google/youtube/v3.ts';
 
 export type SanitizedTitle = string & { readonly __tag: unique symbol };
 export type SanitizedDescription = SanitizedTitle;

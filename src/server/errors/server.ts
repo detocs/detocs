@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 
-import * as httpUtil from '@util/http-server';
-import { getLogger } from '@util/logger';
+import * as httpUtil from '@util/http-server.ts';
+import { getLogger } from '@util/logger.ts';
 
 interface ErrorReportRequest {
   message?: string;

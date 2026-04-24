@@ -2,9 +2,9 @@ import { memoize } from 'micro-memoize';
 import { h, VNode, FunctionalComponent as FC, JSX } from 'preact';
 import { useRef, useEffect, useState, useContext } from 'preact/hooks';
 
-import { MediaFile, VideoFile, ImageFile } from '@models/media';
-import { fromMillis } from '@util/timestamp';
-import { ThumbnailSettingsContext } from './hooks/settings';
+import { MediaFile, VideoFile, ImageFile } from '@models/media.ts';
+import { fromMillis } from '@util/timestamp.ts';
+import { ThumbnailSettingsContext } from './hooks/settings.ts';
 
 interface ThumbnailProps extends Omit<JSX.HTMLAttributes, 'media'> {
   media?: MediaFile | null;

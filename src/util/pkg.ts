@@ -1,8 +1,8 @@
 import { chmodSync, copyFileSync, mkdirSync } from 'fs';
 import { dirname } from 'path';
 
-import { tmpDir } from '@util/fs';
-import { getLogger } from '@util/logger';
+import { tmpDir } from '@util/fs.ts';
+import { getLogger } from '@util/logger.ts';
 
 const logger = getLogger('util/pkg');
 const SNAPSHOT_REGEX = /^(?:C:\\|\/)snapshot(.+)/;

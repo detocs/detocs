@@ -2,14 +2,14 @@ import clsx from 'clsx';
 import { h, FunctionalComponent, VNode, createRef, Fragment, Ref, JSX } from 'preact';
 import { forwardRef } from 'preact/compat';
 
-import { isVideoClip } from '@models/media';
-import { ClipView, ClipStatus } from '@server/clip/state';
-import { Id } from '@util/id';
+import { isVideoClip } from '@models/media.ts';
+import { ClipView, ClipStatus } from '@server/clip/state.ts';
+import { Id } from '@util/id.ts';
 
-import { CallbackForm } from './forms';
-import { Modal, useModalState } from './modal';
-import { mergeRefs } from './refs';
-import { Thumbnail } from './thumbnail';
+import { CallbackForm } from './forms.tsx';
+import { Modal, useModalState } from './modal.tsx';
+import { mergeRefs } from './refs.tsx';
+import { Thumbnail } from './thumbnail.tsx';
 
 export interface ClipSelectorProps {
   clips: ClipView[];

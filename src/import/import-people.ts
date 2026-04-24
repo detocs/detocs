@@ -1,10 +1,10 @@
-import parse from 'csv-parse/lib/sync';
+import parse from 'csv-parse/lib/sync.js';
 import { promises as fs } from 'fs';
 
-import PersonDatabase from '@models/people';
-import BracketServiceProvider from '@services/bracket-service-provider';
-import { entrantToPerson } from '@util/entrant';
-import { getLogger } from '@util/logger';
+import PersonDatabase from '@models/people.ts';
+import BracketServiceProvider from '@services/bracket-service-provider.ts';
+import { entrantToPerson } from '@util/entrant.ts';
+import { getLogger } from '@util/logger.ts';
 
 const logger = getLogger('import-people');
 

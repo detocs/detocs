@@ -6,19 +6,19 @@ import {
   State as ClipState,
   ClipStatus,
   isVideoClipView,
-} from '@server/clip/state';
-import ClientState from '@server/twitter/client-state';
-import { checkResponseStatus } from '@util/ajax';
-import { inputHandler } from '@util/dom';
+} from '@server/clip/state.ts';
+import ClientState from '@server/twitter/client-state.ts';
+import { checkResponseStatus } from '@util/ajax.ts';
+import { inputHandler } from '@util/dom.ts';
 
-import { twitterEndpoint } from './api';
-import { ClipSelectorModal } from './clip-selector';
-import useId from './hooks/id';
-import { logError } from './log';
-import { Thumbnail } from './thumbnail';
-import Toggle from './toggle';
-import { useSessionStorage } from './hooks/storage';
-import { SceneScreenshotMenu } from './screenshot-menu';
+import { twitterEndpoint } from './api.ts';
+import { ClipSelectorModal } from './clip-selector.tsx';
+import useId from './hooks/id.ts';
+import { logError } from './log.ts';
+import { Thumbnail } from './thumbnail.tsx';
+import Toggle from './toggle.tsx';
+import { useSessionStorage } from './hooks/storage.ts';
+import { SceneScreenshotMenu } from './screenshot-menu.tsx';
 
 declare module 'twitter-text' {
   export const configs: {

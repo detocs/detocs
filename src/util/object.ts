@@ -1,4 +1,4 @@
-import { nonNull } from './predicates';
+import { nonNull } from './predicates.ts';
 
 export function filterValues<T>(
   obj: T | null | undefined,

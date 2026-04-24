@@ -1,16 +1,16 @@
 import { promises as fs } from 'fs';
 import { join, basename } from 'path';
 
-import { Timestamp } from '@models/timestamp';
-import { getKeyframes } from '@util/ffmpeg';
+import { Timestamp } from '@models/timestamp.ts';
+import { getKeyframes } from '@util/ffmpeg.ts';
 import {
   closestPrecedingKeyframe,
   closestSubsequentKeyframe,
   closestPrecedingKeyframeFromInterval,
   closestSubsequentKeyframeFromInterval,
-} from '@util/keyframes';
-import { getLogger } from '@util/logger';
-import { toMillis } from '@util/timestamp';
+} from '@util/keyframes.ts';
+import { getLogger } from '@util/logger.ts';
+import { toMillis } from '@util/timestamp.ts';
 
 type FileOrInterval = {
   file: string;

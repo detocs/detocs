@@ -1,9 +1,9 @@
-import Match, { nullMatch } from '@models/match';
-import { checkResponseStatus } from '@util/ajax';
+import Match, { nullMatch } from '@models/match.ts';
+import { checkResponseStatus } from '@util/ajax.ts';
 
-import { infoEndpoint } from './api';
-import AutocompleteFields from './autocomplete-fields';
-import { logError } from './log';
+import { infoEndpoint } from './api.ts';
+import AutocompleteFields from './autocomplete-fields.tsx';
+import { logError } from './log.ts';
 
 export default class MatchFields extends AutocompleteFields<Match> {
   public constructor() {

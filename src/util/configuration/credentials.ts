@@ -1,8 +1,8 @@
-import { ApiKey as ChallongeApiKey } from '@services/challonge/types';
-import { ApiToken as SmashggApiToken } from '@services/smashgg/types';
-import { AccessToken as Twitter } from '@services/twitter/types';
-import { Credentials as YoutubeCredentials } from '@models/youtube';
-import { getLogger } from '@util/logger';
+import { ApiKey as ChallongeApiKey } from '@services/challonge/types.ts';
+import { ApiToken as SmashggApiToken } from '@services/smashgg/types.ts';
+import { AccessToken as Twitter } from '@services/twitter/types.ts';
+import { Credentials as YoutubeCredentials } from '@models/youtube.ts';
+import { getLogger } from '@util/logger.ts';
 
 import {
   saveConfigFile,
@@ -10,7 +10,7 @@ import {
   findConfigData,
   emptyConfigData,
   parseConfig
-} from './common';
+} from './common.ts';
 
 const logger = getLogger('credentials');
 

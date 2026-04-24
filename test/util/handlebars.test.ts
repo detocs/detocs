@@ -1,6 +1,6 @@
 import Handlebars from 'handlebars';
-import { escapeJson, escapeCsv } from '@util/escaping';
-import { setDefaultEscapingFunction } from '@util/handlebars';
+import { escapeJson, escapeCsv } from '@util/escaping.ts';
+import { setDefaultEscapingFunction } from '@util/handlebars.ts';
 
 describe(setDefaultEscapingFunction, () => {
   it('can escape JSON', () => {

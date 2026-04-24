@@ -6,18 +6,18 @@ import Handlebars from 'handlebars';
 import frontMatter from 'front-matter';
 import { basename, extname } from 'path';
 
-import State, { sampleState } from '@server/info/state';
-import { OutputTemplateConfig } from '@util/configuration/config';
-import { validateCsv } from '@util/csv';
-import { escapeJson, escapeCsv, escapeString, EscapeFunction, escapeRegex } from '@util/escaping';
-import { watchFile, Watcher, readFile } from '@util/fs';
-import { setDefaultEscapingFunction } from '@util/handlebars';
-import { validateJson } from '@util/json';
-import { getLogger } from '@util/logger';
-import { handleBuiltin, isBuiltin } from '@util/path';
-import { validateXml } from '@util/xml';
+import State, { sampleState } from '@server/info/state.ts';
+import { OutputTemplateConfig } from '@util/configuration/config.ts';
+import { validateCsv } from '@util/csv.ts';
+import { escapeJson, escapeCsv, escapeString, EscapeFunction, escapeRegex } from '@util/escaping.ts';
+import { watchFile, Watcher, readFile } from '@util/fs.ts';
+import { setDefaultEscapingFunction } from '@util/handlebars.ts';
+import { validateJson } from '@util/json.ts';
+import { getLogger } from '@util/logger.ts';
+import { handleBuiltin, isBuiltin } from '@util/path.ts';
+import { validateXml } from '@util/xml.ts';
 
-import { OutputState, toOutputState } from './output';
+import { OutputState, toOutputState } from './output.ts';
 
 type HbEnv = typeof Handlebars;
 export interface OutputTemplate {

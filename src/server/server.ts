@@ -1,16 +1,16 @@
-import PersonDatabase from '@models/people';
-import BracketServiceProvider from '@services/bracket-service-provider';
-import { TwitterClient } from '@services/twitter/twitter';
-import VisionMixer from '@services/vision-mixer-service';
-import { getLogger } from '@util/logger';
-import { getProductName } from '@util/meta';
+import PersonDatabase from '@models/people.ts';
+import BracketServiceProvider from '@services/bracket-service-provider.ts';
+import { TwitterClient } from '@services/twitter/twitter.ts';
+import VisionMixer from '@services/vision-mixer-service.ts';
+import { getLogger } from '@util/logger.ts';
+import { getProductName } from '@util/meta.ts';
 
-import startBracketServer from './bracket/server';
-import startClipServer from './clip/server';
-import startControlServer from './control/server';
-import startErrorServer from './errors/server';
-import startInfoServer from './info/server';
-import { MediaServer } from './media/server';
+import startBracketServer from './bracket/server.ts';
+import startClipServer from './clip/server.ts';
+import startControlServer from './control/server.ts';
+import startErrorServer from './errors/server.ts';
+import startInfoServer from './info/server.ts';
+import { MediaServer } from './media/server.ts';
 import {
   CONTROL_PORT,
   INFO_PORT,
@@ -19,9 +19,9 @@ import {
   BRACKETS_PORT,
   MEDIA_DASHBOARD_PORT,
   ERROR_REPORTING_PORT,
-} from './ports';
-import startRecordingServer from './recording/server';
-import startTwitterServer from './twitter/server';
+} from './ports.ts';
+import startRecordingServer from './recording/server.ts';
+import startTwitterServer from './twitter/server.ts';
 
 const logger = getLogger('server');
 

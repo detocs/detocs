@@ -1,14 +1,14 @@
 import { h, FunctionalComponent, VNode } from 'preact';
 import { StateUpdater, useRef, useEffect } from 'preact/hooks';
 
-import BracketState, { nullState } from '@server/bracket/state';
-import { checkResponseStatus } from '@util/ajax';
-import { submitOnEnter } from '@util/forms';
+import BracketState, { nullState } from '@server/bracket/state.ts';
+import { checkResponseStatus } from '@util/ajax.ts';
+import { submitOnEnter } from '@util/forms.ts';
 
-import { bracketEndpoint } from './api';
-import ExternalLink from './external-link';
-import Icon from './icon';
-import { logError } from './log';
+import { bracketEndpoint } from './api.ts';
+import ExternalLink from './external-link.tsx';
+import Icon from './icon.tsx';
+import { logError } from './log.ts';
 
 interface Props {
   state: BracketState;

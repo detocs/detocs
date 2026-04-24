@@ -1,6 +1,6 @@
-import { nullGame } from '@models/game';
-import { nullMatch } from '@models/match';
-import { toOutputState } from '@server/info/output/output';
+import { nullGame } from '@models/game.ts';
+import { nullMatch } from '@models/match.ts';
+import { toOutputState } from '@server/info/output/output.ts';
 
 describe(toOutputState, () => {
   it('copies twitter handles', () => {

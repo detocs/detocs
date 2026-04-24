@@ -1,11 +1,11 @@
 import {jest} from '@jest/globals';
-import { paginatedQuery } from '@services/smashgg/pagination';
+import { paginatedQuery } from '@services/smashgg/pagination.ts';
 import {
   PHASE_SET_QUERY,
   PhaseSetQueryResponse,
-} from '@services/smashgg/queries';
-import SmashggClient from '@services/smashgg/smashgg';
-import { loadCredentials } from '@util/configuration/credentials';
+} from '@services/smashgg/queries.ts';
+import SmashggClient from '@services/smashgg/smashgg.ts';
+import { loadCredentials } from '@util/configuration/credentials.ts';
 
 describe(paginatedQuery, () => {
   beforeAll(() => {

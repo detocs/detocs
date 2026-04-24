@@ -1,6 +1,6 @@
 import { ResultAsync } from 'neverthrow';
 
-import { Timestamp } from '@models/timestamp';
+import { Timestamp } from '@models/timestamp.ts';
 
 export interface ImageData {
   width: number;

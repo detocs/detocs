@@ -2,10 +2,10 @@ import { Error as ChainableError } from 'chainable-error';
 // TODO: Replace with interface
 import OAuth from 'oauth-1.0a';
 
-import { checkResponseStatus } from '@util/ajax';
-import { getOauth1 } from '@util/oauth';
+import { checkResponseStatus } from '@util/ajax.ts';
+import { getOauth1 } from '@util/oauth.ts';
 
-import { AccessToken } from './types';
+import { AccessToken } from './types.ts';
 
 export default class TwitterOAuth {
   private oauth: OAuth;

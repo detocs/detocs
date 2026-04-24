@@ -1,13 +1,13 @@
-import { getLogger } from '@util/logger';
+import { getLogger } from '@util/logger.ts';
 
 import FormData from 'form-data';
 
-import { HttpClientOutputConfig, OutputTemplateConfig } from '@util/configuration/config';
-import State from '@server/info/state';
-import Output from '@server/info/output/output';
-import { OutputTemplate, parseTemplateFile } from '@server/info/output/templates';
+import { HttpClientOutputConfig, OutputTemplateConfig } from '@util/configuration/config.ts';
+import State from '@server/info/state.ts';
+import Output from '@server/info/output/output.ts';
+import { OutputTemplate, parseTemplateFile } from '@server/info/output/templates.ts';
 import { Ok, ResultAsync } from 'neverthrow';
-import { checkResponseStatus } from '@util/ajax';
+import { checkResponseStatus } from '@util/ajax.ts';
 
 const logger = getLogger('output/http-client');
 

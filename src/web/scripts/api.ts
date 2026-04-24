@@ -5,7 +5,7 @@ import {
   BRACKETS_PORT,
   MEDIA_DASHBOARD_PORT,
   ERROR_REPORTING_PORT,
-} from "../../server/ports";
+} from '@server/ports.ts';
 
 function endpoint(port: string, path: string, protocol?: string): URL {
   const url = new URL(window.location.origin);

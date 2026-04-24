@@ -1,10 +1,10 @@
 import cloneDeep from 'lodash.clonedeep';
 
-import Person from '@models/person';
-import Player from '@models/player';
-import State, { sampleState as origSample } from '@server/info/state';
-import LowerThird from '@models/lower-third';
-import { nonEmpty } from '@util/predicates';
+import Person from '@models/person.ts';
+import Player from '@models/player.ts';
+import State, { sampleState as origSample } from '@server/info/state.ts';
+import LowerThird from '@models/lower-third.ts';
+import { nonEmpty } from '@util/predicates.ts';
 
 export default interface Output {
   init(state: State): Promise<void>;

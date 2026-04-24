@@ -1,4 +1,4 @@
-import { youtube_v3 as youtubeV3 } from '@google/youtube/v3';
+import { youtube_v3 as youtubeV3 } from '@google/youtube/v3.js';
 import filenamify from 'filenamify';
 import fsSync, { promises as fs } from 'fs';
 import { OAuth2Client } from 'google-auth-library';
@@ -9,15 +9,15 @@ import { err, ok, okAsync, ResultAsync } from 'neverthrow';
 import ResumableUpload from 'node-youtube-resumable-upload';
 import path from 'path';
 
-import Game, { GameOption } from '@models/game';
-import GameTeam from '@models/game-team';
-import { getGameById, getGameByServiceId, loadGameDatabase } from '@models/games';
-import Person, { getPrefixedAlias } from '@models/person';
-import { Timestamp } from '@models/timestamp';
-import Tournament from '@models/tournament';
-import TournamentSet, { TournamentEntrant } from '@models/tournament-set';
-import BracketService from '@services/bracket-service';
-import BracketServiceProvider from '@services/bracket-service-provider';
+import Game, { GameOption } from '@models/game.ts';
+import GameTeam from '@models/game-team.ts';
+import { getGameById, getGameByServiceId, loadGameDatabase } from '@models/games.ts';
+import Person, { getPrefixedAlias } from '@models/person.ts';
+import { Timestamp } from '@models/timestamp.ts';
+import Tournament from '@models/tournament.ts';
+import TournamentSet, { TournamentEntrant } from '@models/tournament-set.ts';
+import BracketService from '@services/bracket-service.ts';
+import BracketServiceProvider from '@services/bracket-service-provider.ts';
 import {
   getYoutubeAuthClient,
   tagsSize,
@@ -36,17 +36,17 @@ import {
   SanitizedDescription,
   SanitizedTag,
   GAMING_CATEGORY_ID,
-} from '@services/youtube';
-import { mode } from '@util/array';
-import { getConfig } from '@util/configuration/config';
-import { KeyframeSource } from '@util/keyframe-source';
-import { getLogger } from '@util/logger';
-import { trimVideo } from '@util/mkvmerge';
-import { nonEmpty, nonNull } from '@util/predicates';
+} from '@services/youtube.ts';
+import { mode } from '@util/array.ts';
+import { getConfig } from '@util/configuration/config.ts';
+import { KeyframeSource } from '@util/keyframe-source.ts';
+import { getLogger } from '@util/logger.ts';
+import { trimVideo } from '@util/mkvmerge.ts';
+import { nonEmpty, nonNull } from '@util/predicates.ts';
 
-import { loadLog } from './loader';
-import { getSingleVideoTemplate, getPerSetTemplate, getSingleVideoTitleTemplate, RawTemplateData, renderVodTemplate, getPerSetTitleTemplate } from './templating';
-import { Log, SetData, VodTournament, VodVideogame, VodPhase, SetTeam } from './types';
+import { loadLog } from './loader.ts';
+import { getSingleVideoTemplate, getPerSetTemplate, getSingleVideoTitleTemplate, RawTemplateData, renderVodTemplate, getPerSetTitleTemplate } from './templating.ts';
+import { Log, SetData, VodTournament, VodVideogame, VodPhase, SetTeam } from './types.ts';
 
 const logger = getLogger('upload');
 

@@ -4,49 +4,49 @@ import { dirname, join } from 'path';
 import yargs, { Argv, Arguments } from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
-import startElectron from '@desktop/electron';
-import startLocalBrowser from '@desktop/local-browser';
-import ExportFormat from '@export/export-format';
-import exportPeopleDatabase from '@export/export-people';
+import startElectron from '@desktop/electron.ts';
+import startLocalBrowser from '@desktop/local-browser.ts';
+import ExportFormat from '@export/export-format.ts';
+import exportPeopleDatabase from '@export/export-people.ts';
 import {
   ScoreboardAssistantPeople,
   ScoreboardAssistantPeopleWithTwitter,
   StreamControlPeople,
   StreamControlPeopleWithTwitter,
-} from '@export/formats';
-import { importPeopleDatabase, importTournamentEntrants } from '@import/import-people';
-import PersonDatabase from '@models/people';
-import { MediaServer } from '@server/media/server';
-import server from '@server/server';
-import BracketServiceProvider from '@services/bracket-service-provider';
-import BattlefyClient, { parseTournamentId as parseBattlefyId } from '@services/battlefy/battlefy';
-import { BATTLEFY_SERVICE_NAME } from '@services/battlefy/constants';
+} from '@export/formats.ts';
+import { importPeopleDatabase, importTournamentEntrants } from '@import/import-people.ts';
+import PersonDatabase from '@models/people.ts';
+import { MediaServer } from '@server/media/server.ts';
+import server from '@server/server.ts';
+import BracketServiceProvider from '@services/bracket-service-provider.ts';
+import BattlefyClient, { parseTournamentId as parseBattlefyId } from '@services/battlefy/battlefy.ts';
+import { BATTLEFY_SERVICE_NAME } from '@services/battlefy/constants.ts';
 import ChallongeClient, {
   parseTournamentId as parseChallongeId,
-} from '@services/challonge/challonge';
-import { CHALLONGE_SERVICE_NAME } from '@services/challonge/constants';
-import ObsClient from '@services/obs/obs';
-import ObsLegacyClient from '@services/obs-legacy/obs';
-import { SMASHGG_SERVICE_NAME } from '@services/smashgg/constants';
-import SmashggClient, { parseTournamentSlug as parseSmashggSlug } from '@services/smashgg/smashgg';
-import { TwitterClient, ApiTwitterClient, MockTwitterClient } from '@services/twitter/twitter';
-import VisionMixer from '@services/vision-mixer-service';
-import { generateLog } from '@upload/log-generator';
-import { VodUploader, Style, Command } from '@upload/vod-uploader';
-import { getConfig, loadConfig } from '@util/configuration/config';
-import { getCredentials, loadCredentials } from '@util/configuration/credentials';
-import { sortedKeys } from '@util/json';
-import { configureLogger, getBasicLogger } from '@util/logger';
+} from '@services/challonge/challonge.ts';
+import { CHALLONGE_SERVICE_NAME } from '@services/challonge/constants.ts';
+import ObsClient from '@services/obs/obs.ts';
+import ObsLegacyClient from '@services/obs-legacy/obs.ts';
+import { SMASHGG_SERVICE_NAME } from '@services/smashgg/constants.ts';
+import SmashggClient, { parseTournamentSlug as parseSmashggSlug } from '@services/smashgg/smashgg.ts';
+import { TwitterClient, ApiTwitterClient, MockTwitterClient } from '@services/twitter/twitter.ts';
+import VisionMixer from '@services/vision-mixer-service.ts';
+import { generateLog } from '@upload/log-generator.ts';
+import { VodUploader, Style, Command } from '@upload/vod-uploader.ts';
+import { getConfig, loadConfig } from '@util/configuration/config.ts';
+import { getCredentials, loadCredentials } from '@util/configuration/credentials.ts';
+import { sortedKeys } from '@util/json.ts';
+import { configureLogger, getBasicLogger } from '@util/logger.ts';
 import {
   getVersion,
   setAppRoot,
   getProductName,
   isElectron,
   isPkg,
-} from '@util/meta';
-import { withoutExtension } from '@util/path';
-import web from '@web/server';
-import { loadGameDatabase } from '@models/games';
+} from '@util/meta.ts';
+import { withoutExtension } from '@util/path.ts';
+import web from '@web/server.ts';
+import { loadGameDatabase } from '@models/games.ts';
 
 interface ConfigOptions {
   config?: string;

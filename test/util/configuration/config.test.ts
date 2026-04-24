@@ -1,6 +1,6 @@
 import path from 'path';
 
-import { getConfig, loadConfig } from '@util/configuration/config'
+import { getConfig, loadConfig } from '@util/configuration/config.ts';
 
 function testDataPath(filename: string): string {
   return path.join(__dirname, 'testdata', filename);

@@ -1,8 +1,8 @@
 import findLastIndex from 'lodash.findlastindex';
 
-import State, { Recording, RecordingGroup } from '@server/recording/state';
-import { compareStr } from '@util/string';
-import { toMillis } from '@util/timestamp';
+import State, { Recording, RecordingGroup } from '@server/recording/state.ts';
+import { compareStr } from '@util/string.ts';
+import { toMillis } from '@util/timestamp.ts';
 
 export interface AssignedGroup extends RecordingGroup {
   startMillis: number;

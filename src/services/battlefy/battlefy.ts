@@ -1,19 +1,19 @@
-import Game, { nullGame } from '@models/game';
-import { getGameByServiceId } from '@models/games';
-import Match from '@models/match';
-import { getMatchById, isGrandFinals, isTrueFinals } from '@models/matches';
-import Tournament from '@models/tournament';
-import TournamentEvent from '@models/tournament-event';
-import TournamentPhase from '@models/tournament-phase';
-import TournamentPhaseGroup from '@models/tournament-phase-group';
-import TournamentSet, { TournamentEntrant, nullEntrant } from '@models/tournament-set';
-import BracketService from '@services/bracket-service';
-import { ParsedIds } from '@services/bracket-service-provider';
-import { parseEntrantName } from '@services/challonge/challonge';
-import { checkResponseStatus } from '@util/ajax';
-import { getLogger } from '@util/logger';
+import Game, { nullGame } from '@models/game.ts';
+import { getGameByServiceId } from '@models/games.ts';
+import Match from '@models/match.ts';
+import { getMatchById, isGrandFinals, isTrueFinals } from '@models/matches.ts';
+import Tournament from '@models/tournament.ts';
+import TournamentEvent from '@models/tournament-event.ts';
+import TournamentPhase from '@models/tournament-phase.ts';
+import TournamentPhaseGroup from '@models/tournament-phase-group.ts';
+import TournamentSet, { TournamentEntrant, nullEntrant } from '@models/tournament-set.ts';
+import BracketService from '@services/bracket-service.ts';
+import { ParsedIds } from '@services/bracket-service-provider.ts';
+import { parseEntrantName } from '@services/challonge/challonge.ts';
+import { checkResponseStatus } from '@util/ajax.ts';
+import { getLogger } from '@util/logger.ts';
 
-import { BASE_URL, BATTLEFY_SERVICE_NAME, TOURNAMENT_URL_REGEX } from './constants';
+import { BASE_URL, BATTLEFY_SERVICE_NAME, TOURNAMENT_URL_REGEX } from './constants.ts';
 import {
   ApiEmptySlot,
   ApiMatch,
@@ -24,7 +24,7 @@ import {
   TournamentsResponse,
   Timestamp,
   ParticipantsResponse,
-} from './types';
+} from './types.ts';
 
 const logger = getLogger('services/battlefy');
 

@@ -1,30 +1,30 @@
 import { memoize } from 'micro-memoize';
 import moment from 'moment';
 
-import Game, { nullGame } from '@models/game';
-import { getGameByServiceId } from '@models/games';
-import Match from '@models/match';
-import { getMatchById, isGrandFinals, isTrueFinals } from '@models/matches';
-import Tournament from '@models/tournament';
-import TournamentEvent from '@models/tournament-event';
-import TournamentPhase from '@models/tournament-phase';
-import TournamentPhaseGroup from '@models/tournament-phase-group';
-import TournamentSet, { TournamentEntrant, nullEntrant } from '@models/tournament-set';
-import BracketService from '@services/bracket-service';
-import { ParsedIds } from '@services/bracket-service-provider';
+import Game, { nullGame } from '@models/game.ts';
+import { getGameByServiceId } from '@models/games.ts';
+import Match from '@models/match.ts';
+import { getMatchById, isGrandFinals, isTrueFinals } from '@models/matches.ts';
+import Tournament from '@models/tournament.ts';
+import TournamentEvent from '@models/tournament-event.ts';
+import TournamentPhase from '@models/tournament-phase.ts';
+import TournamentPhaseGroup from '@models/tournament-phase-group.ts';
+import TournamentSet, { TournamentEntrant, nullEntrant } from '@models/tournament-set.ts';
+import BracketService from '@services/bracket-service.ts';
+import { ParsedIds } from '@services/bracket-service-provider.ts';
 import {
   ApiKey,
   Timestamp,
   ApiTournament,
   ApiMatch,
   ApiParticipant,
-} from '@services/challonge/types';
-import { checkResponseStatus, checkServerError } from '@util/ajax';
-import { getCredentials } from '@util/configuration/credentials';
-import { nonNull } from '@util/predicates';
+} from '@services/challonge/types.ts';
+import { checkResponseStatus, checkServerError } from '@util/ajax.ts';
+import { getCredentials } from '@util/configuration/credentials.ts';
+import { nonNull } from '@util/predicates.ts';
 
-import { BASE_URL, TOURNAMENT_URL_REGEX, CHALLONGE_SERVICE_NAME, RESERVED_URLS } from './constants';
-import { TournamentResponse, MatchResponse, ParticipantResponse } from './types';
+import { BASE_URL, TOURNAMENT_URL_REGEX, CHALLONGE_SERVICE_NAME, RESERVED_URLS } from './constants.ts';
+import { TournamentResponse, MatchResponse, ParticipantResponse } from './types.ts';
 
 const ENTRANT_PREFIX_REGEX = /^(?:(.+?)\s*\|+\s*)?([^|]+)$/;
 

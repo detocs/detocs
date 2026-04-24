@@ -1,20 +1,20 @@
 import { h, FunctionalComponent, VNode, Fragment } from 'preact';
 import { useEffect, useRef, StateUpdater } from 'preact/hooks';
 
-import { Timestamp } from '@models/timestamp';
-import { State as ClipState, isImageClipView, getClipById } from '@server/clip/state';
-import ServerState from '@server/recording/state';
-import { checkResponseStatus } from '@util/ajax';
-import { Id } from '@util/id';
-import { AssignedGroup, groupRecordings, isAssignedGroup, mostRecent, UnassignedGroup } from '@util/recording';
-import { fromMillis, toMillis } from '@util/timestamp';
+import { Timestamp } from '@models/timestamp.ts';
+import { State as ClipState, isImageClipView, getClipById } from '@server/clip/state.ts';
+import ServerState from '@server/recording/state.ts';
+import { checkResponseStatus } from '@util/ajax.ts';
+import { Id } from '@util/id.ts';
+import { AssignedGroup, groupRecordings, isAssignedGroup, mostRecent, UnassignedGroup } from '@util/recording.ts';
+import { fromMillis, toMillis } from '@util/timestamp.ts';
 
-import { recordingEndpoint } from './api';
-import { useStartTimestamp, useStopTimestamp, useRecording, useRecordingGroup, useGroupStartTimestamp, useGroupStopTimestamp } from './hooks/recording';
-import { logError } from './log';
-import { Thumbnail } from './thumbnail';
-import { TimestampInput } from './timestamp';
-import { ClipSelectorModal } from './clip-selector';
+import { recordingEndpoint } from './api.ts';
+import { useStartTimestamp, useStopTimestamp, useRecording, useRecordingGroup, useGroupStartTimestamp, useGroupStopTimestamp } from './hooks/recording.ts';
+import { logError } from './log.ts';
+import { Thumbnail } from './thumbnail.tsx';
+import { TimestampInput } from './timestamp.tsx';
+import { ClipSelectorModal } from './clip-selector.tsx';
 
 interface Props {
   state: ServerState;

@@ -1,9 +1,9 @@
-import VisionMixer from '@services/vision-mixer-service';
-import { sleep, toPromise, waitUntil } from '@util/async';
-import { parseHeight, parseWidth } from '@util/png';
-import { toMillis, validateTimestamp } from '@util/timestamp';
+import VisionMixer from '@services/vision-mixer-service.ts';
+import { sleep, toPromise, waitUntil } from '@util/async.ts';
+import { parseHeight, parseWidth } from '@util/png.ts';
+import { toMillis, validateTimestamp } from '@util/timestamp.ts';
 
-import { setupObs27, setupObs28, setupObs29, setupObs30, setupObs31 } from './setup-obs';
+import { setupObs27, setupObs28, setupObs29, setupObs30, setupObs31 } from './setup-obs.ts';
 
 type SetupFn = () => Promise<{
   visionMixer: VisionMixer,

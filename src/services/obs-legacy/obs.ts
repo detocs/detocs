@@ -6,15 +6,15 @@ import ObsWebSocket from 'obs-websocket-js-4';
 import { dirname, extname, isAbsolute, join, basename } from 'path';
 import pLimit from 'p-limit';
 
-import { Timestamp } from '@models/timestamp';
-import VisionMixer, { ImageData, Scene, ScreenshotData, TimestampData, VideoInput } from '@services/vision-mixer-service';
-import { Config, getConfig } from '@util/configuration/config';
-import { Watcher, waitForFile } from '@util/fs';
-import { getLogger } from '@util/logger';
-import * as png from '@util/png';
-import { combineAsync } from '@util/results';
+import { Timestamp } from '@models/timestamp.ts';
+import VisionMixer, { ImageData, Scene, ScreenshotData, TimestampData, VideoInput } from '@services/vision-mixer-service.ts';
+import { Config, getConfig } from '@util/configuration/config.ts';
+import { Watcher, waitForFile } from '@util/fs.ts';
+import { getLogger } from '@util/logger.ts';
+import * as png from '@util/png.ts';
+import { combineAsync } from '@util/results.ts';
 
-import { ObsConnection, ObsConnectionImpl } from './connection';
+import { ObsConnection, ObsConnectionImpl } from './connection.ts';
 
 interface ProcessInfo {
   pid: number;

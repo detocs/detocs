@@ -1,11 +1,11 @@
 import { resolve } from 'path';
 
-import { tmpDir } from '@util/fs';
-import { getLogger } from '@util/logger';
+import { tmpDir } from '@util/fs.ts';
+import { getLogger } from '@util/logger.ts';
 
-import { loadConfigData, findConfigData, emptyConfigData, parseConfig } from './common';
+import { loadConfigData, findConfigData, emptyConfigData, parseConfig } from './common.ts';
 import cloneDeep from 'lodash.clonedeep';
-import State from '@server/info/state';
+import State from '@server/info/state.ts';
 
 const logger = getLogger('config');
 

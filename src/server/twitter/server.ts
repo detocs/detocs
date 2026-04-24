@@ -2,12 +2,12 @@ import { Express, RequestHandler } from 'express';
 import updateImmutable from 'immutability-helper';
 import ws from 'ws';
 
-import { MediaServer } from '@server/media/server';
-import { TwitterClient } from '@services/twitter/twitter';
-import * as httpUtil from '@util/http-server';
-import { getLogger } from '@util/logger';
+import { MediaServer } from '@server/media/server.ts';
+import { TwitterClient } from '@services/twitter/twitter.ts';
+import * as httpUtil from '@util/http-server.ts';
+import { getLogger } from '@util/logger.ts';
 
-import ClientState, { nullState } from './client-state';
+import ClientState, { nullState } from './client-state.ts';
 
 const logger = getLogger('server/twitter');
 

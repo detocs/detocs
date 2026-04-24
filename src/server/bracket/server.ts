@@ -4,15 +4,15 @@ import updateImmutable from 'immutability-helper';
 import { err, ok, Result, ResultAsync } from 'neverthrow';
 import ws from 'ws';
 
-import BracketService from '@services/bracket-service';
-import BracketServiceProvider from '@services/bracket-service-provider';
-import { SMASHGG_SERVICE_NAME } from '@services/smashgg/constants';
-import * as httpUtil from '@util/http-server';
-import { getLogger } from '@util/logger';
-import { parseFormData } from '@util/parsing';
-import { nonEmpty } from '@util/predicates';
+import BracketService from '@services/bracket-service.ts';
+import BracketServiceProvider from '@services/bracket-service-provider.ts';
+import { SMASHGG_SERVICE_NAME } from '@services/smashgg/constants.ts';
+import * as httpUtil from '@util/http-server.ts';
+import { getLogger } from '@util/logger.ts';
+import { parseFormData } from '@util/parsing.ts';
+import { nonEmpty } from '@util/predicates.ts';
 
-import State, { nullState } from './state';
+import State, { nullState } from './state.ts';
 import isEqual from 'lodash.isequal';
 
 type WebSocketClient = ws;

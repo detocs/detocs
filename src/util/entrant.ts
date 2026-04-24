@@ -1,8 +1,8 @@
 import merge from 'lodash.merge';
 
-import PersonDatabase from '@models/people';
-import Person, { getPrefixedName, nullPerson } from '@models/person';
-import TournamentSet, { TournamentParticipant, TournamentEntrant } from '@models/tournament-set';
+import PersonDatabase from '@models/people.ts';
+import Person, { getPrefixedName, nullPerson } from '@models/person.ts';
+import TournamentSet, { TournamentParticipant, TournamentEntrant } from '@models/tournament-set.ts';
 
 export function entrantToPerson(
   personDatabase: PersonDatabase,

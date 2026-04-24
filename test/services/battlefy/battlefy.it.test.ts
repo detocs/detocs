@@ -1,6 +1,6 @@
 import 'isomorphic-fetch';
 
-import BattlefyClient from '@services/battlefy/battlefy';
+import BattlefyClient from '@services/battlefy/battlefy.ts';
 
 describe(BattlefyClient, () => {
   describe(BattlefyClient.prototype.phase, () => {

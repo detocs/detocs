@@ -2,16 +2,16 @@ import { h, render, FunctionalComponent, VNode } from 'preact';
 import { useState } from 'preact/hooks';
 import { ToastContainer as ReactToastContainer } from 'react-toastify';
 
-import BracketState, { nullState as nullBracketState } from '@server/bracket/state';
+import BracketState, { nullState as nullBracketState } from '@server/bracket/state.ts';
 import {
   State as ClipState,
   nullState as nullClipState
-} from '@server/clip/state';
-import InfoState, { nullState as nullInfoState } from '@server/info/state';
-import RecordingState, { nullState as nullRecordingState } from '@server/recording/state';
-import TwitterState, { nullState as nullTwitterState } from '@server/twitter/client-state';
-import { ancestors } from '@util/dom';
-import { getVersion, getProductName } from '@util/meta';
+} from '@server/clip/state.ts';
+import InfoState, { nullState as nullInfoState } from '@server/info/state.ts';
+import RecordingState, { nullState as nullRecordingState } from '@server/recording/state.ts';
+import TwitterState, { nullState as nullTwitterState } from '@server/twitter/client-state.ts';
+import { ancestors } from '@util/dom.ts';
+import { getVersion, getProductName } from '@util/meta.ts';
 
 import {
   infoEndpoint,
@@ -19,27 +19,27 @@ import {
   recordingEndpoint,
   bracketEndpoint,
   clipEndpoint
-} from './api';
-import BracketDashboard from './bracket-dashboard';
-import BreakDashboard from './break-dashboard';
-import ClipDashboard from './clip-dashboard';
-import CommentaryDashboard from './commentary-dashboard';
-import { NUM_RECENT_SCENES } from './constants';
-import { bindSubmitHandler } from './form-ajax';
-import { useServerState } from './hooks/server-state';
+} from './api.ts';
+import BracketDashboard from './bracket-dashboard.tsx';
+import BreakDashboard from './break-dashboard.tsx';
+import ClipDashboard from './clip-dashboard.tsx';
+import CommentaryDashboard from './commentary-dashboard.tsx';
+import { NUM_RECENT_SCENES } from './constants.ts';
+import { bindSubmitHandler } from './form-ajax.ts';
+import { useServerState } from './hooks/server-state.ts';
 import {
   usePlayersReversed,
   useCommentatorsReversed,
   useThumbnailVideosEnabled,
   ThumbnailSettingsContext,
-} from './hooks/settings';
-import { logError } from './log';
-import PlayerDashboard from './player-dashboard';
-import RecordingDashboard from './recording-dashboard';
-import SettingsDashboard from './settings-dashboard';
-import Tab from './tab';
-import TabController from './tab-controller';
-import TwitterDashboard from './twitter-dashboard';
+} from './hooks/settings.ts';
+import { logError } from './log.ts';
+import PlayerDashboard from './player-dashboard.tsx';
+import RecordingDashboard from './recording-dashboard.tsx';
+import SettingsDashboard from './settings-dashboard.tsx';
+import Tab from './tab.tsx';
+import TabController from './tab-controller.tsx';
+import TwitterDashboard from './twitter-dashboard.tsx';
 
 document.addEventListener('DOMContentLoaded', () => {
   bindSubmitHandler();

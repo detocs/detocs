@@ -1,7 +1,7 @@
 import { h, ComponentChildren, JSX } from 'preact';
 import { forwardRef } from 'preact/compat';
 
-import useId from './hooks/id';
+import useId from './hooks/id.ts';
 
 export type Props = JSX.HTMLAttributes<HTMLInputElement> & {
   label: ComponentChildren;

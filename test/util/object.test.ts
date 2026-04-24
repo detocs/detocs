@@ -1,4 +1,4 @@
-import { filterValues } from '@util/object';
+import { filterValues } from '@util/object.ts';
 
 describe(filterValues, () => {
   it('can remove falsy values', () => {

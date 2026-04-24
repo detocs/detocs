@@ -1,4 +1,4 @@
-import { Screenshot } from '@models/media';
+import { Screenshot } from '@models/media.ts';
 
 type TimestampedScreenshot = Screenshot & {
   recordingTimestampMs: number;

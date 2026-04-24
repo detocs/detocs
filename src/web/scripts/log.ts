@@ -1,9 +1,9 @@
 import { toast } from 'react-toastify';
 
-import { objectFormData } from '@util/forms';
-import { filterNullValues } from '@util/object';
+import { objectFormData } from '@util/forms.ts';
+import { filterNullValues } from '@util/object.ts';
 
-import { errorEndpoint } from './api';
+import { errorEndpoint } from './api.ts';
 
 interface ErrorObj {
   message: string;

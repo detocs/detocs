@@ -1,4 +1,4 @@
-import GameCharacter from '@models/game-character';
+import GameCharacter from '@models/game-character.ts';
 
 export default interface GameTeam {
   characters: GameCharacter[];

@@ -4,12 +4,12 @@ import ObsWebSocket4 from 'obs-websocket-js-4';
 import { dirname, join } from 'path';
 import { promisify } from 'util';
 
-import { ObsConnectionImpl as LegacyConnection } from '@services/obs-legacy/connection';
-import ObsLegacyClient from '@services/obs-legacy/obs';
-import VisionMixer from '@services/vision-mixer-service';
-import { Config } from '@util/configuration/config';
-import { ObsConnectionImpl } from '@services/obs/connection';
-import ObsClient from '@services/obs/obs';
+import { ObsConnectionImpl as LegacyConnection } from '@services/obs-legacy/connection.ts';
+import ObsLegacyClient from '@services/obs-legacy/obs.ts';
+import VisionMixer from '@services/vision-mixer-service.ts';
+import { Config } from '@util/configuration/config.ts';
+import { ObsConnectionImpl } from '@services/obs/connection.ts';
+import ObsClient from '@services/obs/obs.ts';
 
 const exec = promisify(child_process.exec);
 

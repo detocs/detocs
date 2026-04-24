@@ -1,4 +1,4 @@
-import { Key, keyHandler } from "@util/dom";
+import { Key, keyHandler } from '@util/dom.ts';
 
 export type FormControlElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 

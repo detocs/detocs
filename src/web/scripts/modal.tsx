@@ -6,11 +6,11 @@ import { h, FunctionalComponent, VNode, RenderableProps } from 'preact';
 import { createPortal } from 'preact/compat';
 import { useMemo, useEffect, useRef } from 'preact/hooks';
 
-import { keyHandler, Key, INTERACTIVE_SELECTOR } from '@util/dom';
+import { keyHandler, Key, INTERACTIVE_SELECTOR } from '@util/dom.ts';
 
-import FocusTrap from './focus-trap';
-export { default as useModalState } from './hooks/modal-state';
-import Icon from './icon';
+import FocusTrap from './focus-trap.tsx';
+export { default as useModalState } from './hooks/modal-state.tsx';
+import Icon from './icon.tsx';
 
 type ModalProps = RenderableProps<{
   isOpen: boolean;

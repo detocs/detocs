@@ -2,16 +2,16 @@ import { promises as fs } from 'fs';
 import { memoize } from 'micro-memoize';
 import path from 'path';
 
-import { Timestamp } from '@models/timestamp';
-import InfoState from '@server/info/state';
-import BracketServiceProvider from '@services/bracket-service-provider';
-import { getVersion } from '@util/meta';
-import { nonNull } from '@util/predicates';
-import { AssignedGroup, Group, groupRecordings, mostRecent } from '@util/recording';
-import { fromMillis } from '@util/timestamp';
+import { Timestamp } from '@models/timestamp.ts';
+import InfoState from '@server/info/state.ts';
+import BracketServiceProvider from '@services/bracket-service-provider.ts';
+import { getVersion } from '@util/meta.ts';
+import { nonNull } from '@util/predicates.ts';
+import { AssignedGroup, Group, groupRecordings, mostRecent } from '@util/recording.ts';
+import { fromMillis } from '@util/timestamp.ts';
 
-import State, { Recording } from "./state";
-import GameTeam from '@models/game-team';
+import State, { Recording } from './state.ts';
+import GameTeam from '@models/game-team.ts';
 
 type FilePath = string;
 

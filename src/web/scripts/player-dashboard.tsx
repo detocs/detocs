@@ -1,14 +1,14 @@
 import { h, FunctionalComponent, VNode } from 'preact';
 import { StateUpdater, useState } from 'preact/hooks';
 
-import { nullMatch } from '@models/match';
-import { nullPerson } from '@models/person';
-import BracketState from '@server/bracket/state';
-import InfoState from '@server/info/state';
+import { nullMatch } from '@models/match.ts';
+import { nullPerson } from '@models/person.ts';
+import BracketState from '@server/bracket/state.ts';
+import InfoState from '@server/info/state.ts';
 
-import { infoEndpoint } from './api';
-import BracketSet from './bracket-set';
-import GameFields from './game-fields';
+import { infoEndpoint } from './api.ts';
+import BracketSet from './bracket-set.tsx';
+import GameFields from './game-fields.tsx';
 import {
   usePlayer1, usePlayer2,
   useScore1, useScore2,
@@ -17,9 +17,9 @@ import {
   useTeams1, useTeams2,
   useMatch,
   useGame,
-} from './hooks/info';
-import MatchFields from './match-fields';
-import PlayerFields from './player-fields';
+} from './hooks/info.ts';
+import MatchFields from './match-fields.tsx';
+import PlayerFields from './player-fields.tsx';
 
 interface Props {
   state: InfoState;

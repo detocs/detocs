@@ -1,9 +1,9 @@
 import { h, FunctionalComponent, RenderableProps, VNode } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
 
-import { INTERACTIVE_SELECTOR } from '@util/dom';
+import { INTERACTIVE_SELECTOR } from '@util/dom.ts';
 
-import { register } from './key-manager';
+import { register } from './key-manager.ts';
 
 type Shortcut = [string, string, (i: number, numTabs: number) => number];
 

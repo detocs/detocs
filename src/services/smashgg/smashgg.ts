@@ -1,21 +1,21 @@
 import { GraphQLClient } from 'graphql-request';
 
-import Game, { nullGame } from '@models/game';
-import { getGameByServiceId } from '@models/games';
-import { getMatchBySmashggId, isGrandFinals, isTrueFinals } from '@models/matches';
-import Tournament from '@models/tournament';
-import TournamentEvent from '@models/tournament-event';
-import TournamentPhase from '@models/tournament-phase';
-import TournamentPhaseGroup from '@models/tournament-phase-group';
+import Game, { nullGame } from '@models/game.ts';
+import { getGameByServiceId } from '@models/games.ts';
+import { getMatchBySmashggId, isGrandFinals, isTrueFinals } from '@models/matches.ts';
+import Tournament from '@models/tournament.ts';
+import TournamentEvent from '@models/tournament-event.ts';
+import TournamentPhase from '@models/tournament-phase.ts';
+import TournamentPhaseGroup from '@models/tournament-phase-group.ts';
 import TournamentSet, {
   TournamentEntrant,
   TournamentParticipant,
   nullEntrant,
-} from '@models/tournament-set';
-import BracketService from '@services/bracket-service';
-import { ParsedIds } from '@services/bracket-service-provider';
-import { getCredentials } from '@util/configuration/credentials';
-import { getCountryCodeFromName, getStateCodeFromName } from '@util/localities';
+} from '@models/tournament-set.ts';
+import BracketService from '@services/bracket-service.ts';
+import { ParsedIds } from '@services/bracket-service-provider.ts';
+import { getCredentials } from '@util/configuration/credentials.ts';
+import { getCountryCodeFromName, getStateCodeFromName } from '@util/localities.ts';
 
 import {
   TOURNAMENT_URL_REGEX,
@@ -23,8 +23,8 @@ import {
   ENDPOINT,
   SMASHGG_SERVICE_NAME,
   MAX_PAGE_SIZE,
-} from './constants';
-import { paginatedQuery } from './pagination';
+} from './constants.ts';
+import { paginatedQuery } from './pagination.ts';
 import {
   ApiSet,
   ApiEntrant,
@@ -53,8 +53,8 @@ import {
   TOURNAMENT_TEAMS_BY_ID_QUERY,
   TOURNAMENT_TEAMS_BY_SLUG_QUERY,
   TournamentTeamsQueryResponse,
-} from './queries';
-import { SmashggSlug } from './types';
+} from './queries.ts';
+import { SmashggSlug } from './types.ts';
 
 // TODO: Propagate smashgg errors
 export default class SmashggClient implements BracketService {

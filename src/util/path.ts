@@ -1,6 +1,6 @@
 import path from 'path';
 
-import { getAppRoot } from './meta';
+import { getAppRoot } from './meta.ts';
 
 const BUILTIN_REGEX = /^.*\$builtin[/\\]/;
 

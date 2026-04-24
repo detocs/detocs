@@ -2,28 +2,28 @@ import throttle from 'lodash.throttle';
 import { h, FunctionalComponent, Fragment, VNode, ComponentChild } from 'preact';
 import { StateUpdater, useRef, useState, Ref, useEffect } from 'preact/hooks';
 
-import { ImageClip, VideoClip, isVideoClip, Clip } from '@models/media';
-import { GetClipResponse } from '@server/clip/server';
+import { ImageClip, VideoClip, isVideoClip, Clip } from '@models/media.ts';
+import { GetClipResponse } from '@server/clip/server.ts';
 import {
   State,
   ClipView,
   ClipStatus,
   isImageClipView,
   isVideoClipView,
-} from '@server/clip/state';
-import { checkResponseStatus } from '@util/ajax';
-import { inputHandler } from '@util/dom';
-import { Id } from '@util/id';
-import { fromMillis, splitTimestamp } from '@util/timestamp';
+} from '@server/clip/state.ts';
+import { checkResponseStatus } from '@util/ajax.ts';
+import { inputHandler } from '@util/dom.ts';
+import { Id } from '@util/id.ts';
+import { fromMillis, splitTimestamp } from '@util/timestamp.ts';
 
-import { clipEndpoint } from './api';
-import { ClipSelector } from './clip-selector';
-import { cancelFormSubmission, getFormRoute } from './form-ajax';
-import useId from './hooks/id';
-import { useLocalState } from './hooks/local-state';
-import Icon from './icon';
-import { logError } from './log';
-import { SceneScreenshotMenu } from './screenshot-menu';
+import { clipEndpoint } from './api.ts';
+import { ClipSelector } from './clip-selector.tsx';
+import { cancelFormSubmission, getFormRoute } from './form-ajax.ts';
+import useId from './hooks/id.ts';
+import { useLocalState } from './hooks/local-state.ts';
+import Icon from './icon.tsx';
+import { logError } from './log.ts';
+import { SceneScreenshotMenu } from './screenshot-menu.tsx';
 
 interface Props {
   state: State;

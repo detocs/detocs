@@ -2,12 +2,12 @@ import { Error as ChainableError } from 'chainable-error';
 import { errAsync, ResultAsync } from 'neverthrow';
 import { TwitterApi, TwitterApiReadWrite } from 'twitter-api-v2';
 
-import { getCredentials, saveCredentials } from '@util/configuration/credentials';
-import { getLogger } from '@util/logger';
+import { getCredentials, saveCredentials } from '@util/configuration/credentials.ts';
+import { getLogger } from '@util/logger.ts';
 
-import TwitterOAuth from './oauth';
-import * as requests from './requests';
-import { AccessToken, User } from './types';
+import TwitterOAuth from './oauth.ts';
+import * as requests from './requests.ts';
+import { AccessToken, User } from './types.ts';
 
 const logger = getLogger('services/twitter');
 

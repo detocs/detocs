@@ -2,13 +2,13 @@ import isEqual from 'lodash.isequal';
 import { h, FunctionalComponent, VNode } from 'preact';
 import { useRef } from 'preact/hooks';
 
-import TournamentSet, { getTournamentSetIdString } from '@models/tournament-set';
-import { checkResponseStatus } from '@util/ajax';
-import { fieldSetFormData } from '@util/forms';
+import TournamentSet, { getTournamentSetIdString } from '@models/tournament-set.ts';
+import { checkResponseStatus } from '@util/ajax.ts';
+import { fieldSetFormData } from '@util/forms.ts';
 
-import { infoEndpoint } from './api';
-import { useLocalState } from './hooks/local-state';
-import SetSelector from './set-selector';
+import { infoEndpoint } from './api.ts';
+import { useLocalState } from './hooks/local-state.ts';
+import SetSelector from './set-selector.tsx';
 
 // TODO: Take in set updater
 interface Props {

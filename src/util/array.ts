@@ -1,5 +1,5 @@
 import countBy from 'lodash.countby';
-import { sortNumbersDescending } from './sort';
+import { sortNumbersDescending } from './sort.ts';
 
 export function mode(arr: string[]): string | null {
   const counts = countBy(arr);

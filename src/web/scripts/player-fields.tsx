@@ -2,24 +2,24 @@ import updateImmutable from 'immutability-helper';
 import { ComponentChild, h, VNode } from 'preact';
 import { StateUpdater, useEffect, useRef } from 'preact/hooks';
 
-import Game from '@models/game';
-import GameCharacter from '@models/game-character';
-import GameTeam from '@models/game-team';
-import { nullPerson } from '@models/person';
-import { inputHandler, INTERACTIVE_SELECTOR } from '@util/dom';
-import { submitOnEnter } from '@util/forms';
+import Game from '@models/game.ts';
+import GameCharacter from '@models/game-character.ts';
+import GameTeam from '@models/game-team.ts';
+import { nullPerson } from '@models/person.ts';
+import { inputHandler, INTERACTIVE_SELECTOR } from '@util/dom.ts';
+import { submitOnEnter } from '@util/forms.ts';
 
-import Icon from './icon';
-import NumberInput from './number-input';
-import { PersistentCheckbox } from './persistent-checkbox';
+import Icon from './icon.tsx';
+import NumberInput from './number-input.tsx';
+import { PersistentCheckbox } from './persistent-checkbox.tsx';
 import {
   PersonFieldInput,
   PersonSelector,
   PersonFieldProps,
   PersonAdditionalFields,
   FieldName,
-} from './person-fields';
-import TextInput from './text-input';
+} from './person-fields.tsx';
+import TextInput from './text-input.tsx';
 
 export type Props = PersonFieldProps & {
   index: number;

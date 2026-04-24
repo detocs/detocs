@@ -6,13 +6,13 @@ import ObsWebSocket, { OBSEventTypes, OBSResponseTypes, RequestBatchExecutionTyp
 import pLimit from 'p-limit';
 import { dirname, extname, isAbsolute, join, basename } from 'path';
 
-import { Timestamp } from '@models/timestamp';
-import VisionMixer, { Scene, ScreenshotData, VideoInput } from '@services/vision-mixer-service';
-import { Config, getConfig } from '@util/configuration/config';
-import { getLogger } from '@util/logger';
-import * as png from '@util/png';
+import { Timestamp } from '@models/timestamp.ts';
+import VisionMixer, { Scene, ScreenshotData, VideoInput } from '@services/vision-mixer-service.ts';
+import { Config, getConfig } from '@util/configuration/config.ts';
+import { getLogger } from '@util/logger.ts';
+import * as png from '@util/png.ts';
 
-import { ObsConnection, ObsConnectionImpl } from './connection';
+import { ObsConnection, ObsConnectionImpl } from './connection.ts';
 
 interface ProcessInfo {
   pid: number;

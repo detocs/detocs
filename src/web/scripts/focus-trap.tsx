@@ -1,7 +1,7 @@
 import { h, RenderableProps, FunctionalComponent, VNode, JSX } from 'preact';
 import { useRef, useEffect } from 'preact/hooks';
 
-import { INTERACTIVE_SELECTOR, keyHandler, Key } from '@util/dom';
+import { INTERACTIVE_SELECTOR, keyHandler, Key } from '@util/dom.ts';
 
 type FocusTrapProps = RenderableProps<Record<string, unknown>> &
 JSX.HTMLAttributes<HTMLDivElement>;

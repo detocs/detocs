@@ -3,11 +3,11 @@ import { promises as fs } from 'fs';
 import Handlebars from 'handlebars';
 import moment from 'moment-timezone';
 
-import { nonEmpty } from '@util/predicates';
+import { nonEmpty } from '@util/predicates.ts';
 
-import { VodTournament, VodVideogame, VodPhase, VodUserData, SetData } from './types';
-import { getConfig } from '@util/configuration/config';
-import { handleBuiltin } from '@util/path';
+import { VodTournament, VodVideogame, VodPhase, VodUserData, SetData } from './types.ts';
+import { getConfig } from '@util/configuration/config.ts';
+import { handleBuiltin } from '@util/path.ts';
 
 export interface RawTemplateData {
   tournament: VodTournament,

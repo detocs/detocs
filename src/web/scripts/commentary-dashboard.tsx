@@ -1,19 +1,19 @@
 import { h, FunctionalComponent, VNode } from 'preact';
 import { StateUpdater, useState } from 'preact/hooks';
 
-import { nullPerson, PersonUpdate } from '@models/person';
-import InfoState from '@server/info/state';
-import { INTERACTIVE_SELECTOR, inputHandler } from '@util/dom';
+import { nullPerson, PersonUpdate } from '@models/person.ts';
+import InfoState from '@server/info/state.ts';
+import { INTERACTIVE_SELECTOR, inputHandler } from '@util/dom.ts';
 
-import { infoEndpoint } from './api';
-import { useCommentator1, useCommentator2, useTournament, useEvent } from './hooks/info';
+import { infoEndpoint } from './api.ts';
+import { useCommentator1, useCommentator2, useTournament, useEvent } from './hooks/info.ts';
 import {
   PersonFieldInput,
   PersonSelector,
   PersonFieldProps,
   PersonAdditionalFields,
   FieldName,
-} from './person-fields';
+} from './person-fields.tsx';
 
 interface Props {
   state: InfoState;

@@ -1,7 +1,7 @@
 import _isEqual from 'lodash.isequal';
 
-import GameTeam from '@models/game-team';
-import Locality from '@models/locality';
+import GameTeam from '@models/game-team.ts';
+import Locality from '@models/locality.ts';
 
 export default interface Person {
   id: string;

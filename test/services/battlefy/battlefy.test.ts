@@ -1,4 +1,4 @@
-import { parseTournamentId } from '@services/battlefy/battlefy';
+import { parseTournamentId } from '@services/battlefy/battlefy.ts';
 
 describe(parseTournamentId, () => {
   it('can load info page URLs', () => {

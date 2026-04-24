@@ -1,5 +1,5 @@
-import { SmashggSlug } from './types';
-import { MAX_PAGE_SIZE } from './constants';
+import { SmashggSlug } from './types.ts';
+import { MAX_PAGE_SIZE } from './constants.ts';
 
 export interface PageInfo {
   total: number;

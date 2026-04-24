@@ -4,17 +4,17 @@ import { h, Fragment, RenderableProps, VNode, FunctionalComponent, JSX } from 'p
 import { forwardRef } from 'preact/compat';
 import { useState, useRef, StateUpdater, useCallback, useEffect } from 'preact/hooks';
 
-import Person, { PersonUpdate, getPrefixedNameWithAlias, getNameWithAlias } from '@models/person';
-import { checkResponseStatus } from '@util/ajax';
-import { submitOnEnter } from '@util/forms';
-import { capitalize } from '@util/string';
+import Person, { PersonUpdate, getPrefixedNameWithAlias, getNameWithAlias } from '@models/person.ts';
+import { checkResponseStatus } from '@util/ajax.ts';
+import { submitOnEnter } from '@util/forms.ts';
+import { capitalize } from '@util/string.ts';
 
-import { infoEndpoint } from './api';
-import Autocomplete, { useAutocompleteId, isAutocompleteValue } from './autocomplete';
-import Icon from './icon';
-import { logError } from './log';
-import TextInput from './text-input';
-import { getCountries, getStates } from '@util/localities';
+import { infoEndpoint } from './api.ts';
+import Autocomplete, { useAutocompleteId, isAutocompleteValue } from './autocomplete.tsx';
+import Icon from './icon.tsx';
+import { logError } from './log.ts';
+import TextInput from './text-input.tsx';
+import { getCountries, getStates } from '@util/localities.ts';
 
 export enum FieldName {
   HandleOrAlias = 'handleOrAlias',

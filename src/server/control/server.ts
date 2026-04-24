@@ -1,6 +1,6 @@
 import ws from 'ws';
 
-import { getLogger } from '@util/logger';
+import { getLogger } from '@util/logger.ts';
 
 const logger = getLogger('server/control');
 

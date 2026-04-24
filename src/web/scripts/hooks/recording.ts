@@ -1,11 +1,11 @@
 import updateImmutable from 'immutability-helper';
 import { StateUpdater } from 'preact/hooks';
 
-import RecordingState, { Recording, RecordingGroup } from '@server/recording/state';
+import RecordingState, { Recording, RecordingGroup } from '@server/recording/state.ts';
 
-import { useLocalState } from './local-state';
-import { createSubstatehook } from './substate';
-import { Id } from '@util/id';
+import { useLocalState } from './local-state.ts';
+import { createSubstatehook } from './substate.ts';
+import { Id } from '@util/id.ts';
 
 export const useRecording = (
   value: RecordingState,

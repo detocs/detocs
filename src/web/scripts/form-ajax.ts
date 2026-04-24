@@ -1,7 +1,7 @@
-import { checkResponseStatus } from '@util/ajax';
-import { massagedFormData } from '@util/forms';
+import { checkResponseStatus } from '@util/ajax.ts';
+import { massagedFormData } from '@util/forms.ts';
 
-import { logError } from './log';
+import { logError } from './log.ts';
 
 const ACTION_ATTR = 'currentAction';
 const METHOD_ATTR = 'currentMethod';

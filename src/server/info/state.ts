@@ -1,9 +1,9 @@
-import Break from '@models/break';
-import { nullGame } from '@models/game';
-import LowerThird from '@models/lower-third';
-import { nullMatch } from '@models/match';
-import { nullPerson } from '@models/person';
-import Scoreboard from '@models/scoreboard';
+import Break from '@models/break.ts';
+import { nullGame } from '@models/game.ts';
+import LowerThird from '@models/lower-third.ts';
+import { nullMatch } from '@models/match.ts';
+import { nullPerson } from '@models/person.ts';
+import Scoreboard from '@models/scoreboard.ts';
 
 type State = Scoreboard & LowerThird & Break;
 export default State;

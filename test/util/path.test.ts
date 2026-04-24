@@ -1,7 +1,7 @@
 import { normalize } from 'path';
 
-import { setAppRoot } from '@util/meta';
-import { withoutExtension, handleBuiltin, isBuiltin } from '@util/path';
+import { setAppRoot } from '@util/meta.ts';
+import { withoutExtension, handleBuiltin, isBuiltin } from '@util/path.ts';
 
 describe(withoutExtension, () => {
   it('handles bare filenames', () => {

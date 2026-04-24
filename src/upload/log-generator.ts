@@ -2,14 +2,14 @@ import { promises as fs } from 'fs';
 import { err, Result, ResultAsync } from 'neverthrow';
 import path from 'path';
 
-import { loadGameDatabase } from '@models/games';
-import { CURRENT_LOG_FORMAT } from '@server/recording/log';
-import BracketServiceProvider from '@services/bracket-service-provider';
-import { writeFile } from '@util/fs';
-import { getVersion } from '@util/meta';
-import { combineAsync } from '@util/results';
+import { loadGameDatabase } from '@models/games.ts';
+import { CURRENT_LOG_FORMAT } from '@server/recording/log.ts';
+import BracketServiceProvider from '@services/bracket-service-provider.ts';
+import { writeFile } from '@util/fs.ts';
+import { getVersion } from '@util/meta.ts';
+import { combineAsync } from '@util/results.ts';
 
-import { Log } from './types';
+import { Log } from './types.ts';
 
 export async function generateLog({
   bracketProvider,

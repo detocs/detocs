@@ -1,5 +1,5 @@
 import { memoize } from 'micro-memoize';
-import BracketService from './bracket-service';
+import BracketService from './bracket-service.ts';
 
 export interface ParsedIds {
   tournamentId: string;

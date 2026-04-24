@@ -1,4 +1,4 @@
-import Person, { nullPerson } from '@models/person';
+import Person, { nullPerson } from '@models/person.ts';
 
 export default interface Player {
   readonly person: Person;

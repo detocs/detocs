@@ -1,4 +1,4 @@
-import { parseTournamentSlug } from '@services/smashgg/smashgg';
+import { parseTournamentSlug } from '@services/smashgg/smashgg.ts';
 
 describe(parseTournamentSlug, () => {
   it('can load plain URLs', () => {

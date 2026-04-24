@@ -1,12 +1,12 @@
-import { getLogger } from '@util/logger';
+import { getLogger } from '@util/logger.ts';
 
 import WebSocket from 'ws';
 
-import { WebSocketOutputConfig, OutputTemplateConfig } from '@util/configuration/config';
-import { broadcastAllData, sendAllData } from '@util/websocket';
-import State from '@server/info/state';
-import Output from '@server/info/output/output';
-import { OutputTemplate, parseTemplateFile } from '@server/info/output/templates';
+import { WebSocketOutputConfig, OutputTemplateConfig } from '@util/configuration/config.ts';
+import { broadcastAllData, sendAllData } from '@util/websocket.ts';
+import State from '@server/info/state.ts';
+import Output from '@server/info/output/output.ts';
+import { OutputTemplate, parseTemplateFile } from '@server/info/output/templates.ts';
 import { Ok } from 'neverthrow';
 
 const logger = getLogger('output/websocket');

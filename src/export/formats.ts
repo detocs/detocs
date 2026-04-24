@@ -1,4 +1,4 @@
-import ExportFormat from './export-format';
+import ExportFormat from './export-format.ts';
 
 export const ScoreboardAssistantPeople: ExportFormat = `{{#each .}}
 {{escapeDoublePipe handle}}{{#if prefix}} || {{escapeDoublePipe prefix}}{{/if}}

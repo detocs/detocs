@@ -1,7 +1,7 @@
-import Game from './game';
-import Match from './match';
-import Player from './player';
-import TournamentSet from './tournament-set';
+import Game from './game.ts';
+import Match from './match.ts';
+import Player from './player.ts';
+import TournamentSet from './tournament-set.ts';
 
 export default interface Scoreboard {
   players: Player[];

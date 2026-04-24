@@ -1,6 +1,6 @@
-import Game from './game';
-import Match from './match';
-import Person from './person';
+import Game from './game.ts';
+import Match from './match.ts';
+import Person from './person.ts';
 
 export interface TournamentParticipant extends Omit<Person, 'id' | 'alias'> {
   serviceName: string;

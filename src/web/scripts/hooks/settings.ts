@@ -1,4 +1,4 @@
-import { useLocalStorage } from './storage';
+import { useLocalStorage } from './storage.ts';
 import { StateUpdater } from 'preact/hooks';
 import { createContext } from 'preact';
 

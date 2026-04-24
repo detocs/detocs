@@ -1,4 +1,4 @@
-import parse from 'csv-parse/lib/sync';
+import parse from 'csv-parse/lib/sync.js';
 
 export function validateCsv(str: string): Error | null {
   try {

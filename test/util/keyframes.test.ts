@@ -3,7 +3,7 @@ import {
   closestSubsequentKeyframe,
   closestPrecedingKeyframeFromInterval,
   closestSubsequentKeyframeFromInterval,
-} from '@util/keyframes';
+} from '@util/keyframes.ts';
 
 describe(closestPrecedingKeyframe, () => {
   it('chooses earlier timestamps', () => {

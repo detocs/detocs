@@ -1,8 +1,8 @@
 import { h, RefObject, Component, ComponentChild } from 'preact';
 
-import nextId from '@util/next-id';
+import nextId from '@util/next-id.ts';
 
-import useId from './hooks/id';
+import useId from './hooks/id.ts';
 
 const idRegex = /\{\{(\w+)\}\}/;
 

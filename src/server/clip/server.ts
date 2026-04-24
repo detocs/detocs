@@ -1,4 +1,4 @@
-import { getLogger } from '@util/logger';
+import { getLogger } from '@util/logger.ts';
 
 import express, { Request, Response } from 'express';
 import filenamify from 'filenamify';
@@ -8,15 +8,15 @@ import { Result, ok, err } from 'neverthrow';
 import path from 'path';
 import ws from 'ws';
 
-import { VideoClip, ImageClip, isVideoClip, VideoFile, ImageFile, Clip } from '@models/media';
-import { getConfig } from '@util/configuration/config';
-import * as httpUtil from '@util/http-server';
-import { getId } from '@util/id';
+import { VideoClip, ImageClip, isVideoClip, VideoFile, ImageFile, Clip } from '@models/media.ts';
+import { getConfig } from '@util/configuration/config.ts';
+import * as httpUtil from '@util/http-server.ts';
+import { getId } from '@util/id.ts';
 
-import { MediaServer } from '@server/media/server';
+import { MediaServer } from '@server/media/server.ts';
 
-import { State, nullState, ClipView, ClipStatus } from './state';
-import VisionMixer, { Scene, VideoInput } from '@services/vision-mixer-service';
+import { State, nullState, ClipView, ClipStatus } from './state.ts';
+import VisionMixer, { Scene, VideoInput } from '@services/vision-mixer-service.ts';
 import isEqual from 'lodash.isequal';
 
 interface SendParams {

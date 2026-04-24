@@ -1,13 +1,13 @@
 import { promises as fs, existsSync } from 'fs';
 import { dirname } from 'path';
 
-import { getId } from '@util/id';
-import { getLogger } from '@util/logger';
-import { getVersion } from '@util/meta';
-import { filterValues } from '@util/object';
-import { nonNull } from '@util/predicates';
+import { getId } from '@util/id.ts';
+import { getLogger } from '@util/logger.ts';
+import { getVersion } from '@util/meta.ts';
+import { filterValues } from '@util/object.ts';
+import { nonNull } from '@util/predicates.ts';
 
-import Person, { isEqual, PersonUpdate, nullPerson, getPrefixedAlias } from './person';
+import Person, { isEqual, PersonUpdate, nullPerson, getPrefixedAlias } from './person.ts';
 
 const CURRENT_DB_FORMAT = '2';
 const logger = getLogger('people');

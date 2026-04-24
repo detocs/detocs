@@ -1,4 +1,4 @@
-import { Id } from '@util/id';
+import { Id } from '@util/id.ts';
 
 export interface MediaFile {
   filename: string;

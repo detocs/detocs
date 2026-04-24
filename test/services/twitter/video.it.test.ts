@@ -3,10 +3,10 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { promisify } from 'util';
 
-import { TwitterClient, ApiTwitterClient, MockTwitterClient } from '@services/twitter/twitter';
-import { loadCredentials, getCredentials } from '@util/configuration/credentials';
-import { FFMPEG_BIN } from '@util/ffmpeg';
-import { getId } from '@util/id';
+import { TwitterClient, ApiTwitterClient, MockTwitterClient } from '@services/twitter/twitter.ts';
+import { loadCredentials, getCredentials } from '@util/configuration/credentials.ts';
+import { FFMPEG_BIN } from '@util/ffmpeg.ts';
+import { getId } from '@util/id.ts';
 
 const EXAMPLE_FILE_FOLDER = path.resolve('temp-twitter-test-files');
 const pExecFile = promisify(execFile);

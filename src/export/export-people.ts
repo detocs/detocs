@@ -2,11 +2,11 @@ import { writeFile } from 'fs';
 import Handlebars from 'handlebars';
 import { promisify } from 'util';
 
-import PersonDatabase from '@models/people';
-import { escapeCsv, escapeDoublePipe } from '@util/escaping';
-import { getLogger } from '@util/logger';
+import PersonDatabase from '@models/people.ts';
+import { escapeCsv, escapeDoublePipe } from '@util/escaping.ts';
+import { getLogger } from '@util/logger.ts';
 
-import ExportFormat from './export-format';
+import ExportFormat from './export-format.ts';
 
 const logger = getLogger('export-people');
 const asyncWriteFile = promisify(writeFile);

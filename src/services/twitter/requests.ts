@@ -4,12 +4,12 @@ import { extname } from 'path';
 import { Error as ChainableError } from 'chainable-error';
 import { err, ok, okAsync, Result, ResultAsync } from 'neverthrow';
 import { EUploadMimeType, SendTweetV2Params, TweetV2, TwitterApiReadWrite } from 'twitter-api-v2';
-import { MediaV2MediaCategory } from 'twitter-api-v2/dist/esm/types/v2/media.v2.types';
-import { DataV2 } from 'twitter-api-v2/dist/esm/types/v2/shared.v2.types';
+import { MediaV2MediaCategory } from 'twitter-api-v2/dist/esm/types/v2/media.v2.types.js';
+import { DataV2 } from 'twitter-api-v2/dist/esm/types/v2/shared.v2.types.js';
 
-import { User } from '@services/twitter/types';
-import { getLogger } from '@util/logger';
-import { combineAsync } from '@util/results';
+import { User } from '@services/twitter/types.ts';
+import { getLogger } from '@util/logger.ts';
+import { combineAsync } from '@util/results.ts';
 
 const logger = getLogger('services/twitter');
 

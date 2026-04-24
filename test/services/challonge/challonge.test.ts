@@ -1,4 +1,4 @@
-import { parseEntrantName, parseTournamentId } from '@services/challonge/challonge';
+import { parseEntrantName, parseTournamentId } from '@services/challonge/challonge.ts';
 
 describe(parseEntrantName, () => {
   it('leaves regular names alone', () => {

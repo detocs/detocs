@@ -1,6 +1,6 @@
-import { Recording, RecordingGroup } from '@server/recording/state';
-import { getId, Id } from '@util/id';
-import { Group, groupRecordings, isAssignedGroup } from '@util/recording';
+import { Recording, RecordingGroup } from '@server/recording/state.ts';
+import { getId, Id } from '@util/id.ts';
+import { Group, groupRecordings, isAssignedGroup } from '@util/recording.ts';
 
 describe(groupRecordings, () => {
   it('puts recordings in an unassigned group', () => {

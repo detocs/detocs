@@ -1,10 +1,10 @@
-import { getLogger } from '@util/logger';
+import { getLogger } from '@util/logger.ts';
 
 import path from 'path';
 import express from 'express';
 
-import { MediaServer } from '@server/media/server';
-import { getAppRoot } from '@util/meta';
+import { MediaServer } from '@server/media/server.ts';
+import { getAppRoot } from '@util/meta.ts';
 
 const logger = getLogger('web');
 

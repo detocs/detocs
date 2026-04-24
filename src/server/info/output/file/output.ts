@@ -3,13 +3,13 @@ import { extname, join } from 'path';
 
 import { ok, okAsync, Result, ResultAsync } from 'neverthrow';
 
-import State from '@server/info/state';
-import Output from '@server/info/output/output';
-import { OutputTemplate, parseTemplateFile } from '@server/info/output/templates';
-import { FileOutputConfig, OutputTemplateConfig } from '@util/configuration/config';
-import { readFile, watchFile, writeFile } from '@util/fs';
-import { mergeJson } from '@util/json';
-import { getLogger } from '@util/logger';
+import State from '@server/info/state.ts';
+import Output from '@server/info/output/output.ts';
+import { OutputTemplate, parseTemplateFile } from '@server/info/output/templates.ts';
+import { FileOutputConfig, OutputTemplateConfig } from '@util/configuration/config.ts';
+import { readFile, watchFile, writeFile } from '@util/fs.ts';
+import { mergeJson } from '@util/json.ts';
+import { getLogger } from '@util/logger.ts';
 
 const logger = getLogger('output/file');
 

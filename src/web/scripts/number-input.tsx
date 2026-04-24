@@ -3,8 +3,8 @@ import { h, JSX } from 'preact';
 import { forwardRef } from 'preact/compat';
 import { useRef } from 'preact/hooks';
 
-import Icon from './icon';
-import { mergeRefs } from './refs';
+import Icon from './icon.tsx';
+import { mergeRefs } from './refs.tsx';
 
 export type Props = JSX.HTMLAttributes<HTMLInputElement>;
 

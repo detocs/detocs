@@ -1,4 +1,4 @@
-import { parseFormData } from '@util/parsing';
+import { parseFormData } from '@util/parsing.ts';
 
 describe(parseFormData, () => {
   it('parses empty objects', () => {

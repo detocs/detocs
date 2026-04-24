@@ -1,12 +1,12 @@
 import { h, FunctionalComponent, VNode } from 'preact';
 import { StateUpdater } from 'preact/hooks';
 
-import InfoState from '@server/info/state';
-import { inputHandler } from '@util/dom';
+import InfoState from '@server/info/state.ts';
+import { inputHandler } from '@util/dom.ts';
 
-import { infoEndpoint } from './api';
-import { useBreakMessages } from './hooks/info';
-import { useLocalState } from './hooks/local-state';
+import { infoEndpoint } from './api.ts';
+import { useBreakMessages } from './hooks/info.ts';
+import { useLocalState } from './hooks/local-state.ts';
 
 interface Props {
   state: InfoState;

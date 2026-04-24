@@ -1,8 +1,8 @@
-import { ImageFile } from '@models/media';
-import { Id } from '@util/id';
+import { ImageFile } from '@models/media.ts';
+import { Id } from '@util/id.ts';
 
-import InfoState from '@server/info/state';
-import { Timestamp } from '@models/timestamp';
+import InfoState from '@server/info/state.ts';
+import { Timestamp } from '@models/timestamp.ts';
 
 export default interface State {
   recordings: Recording[];

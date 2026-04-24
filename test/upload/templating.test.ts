@@ -6,8 +6,8 @@ import {
   getPerSetTemplate,
   getPerSetTitleTemplate,
   TEST_DATA,
-} from '@upload/templating';
-import { setAppRoot } from '@util/meta';
+} from '@upload/templating.ts';
+import { setAppRoot } from '@util/meta.ts';
 
 setAppRoot(join(__dirname, '../../assets/foo'));
 

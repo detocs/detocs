@@ -1,8 +1,8 @@
 import sortedIndex from 'lodash.sortedindex';
 
-import { Timestamp } from '@models/timestamp';
+import { Timestamp } from '@models/timestamp.ts';
 
-import { toMillis, fromMillis } from './timestamp';
+import { toMillis, fromMillis } from './timestamp.ts';
 
 export function closestPrecedingKeyframe(keyframes: number[], timestamp: Timestamp): Timestamp {
   const millis = toMillis(timestamp);

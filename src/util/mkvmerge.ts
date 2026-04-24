@@ -2,10 +2,10 @@ import { execFile } from 'child_process';
 import { platform } from 'os';
 import { promisify } from 'util';
 
-import { Timestamp } from '@models/timestamp';
-import { KeyframeSource } from '@util/keyframe-source';
-import { getLogger } from '@util/logger';
-import { copyBundledFile } from '@util/pkg';
+import { Timestamp } from '@models/timestamp.ts';
+import { KeyframeSource } from '@util/keyframe-source.ts';
+import { getLogger } from '@util/logger.ts';
+import { copyBundledFile } from '@util/pkg.ts';
 
 const logger = getLogger('util/mkvmerge');
 const pExecFile = promisify(execFile);

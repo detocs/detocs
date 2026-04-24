@@ -3,11 +3,11 @@ import { ffmpegPath, ffprobePath } from 'detocs-vendored-binaries';
 import path from 'path';
 import { promisify } from 'util';
 
-import { Timestamp } from '@models/timestamp';
-import { getConfig } from '@util/configuration/config';
-import { getLogger } from '@util/logger';
-import * as pathUtil from '@util/path';
-import { copyBundledFile } from '@util/pkg';
+import { Timestamp } from '@models/timestamp.ts';
+import { getConfig } from '@util/configuration/config.ts';
+import { getLogger } from '@util/logger.ts';
+import * as pathUtil from '@util/path.ts';
+import { copyBundledFile } from '@util/pkg.ts';
 
 export interface VideoStats {
   durationMs?: number;

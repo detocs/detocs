@@ -1,4 +1,4 @@
-import { getVersion, getHomepage } from '@util/meta';
+import { getVersion, getHomepage } from '@util/meta.ts';
 
 export default async function start({ port }: { port: number }): Promise<void> {
   const { app, shell, BrowserWindow, Menu, MenuItem } = await import('electron');

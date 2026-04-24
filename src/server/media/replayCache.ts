@@ -1,4 +1,4 @@
-import { Replay } from '@models/media';
+import { Replay } from '@models/media.ts';
 
 type TimestampedReplay = Replay & {
   recordingTimestampMs: number;

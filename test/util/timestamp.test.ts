@@ -1,4 +1,4 @@
-import { toMillis, fromMillis, truncateTimestamp, sanitizeTimestamp, validateTimestamp, offsetTimestamp, subtractTimestamp, compareTimestamp } from '@util/timestamp';
+import { toMillis, fromMillis, truncateTimestamp, sanitizeTimestamp, validateTimestamp, offsetTimestamp, subtractTimestamp, compareTimestamp } from '@util/timestamp.ts';
 
 describe(toMillis, () => {
   it('handles hours/minutes/seconds/milliseconds', () => {

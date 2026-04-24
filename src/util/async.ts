@@ -2,7 +2,7 @@ import { ResultAsync } from 'neverthrow';
 import pLimit = require('p-limit');
 import { performance } from 'perf_hooks';
 
-import { getLogger } from '@util/logger';
+import { getLogger } from '@util/logger.ts';
 
 const logger = getLogger('util/async');
 

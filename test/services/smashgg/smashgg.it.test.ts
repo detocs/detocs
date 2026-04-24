@@ -1,5 +1,5 @@
-import SmashggClient from '@services/smashgg/smashgg';
-import { loadCredentials } from '@util/configuration/credentials';
+import SmashggClient from '@services/smashgg/smashgg.ts';
+import { loadCredentials } from '@util/configuration/credentials.ts';
 
 describe(SmashggClient, () => {
   beforeAll(() => {

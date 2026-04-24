@@ -1,13 +1,13 @@
 import updateImmutable from 'immutability-helper';
 
-import Game from '@models/game';
-import GameTeam from '@models/game-team';
-import Match from '@models/match';
-import Person, { PersonUpdate } from '@models/person';
-import InfoState from '@server/info/state';
+import Game from '@models/game.ts';
+import GameTeam from '@models/game-team.ts';
+import Match from '@models/match.ts';
+import Person, { PersonUpdate } from '@models/person.ts';
+import InfoState from '@server/info/state.ts';
 
-import { useLocalState } from './local-state';
-import { createSubstatehook } from './substate';
+import { useLocalState } from './local-state.ts';
+import { createSubstatehook } from './substate.ts';
 
 
 const usePlayer1Substate = createSubstatehook<InfoState, PersonUpdate>(

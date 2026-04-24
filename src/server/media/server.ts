@@ -3,19 +3,19 @@ import { promises as fs } from 'fs';
 import { err, ResultAsync, ok, okAsync } from 'neverthrow';
 import path from 'path';
 
-import { Screenshot, Replay, MediaFile, VideoFile, ImageFile } from '@models/media';
-import { Timestamp } from '@models/timestamp';
-import VisionMixer from '@services/vision-mixer-service';
-import { sleep } from '@util/async';
-import { getConfig } from '@util/configuration/config';
-import * as ffmpeg from '@util/ffmpeg';
-import { tmpDir } from '@util/fs';
-import { getLogger } from '@util/logger';
-import * as pathUtil from '@util/path';
-import { sanitizeTimestamp, toMillis, fromMillis } from '@util/timestamp';
+import { Screenshot, Replay, MediaFile, VideoFile, ImageFile } from '@models/media.ts';
+import { Timestamp } from '@models/timestamp.ts';
+import VisionMixer from '@services/vision-mixer-service.ts';
+import { sleep } from '@util/async.ts';
+import { getConfig } from '@util/configuration/config.ts';
+import * as ffmpeg from '@util/ffmpeg.ts';
+import { tmpDir } from '@util/fs.ts';
+import { getLogger } from '@util/logger.ts';
+import * as pathUtil from '@util/path.ts';
+import { sanitizeTimestamp, toMillis, fromMillis } from '@util/timestamp.ts';
 
-import { ReplayCache } from './replayCache';
-import { ScreenshotCache } from './screenshot-cache';
+import { ReplayCache } from './replayCache.ts';
+import { ScreenshotCache } from './screenshot-cache.ts';
 
 const logger = getLogger('server/media');
 const THUMBNAIL_SIZE = 135;

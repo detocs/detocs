@@ -1,4 +1,4 @@
-import { User } from '@services/twitter/types';
+import { User } from '@services/twitter/types.ts';
 
 export default interface ClientState {
   hasCredentials: boolean;

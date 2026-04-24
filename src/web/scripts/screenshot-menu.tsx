@@ -1,12 +1,12 @@
 import { h, VNode } from 'preact';
 
-import { GetClipResponse } from '@server/clip/server';
-import { checkResponseStatus } from '@util/ajax';
+import { GetClipResponse } from '@server/clip/server.ts';
+import { checkResponseStatus } from '@util/ajax.ts';
 
-import { clipEndpoint } from './api';
-import { NUM_RECENT_SCENES } from './constants';
-import { logError } from './log';
-import { Menu, MenuAction, MenuSection } from './menu';
+import { clipEndpoint } from './api.ts';
+import { NUM_RECENT_SCENES } from './constants.ts';
+import { logError } from './log.ts';
+import { Menu, MenuAction, MenuSection } from './menu.tsx';
 
 const screenshotEndpoint = clipEndpoint('/screenshot').href;
 

@@ -1,5 +1,5 @@
-import { Clip, ImageClip, isImageClip, VideoClip, isVideoClip } from '@models/media';
-import { Id } from '@util/id';
+import { Clip, ImageClip, isImageClip, VideoClip, isVideoClip } from '@models/media.ts';
+import { Id } from '@util/id.ts';
 
 export interface State {
   readonly clips: ClipView[];
