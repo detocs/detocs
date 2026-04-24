@@ -7,7 +7,7 @@ import { createServer } from 'http';
 import { combine, err, errAsync, ok, okAsync, ResultAsync } from 'neverthrow';
 import path from 'path';
 import { promisify } from 'util';
-import * as ws from 'ws';
+import ws from 'ws';
 
 import { getPrefixedNameWithAlias } from '@models/person';
 import { Timestamp } from '@models/timestamp';

@@ -2,7 +2,7 @@ import { Error as ChainableError } from 'chainable-error';
 import express, { Request, Response } from 'express';
 import updateImmutable from 'immutability-helper';
 import { err, ok, Result, ResultAsync } from 'neverthrow';
-import * as ws from 'ws';
+import ws from 'ws';
 
 import BracketService from '@services/bracket-service';
 import BracketServiceProvider from '@services/bracket-service-provider';

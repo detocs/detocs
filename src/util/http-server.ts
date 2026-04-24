@@ -2,7 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import formidable from 'express-formidable';
 import { createServer } from 'http';
-import * as ws from 'ws';
+import ws from 'ws';
 
 import { Logger, LoggerFunction } from '@util/logger';
 

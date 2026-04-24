@@ -1,6 +1,6 @@
 import { Express, RequestHandler } from 'express';
 import updateImmutable from 'immutability-helper';
-import * as ws from 'ws';
+import ws from 'ws';
 
 import { MediaServer } from '@server/media/server';
 import { TwitterClient } from '@services/twitter/twitter';

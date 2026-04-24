@@ -6,7 +6,7 @@ import { promises as fs } from 'fs';
 import updateImmutable from 'immutability-helper';
 import { Result, ok, err } from 'neverthrow';
 import path from 'path';
-import * as ws from 'ws';
+import ws from 'ws';
 
 import { VideoClip, ImageClip, isVideoClip, VideoFile, ImageFile, Clip } from '@models/media';
 import { getConfig } from '@util/configuration/config';

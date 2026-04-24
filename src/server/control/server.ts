@@ -1,4 +1,4 @@
-import * as ws from 'ws';
+import ws from 'ws';
 
 import { getLogger } from '@util/logger';
 

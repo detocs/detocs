@@ -1,6 +1,6 @@
 import { getLogger } from '@util/logger';
 
-import * as WebSocket from 'ws';
+import WebSocket from 'ws';
 
 import { WebSocketOutputConfig, OutputTemplateConfig } from '@util/configuration/config';
 import { broadcastAllData, sendAllData } from '@util/websocket';

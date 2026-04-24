@@ -1,4 +1,4 @@
-import * as WebSocket from 'ws';
+import WebSocket from 'ws';
 
 // TODO: Figure out how to refer to the client type directly
 interface WebSocketClient {
