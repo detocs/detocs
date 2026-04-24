@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import 'isomorphic-fetch';
 import { dirname, join } from 'path';
-import yargs from 'yargs';
+import yargs, { Argv, Arguments } from 'yargs';
+import { hideBin } from 'yargs/helpers';
 
 import startElectron from '@desktop/electron';
 import startLocalBrowser from '@desktop/local-browser';
@@ -91,7 +92,7 @@ const VERSION = getVersion();
 const PRODUCT_NAME = getProductName();
 process.title = `${PRODUCT_NAME} ${VERSION}`;
 
-const parser = yargs
+const parser = yargs(hideBin(process.argv))
   .option('c', {
     alias: 'config',
     describe: 'Use the specified config file',
@@ -118,7 +119,7 @@ const parser = yargs
     command: 'export-people <destination>',
     describe: 'Export people from the database',
     handler: exportPeople,
-    builder: (y: yargs.Argv<unknown>): yargs.Argv<PersonExportOptions> => y
+    builder: (y: Argv<unknown>): Argv<PersonExportOptions> => y
       .positional('destination', {
         describe: 'Output file path',
         type: 'string',
@@ -153,7 +154,7 @@ const parser = yargs
     command: 'import-people [destination]',
     describe: 'Import people into the database',
     handler: importPeople,
-    builder: (y: yargs.Argv<unknown>): yargs.Argv<PersonImportOptions> => y
+    builder: (y: Argv<unknown>): Argv<PersonImportOptions> => y
       .option('url', {
         describe: 'Input bracket service URL',
         type: 'string',
@@ -173,7 +174,7 @@ const parser = yargs
     command: 'vod <logFile> [command]',
     describe: 'Cut vods and upload them to YouTube',
     handler: vods,
-    builder: (y: yargs.Argv<unknown>): yargs.Argv<VodOptions> => y
+    builder: (y: Argv<unknown>): Argv<VodOptions> => y
       .positional('logFile', {
         describe: `${PRODUCT_NAME} recording log file`,
         type: 'string',
@@ -206,7 +207,7 @@ const parser = yargs
     command: 'generate-log <bracketUrls...>',
     describe: 'Generate log files for a bracket',
     handler: generateLogCommand,
-    builder: (y: yargs.Argv<unknown>): yargs.Argv<GenerateLogOptions> => y
+    builder: (y: Argv<unknown>): Argv<GenerateLogOptions> => y
       .positional('bracketUrls', {
         describe: 'URLs for brackets to include. Must all be from the same service.',
         type: 'string',
@@ -236,11 +237,11 @@ if (isElectron()) {
   parser.parse();
 }
 
-async function middlewareLoadConfig(args: yargs.Arguments<ConfigOptions>): Promise<void> {
+async function middlewareLoadConfig(args: Arguments<ConfigOptions>): Promise<void> {
   await loadConfig(args.config);
 }
 
-async function middlewareLoadCredentials(args: yargs.Arguments<ConfigOptions>): Promise<void> {
+async function middlewareLoadCredentials(args: Arguments<ConfigOptions>): Promise<void> {
   await loadCredentials(args.credentials || getConfig().credentialsFile);
 }
 
@@ -288,7 +289,7 @@ export async function getTwitterClient(): Promise<TwitterClient> {
   }
 }
 
-async function exportPeople(opts: yargs.Arguments<PersonExportOptions>): Promise<void> {
+async function exportPeople(opts: Arguments<PersonExportOptions>): Promise<void> {
   let format: ExportFormat = '';
   switch (true) {
     case opts.sa:
@@ -317,7 +318,7 @@ async function exportPeople(opts: yargs.Arguments<PersonExportOptions>): Promise
   process.exit();
 }
 
-async function importPeople(opts: yargs.Arguments<PersonImportOptions>): Promise<void> {
+async function importPeople(opts: Arguments<PersonImportOptions>): Promise<void> {
   if (!opts.file && !opts.url) {
     throw new Error('file or url must be provided');
   }
@@ -341,7 +342,7 @@ async function importPeople(opts: yargs.Arguments<PersonImportOptions>): Promise
   process.exit();
 }
 
-async function vods(opts: yargs.Arguments<VodOptions>): Promise<void> {
+async function vods(opts: Arguments<VodOptions>): Promise<void> {
   let command = Command.Metadata;
   switch (opts.command) {
     case 'update':
@@ -375,7 +376,7 @@ async function generateLogCommand({
   bracketUrls,
   folder,
   vodfile,
-}: yargs.Arguments<GenerateLogOptions>): Promise<void> {
+}: Arguments<GenerateLogOptions>): Promise<void> {
   const vodDir = vodfile && join(dirname(vodfile), withoutExtension(vodfile));
   (await generateLog({
     bracketProvider: getBracketProvider(),

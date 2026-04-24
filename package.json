@@ -120,7 +120,7 @@
     "reconnecting-websocket": "^4.4.0",
     "twitter-api-v2": "^1.23.2",
     "ws": "^6.2.2",
-    "yargs": "^17.5.1"
+    "yargs": "^17.7.2"
   },
   "devDependencies": {
     "@babel/core": "^7.11.1",
@@ -156,7 +156,7 @@
     "@types/twit": "^2.2.22",
     "@types/twitter-text": "^2.0.0",
     "@types/ws": "^6.0.3",
-    "@types/yargs": "^17.0.10",
+    "@types/yargs": "^17.0.35",
     "@typescript-eslint/eslint-plugin": "^5.29.0",
     "@typescript-eslint/parser": "^5.29.0",
     "archiver": "^5.0.0",
