@@ -4,7 +4,8 @@ import BattlefyClient from '@services/battlefy/battlefy';
 
 describe(BattlefyClient, () => {
   describe(BattlefyClient.prototype.phase, () => {
-    it('can fetch a stage', async () => {
+    // {"error":"Forbidden","message":"Direct API access is not permitted"}
+    it.skip('can fetch a stage', async () => {
       const client = new BattlefyClient();
       const phase = await client.phase('5feb93030beb6e3294e047ed');
       expect(phase).toEqual({
@@ -19,7 +20,8 @@ describe(BattlefyClient, () => {
   });
 
   describe(BattlefyClient.prototype.eventInfo, () => {
-    it('can fetch event info', async () => {
+    // {"error":"Forbidden","message":"Direct API access is not permitted"}
+    it.skip('can fetch event info', async () => {
       const client = new BattlefyClient();
       const { tournament, videogame } = await client.eventInfo('5feb93030beb6e3294e047ed');
       expect(videogame.name).toBe('Under Night In-Birth Exe:Late[cl-r]');
