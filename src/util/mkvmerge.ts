@@ -1,4 +1,6 @@
 import { execFile } from 'child_process';
+import { path as mkvmergePath } from 'mkvmerge-static';
+import { path as mkvmergeLinuxPath } from 'mkvmerge-static-linux';
 import { platform } from 'os';
 import { promisify } from 'util';
 
@@ -10,11 +12,7 @@ import { copyBundledFile } from '@util/pkg.ts';
 const logger = getLogger('util/mkvmerge');
 const pExecFile = promisify(execFile);
 
-const MKVMERGE_BIN = (platform() === 'linux'
-  ? import('mkvmerge-static-linux')
-  : import('mkvmerge-static'))
-  .then(module => module.path)
-  .then(copyBundledFile);
+const MKVMERGE_BIN = copyBundledFile(platform() === 'linux' ? mkvmergeLinuxPath : mkvmergePath);
 
 export async function trimVideo(
   keyframeSource: KeyframeSource,
