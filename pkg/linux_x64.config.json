@@ -4,7 +4,7 @@
     "detocs": "../build/src/main.js"
   },
   "pkg": {
-    "targets": [ "node12-linux-x64" ],
+    "targets": [ "node18-linux-x64" ],
     "outputPath": "dist/server",
     "assets": [
       "../node_modules/detocs-vendored-binaries/bin/linux/x64/*",

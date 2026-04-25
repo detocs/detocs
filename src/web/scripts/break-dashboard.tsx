@@ -14,7 +14,7 @@ interface Props {
 }
 
 const BreakDashboard: FunctionalComponent<Props> = ({ state, updateState }): VNode => {
-  const [ messages, updateMessages ] = useLocalState(
+  const [ messages, updateMessages ] = useLocalState<string[]>(
     useBreakMessages(state, updateState)[0],
     {
       transform: messages => messages.length ? messages : [''],

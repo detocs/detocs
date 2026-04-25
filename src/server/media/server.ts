@@ -257,7 +257,10 @@ export class MediaServer {
     return filename;
   }
 
-  private async saveFile(filename: string, data: unknown): Promise<void> {
+  private async saveFile(
+    filename: string,
+    data: Parameters<typeof fs.writeFile>[1],
+  ): Promise<void> {
     return await fs.writeFile(this.getFullPath(filename), data, { encoding: 'hex' });
   }
 
