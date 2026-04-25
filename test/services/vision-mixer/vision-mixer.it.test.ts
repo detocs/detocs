@@ -139,21 +139,21 @@ describe.each([
   });
 
   it('can save get source thumbnail with default size', async () => {
-    const thumb = await toPromise(vm.getSourceThumbnail('Scene'));
+    const thumb = await toPromise(vm.getSourceScreenshot('Scene'));
     await toPromise(vm.disconnect());
     expect(parseWidth(thumb.data)).toBe(1920);
     expect(parseHeight(thumb.data)).toBe(1080);
   });
 
   it('can save get source thumbnail with set height', async () => {
-    const thumb = await toPromise(vm.getSourceThumbnail('Scene', { height: 180 }));
+    const thumb = await toPromise(vm.getSourceScreenshot('Scene', { height: 180 }));
     await toPromise(vm.disconnect());
     expect(parseWidth(thumb.data)).toBe(320);
     expect(parseHeight(thumb.data)).toBe(180);
   });
 
   it('can save get current source thumbnail', async () => {
-    const thumb = await toPromise(vm.getSourceThumbnail('Scene'));
+    const thumb = await toPromise(vm.getSourceScreenshot('Scene'));
     await toPromise(vm.disconnect());
     expect(parseWidth(thumb.data)).toBe(1920);
     expect(parseHeight(thumb.data)).toBe(1080);
