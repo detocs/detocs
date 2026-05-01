@@ -183,6 +183,7 @@ export async function getWaveform(
     `-filter_complex`,
     `showwavespic=s=${width}x${WAVEFORM_HEIGHT}:scale=sqrt:colors=#ffffff|#ffffff`,
     '-frames:v', '1',
+    '-update', '1',
     '-y',
     outFile,
   ];
