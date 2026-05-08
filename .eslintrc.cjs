@@ -1,3 +1,4 @@
+const WARN = 1;
 const ERROR = 2;
 
 module.exports = {
@@ -58,8 +59,9 @@ module.exports = {
       { functions: false, classes: false, variables: false },
     ],
     'react/button-has-type': 'error',
-    'react/jsx-filename-extension': [1, {
-      'extensions': ['.ts', '.tsx', '.js', '.jsx']
+    'react/jsx-filename-extension': [WARN, {
+      'allow': 'as-needed',
+      'extensions': ['.tsx', '.jsx'],
     }],
     'react/jsx-uses-react': 'error',
     'react/jsx-uses-vars': 'error',
