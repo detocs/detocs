@@ -1,7 +1,7 @@
-$name = 'obs31'
-$port = 41238
+$name = 'obs32'
+$port = 41239
 $urls =
-  'https://github.com/obsproject/obs-studio/releases/download/31.1.0/OBS-Studio-31.1.0-Windows-x64.zip'
+  'https://github.com/obsproject/obs-studio/releases/download/32.1.2/OBS-Studio-32.1.2-Windows-x64.zip'
 $tempDir = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath "detocs-testing\$name"
 mkdir $tempDir -ErrorAction SilentlyContinue | Out-Null
 

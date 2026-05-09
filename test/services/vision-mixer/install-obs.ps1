@@ -3,7 +3,8 @@ Param (
   [string[]]$Urls,
   [string]$ObsScenes,
   [string]$ObsProfile,
-  [string]$ObsGlobal
+  [string]$ObsGlobal,
+  [string]$ObsUser
 )
 
 $folder = Join-Path -Path $PSScriptRoot -ChildPath $Name
@@ -44,6 +45,10 @@ New-Item -ItemType File -Path "config\obs-studio\basic\profiles\Untitled" -Name 
 
 if ($ObsGlobal) {
   New-Item -ItemType File -Path "config\obs-studio" -Name "global.ini" -Force -Value $ObsGlobal | Out-Null
+}
+
+if ($ObsUser) {
+  New-Item -ItemType File -Path "config\obs-studio" -Name "user.ini" -Force -Value $ObsUser | Out-Null
 }
 
 Get-Bin

@@ -106,4 +106,7 @@ ServerPort=$port
 AlertsEnabled=false
 AuthRequired=true
 ServerPassword=test1234
+
+[General]
+FirstRun=true
 "@
