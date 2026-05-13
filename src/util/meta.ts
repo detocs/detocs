@@ -25,11 +25,7 @@ export function setAppRoot(path: string): void {
 }
 
 export function isPackagedApp(): boolean {
-  return isElectron() || isPkg();
-}
-
-export function isElectron(): boolean {
-  return !!process.versions.electron;
+  return isPkg();
 }
 
 export function isPkg(): boolean {

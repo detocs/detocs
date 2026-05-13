@@ -1,6 +1,6 @@
 {
   "extends": "../tsconfig.json",
-  "include": [ "./", "../src/types/", "../node_modules/electron/" ],
+  "include": [ "./", "../src/types/" ],
   "compilerOptions": {
     "rootDir": "..",
     "module": "commonjs"

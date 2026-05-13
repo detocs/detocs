@@ -4,7 +4,6 @@ import { dirname, join } from 'path';
 import yargs, { Argv, Arguments } from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
-import startElectron from '@desktop/electron.ts';
 import startLocalBrowser from '@desktop/local-browser.ts';
 import ExportFormat from '@export/export-format.ts';
 import exportPeopleDatabase from '@export/export-people.ts';
@@ -41,7 +40,6 @@ import {
   getVersion,
   setAppRoot,
   getProductName,
-  isElectron,
   isPkg,
 } from '@util/meta.ts';
 import { withoutExtension } from '@util/path.ts';
@@ -231,11 +229,7 @@ const parser = yargs(hideBin(process.argv))
   .alias('h', 'help')
   .version(VERSION)
   .strict();
-if (isElectron()) {
-  parser.parse(process.argv.slice(1));
-} else {
-  parser.parse();
-}
+parser.parse();
 
 async function middlewareLoadConfig(args: Arguments<ConfigOptions>): Promise<void> {
   await loadConfig(args.config);
@@ -265,9 +259,7 @@ async function startServer(): Promise<void> {
     server({ bracketProvider, mediaServer, visionMixer, personDatabase, twitterClient }),
     web({ mediaServer, port }),
   ]);
-  if (isElectron()) {
-    startElectron({ port });
-  } else if (isPkg()) {
+  if (isPkg()) {
     startLocalBrowser({ port });
   }
 }
