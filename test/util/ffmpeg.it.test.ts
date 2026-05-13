@@ -86,7 +86,7 @@ describe(getWaveform, () => {
     const { durationMs } = await getVideoStats(TEST_VIDEO);
     assert(durationMs);
     const imgPath = TEST_VIDEO + '.waveform.png';
-    const outputPath = await getWaveform(TEST_VIDEO, imgPath, durationMs);
+    await getWaveform(TEST_VIDEO, imgPath, durationMs);
     const pngData = await fs.readFile(imgPath);
     expect(parseWidth(pngData)).toBe(durationMs / 1000 * 60);
   });
@@ -106,7 +106,7 @@ describe(getKeyframes, () => {
 });
 
 async function generateTestVideo(mediaPath: string, duration: number): Promise<void> {
-  const { stderr } = await pExecFile(FFMPEG_BIN, [
+  await pExecFile(FFMPEG_BIN, [
     '-v', 'error',
     '-f', 'lavfi',
     '-i', `color=c=white:size=1920x1080:d=${duration}:r=60`,
