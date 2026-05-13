@@ -119,7 +119,8 @@ export default class PersonDatabase {
       return { person, databaseUpdated: false };
     }
 
-    logger.info('New person:', update);
+    logger.info('New person:', person.handle);
+    logger.debug('Data:', update);
     person.id = getId();
     this.database.people.push(person);
     logger.debug('People:', this.database.people.slice(-4));
@@ -141,7 +142,8 @@ export default class PersonDatabase {
     if (isEqual(this.database.people[i], updated)) {
       return { person: updated, databaseUpdated: false };
     }
-    logger.info('update person:', this.database.people[i], updated);
+    logger.info('Updating', updated.handle);
+    logger.debug('Old data/new data:', this.database.people[i], updated);
     this.database.people[i] = updated;
     logger.debug('People:', this.database.people.slice(Math.max(0, i - 2), i + 2));
     return { person: updated, databaseUpdated: true };
