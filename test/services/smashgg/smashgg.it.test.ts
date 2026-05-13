@@ -1,3 +1,5 @@
+import { describe, it, expect, beforeAll } from '@jest/globals';
+
 import SmashggClient from '@services/smashgg/smashgg.ts';
 import { loadCredentials } from '@util/configuration/credentials.ts';
 

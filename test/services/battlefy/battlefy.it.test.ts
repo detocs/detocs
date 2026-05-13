@@ -1,3 +1,4 @@
+import { describe, it, expect } from '@jest/globals';
 import 'isomorphic-fetch';
 
 import BattlefyClient from '@services/battlefy/battlefy.ts';

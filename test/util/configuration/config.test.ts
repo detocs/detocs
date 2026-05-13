@@ -1,9 +1,12 @@
+import { describe, it, expect } from '@jest/globals';
+
 import path from 'path';
 
 import { getConfig, loadConfig } from '@util/configuration/config.ts';
+import { getModuleDirname } from '@util/path.ts';
 
 function testDataPath(filename: string): string {
-  return path.join(__dirname, 'testdata', filename);
+  return path.join(getModuleDirname(import.meta), 'testdata', filename);
 }
 
 describe(loadConfig, () => {

@@ -1,5 +1,5 @@
-import countries from 'i18n-iso-countries/index';
-import countriesEn from 'i18n-iso-countries/langs/en.json';
+import countries from 'i18n-iso-countries/index.js';
+import countriesEn from 'i18n-iso-countries/langs/en.json' with { type: 'json' };
 import { iso31662 } from 'iso-3166';
 import groupBy from 'lodash.groupby';
 

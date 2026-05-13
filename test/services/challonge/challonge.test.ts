@@ -1,3 +1,5 @@
+import { describe, it, expect } from '@jest/globals';
+
 import { parseEntrantName, parseTournamentId } from '@services/challonge/challonge.ts';
 
 describe(parseEntrantName, () => {

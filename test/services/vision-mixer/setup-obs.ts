@@ -10,10 +10,11 @@ import VisionMixer from '@services/vision-mixer-service.ts';
 import { Config } from '@util/configuration/config.ts';
 import { ObsConnectionImpl } from '@services/obs/connection.ts';
 import ObsClient from '@services/obs/obs.ts';
+import { getModuleDirname } from '@util/path.ts';
 
 const exec = promisify(child_process.exec);
 
-const DIR = __dirname;
+const DIR = getModuleDirname(import.meta);
 
 export async function setupObs27(): Promise<{
   visionMixer: VisionMixer,

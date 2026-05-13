@@ -1,4 +1,6 @@
+import { describe, it, expect } from '@jest/globals';
 import Handlebars from 'handlebars';
+
 import { escapeJson, escapeCsv } from '@util/escaping.ts';
 import { setDefaultEscapingFunction } from '@util/handlebars.ts';
 

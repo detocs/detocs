@@ -1,3 +1,5 @@
+import { describe, it, expect } from '@jest/globals';
+
 import { normalize } from 'path';
 
 import { setAppRoot } from '@util/meta.ts';

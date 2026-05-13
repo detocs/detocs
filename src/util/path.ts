@@ -1,4 +1,5 @@
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 import { getAppRoot } from './meta.ts';
 
@@ -17,4 +18,11 @@ export function handleBuiltin(builtinPath: string, filepath: string): string {
     BUILTIN_REGEX,
     path.join(getAppRoot(), '..', builtinPath, '/'),
   );
+}
+
+export function getModuleDirname(importMeta: ImportMeta): string {
+  if (importMeta.dirname) {
+    return importMeta.dirname;
+  }
+  return path.dirname(fileURLToPath(importMeta.url));
 }

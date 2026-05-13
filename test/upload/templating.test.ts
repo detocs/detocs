@@ -1,3 +1,5 @@
+import { describe, it } from '@jest/globals';
+
 import { join } from 'path';
 
 import {
@@ -8,8 +10,9 @@ import {
   TEST_DATA,
 } from '@upload/templating.ts';
 import { setAppRoot } from '@util/meta.ts';
+import { getModuleDirname } from '@util/path.ts';
 
-setAppRoot(join(__dirname, '../../assets/foo'));
+setAppRoot(join(getModuleDirname(import.meta), '../../assets/foo'));
 
 describe(getSingleVideoTemplate, () => {
   it('can render test data', async () => {

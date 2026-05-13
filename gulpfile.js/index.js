@@ -16,6 +16,15 @@ const builtinAssets = () =>
 const tsc = () =>
   run('npm run tsc', {}).exec();
 
+const bundleServer = () =>
+  run('npm run bundle-server', {}).exec();
+
+const bundleWeb = () =>
+  run('npm run bundle-web', {}).exec();
+
+const bundlePolyfill = () =>
+  run('npm run bundle-polyfill', {}).exec();
+
 const webCss = require('./webcss');
 
 const webHtml = () =>
@@ -29,9 +38,6 @@ const webImages = () =>
   src('assets/images/**/*')
     .pipe(dest('build/public/images/'));
 
-const rollup = () =>
-  run('npm run webjs', {}).exec();
-
 const screenshotJs = () =>
   run('npm run screenshotjs', {}).exec();
 
@@ -43,7 +49,10 @@ const build = series(
     webHtml,
     webIcons,
     webImages,
-    series(tsc, rollup),
+    tsc,
+    bundleServer,
+    bundleWeb,
+    bundlePolyfill,
   ),
 );
 
@@ -56,7 +65,10 @@ module.exports = {
   default: build,
   build,
   webCss,
-  webJs: series(tsc, rollup),
+  tsc,
+  bundleServer,
+  bundleWeb,
+  bundlePolyfill,
   webHtml,
   webIcons,
   screenshots,

@@ -1,7 +1,7 @@
 {
   "name": "detocs-macos",
   "bin": {
-    "detocs": "../build/src/main.js"
+    "detocs": "../build/src/main.cjs"
   },
   "pkg": {
     "targets": [ "node18-macos-x64" ],

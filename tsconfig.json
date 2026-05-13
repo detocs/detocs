@@ -3,10 +3,13 @@
     "ignoreDeprecations": "6.0",
     "outDir": "build",
     "target": "ES2019",
-    "module": "CommonJS",
+    "noEmit": true,
+    "module": "node18",
     "isolatedModules": true,
+    "allowImportingTsExtensions": true,
     "sourceMap": true,
     "incremental": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo",
     "skipLibCheck": true,
     "types": [],
     "paths": {
@@ -21,7 +24,6 @@
       "@web/*": [ "./src/web/*" ],
       "package.json": [ "./package.json" ]
     },
-    "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,

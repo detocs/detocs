@@ -1,15 +1,15 @@
-import { version, productName, homepage } from 'package.json';
+import packageJson from 'package.json' with { type: 'json' };
 
 export function getVersion(): string {
-  return version;
+  return packageJson.version;
 }
 
 export function getProductName(): string {
-  return productName;
+  return packageJson.productName;
 }
 
 export function getHomepage(): string {
-  return homepage;
+  return packageJson.homepage;
 }
 
 let appRoot: string | null;
