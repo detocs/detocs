@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import 'isomorphic-fetch';
 import { dirname, join } from 'path';
-import yargs, { Argv, Arguments } from 'yargs';
+import yargs, { Argv, ArgumentsCamelCase } from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
 import startLocalBrowser from '@desktop/local-browser.ts';
@@ -35,7 +35,7 @@ import { VodUploader, Style, Command } from '@upload/vod-uploader.ts';
 import { getConfig, loadConfig } from '@util/configuration/config.ts';
 import { getCredentials, loadCredentials } from '@util/configuration/credentials.ts';
 import { sortedKeys } from '@util/json.ts';
-import { configureLogger, getBasicLogger } from '@util/logger.ts';
+import { configureLogger, getBasicLogger, LogLevel } from '@util/logger.ts';
 import {
   getVersion,
   setAppRoot,
@@ -47,8 +47,9 @@ import web from '@web/server.ts';
 import { loadGameDatabase } from '@models/games.ts';
 
 interface ConfigOptions {
-  config?: string;
-  credentials?: string;
+  c?: string;
+  k?: string;
+  v: LogLevel;
 }
 
 interface PersonExportOptions {
@@ -80,7 +81,7 @@ interface GenerateLogOptions {
 }
 
 setAppRoot(__dirname);
-const logger = getBasicLogger();
+let logger = getBasicLogger(LogLevel.DEBUG);
 
 process.on('unhandledRejection', (reason, promise) => {
   logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
@@ -103,7 +104,16 @@ const parser = yargs(hideBin(process.argv))
     type: 'string',
     global: true,
   })
+  .option('v', {
+    alias: 'log-level',
+    describe: 'Set the log level',
+    type: 'string',
+    choices: Object.values(LogLevel),
+    default: LogLevel.DEBUG,
+    global: true,
+  })
   .middleware([
+    middlewareSetLogLevel,
     middlewareLoadConfig,
     middlewareLoadCredentials,
   ])
@@ -231,16 +241,20 @@ const parser = yargs(hideBin(process.argv))
   .strict();
 parser.parse();
 
-async function middlewareLoadConfig(args: Arguments<ConfigOptions>): Promise<void> {
-  await loadConfig(args.config);
+function middlewareSetLogLevel(args: ArgumentsCamelCase<ConfigOptions>): void {
+  logger = getBasicLogger(args.v);
 }
 
-async function middlewareLoadCredentials(args: Arguments<ConfigOptions>): Promise<void> {
-  await loadCredentials(args.credentials || getConfig().credentialsFile);
+async function middlewareLoadConfig(args: ArgumentsCamelCase<ConfigOptions>): Promise<void> {
+  await loadConfig(args.c);
 }
 
-async function startServer(): Promise<void> {
-  configureLogger(getConfig().logDirectory);
+async function middlewareLoadCredentials(args: ArgumentsCamelCase<ConfigOptions>): Promise<void> {
+  await loadCredentials(args.k || getConfig().credentialsFile);
+}
+
+async function startServer(args: ArgumentsCamelCase<ConfigOptions>): Promise<void> {
+  configureLogger(args.v, getConfig().logDirectory);
   logConfig();
 
   const visionMixer = getVisionMixer();
@@ -281,7 +295,7 @@ export async function getTwitterClient(): Promise<TwitterClient> {
   }
 }
 
-async function exportPeople(opts: Arguments<PersonExportOptions>): Promise<void> {
+async function exportPeople(opts: ArgumentsCamelCase<PersonExportOptions>): Promise<void> {
   let format: ExportFormat = '';
   switch (true) {
     case opts.sa:
@@ -310,7 +324,7 @@ async function exportPeople(opts: Arguments<PersonExportOptions>): Promise<void>
   process.exit();
 }
 
-async function importPeople(opts: Arguments<PersonImportOptions>): Promise<void> {
+async function importPeople(opts: ArgumentsCamelCase<PersonImportOptions>): Promise<void> {
   if (!opts.file && !opts.url) {
     throw new Error('file or url must be provided');
   }
@@ -334,7 +348,7 @@ async function importPeople(opts: Arguments<PersonImportOptions>): Promise<void>
   process.exit();
 }
 
-async function vods(opts: Arguments<VodOptions>): Promise<void> {
+async function vods(opts: ArgumentsCamelCase<VodOptions>): Promise<void> {
   let command = Command.Metadata;
   switch (opts.command) {
     case 'update':
@@ -368,7 +382,7 @@ async function generateLogCommand({
   bracketUrls,
   folder,
   vodfile,
-}: Arguments<GenerateLogOptions>): Promise<void> {
+}: ArgumentsCamelCase<GenerateLogOptions>): Promise<void> {
   const vodDir = vodfile && join(dirname(vodfile), withoutExtension(vodfile));
   (await generateLog({
     bracketProvider: getBracketProvider(),
@@ -382,7 +396,7 @@ async function generateLogCommand({
 }
 
 function logConfig(): void {
-  logger.info('Loaded config:', JSON.stringify(getConfig(), sortedKeys(getConfig()), 2));
+  logger.debug('Loaded config:', JSON.stringify(getConfig(), sortedKeys(getConfig()), 2));
 }
 
 function getBracketProvider(): BracketServiceProvider {

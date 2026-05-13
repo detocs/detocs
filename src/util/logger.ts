@@ -6,6 +6,13 @@ export interface LoggerFunction {
   (msg: unknown, ...args: unknown[]): void;
 }
 
+export enum LogLevel {
+  DEBUG = 'debug',
+  INFO = 'info',
+  WARN = 'warn',
+  ERROR = 'error',
+}
+
 export interface Logger {
   debug: LoggerFunction;
   info: LoggerFunction;
@@ -23,9 +30,9 @@ export function getLogger(name: string): Logger {
   };
 }
 
-export function getBasicLogger(): Logger {
+export function getBasicLogger(logLevel: LogLevel): Logger {
   const logger = log4js.getLogger();
-  logger.level = 'debug';
+  logger.level = logLevel;
   return {
     debug: logger.debug.bind(logger),
     info: logger.info.bind(logger),
@@ -34,7 +41,7 @@ export function getBasicLogger(): Logger {
   };
 }
 
-export function configureLogger(logDir?: string|null): void {
+export function configureLogger(logLevel: LogLevel, logDir?: string|null): void {
   const appenders: Configuration['appenders'] = {
     'out': { type: 'stdout' },
   };
@@ -50,7 +57,7 @@ export function configureLogger(logDir?: string|null): void {
     categories: {
       default: {
         appenders: Object.keys(appenders),
-        level: 'debug',
+        level: logLevel,
       },
     },
   });
