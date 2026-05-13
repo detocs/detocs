@@ -3,15 +3,18 @@ import { getLogger } from '@util/logger.ts';
 import cors from 'cors';
 import express, { Application, Request, Response } from 'express';
 import formidable from 'express-formidable';
-import { createServer } from 'http';
+import { createServer, Server } from 'http';
 import updateImmutable from 'immutability-helper';
 import isEqual from 'lodash.isequal';
+import merge from 'lodash.merge';
+import range from 'lodash.range';
 import ws from 'ws';
 
 import Break from '@models/break.ts';
 import Game, { nullGame } from '@models/game.ts';
+import GameCharacter, { nullGameCharacter } from '@models/game-character.ts';
 import GameTeam, { nullGameTeam } from '@models/game-team.ts';
-import * as Games from '@models/games.ts';
+import { GameDatabase } from '@models/games.ts';
 import Locality from '@models/locality.ts';
 import LowerThird from '@models/lower-third.ts';
 import Match, { nullMatch } from '@models/match.ts';
@@ -23,10 +26,11 @@ import Scoreboard from '@models/scoreboard.ts';
 import TournamentSet from '@models/tournament-set.ts';
 import BracketState from '@server/bracket/state.ts';
 import { BRACKETS_PORT } from '@server/ports.ts';
-import { getConfig } from '@util/configuration/config.ts';
+import { OutputConfig } from '@util/configuration/config.ts';
 import { entrantToPerson } from '@util/entrant.ts';
-import { mapValues } from '@util/object.ts';
+import { filterValues, mapValues } from '@util/object.ts';
 import { parseFormData } from '@util/parsing.ts';
+import { isObject, isStringRecordEntry } from '@util/predicates.ts';
 
 import FileOutput from './output/file/output.ts';
 import HttpClientOutput from './output/http-client/output.ts';
@@ -34,7 +38,6 @@ import Output from './output/output.ts';
 import WebSocketOutput from './output/websocket/output.ts';
 import WebSocketClientOutput from './output/websocket-client/output.ts';
 import State, { nullState } from './state.ts';
-import merge from 'lodash.merge';
 
 const logger = getLogger('server/info');
 const state: State = Object.assign({}, nullState);
@@ -88,16 +91,24 @@ interface IncrementScoreParams {
 }
 
 // TODO: InfoServer class
-export default async function start({ port, personDatabase }: {
+export default async function start({
+  port,
+  personDatabase,
+  gameDatabase,
+  outputConfigs,
+  defaultState,
+}: {
   port: number,
   personDatabase: PersonDatabase,
-}): Promise<void> {
+  gameDatabase: GameDatabase,
+  outputConfigs: OutputConfig[],
+  defaultState: Partial<State>,
+}): Promise<Server> {
   personDb = personDatabase;
-  await loadDatabases();
 
   logger.info('Initializing overlay info server');
-  loadDefaultState();
-  const outputs = loadOutputs();
+  loadDefaultState(defaultState);
+  const outputs = loadOutputs(outputConfigs);
   Promise.all(outputs.map(o => o.init(state)));
 
   const app = express();
@@ -116,7 +127,9 @@ export default async function start({ port, personDatabase }: {
     const { unfinishedSets } = await getBracketState();
     const scoreboard = parseScoreboard(
       parseFormData(req.fields) as unknown as ScoreboardForm,
-      unfinishedSets);
+      gameDatabase,
+      unfinishedSets,
+    );
     updatePeople(state.commentators);
     Object.assign(state, scoreboard);
     res.sendStatus(200);
@@ -176,7 +189,7 @@ export default async function start({ port, personDatabase }: {
     res.send(personDb.getById(id));
   });
   app.get('/games', (_, res) => {
-    res.send(Games.getGames());
+    res.send(gameDatabase.getGames());
   });
   app.get('/matches', (_, res) => {
     res.send(matchList);
@@ -194,6 +207,7 @@ export default async function start({ port, personDatabase }: {
   });
 
   httpServer.listen(port, () => logger.info(`Listening on port ${port}`));
+  return httpServer;
 }
 
 function broadcastState(state: State): void {
@@ -208,12 +222,7 @@ function broadcastState(state: State): void {
   });
 }
 
-async function loadDatabases(): Promise<void> {
-  await Games.loadGameDatabase();
-}
-
-function loadOutputs(): Output[] {
-  const outputs = getConfig().outputs;
+function loadOutputs(outputs: OutputConfig[]): Output[] {
   return outputs.map((conf): Output => {
     switch (conf.type) {
       case 'websocket':
@@ -230,8 +239,8 @@ function loadOutputs(): Output[] {
   });
 }
 
-function loadDefaultState(): void {
-  Object.assign(state, merge(state, getConfig().defaultState));
+function loadDefaultState(defaultState: Partial<State>): void {
+  Object.assign(state, merge(state, defaultState));
 }
 
 // TODO: Subscribe to player id?
@@ -250,10 +259,11 @@ function updatePeople(list: { person: Person }[]): void {
 
 function parseScoreboard(
   form: ScoreboardForm,
+  gameDatabase: GameDatabase,
   unfinishedSets: TournamentSet[],
 ): Scoreboard {
   const match = parseMatch(form.match);
-  const game = parseGame(form.game);
+  const game = parseGame(gameDatabase, form.game);
   const set = parseSet(form.set, unfinishedSets);
 
   const formPlayers = [0, 1].map(i => form.players[i]);
@@ -372,10 +382,13 @@ function parsePerson(form: PersonForm): Person {
   ) as unknown as Person;
 }
 
-function parseGame(locator: GameLocator): Game {
+function parseGame(
+  gameDatabase: GameDatabase,
+  locator: GameLocator,
+): Game {
   const id = parseOptionalString(locator.id);
   if (id) {
-    const found = Games.getGameById(id);
+    const found = gameDatabase.getGameById(id);
     if (found) {
       return found;
     }
@@ -438,6 +451,26 @@ function parseBool(value: string | undefined): boolean {
   return !!value;
 }
 
+function parseArray<T>(value: unknown, parser: (x: unknown) => T): T[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return range(value.length).map(i => parser(value[i]));
+}
+
+function parseRecord(value: unknown): Record<string, string> | undefined {
+  if (!isObject(value)) {
+    return undefined;
+  }
+  const record = Object.fromEntries(
+    Object.entries(value).filter(isStringRecordEntry)
+  );
+  if (Object.keys(record).length === 0) {
+    return undefined;
+  }
+  return record;
+}
+
 function parseLocation(value: unknown): Locality | undefined {
   if (value && typeof value !== 'object') {
     return undefined;
@@ -457,19 +490,42 @@ function parseLocation(value: unknown): Locality | undefined {
 }
 
 function parseTeams(value: unknown): GameTeam[] | undefined {
-  if (!Array.isArray(value)) {
+  const teams = parseArray(value, parseTeam);
+  if (teams.length === 0) {
     return undefined;
   }
+  return teams;
+}
 
-  // Probably enough validation
-  const parsed = value as (GameTeam|null)[];
-  for (let i = 0; i < value.length; i++) {
-    if (!value[i]) {
-      value[i] = null;
-    }
+function parseTeam(value: unknown): GameTeam {
+  if (!isObject(value)) {
+    return nullGameTeam;
   }
 
-  return parsed.map(team => team || nullGameTeam);
+  const characters = parseArray(value['characters'], parseCharacter);
+  const options = parseTeamOptions(value['options']);
+  return {
+    characters,
+    options,
+  };
+}
+
+function parseCharacter(value: unknown): GameCharacter {
+  if (!isObject(value)) {
+    return nullGameCharacter;
+  }
+
+  const id = parseString(value['id']);
+  const options = parseTeamOptions(value['options']);
+  return {
+    id,
+    options,
+  };
+}
+
+function parseTeamOptions(value: unknown): Record<string, string> | undefined {
+  const options = filterValues(parseRecord(value), s => !!s);
+  return Object.keys(options).length > 0 ? options as Record<string, string> : undefined;
 }
 
 function getBracketState(): Promise<BracketState> {

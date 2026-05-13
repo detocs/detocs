@@ -7,7 +7,6 @@ export default interface GameTeam {
   };
 }
 
-export const nullGameTeam: GameTeam = {
+export const nullGameTeam: GameTeam = Object.freeze({
   characters: [],
-  options: {},
-};
+});

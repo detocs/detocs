@@ -3,6 +3,7 @@ import { nullGame } from '@models/game.ts';
 import LowerThird from '@models/lower-third.ts';
 import { nullMatch } from '@models/match.ts';
 import { nullPerson } from '@models/person.ts';
+import { nullPlayer } from '@models/player.ts';
 import Scoreboard from '@models/scoreboard.ts';
 
 type State = Scoreboard & LowerThird & Break;
@@ -10,8 +11,8 @@ export default State;
 
 export const nullState: State = Object.freeze({
   players: [
-    { person: nullPerson, score: 0 },
-    { person: nullPerson, score: 0 },
+    nullPlayer,
+    nullPlayer,
   ],
   match: nullMatch,
   game: nullGame,

@@ -1,7 +1,7 @@
 import cors from 'cors';
 import express from 'express';
 import formidable from 'express-formidable';
-import { createServer } from 'http';
+import { createServer, Server } from 'http';
 import ws from 'ws';
 
 import { Logger, LoggerFunction } from '@util/logger.ts';
@@ -9,7 +9,7 @@ import { Logger, LoggerFunction } from '@util/logger.ts';
 export function appWebsocketServer(
   port: number,
   onStart: () => void,
-): { appServer: express.Express; socketServer: ws.Server } {
+): { appServer: express.Express; socketServer: ws.Server, httpServer: Server } {
   const appServer = express();
   // TODO: Security?
   appServer.use(cors());
@@ -22,7 +22,7 @@ export function appWebsocketServer(
 
   httpServer.listen(port, onStart);
 
-  return { appServer, socketServer };
+  return { appServer, socketServer, httpServer };
 }
 
 export interface HttpError {

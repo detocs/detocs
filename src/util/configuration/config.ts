@@ -63,29 +63,29 @@ export type OutputTemplateConfig = string | {
   outputName: string;
 };
 
-export interface OutputConfig {
-  templates: OutputTemplateConfig[];
-}
-
-export type WebSocketOutputConfig = OutputConfig & {
+export type WebSocketOutputConfig = {
   type: 'websocket';
+  templates: OutputTemplateConfig[];
   port: number;
 };
 
-export type FileOutputConfig = OutputConfig & {
+export type FileOutputConfig = {
   type: 'file';
+  templates: OutputTemplateConfig[];
   path: string;
 };
 
-export type WebSocketClientOutputConfig = OutputConfig & {
+export type WebSocketClientOutputConfig = {
   type: 'websocketClient';
+  templates: OutputTemplateConfig[];
   url: string;
   pingIntervalSeconds?: number;
   reconnectionDelaySeconds?: number;
 };
 
-export type HttpClientOutputConfig = OutputConfig & {
+export type HttpClientOutputConfig = {
   type: 'httpClient';
+  templates: OutputTemplateConfig[];
   url: string;
   method?: string;
   headers?: Record<string, string>;
@@ -93,6 +93,11 @@ export type HttpClientOutputConfig = OutputConfig & {
   // formatting. Templating?
   formDataName: string;
 };
+
+export type OutputConfig = WebSocketOutputConfig |
+FileOutputConfig |
+WebSocketClientOutputConfig |
+HttpClientOutputConfig;
 
 const DEFAULTS: Config = {
   databaseDirectory: '.',

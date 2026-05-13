@@ -1,9 +1,10 @@
 import updateImmutable from 'immutability-helper';
+import range from 'lodash.range';
 import { ComponentChild, h, VNode } from 'preact';
 import { StateUpdater, useEffect, useRef } from 'preact/hooks';
 
-import GameCharacter from '@models/game-character.ts';
-import GameTeam from '@models/game-team.ts';
+import GameCharacter, { nullGameCharacter } from '@models/game-character.ts';
+import GameTeam, { nullGameTeam } from '@models/game-team.ts';
 import Game from '@models/game.ts';
 import { INTERACTIVE_SELECTOR } from '@util/dom.ts';
 import { submitOnEnter } from '@util/forms.ts';
@@ -14,7 +15,7 @@ export function TeamEditor({
   prefix, teams, onUpdateTeams, teamsLength, onUpdateTeamsLength, game,
 }: {
   prefix: string;
-  teams: GameTeam[];
+  teams: Partial<GameTeam>[];
   onUpdateTeams: StateUpdater<GameTeam[] | undefined>;
   teamsLength: number;
   onUpdateTeamsLength: StateUpdater<number>;
@@ -133,7 +134,7 @@ export function TeamEditor({
       <div class="input-row" ref={rowRef}>
         {editorTeams.map((team, idx) => {
           const chars = range(numCharacters)
-            .map(i => team.characters[i] || { id: '' })
+            .map(i => team.characters?.[i] || nullGameCharacter)
             .map((char, idx2) => (
               <span class="team-editor__char">
                 <select
@@ -220,7 +221,7 @@ function fillTeams(teams: GameTeam[], teamIdx: number): GameTeam[] {
     teams,
     {
       $push: range(teamIdx + 1 - teams.length)
-        .map(() => ({ characters: [] })),
+        .map(() => nullGameTeam),
     }
   );
 }
@@ -235,18 +236,11 @@ function fillChars(teams: GameTeam[], teamIdx: number, charIdx: number): GameTea
       [teamIdx]: {
         characters: {
           $push: range(charIdx + 1 - teams[teamIdx].characters.length)
-            .map(() => ({ id: '' })),
+            .map(() => nullGameCharacter),
         }
       },
     }
   );
-}
-
-function range(count: number): number[] {
-  if (count <= 0) {
-    return [];
-  }
-  return Array.from({ length: count }, (_, i) => i);
 }
 
 function joinNodes(nodes: VNode[], node: ComponentChild): ComponentChild[] {

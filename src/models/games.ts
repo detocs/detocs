@@ -11,6 +11,12 @@ Required<Pick<Game, 'id' | 'name'>>;
 const logger = getLogger('games');
 let games: Game[] = [];
 
+export interface GameDatabase {
+  getGames(): Game[];
+  getGameById(id: string): Game | null;
+  getGameByServiceId(serviceName: string, id: string): Game | null;
+}
+
 export async function loadGameDatabase(): Promise<void> {
   games = [];
   const filePath = getConfig().gameDatabaseFile;

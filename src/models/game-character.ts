@@ -4,3 +4,7 @@ export default interface GameCharacter {
     [configId: string]: string;
   };
 }
+
+export const nullGameCharacter: GameCharacter = Object.freeze({
+  id: '',
+});

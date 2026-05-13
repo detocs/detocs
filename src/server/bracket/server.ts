@@ -1,6 +1,8 @@
 import { Error as ChainableError } from 'chainable-error';
 import express, { Request, Response } from 'express';
+import { Server } from 'http';
 import updateImmutable from 'immutability-helper';
+import isEqual from 'lodash.isequal';
 import { err, ok, Result, ResultAsync } from 'neverthrow';
 import ws from 'ws';
 
@@ -13,7 +15,6 @@ import { parseFormData } from '@util/parsing.ts';
 import { nonEmpty } from '@util/predicates.ts';
 
 import State, { nullState } from './state.ts';
-import isEqual from 'lodash.isequal';
 
 type WebSocketClient = ws;
 
@@ -32,16 +33,17 @@ const logger = getLogger('server/bracket');
 export default function start({ port, bracketProvider }: {
   port: number;
   bracketProvider: BracketServiceProvider;
-}): void {
+}): Server {
   logger.info('Initializing bracket server');
 
-  const { appServer, socketServer } = httpUtil.appWebsocketServer(
+  const { appServer, socketServer, httpServer } = httpUtil.appWebsocketServer(
     port,
     () => logger.info(`Listening on port ${port}`),
   );
 
   const server = new BracketServer(appServer, socketServer, bracketProvider);
   server.registerHandlers();
+  return httpServer;
 }
 
 class BracketServer {
@@ -65,7 +67,7 @@ class BracketServer {
 
   public registerHandlers(): void {
     this.appServer.post('/update', this.updateEndpoint.bind(this));
-    this.appServer.get('/state', (req, res) => {
+    this.appServer.get('/state', (_req, res) => {
       res.send(this.state);
     });
 
