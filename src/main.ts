@@ -44,7 +44,8 @@ import {
 } from '@util/meta.ts';
 import { withoutExtension } from '@util/path.ts';
 import web from '@web/server.ts';
-import { loadGameDatabase } from '@models/games.ts';
+import { emptyGameDatabase, GameDatabase, loadGameDatabase } from '@models/games.ts';
+import { ResultAsync } from 'neverthrow';
 
 interface ConfigOptions {
   c?: string;
@@ -262,7 +263,13 @@ async function startServer(args: ArgumentsCamelCase<ConfigOptions>): Promise<voi
   const mediaServer = new MediaServer({ visionMixer, dirName: 'media' });
   mediaServer.start();
 
-  const bracketProvider = getBracketProvider();
+  const gameDatabase = await loadGameDatabase()
+    .match(
+      db => db,
+      e => { throw e; },
+    );
+
+  const bracketProvider = getBracketProvider(gameDatabase);
 
   const personDatabase = new PersonDatabase(getConfig().peopleDatabaseFile);
   await personDatabase.loadDatabase();
@@ -270,7 +277,14 @@ async function startServer(args: ArgumentsCamelCase<ConfigOptions>): Promise<voi
   const port = getConfig().ports.web;
   const twitterClient = await getTwitterClient();
   await Promise.all([
-    server({ bracketProvider, mediaServer, visionMixer, personDatabase, twitterClient }),
+    server({
+      gameDatabase,
+      bracketProvider,
+      mediaServer,
+      visionMixer,
+      personDatabase,
+      twitterClient,
+    }),
     web({ mediaServer, port }),
   ]);
   if (isPkg()) {
@@ -312,7 +326,6 @@ async function exportPeople(opts: ArgumentsCamelCase<PersonExportOptions>): Prom
       break;
     default:
       throw new Error('output format must be specified');
-      break;
   }
   const database = new PersonDatabase(getConfig().peopleDatabaseFile);
   await database.loadDatabase();
@@ -338,7 +351,7 @@ async function importPeople(opts: ArgumentsCamelCase<PersonImportOptions>): Prom
       });
   }
   if (opts.url) {
-    const bracketProvider = getBracketProvider();
+    const bracketProvider = getBracketProvider(emptyGameDatabase());
     await importTournamentEntrants(database, bracketProvider, opts.url)
       .catch((err: Error) => {
         logger.error(err);
@@ -361,20 +374,26 @@ async function vods(opts: ArgumentsCamelCase<VodOptions>): Promise<void> {
       command = Command.Video;
       break;
   }
-  await loadGameDatabase();
-  const uploader = new VodUploader({
-    bracketProvider: getBracketProvider(),
-    logFile: opts.logFile,
-    command,
-    style: opts.ps ? Style.PerSet : Style.Full,
-    videoNum: opts.n,
-    skipNotification: opts['skip-notifs'],
-  });
-  await uploader.run()
-    .catch(err => {
-      logger.error(err);
-      process.exit(1);
-    });
+  await loadGameDatabase()
+    .andThen(gameDatabase => {
+      const uploader = new VodUploader({
+        gameDatabase,
+        bracketProvider: getBracketProvider(gameDatabase),
+        logFile: opts.logFile,
+        command,
+        style: opts.ps ? Style.PerSet : Style.Full,
+        videoNum: opts.n,
+        skipNotification: opts['skip-notifs'],
+      });
+      return ResultAsync.fromPromise(uploader.run(), e => e as Error);
+    })
+    .match(
+      () => { /* noop */ },
+      err => {
+        logger.error(err);
+        process.exit(1);
+      },
+    );
   process.exit();
 }
 
@@ -384,25 +403,39 @@ async function generateLogCommand({
   vodfile,
 }: ArgumentsCamelCase<GenerateLogOptions>): Promise<void> {
   const vodDir = vodfile && join(dirname(vodfile), withoutExtension(vodfile));
-  (await generateLog({
-    bracketProvider: getBracketProvider(),
-    bracketUrls,
-    outputFolder: vodDir ?? folder ?? process.cwd(),
-    vodFile: vodfile ?? '',
-  })).match(
-    file => logger.info(`Log file successfully saved to ${file}`),
-    logger.error,
-  );
+  await loadGameDatabase()
+    .andThen(gameDatabase => generateLog({
+      bracketProvider: getBracketProvider(gameDatabase),
+      bracketUrls,
+      outputFolder: vodDir ?? folder ?? process.cwd(),
+      vodFile: vodfile ?? '',
+    }))
+    .match(
+      file => logger.info(`Log file successfully saved to ${file}`),
+      logger.error,
+    );
 }
 
 function logConfig(): void {
   logger.debug('Loaded config:', JSON.stringify(getConfig(), sortedKeys(getConfig()), 2));
 }
 
-function getBracketProvider(): BracketServiceProvider {
+function getBracketProvider(gameDatabase: GameDatabase): BracketServiceProvider {
   const bracketProvider = new BracketServiceProvider();
-  bracketProvider.register(SMASHGG_SERVICE_NAME, parseSmashggSlug, () => new SmashggClient());
-  bracketProvider.register(CHALLONGE_SERVICE_NAME, parseChallongeId, () => new ChallongeClient());
-  bracketProvider.register(BATTLEFY_SERVICE_NAME, parseBattlefyId, () => new BattlefyClient());
+  bracketProvider.register(
+    SMASHGG_SERVICE_NAME,
+    parseSmashggSlug,
+    () => new SmashggClient(gameDatabase),
+  );
+  bracketProvider.register(
+    CHALLONGE_SERVICE_NAME,
+    parseChallongeId,
+    () => new ChallongeClient(gameDatabase),
+  );
+  bracketProvider.register(
+    BATTLEFY_SERVICE_NAME,
+    parseBattlefyId,
+    () => new BattlefyClient(gameDatabase),
+  );
   return bracketProvider;
 }

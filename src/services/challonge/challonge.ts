@@ -2,7 +2,7 @@ import { memoize } from 'micro-memoize';
 import moment from 'moment';
 
 import Game, { nullGame } from '@models/game.ts';
-import { getGameByServiceId } from '@models/games.ts';
+import { GameDatabase } from '@models/games.ts';
 import Match from '@models/match.ts';
 import { getMatchById, isGrandFinals, isTrueFinals } from '@models/matches.ts';
 import Tournament from '@models/tournament.ts';
@@ -29,16 +29,20 @@ import { TournamentResponse, MatchResponse, ParticipantResponse } from './types.
 const ENTRANT_PREFIX_REGEX = /^(?:(.+?)\s*\|+\s*)?([^|]+)$/;
 
 export default class ChallongeClient implements BracketService {
+  private gameDatabase: GameDatabase;
   private readonly apiKey: ApiKey;
   private readonly memoizedGetPlayer: ChallongeClient['getPlayer'];
   private readonly memoizedGetGame: ChallongeClient['getGame'];
 
-  public constructor() {
+  public constructor(gameDatabase: GameDatabase) {
+    this.gameDatabase = gameDatabase;
+
     const token = getCredentials().challongeKey;
     if (!token) {
       throw new Error('No Challonge API key');
     }
     this.apiKey = token;
+
     this.memoizedGetPlayer = memoize(
       this.getPlayer.bind(this),
       {
@@ -111,7 +115,7 @@ export default class ChallongeClient implements BracketService {
 
   public async upcomingSetsByPhaseGroup(
     phaseId: string,
-    phaseGroupIds: string[],
+    _phaseGroupIds: string[],
   ): Promise<TournamentSet[]> {
     return this.upcomingSetsByPhase(phaseId);
   }
@@ -141,7 +145,7 @@ export default class ChallongeClient implements BracketService {
 
   public async phasesForEvent(
     tournamentId: string,
-    eventId: string,
+    _eventId: string,
   ): Promise<{
       phases: TournamentPhase[];
       phaseGroups: TournamentPhaseGroup[];
@@ -224,7 +228,7 @@ export default class ChallongeClient implements BracketService {
   }
 
   private parseGame(t: ApiTournament): Game {
-    return getGameByServiceId(this.name(), t.game_id.toString()) ||
+    return this.gameDatabase.getGameByServiceId(this.name(), t.game_id.toString()) ||
       Object.assign({}, nullGame, { name: t.game_name });
   }
 

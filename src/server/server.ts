@@ -1,4 +1,4 @@
-import { getGameById, getGameByServiceId, getGames, loadGameDatabase } from '@models/games.ts';
+import { GameDatabase } from '@models/games.ts';
 import PersonDatabase from '@models/people.ts';
 import BracketServiceProvider from '@services/bracket-service-provider.ts';
 import { TwitterClient } from '@services/twitter/twitter.ts';
@@ -28,6 +28,7 @@ import startTwitterServer from './twitter/server.ts';
 const logger = getLogger('server');
 
 interface ServerParams {
+  gameDatabase: GameDatabase;
   bracketProvider: BracketServiceProvider;
   mediaServer: MediaServer;
   visionMixer: VisionMixer;
@@ -36,6 +37,7 @@ interface ServerParams {
 }
 
 export default function start({
+  gameDatabase,
   bracketProvider,
   mediaServer,
   visionMixer,
@@ -45,18 +47,13 @@ export default function start({
   logger.info(`${getProductName()} server initializing...`);
   return Promise.all([
     startControlServer(CONTROL_PORT),
-    loadGameDatabase().then(() => startInfoServer({
+    startInfoServer({
       port: INFO_PORT,
       personDatabase,
-      // TODO: Actual dependency injection
-      gameDatabase: {
-        getGames,
-        getGameById,
-        getGameByServiceId,
-      },
+      gameDatabase,
       outputConfigs: getConfig().outputs,
       defaultState: getConfig().defaultState,
-    })),
+    }),
     startRecordingServer({ port: RECORDING_PORT, mediaServer, bracketProvider, visionMixer }),
     startTwitterServer({ port: TWITTER_PORT, mediaServer, twitterClient }),
     startBracketServer({ port: BRACKETS_PORT, bracketProvider }),

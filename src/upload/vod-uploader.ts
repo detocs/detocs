@@ -11,7 +11,7 @@ import path from 'path';
 
 import Game, { GameOption } from '@models/game.ts';
 import GameTeam from '@models/game-team.ts';
-import { getGameById, getGameByServiceId, loadGameDatabase } from '@models/games.ts';
+import { GameDatabase } from '@models/games.ts';
 import Person, { getPrefixedAlias } from '@models/person.ts';
 import { Timestamp } from '@models/timestamp.ts';
 import Tournament from '@models/tournament.ts';
@@ -75,6 +75,7 @@ export enum Style {
 }
 
 interface VodUploaderParams {
+  gameDatabase: GameDatabase;
   bracketProvider: BracketServiceProvider;
   logFile: string;
   command: Command;
@@ -91,6 +92,7 @@ const EMPTY_PHASE_GROUP_MAPPING: PhaseGroupNameMapping = Object.freeze({
 });
 
 export class VodUploader {
+  private readonly gameDatabase: GameDatabase;
   private readonly bracketProvider: BracketServiceProvider;
   private readonly logFile: string;
   private readonly logName: string;
@@ -101,6 +103,7 @@ export class VodUploader {
   private readonly skipNotification: boolean;
 
   public constructor({
+    gameDatabase,
     bracketProvider,
     logFile,
     command,
@@ -108,6 +111,7 @@ export class VodUploader {
     videoNum,
     skipNotification,
   }: VodUploaderParams) {
+    this.gameDatabase = gameDatabase;
     this.bracketProvider = bracketProvider;
     this.logFile = logFile;
     this.logName = path.basename(logFile, path.extname(logFile));
@@ -122,8 +126,6 @@ export class VodUploader {
   }
 
   public async run(): Promise<void> {
-    await loadDatabases();
-
     let youtubeOauthClient: OAuth2Client | null = null;
     if (this.command == Command.Upload || this.command == Command.Update) {
       // Get YouTube credentials first, so that the rest can be done unattended
@@ -138,6 +140,7 @@ export class VodUploader {
       this.bracketProvider.get(setList.bracketService) :
       null;
     const { tournament, videogame, phase } = await getEventInfo(
+      this.gameDatabase,
       bracketService,
       setList,
     );
@@ -147,6 +150,7 @@ export class VodUploader {
     if (this.command >= Command.Metadata) {
       if (this.style === Style.PerSet) {
         metadata = await this.writePerSetMetadata(
+          this.gameDatabase,
           bracketService,
           setList,
           tournament,
@@ -155,6 +159,7 @@ export class VodUploader {
         );
       } else {
         metadata = [await this.writeSingleVideoMetadata(
+          this.gameDatabase,
           bracketService,
           keyframeSource,
           setList,
@@ -210,6 +215,7 @@ export class VodUploader {
   }
 
   private async writeSingleVideoMetadata(
+    gameDatabase: GameDatabase,
     bracketService: BracketService | null,
     keyframeSource: KeyframeSource,
     setList: Readonly<Log>,
@@ -218,6 +224,7 @@ export class VodUploader {
     phase: VodPhase,
   ): Promise<Metadata> {
     const metadata = await this.singleVideoMetadata(
+      gameDatabase,
       bracketService,
       keyframeSource,
       setList,
@@ -232,6 +239,7 @@ export class VodUploader {
   }
 
   private async writePerSetMetadata(
+    gameDatabase: GameDatabase,
     bracketService: BracketService | null,
     setList: Readonly<Log>,
     tournament: VodTournament,
@@ -239,6 +247,7 @@ export class VodUploader {
     phase: VodPhase,
   ): Promise<Metadata[]> {
     const metadata = await this.perSetMetadata(
+      gameDatabase,
       bracketService,
       setList,
       tournament,
@@ -254,6 +263,7 @@ export class VodUploader {
   }
 
   private async singleVideoMetadata(
+    gameDatabase: GameDatabase,
     bracketService: BracketService | null,
     keyframeSource: KeyframeSource,
     setList: Readonly<Log>,
@@ -280,12 +290,12 @@ export class VodUploader {
     if (setList.sets) {
       sets = setList.sets.map(logSet => {
         const bracketSet = backetsSets.find(s => s.serviceInfo.id == logSet.id);
-        return getSetData(logSet, bracketSet, phaseGroupNames);
+        return getSetData(gameDatabase, logSet, bracketSet, phaseGroupNames);
       });
     } else {
       backetsSets.sort((a, b) =>
         (a.completedAt || Number.MAX_SAFE_INTEGER) - (b.completedAt || Number.MAX_SAFE_INTEGER));
-      sets = backetsSets.map(s => getSetData(undefined, s, phaseGroupNames));
+      sets = backetsSets.map(s => getSetData(gameDatabase, undefined, s, phaseGroupNames));
     }
 
     // Make timestamps relative to the start of the video
@@ -345,6 +355,7 @@ export class VodUploader {
   }
 
   private async perSetMetadata(
+    gameDatabase: GameDatabase,
     bracketService: BracketService | null,
     setList: Readonly<Log>,
     tournament: VodTournament,
@@ -366,7 +377,7 @@ export class VodUploader {
       }
 
       const bracketSet = bracketSets.find(s => s.serviceInfo.id === timestampedSet.id);
-      const set = getSetData(timestampedSet, bracketSet, phaseGroupNames);
+      const set = getSetData(gameDatabase, timestampedSet, bracketSet, phaseGroupNames);
       const players = set.players;
 
       const fullVsText = `${players[0].name}${characterList(players[0])} vs ${players[1].name}${characterList(players[1])}`;
@@ -583,10 +594,6 @@ function getCommentary(sets: Log['sets']): string | undefined {
   )].filter(nonEmpty).join(', ');
 }
 
-async function loadDatabases(): Promise<void> {
-  await loadGameDatabase();
-}
-
 async function getKeyframeSource(
   workingDir: string,
   setList: Readonly<Log>,
@@ -657,6 +664,7 @@ function runUpload(resumable: ResumableUpload): Promise<youtubeV3.Schema$Video> 
 }
 
 async function getEventInfo(
+  gameDatabase: GameDatabase,
   bracketService: BracketService | null,
   setList: Readonly<Log>,
 ): Promise<{
@@ -682,12 +690,12 @@ async function getEventInfo(
   if (setList.event?.videogame?.id) {
     const gameId = setList.event?.videogame?.id;
     if (bracketService?.name()) {
-      videogame = getGameByServiceId(bracketService.name(), gameId.toString());
+      videogame = gameDatabase.getGameByServiceId(bracketService.name(), gameId.toString());
     } else {
-      videogame = getGameById(gameId.toString());
+      videogame = gameDatabase.getGameById(gameId.toString());
     }
   } else if (videogame == null) {
-    videogame = getGameFromState(setList);
+    videogame = getGameFromState(gameDatabase, setList);
   }
   if (!videogame) {
     throw new Error('Cannot find videogame');
@@ -722,11 +730,11 @@ function getTournamentFromState(setList: Readonly<Log>): Pick<Tournament, 'name'
   return mostFrequent ? { name: mostFrequent } : null;
 }
 
-function getGameFromState(setList: Readonly<Log>): Game | null {
+function getGameFromState(gameDatabase: GameDatabase, setList: Readonly<Log>): Game | null {
   const ids = setList.sets.map(s => s.state?.game.id).filter(nonEmpty);
   const mostFrequentId = mode(ids);
   if (mostFrequentId) {
-    return getGameById(mostFrequentId);
+    return gameDatabase.getGameById(mostFrequentId);
   }
   const names = setList.sets.map(s => s.state?.game.name).filter(nonEmpty);
   const mostFrequentName = mode(names);
@@ -803,6 +811,7 @@ function videoTags(
 }
 
 function getSetData(
+  gameDatabase: GameDatabase,
   logSet: Log['sets'][0] | undefined,
   bracketSet: TournamentSet | undefined,
   phaseGroupNames: PhaseGroupNameMapping,
@@ -842,7 +851,10 @@ function getSetData(
     const logPerson = logSet?.state?.players[i].person;
     const bracketEntrant = bracketSet?.entrants[i];
     const gameId = logSet?.state?.game?.id || bracketSet?.videogame?.id || '';
-    const game = getGameById(gameId) || logSet?.state?.game || bracketSet?.videogame || null;
+    const game = gameDatabase.getGameById(gameId) ||
+      logSet?.state?.game ||
+      bracketSet?.videogame ||
+      null;
     const teams = logSet?.state?.players?.[i].teams?.map(
       t => convertTeam(game, t),
     ).filter(nonNull) || [];

@@ -1,5 +1,5 @@
 import Game, { nullGame } from '@models/game.ts';
-import { getGameByServiceId } from '@models/games.ts';
+import { GameDatabase } from '@models/games.ts';
 import Match from '@models/match.ts';
 import { getMatchById, isGrandFinals, isTrueFinals } from '@models/matches.ts';
 import Tournament from '@models/tournament.ts';
@@ -29,6 +29,12 @@ import {
 const logger = getLogger('services/battlefy');
 
 export default class BattlefyClient implements BracketService {
+  private gameDatabase: GameDatabase;
+
+  constructor(gameDatabase: GameDatabase) {
+    this.gameDatabase = gameDatabase;
+  }
+
   public name(): string {
     return BATTLEFY_SERVICE_NAME;
   }
@@ -102,7 +108,7 @@ export default class BattlefyClient implements BracketService {
 
   public async upcomingSetsByPhaseGroup(
     phaseId: string,
-    phaseGroupIds: string[],
+    _phaseGroupIds: string[],
   ): Promise<TournamentSet[]> {
     return this.upcomingSetsByPhase(phaseId);
   }
@@ -131,7 +137,7 @@ export default class BattlefyClient implements BracketService {
 
   public async phasesForEvent(
     tournamentId: string,
-    eventId: string,
+    _eventId: string,
   ): Promise<{
       phases: TournamentPhase[];
       phaseGroups: TournamentPhaseGroup[];
@@ -196,7 +202,7 @@ export default class BattlefyClient implements BracketService {
   }
 
   private getGame(id: string, name: string): Game {
-    return getGameByServiceId(this.name(), id) ||
+    return this.gameDatabase.getGameByServiceId(this.name(), id) ||
       Object.assign({}, nullGame, {
         name,
         serviceInfo: {

@@ -1,7 +1,7 @@
 import { GraphQLClient } from 'graphql-request';
 
 import Game, { nullGame } from '@models/game.ts';
-import { getGameByServiceId } from '@models/games.ts';
+import { GameDatabase } from '@models/games.ts';
 import { getMatchBySmashggId, isGrandFinals, isTrueFinals } from '@models/matches.ts';
 import Tournament from '@models/tournament.ts';
 import TournamentEvent from '@models/tournament-event.ts';
@@ -58,14 +58,16 @@ import { SmashggSlug } from './types.ts';
 
 // TODO: Propagate smashgg errors
 export default class SmashggClient implements BracketService {
+  private gameDatabase: GameDatabase;
   private client: GraphQLClient;
 
-  public constructor() {
+  public constructor(gameDatabase: GameDatabase) {
     const { startggKey, smashggKey } = getCredentials();
     const token = startggKey ?? smashggKey;
     if (token == null) {
       throw new Error('No start.gg API token');
     }
+    this.gameDatabase = gameDatabase;
     this.client = new GraphQLClient(ENDPOINT, {
       headers: { authorization: `Bearer ${token}` },
     });
@@ -220,7 +222,7 @@ export default class SmashggClient implements BracketService {
   }
 
   public async phasesForEvent(
-    tournmentId: string,
+    _tournmentId: string,
     eventId: string,
   ): Promise<{
       phases: TournamentPhase[];
@@ -274,7 +276,7 @@ export default class SmashggClient implements BracketService {
   }
 
   private getGame(id: string, name: string): Game {
-    return getGameByServiceId(this.name(), id) ||
+    return this.gameDatabase.getGameByServiceId(this.name(), id) ||
       Object.assign({}, nullGame, {
         name,
         serviceInfo: {
