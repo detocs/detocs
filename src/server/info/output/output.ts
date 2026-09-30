@@ -1,5 +1,6 @@
 import cloneDeep from 'lodash.clonedeep';
 
+import GameTeam, { nullGameTeam } from '@models/game-team.ts';
 import Person from '@models/person.ts';
 import Player from '@models/player.ts';
 import State, { sampleState as origSample } from '@server/info/state.ts';
@@ -22,6 +23,7 @@ export type OutputState = Omit<State, 'players' | 'commentators'> & {
     };
     nameAndStatus: string;
     prefixedNameAndStatus: string;
+    team: GameTeam;
   })[];
   commentators: (LowerThird['commentators'][0] & {
     person: Person & {
@@ -37,6 +39,13 @@ export function toOutputState(state: State): OutputState {
   const out = cloneDeep(state) as OutputState;
   for (const player of out.players) {
     player.person.twitter = player.person.serviceIds.twitter;
+    player.team = nullGameTeam;
+    if (out.game.id) {
+      const teams = player.person.teams?.[out.game.id];
+      if (teams && teams.length) {
+        player.team = teams[teams.length - 1];
+      }
+    }
   }
   out.players.map(player => player.person)
     .concat(out.commentators.map(commentator => commentator.person))
