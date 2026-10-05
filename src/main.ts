@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 import 'isomorphic-fetch';
+import { ResultAsync } from 'neverthrow';
 import { dirname, join } from 'path';
-import yargs, { Argv, ArgumentsCamelCase } from 'yargs';
+import yargs, { ArgumentsCamelCase, Argv } from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
+import { calibrateTimestamps } from '@calibration/calibrate-timestamps.ts';
 import startLocalBrowser from '@desktop/local-browser.ts';
 import ExportFormat from '@export/export-format.ts';
 import exportPeopleDatabase from '@export/export-people.ts';
@@ -14,38 +16,37 @@ import {
   StreamControlPeopleWithTwitter,
 } from '@export/formats.ts';
 import { importPeopleDatabase, importTournamentEntrants } from '@import/import-people.ts';
+import { emptyGameDatabase, GameDatabase, loadGameDatabase } from '@models/games.ts';
 import PersonDatabase from '@models/people.ts';
 import { MediaServer } from '@server/media/server.ts';
 import server from '@server/server.ts';
-import BracketServiceProvider from '@services/bracket-service-provider.ts';
 import BattlefyClient, { parseTournamentId as parseBattlefyId } from '@services/battlefy/battlefy.ts';
 import { BATTLEFY_SERVICE_NAME } from '@services/battlefy/constants.ts';
+import BracketServiceProvider from '@services/bracket-service-provider.ts';
 import ChallongeClient, {
   parseTournamentId as parseChallongeId,
 } from '@services/challonge/challonge.ts';
 import { CHALLONGE_SERVICE_NAME } from '@services/challonge/constants.ts';
-import ObsClient from '@services/obs/obs.ts';
 import ObsLegacyClient from '@services/obs-legacy/obs.ts';
+import ObsClient from '@services/obs/obs.ts';
 import { SMASHGG_SERVICE_NAME } from '@services/smashgg/constants.ts';
 import SmashggClient, { parseTournamentSlug as parseSmashggSlug } from '@services/smashgg/smashgg.ts';
-import { TwitterClient, ApiTwitterClient, MockTwitterClient } from '@services/twitter/twitter.ts';
+import { ApiTwitterClient, MockTwitterClient, TwitterClient } from '@services/twitter/twitter.ts';
 import VisionMixer from '@services/vision-mixer-service.ts';
 import { generateLog } from '@upload/log-generator.ts';
-import { VodUploader, Style, Command } from '@upload/vod-uploader.ts';
+import { Command, Style, VodUploader } from '@upload/vod-uploader.ts';
 import { getConfig, loadConfig } from '@util/configuration/config.ts';
 import { getCredentials, loadCredentials } from '@util/configuration/credentials.ts';
 import { sortedKeys } from '@util/json.ts';
 import { configureLogger, getBasicLogger, LogLevel } from '@util/logger.ts';
 import {
-  getVersion,
-  setAppRoot,
   getProductName,
+  getVersion,
   isPkg,
+  setAppRoot,
 } from '@util/meta.ts';
 import { withoutExtension } from '@util/path.ts';
 import web from '@web/server.ts';
-import { emptyGameDatabase, GameDatabase, loadGameDatabase } from '@models/games.ts';
-import { ResultAsync } from 'neverthrow';
 
 interface ConfigOptions {
   c?: string;
@@ -235,6 +236,11 @@ const parser = yargs(hideBin(process.argv))
         group: 'Output',
         normalize: true,
       })
+  })
+  .command({
+    command: 'calibrate-timestamps',
+    describe: 'Measure OBS recording encoder latency to ensure accurate timestamps in logs',
+    handler: calibrateTimestampsCommand,
   })
   .help('h')
   .alias('h', 'help')
@@ -438,4 +444,15 @@ function getBracketProvider(gameDatabase: GameDatabase): BracketServiceProvider 
     () => new BattlefyClient(gameDatabase),
   );
   return bracketProvider;
+}
+
+async function calibrateTimestampsCommand(_: ArgumentsCamelCase<ConfigOptions>): Promise<void> {
+  const obs = getVisionMixer();
+
+  await calibrateTimestamps(obs)
+    .match(
+      () => { /* noop */ },
+      logger.error,
+    );
+  process.exit();
 }

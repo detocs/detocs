@@ -13,6 +13,7 @@
     "skipLibCheck": true,
     "types": [],
     "paths": {
+      "@calibration/*": [ "./src/calibration/*" ],
       "@desktop/*": [ "./src/desktop/*" ],
       "@export/*": [ "./src/export/*" ],
       "@import/*": [ "./src/import/*" ],

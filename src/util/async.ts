@@ -14,6 +14,11 @@ export function delay<T>(ms: number): (value: T) => Promise<T> {
   return value => sleep(ms).then(() => value);
 }
 
+export function delayResult<T, E>(ms: number): (value: T) => ResultAsync<T, E> {
+  return (value) => ResultAsync.fromSafePromise(sleep(ms))
+    .map(() => value);
+}
+
 export function rLimit(concurrency: number): <T, E>(task: ResultAsync<T, E>) => ResultAsync<T, E> {
   const queue = pLimit(concurrency);
   return <T, E>(task: ResultAsync<T, E>) => ResultAsync.fromPromise(queue(() => task.match(

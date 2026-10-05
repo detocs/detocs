@@ -11,6 +11,11 @@ import { copyBundledFile } from '@util/pkg.ts';
 
 export interface VideoStats {
   durationMs?: number;
+  chapters: {
+    startMs: number;
+    endMs: number;
+    title: string;
+  }[],
 }
 
 const logger = getLogger('util/ffmpeg');
@@ -106,16 +111,19 @@ export async function getVideoFrame(
 export async function getVideoStats(file: string): Promise<VideoStats> {
   const args = [
     '-v', 'error',
-    '-show_entries', 'format=duration',
+    '-show_entries', 'format=duration:chapters',
     '-print_format', 'json',
     file,
   ];
   logger.debug(FFPROBE_BIN, args.join(' '));
   const { stdout, stderr } = await pExecFile(FFPROBE_BIN, args, { encoding: 'utf8' });
-  const format = JSON.parse(stdout)['format'];
-  if (stderr.length && !format) {
+  const data: {
+    format: { duration?: string },
+    chapters: { start_time: string, end_time: string, tags?: { title?: string } }[],
+  } = JSON.parse(stdout);
+  if (stderr.length && !data.format) {
     throw new Error(stderr);
-  } else if (!format) {
+  } else if (!data.format) {
     throw new Error(`Unexpected output when getting stats for ${file}: ${stdout}`);
   } else if (stderr.length) {
     // Some errors, like "co located POCs unavailable" don't seem to affect our
@@ -123,16 +131,13 @@ export async function getVideoStats(file: string): Promise<VideoStats> {
     logger.warn(`Non-fatal error when getting stats for ${file}: ${stderr}`);
   }
 
-  if (!format['duration']) {
-    return {
-      durationMs: undefined,
-    };
-  }
-
-  const seconds = +format['duration'];
-  return {
-    durationMs: Math.trunc(seconds * 1000),
-  };
+  const durationMs = data.format.duration ? Math.trunc(+data.format.duration * 1000) : undefined;
+  const chapters = data.chapters.map(ch => ({
+    startMs: Math.trunc(+ch.start_time * 1000),
+    endMs: Math.trunc(+ch.end_time * 1000),
+    title: ch.tags?.title || '',
+  }));
+  return { durationMs, chapters };
 }
 
 /**

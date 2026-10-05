@@ -1,16 +1,19 @@
 import { Error as ChainableError } from 'chainable-error';
 import findProcess from 'find-process';
 import { promises as fs, statSync } from 'fs';
-import { ResultAsync, okAsync, ok, err } from 'neverthrow';
+import { ResultAsync, err, ok, okAsync } from 'neverthrow';
 import ObsWebSocket, { OBSEventTypes, OBSResponseTypes, RequestBatchExecutionType, ResponseMessage } from 'obs-websocket-js';
 import pLimit from 'p-limit';
-import { dirname, extname, isAbsolute, join, basename } from 'path';
+import { basename, dirname, extname, isAbsolute, join } from 'path';
 
 import { Timestamp } from '@models/timestamp.ts';
 import VisionMixer, { Scene, ScreenshotData, VideoInput } from '@services/vision-mixer-service.ts';
+import { delayResult } from '@util/async.ts';
 import { Config, getConfig } from '@util/configuration/config.ts';
 import { getLogger } from '@util/logger.ts';
 import * as png from '@util/png.ts';
+import { fromMillis, toMillis } from '@util/timestamp.ts';
+import uuidv4 from '@util/uuid.ts';
 
 import { ObsConnection, ObsConnectionImpl } from './connection.ts';
 
@@ -24,6 +27,19 @@ interface ProcessInfo {
   bin: string;
 }
 type VideoSettings = OBSResponseTypes['GetVideoSettings'];
+interface FfmpegSourceSettings {
+  'is_local_file': boolean,
+  'local_file': string,
+}
+interface VlcSourceSettings {
+  'playlist': [
+    {
+      'hidden': boolean,
+      'selected': boolean,
+      'value': string,
+    },
+  ],
+}
 
 const logger = getLogger('services/obs');
 // TODO: Get actual replay prefix from OBS
@@ -39,6 +55,7 @@ export default class ObsClient implements VisionMixer {
   private currentRecordingFile?: string | null = undefined;
   private videoSettings?: VideoSettings = undefined;
   private previousRecordingState?: OBSEventTypes['RecordStateChanged']['outputState'] = undefined;
+  private encodingLatencyMs = 0;
   public readonly on: ObsConnection['on'];
   public readonly off: ObsConnection['off'];
   public readonly once: ObsConnection['once'];
@@ -60,6 +77,7 @@ export default class ObsClient implements VisionMixer {
     this.on('Identified', () => {
       this.clearCache();
       this.getVideoDimensions()
+        .andThen(this.getEncodingLatency.bind(this))
         .andThen(this.isRecording.bind(this))
         .andThen(this.getRecordingFolder.bind(this))
         .andThen(this.getRecordingFile.bind(this))
@@ -67,6 +85,7 @@ export default class ObsClient implements VisionMixer {
     });
     this.on('ConnectionClosed', () => this.clearCache());
     this.onRecordingStart(() => {
+      this.getEncodingLatency().mapErr(logger.error);
       // The recording file doesn't appear immediately
       setTimeout(() => this.getRecordingFile().mapErr(logger.error), 2000);
     });
@@ -96,6 +115,11 @@ export default class ObsClient implements VisionMixer {
 
   public onConnect(cb: () => void): void {
     this.on('Identified', cb);
+  }
+
+  public getVersion(): ResultAsync<string, Error> {
+    return this.obs.call('GetVersion')
+      .map(resp => resp.obsVersion);
   }
 
   public getOutputDimensions(): ResultAsync<{ width: number; height: number }, Error> {
@@ -163,33 +187,40 @@ export default class ObsClient implements VisionMixer {
     path: string,
   ): ResultAsync<void, Error> {
     return this.obs.call('GetInputSettings', { inputName: name })
-      .map(({inputKind}) => {
-        switch (inputKind) {
-          case 'ffmpeg_source':
-            return ({
-              'is_local_file': true,
-              'local_file': path,
-            });
-          case 'vlc_source':
-            return ({
-              'playlist': [
-                {
-                  'hidden': false,
-                  'selected': false,
-                  'value': path,
-                },
-              ],
-            });
-          default:
-            return {};
+      .map<FfmpegSourceSettings|VlcSourceSettings|null>(({inputKind}) => {
+      switch (inputKind) {
+        case 'ffmpeg_source':
+          return ({
+            'is_local_file': true,
+            'local_file': path,
+          });
+        case 'vlc_source':
+          return ({
+            'playlist': [
+              {
+                'hidden': false,
+                'selected': false,
+                'value': path,
+              },
+            ],
+          });
+        default:
+          logger.warn(`Unsupported source type ${inputKind}, unable to set video file`);
+          return null;
+      }
+    })
+      .andThen(settings => {
+        if (settings) {
+          return this.obs.call('SetInputSettings', {
+            inputName: name,
+            // Satisfy this dumb JsonObject type they're using
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            inputSettings: settings as Record<string, any>,
+          });
+        } else {
+          return okAsync(undefined);
         }
-      })
-      .andThen(settings =>
-        this.obs.call('SetInputSettings', {
-          inputName: name,
-          inputSettings: settings,
-        })
-      );
+      });
   }
 
   public startRecording(): ResultAsync<void, Error> {
@@ -197,7 +228,9 @@ export default class ObsClient implements VisionMixer {
   }
 
   public stopRecording(): ResultAsync<void, Error> {
-    return this.obs.call('StopRecord');
+    // Don't return the recording file path, since this isn't available in all
+    // 5.x websocket versions.
+    return this.obs.call('StopRecord').map(() => undefined);
   }
 
   public onRecordingStart(cb: () => void): void {
@@ -231,9 +264,128 @@ export default class ObsClient implements VisionMixer {
       .map(resp => resp.outputActive);
   }
 
+  public getRecordingFormat(): ResultAsync<string, Error> {
+    return this.obs.call('GetProfileParameter', {
+      parameterCategory: 'Output',
+      parameterName: 'Mode',
+    }).andThen(({ parameterValue: outputMode }) => {
+      if (outputMode === 'Simple') {
+        return this.obs.call('GetProfileParameter', {
+          parameterCategory: 'SimpleOutput',
+          parameterName: 'RecFormat2',
+        }).map(({ parameterValue }) => parameterValue);
+      } else {
+        return this.obs.call('GetProfileParameter', {
+          parameterCategory: 'AdvOut',
+          parameterName: 'RecFormat2',
+        }).map(({ parameterValue }) => parameterValue);
+      }
+    });
+  }
+
+  public setRecordingFormat(format: string): ResultAsync<void, Error> {
+    const tempProfileName = 'temp_' + uuidv4();
+    return this.obs.callBatch(
+      [
+        {
+          requestType: 'GetProfileParameter',
+          requestData: {
+            parameterCategory: 'Output',
+            parameterName: 'Mode',
+          },
+        },
+        {
+          requestType: 'GetProfileList',
+        },
+      ],
+      { executionType: RequestBatchExecutionType.SerialFrame },
+    )
+      .andThen(resps => {
+        const [
+          { responseData: paramResp },
+          { responseData: profileResp },
+        ] = resps as [
+          ResponseMessage<'GetProfileParameter'>,
+          ResponseMessage<'GetProfileList'>,
+          ResponseMessage<'GetSourceScreenshot'>,
+        ];
+        const outputMode = paramResp.parameterValue;
+        const reqData = outputMode === 'Simple'
+          ? {
+            parameterCategory: 'SimpleOutput',
+            parameterName: 'RecFormat2',
+            parameterValue: format,
+          }
+          : {
+            parameterCategory: 'AdvOut',
+            parameterName: 'RecFormat2',
+            parameterValue: format,
+          };
+        return this.obs.call('SetProfileParameter', reqData)
+          .map(() => profileResp.currentProfileName);
+      })
+      // Unlike updating settings in the UI, setting the recording format via
+      // websocket apparently doesn't cause outputs to get reset. This results
+      // in OBS giving a 'Verify that the output being used supports chapter
+      // markers.' error when trying to add chapter markers, even though the
+      // recording file is actually being written as Hybrid MP4.
+      //
+      // Unfortunately neither SetOutputSettings nor SetVideoSettings seems to
+      // trigger this reset, so instead we have the ugly workaround below:
+      .andThen(delayResult<string, Error>(100))
+      .andThen(oldProfile => this.obs.call('CreateProfile', { profileName: tempProfileName })
+        .map(() => oldProfile)
+      )
+      .andThen(delayResult<string, Error>(250))
+      .andThen(oldProfile => this.obs.call('SetCurrentProfile', { profileName: oldProfile }))
+      .andThen(delayResult<void, Error>(250))
+      .andThen(() => this.obs.call('RemoveProfile', { profileName: tempProfileName }))
+      .andThen(delayResult<void, Error>(100));
+  }
+
+  /**
+   * Returns the unadjusted recording timestamp, for calibration convenience
+   */
+  public addRecordingChapterMarker(title: string): ResultAsync<string | null, Error> {
+    return this.obs.callBatch(
+      [
+        { requestType: 'CreateRecordChapter', requestData: { chapterName: title } },
+        { requestType: 'GetRecordStatus' },
+      ],
+      { executionType: RequestBatchExecutionType.SerialFrame },
+    ).map(responses => {
+      const [
+        _,
+        { responseData: recResp },
+      ] = responses as [ResponseMessage<'CreateRecordChapter'>, ResponseMessage<'GetRecordStatus'>];
+      return recResp.outputActive ? recResp.outputTimecode : null;
+    });
+  }
+
+  public getEncodingLatency(): ResultAsync<number, Error> {
+    return this.obs.call('GetPersistentData', {
+      realm: 'OBS_WEBSOCKET_DATA_REALM_PROFILE',
+      slotName: 'encodingLatencyMs',
+    }).map(({ slotValue }) => {
+      const latencyMs = typeof slotValue === 'number' ? slotValue : 0;
+      this.encodingLatencyMs = latencyMs;
+      return latencyMs;
+    });
+  }
+
+  public setEncodingLatency(latencyMs: number): ResultAsync<void, Error> {
+    return this.obs.call('SetPersistentData', {
+      realm: 'OBS_WEBSOCKET_DATA_REALM_PROFILE',
+      slotName: 'encodingLatencyMs',
+      slotValue: latencyMs,
+    }).map(() => {
+      this.encodingLatencyMs = latencyMs;
+    });
+  }
+
   public getTimestamps(): ResultAsync<{
-    recordingTimestamp: Timestamp | null;
     streamTimestamp: Timestamp | null;
+    recordingTimestamp: Timestamp | null;
   }, Error> {
     return this.obs.callBatch(
       [
@@ -246,9 +398,15 @@ export default class ObsClient implements VisionMixer {
         { responseData: streamResp },
         { responseData: recResp },
       ] = responses as [ResponseMessage<'GetStreamStatus'>, ResponseMessage<'GetRecordStatus'>];
+      let recordingTimestamp: Timestamp|null = null;
+      if (recResp.outputActive) {
+        let recMs = toMillis(recResp.outputTimecode);
+        recMs += this.encodingLatencyMs;
+        recordingTimestamp = fromMillis(recMs);
+      }
       return ({
         streamTimestamp: streamResp.outputActive ? streamResp.outputTimecode : null,
-        recordingTimestamp: recResp.outputActive ? recResp.outputTimecode : null,
+        recordingTimestamp,
       });
     });
   }
@@ -368,12 +526,18 @@ export default class ObsClient implements VisionMixer {
         ResponseMessage<'GetSourceScreenshot'>,
       ];
       const imgData = png.decodeBase64(imgResp.imageData);
+      let recordingTimestamp: Timestamp|null = null;
+      if (recResp.outputActive) {
+        let recMs = toMillis(recResp.outputTimecode);
+        recMs += this.encodingLatencyMs;
+        recordingTimestamp = fromMillis(recMs);
+      }
       return ({
         width: png.parseWidth(imgData),
         height: png.parseHeight(imgData),
         data: imgData,
         streamTimestamp: streamResp.outputActive ? streamResp.outputTimecode : null,
-        recordingTimestamp: recResp.outputActive ? recResp.outputTimecode : null,
+        recordingTimestamp,
       });
     });
   }
