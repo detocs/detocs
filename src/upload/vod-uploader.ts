@@ -559,23 +559,23 @@ export class VodUploader {
         const filenameQuery = titleify(path.basename(m.filename, path.extname(m.filename)));
         const titleQuery = m.title;
         return getVideoByName(auth, filenameQuery)
-          .andThen<{ video: youtubeV3.Schema$Video; name: string; }>(video => {
-          return video
-            ? ok({ video, name: filenameQuery })
-            : err(
-              new Error(`No video found for query "${filenameQuery}"`)
-            );
-        })
+          .andThen(video => {
+            return video
+              ? ok({ video, name: filenameQuery })
+              : err(
+                new Error(`No video found for query "${filenameQuery}"`)
+              );
+          })
           .orElse(e => {
             logger.warn(e);
             return getVideoByName(auth, titleQuery)
-              .andThen<{ video: youtubeV3.Schema$Video; name: string; }>(video => {
-              return video
-                ? ok({ video, name: titleQuery })
-                : err(
-                  new Error(`No video found for query "${titleQuery}"`)
-                );
-            });
+              .andThen(video => {
+                return video
+                  ? ok({ video, name: titleQuery })
+                  : err(
+                    new Error(`No video found for query "${titleQuery}"`)
+                  );
+              });
           })
           .andThen(({ video, name }) => {
             if (!video.id) {

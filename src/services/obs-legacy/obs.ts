@@ -12,7 +12,6 @@ import { Config, getConfig } from '@util/configuration/config.ts';
 import { Watcher, waitForFile } from '@util/fs.ts';
 import { getLogger } from '@util/logger.ts';
 import * as png from '@util/png.ts';
-import { combineAsync } from '@util/results.ts';
 
 import { ObsConnection, ObsConnectionImpl } from './connection.ts';
 
@@ -219,7 +218,7 @@ export default class ObsLegacyClient implements VisionMixer {
       });
     const timestampResult: ResultAsync<TimestampData, Error> =
       this.getTimestamps();
-    return combineAsync<ImageData | TimestampData, Error>([
+    return ResultAsync.combine([
       screenshotResult,
       timestampResult,
     ]).map(([screenshotImage, screenshotTimestamp]) => ({

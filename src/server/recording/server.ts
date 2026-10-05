@@ -4,7 +4,7 @@ import formidable from 'express-formidable';
 import filenamify from 'filenamify';
 import fs from 'fs';
 import { createServer } from 'http';
-import { combine, err, errAsync, ok, okAsync, ResultAsync } from 'neverthrow';
+import { err, errAsync, ok, okAsync, ResultAsync } from 'neverthrow';
 import path from 'path';
 import { promisify } from 'util';
 import ws from 'ws';
@@ -21,7 +21,6 @@ import * as httpUtil from '@util/http-server.ts';
 import { getId } from '@util/id.ts';
 import { getLogger } from '@util/logger.ts';
 import { mostRecent } from '@util/recording.ts';
-import { combineAsync } from '@util/results.ts';
 import { compareTimestamp, sanitizeTimestamp, validateTimestamp } from '@util/timestamp.ts';
 
 import RecordingLogger from './log.ts';
@@ -382,7 +381,7 @@ async function endRecordingGroup(_req: Request, res: Response): Promise<void> {
     timestamp: Timestamp;
     recordingGroup: RecordingGroup;
     recording: Recording|undefined;
-  }>(data => {
+  }, httpUtil.HttpError>(data => {
     const mostRecentGroup = mostRecent(state.recordingGroups);
     const mostRecentRecording = mostRecent(state.recordings);
     if (!mostRecentGroup?.startTimestamp) {
@@ -506,7 +505,7 @@ function getRecordingFileAndTimestamp(): ResultAsync<FileAndTimestamp, httpUtil.
     .map(({ recordingTimestamp }) => recordingTimestamp)
     || errAsync<string|null, httpUtil.HttpError>(httpUtil.userError('No connection to vision mixer found'));
 
-  return combineAsync([
+  return ResultAsync.combine([
     fileGetter,
     timestampGetter,
   ]).andThen(([ file, timestamp ]) => {
@@ -521,7 +520,7 @@ async function getRecordingFile(): Promise<{ folder: string | null, file: string
   if (!visMixer) {
     return { folder: null, file: null };
   }
-  return combine([
+  return ResultAsync.combine([
     visMixer.getRecordingFolder(),
     visMixer.getRecordingFile(),
   ])

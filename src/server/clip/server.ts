@@ -319,7 +319,7 @@ class ClipServer {
   private sendClip = async (req: Request, res: Response): Promise<void> => {
     // TODO: Properly distinguish between user and server errors
     return validateSendRequest(req.fields as SendRequest)
-      .andThen<{ clipView: ClipView, sourceName: string }>(
+      .andThen<{ clipView: ClipView, sourceName: string }, Error>(
       ({ id, sourceName }) => {
         const clipView = this.getVideoClipById(id).clipView;
         return clipView

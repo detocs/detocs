@@ -8,7 +8,6 @@ import BracketServiceProvider from '@services/bracket-service-provider.ts';
 import { writeFile } from '@util/fs.ts';
 import { getLogger } from '@util/logger.ts';
 import { getVersion } from '@util/meta.ts';
-import { combineAsync } from '@util/results.ts';
 
 import { Log } from './types.ts';
 
@@ -56,7 +55,7 @@ export function generateLog({
     e => e as Error,
   )
     .andThen(eventId =>
-      combineAsync(parsedUrls.map(parsed =>
+      ResultAsync.combine(parsedUrls.map(parsed =>
         ResultAsync.fromPromise(
           service.upcomingSetsByPhase(parsed.phaseId),
           e => e as Error,

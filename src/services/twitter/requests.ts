@@ -9,7 +9,6 @@ import { DataV2 } from 'twitter-api-v2/dist/esm/types/v2/shared.v2.types.js';
 
 import { User } from '@services/twitter/types.ts';
 import { getLogger } from '@util/logger.ts';
-import { combineAsync } from '@util/results.ts';
 
 const logger = getLogger('services/twitter');
 
@@ -48,7 +47,7 @@ export function tweet(
         },
       }))
       .mapErr(err => new ChainableError(`Unable to upload media ${mediaPath}`, err));
-  return combineAsync([replyParams, mediaParams])
+  return ResultAsync.combine([replyParams, mediaParams])
     .map<SendTweetV2Params>(paramsList => Object.assign({} as SendTweetV2Params, ...paramsList))
     .andThen(params => ResultAsync.fromPromise(
       client.v2.tweet(body, params),

@@ -87,7 +87,7 @@ export default class FileOutput implements Output {
           return okAsync({ rawData, writtenData: rawData });
         }
         return readFile(filePath)
-          .orElse<Error>(() => { logger.debug(`Unable to read ${filePath}`); return ok(''); })
+          .orElse(() => { logger.debug(`Unable to read ${filePath}`); return ok(''); })
           .andThen(currContent => currContent.trim() ? mergeFn(currContent, rawData) : ok(rawData))
           .map(mergedData => ({ rawData, writtenData: mergedData }));
       })

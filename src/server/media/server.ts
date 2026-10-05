@@ -126,10 +126,10 @@ export class MediaServer {
     // TODO: FFmpeg cannot operate on certain file types while they're still being written (e.g.
     // mp4). We should handle this somehow.
     return this.visMixer.getRecordingFile()
-      .andThen<string>(file =>
-      file
-        ? ok(file)
-        : err(new Error('Recording not started')))
+      .andThen(file =>
+        file
+          ? ok(file)
+          : err(new Error('Recording not started')))
       .andThen(file =>
         this.getVideoFrame(file, timestamp, height));
   }
@@ -383,7 +383,7 @@ export class MediaServer {
       return ResultAsync.fromPromise(
         this.saveFile(thumbnailFilename, img),
         e => new ChainableError('Unable to save thumbnail', e as Error),
-      ).map(() => ({
+      ).map<ImageFile>(() => ({
         type: 'image',
         filename: thumbnailFilename,
         url: this.getUrl(thumbnailFilename),

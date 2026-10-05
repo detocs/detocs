@@ -1,4 +1,4 @@
-import { ResultAsync, okAsync } from 'neverthrow';
+import { ResultAsync, fromAsyncThrowable, okAsync } from 'neverthrow';
 import ObsWebSocket, {
   OBSRequestTypes,
   OBSResponseTypes,
@@ -12,7 +12,6 @@ import pLimit from 'p-limit';
 import { getLogger } from '@util/logger.ts';
 import { sleep } from '@util/async.ts';
 import { Config } from '@util/configuration/config.ts';
-import { fromThrowable } from '@util/results.ts';
 
 const logger = getLogger('services/obs/connection');
 const MIN_RECONNECTION_DELAY = 5 * 1000;
@@ -150,7 +149,7 @@ function handleNotReady<T>(
   requestType: string,
   sendRequest: () => Promise<T>,
 ): (() => ResultAsync<T, Error>) {
-  return fromThrowable(async () => {
+  return fromAsyncThrowable(async () => {
     let obsError = null;
     let resp = null;
     do {
